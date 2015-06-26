@@ -1,0 +1,29 @@
+#!/usr/bin/tcsh
+
+# enter here your MiToBo installation path:
+setenv MITOBO_HOME "absolute path"
+
+# append external MiToBo jars
+setenv CLASSPATH " "
+foreach jar ($MITOBO_HOME/extjars/*.jar)
+  if ($?CLASSPATH) then
+    setenv CLASSPATH $jar":"$CLASSPATH
+  else
+    setenv CLASSPATH $jar
+  endif
+end
+
+# append internal MiToBo jars
+foreach jar ($MITOBO_HOME/intjars/*.jar)
+    setenv CLASSPATH $jar":"$CLASSPATH
+end
+
+# append our own classes
+setenv CLASSPATH "$MITOBO_HOME/plugins:""$CLASSPATH"
+
+# set LD_LIBRARY_PATH
+setenv LD_LIBRARY_PATH "$MITOBO_HOME/lib"
+
+# run MiToBo, maybe you will have to adapt the memory settings
+java -Xms1024m -Xmx1024m -Xss128m -Dplugins.dir=$MITOBO_HOME ij.ImageJ
+

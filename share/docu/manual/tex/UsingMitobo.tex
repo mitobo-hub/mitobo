@@ -1,0 +1,28 @@
+\mitobo ships with a large collection of image analysis operators, basically developed for
+microscope image processing and analysis, however, applicable to any other image analysis
+task as well. After \mitobo was successfully installed (please refer to its
+website, \href{http://www.informatik.uni-halle.de/mitobo}{http://www.informatik.uni-halle.de/mitobo}, for details
+on the installation procedure) you can directly use the operators and plugins of the toolbox like any other ImageJ plugin 
+(Sec.~\ref{sec:opRunImageJ}). In addition, \mitobo provides a commandline tool for running operators, e.g., from shell scripts
+(Sec.~\ref{sec:opRunCmdline}). 
+Irrespective of how an operator is invoked, after termination processing histories can be accessed and explored for all result 
+data objects (Sec.~\ref{sec:history}). 
+Finally, if you require to combine various operators into a more complex workflow for solving your specific problem, the graphical 
+editor {\tt Grappa} offers support for doing this in a comfortable graphical manner (Sec.~\ref{sec:grappa}).
+
+\section{Running Operators within ImageJ and ImageJ $2.0$}
+\input{OpRunnerImageJ}
+\label{sec:opRunImageJ}
+
+\section{Running Operators from Commandline}
+\input{OpRunnerCmdline}
+\label{sec:opRunCmdline}
+
+\section{Graphical Workflow Design with Grappa}
+\input{Grappa}
+\label{sec:grappa}
+
+\section{Accessing and Exploring History Graphs}
+\input{HistoryGraphs}
+\label{sec:history}
+

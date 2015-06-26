@@ -1,0 +1,8 @@
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.toc
+manual/tex/MiToBoGuide.pdf
+techbook/tex/MiToBoTechBook.pdf

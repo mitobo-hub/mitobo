@@ -1,0 +1,38 @@
+\section{\mitobo and ImageJ Plugins}
+\label{chap:ImplPlugins}
+The ImageJ plugin concept is a very powerful tool to extend the functionality of ImageJ
+and, e.g., integrate third-party APIs. Accordingly, one of the main goals of the ImageJDev 
+project developing ImageJ $2.0$ is to preserve the usability of available ImageJ plugins as far 
+as possible. 
+
+\mitobo seeks to extent ImageJ's functionality, 
+i.e.~a natural aim is to have \mitobo operators directly available in ImageJ and ImageJ $2.0$ as
+well, and to provide full integration in terms of easy interaction with other plugins. 
+The straightforward solution for this goal would be to associate each single \mitobo operator with 
+an explicit ImageJ $1$ or $2.0$ plugin. But, we have outlined the basic idea of generic operator 
+execution implemented in \alida and \mitobo before. Consequently, as \mitobo's operator runners 
+already provide functionality to execute all operators in a generic fashion, there is no need for 
+explicit plugin implementations anymore. Rather it is sufficient to make the operator runners 
+available as plugins in ImageJ and ImageJ $2.0$ -- which is already the case. 
+Given that all operators can 
+directly be used from within both ImageJ releases.
+
+Indeed this approach of having \mitobo provide its own operator execution mechanisms also solves the
+problem of compatibility to a certain degree. In particular, during the ongoing transmission period 
+between both ImageJ versions it remains unclear of how to implement new plugin functionality that 
+should at best be available simultaneously in ImageJ and ImageJ $2.0$. Although 
+ImageJ $1$ plugins should in principal be supported by ImageJ $2$, both types of plugins are
+not compatible with each other, and ImageJ $2$ plugins cannot be executed from within ImageJ $1$. 
+Thus, by its operator runners being completely independent of ImageJ \mitobo offers an execution 
+mechanism which is compatible with ImageJ and ImageJ $2.0$. 
+
+Of course, this only holds if no ImageJ $1$ or ImageJ $2$ specific functionality is used by
+the operators. As soon as this is done, an operator is tightly linked to one of the two ImageJ 
+versions. While using ImageJ $1$ functionality might still allow to execute the operator in 
+ImageJ $2$, the use of ImageJ $2$ renders the operator unsuitable for usage with ImageJ $1$.
+However, this is not a \mitobo specific problem, but rather a question of software design.
+Binding an implementation to an external library always renders the implementation useless without
+that library. The only way to avoid such tight bindings with regard to operators and ImageJ is to
+keep the functional core of operators free of ImageJ version specific dependencies as far as 
+possible if the implementation targets at both releases.
+ 

@@ -1,0 +1,95 @@
+@ARTICLE{snakes,
+   author = "M. Kass, A. P. Witkin, D. Terzopoulos",
+   title = "Snakes: Active contour models",
+   journal = "International Journal of Computer Vision",
+   volume = "1",
+   number = "4",
+   year = "1988",
+   pages = "321--331"
+}
+
+@ARTICLE{gvf,
+   author = "C. Xu, J. L. Prince",
+   title = "Snakes, Shapes, and Gradient Vector Flow",
+   journal = "IEEE Transactions on Image Processing",
+   volume = "7",
+   number = "3",
+   year = "1998",
+   pages = "359--369"
+}
+
+@inproceedings{Glass12_ImageJ,
+  author = "M. Gla{\ss} and B. M{\"o}ller and S. Posch",
+  title = "Scratch Assay Analysis in ImageJ",
+  booktitle = "Proceedings of ImageJ User and Developer Conference",
+  year = {2012},
+  pages = {211-214},
+  address = {Mondorf-les-Bains, Luxembourg},
+  month = {October},
+  abstract = {Scratch assays are a widely used technique for assessing the migratory
+	potential of cells. However, due to a lack of appropriate tools these assays 
+        are often analyzed manually. Here we present a plugin for the automatic	
+	segmentation and analysis of scratch assay images. The input images
+	are segmented using a topology-preserving non-PDE level set approach. 
+        To exclude images where the scratch has	already been completely closed a support	
+	vector machine separates images containing a scratch from such that
+	do not. As our method requires adjustment of only two parameters, 
+        it is easy to use and has already been successfully applied in practice.},
+  comment = {ISBN 2-919941-18-6},
+  keywords = {Scratch assay, Level sets, SVM, Entropy, Topology preservation}
+}
+
+@article{Glass12_PR,
+  author = "M. Gla{\ss} and B. M{\"o}ller and A. Zirkel and K. W{\"a}chter and 
+  	S. H{\"u}ttelmaier and S. Posch",
+  title = {Cell Migration Analysis: Segmenting Scratch Assay Images with Level
+	Sets and Support Vector Machines},
+  journal = {Pattern Recognition},
+  year = {2012},
+  volume = {45},
+  pages = {3154-3165},
+  number = {9},
+  month = {September},
+  abstract = {Cell migration assessment is often done by scratch assay experiments
+	for which quantitative evaluations are usually performed manually.
+	Here we present an automatic analysis pipeline detecting scratch
+	boundaries and measuring areas based on level sets. We extend non-PDE
+	level sets for topology-preservation and use an entropy-based energy
+	functional. This approach by design segments a scratch in every image,
+	hence, we employ support vector machines to identify images showing
+	no scratch at all. Compared to other algorithms our approach, implemented
+	as ImageJ plugin, relies on a minimal set of parameters. Experimental
+	evaluations show the high quality of results and their suitability
+	for biomedical investigations.},
+  doi = {10.1016/j.patcog.2012.03.001},
+  keywords = {Scratch assay, Segmentation, Level sets, Texture, Topology, SVM},
+  url = {http://www.sciencedirect.com/science/article/pii/S0031320312001173}
+}
+
+@inproceedings{Moeller12_IJ,
+  author = {B. M{\"o}ller and D. Misiak},
+  title = {Snake Optimizer - Object Segmentation with Parametric Active Contours
+	in ImageJ},
+  booktitle = {Proc. of ImageJ User \& Developer Conference},
+  year = {2012},
+  pages = {215-217, 222},
+  address = {Mondorf-les-Bains, Luxembourg},
+  month = {October},
+  abstract = {Parametric active contour models, commonly denoted as snakes, provide
+	an integrated framework for transforming object segmentation tasks into 
+        well-founded mathematical optimization problems. Over the years snakes
+	have proven large flexibility in segmenting a great variety of different
+	objects in lots of setups. Nevertheless, each new object segmentation problem 
+        again raises the question if snakes are capable of solving the problem
+	and if so, which combination of energies to apply. Here we present
+	our ImageJ plugin 'SnakeOptimizer' which implements object segmentation 
+        based on 2D parametric active contours.	It is well-suited to support users in
+	answering the above questions during rapid-prototyping stages, as
+	well as for being integrated into productive analysis workflows. 
+        The functional core of the implementation can easily be extended with new energy models
+	based on functionality provided by Alida.1 The ImageJ plugin features
+	a handy GUI for interactive use, and the optimizer can also be run headless from 
+        command line or on the programming level using its intuitive API.},
+  comment = {ISBN 2-919941-18-6},
+  keywords = {Image Segmentation, Active Contours, Snakes, ImageJ, Alida}
+}

@@ -1,0 +1,107 @@
+\section{Using Operators in Your Code}
+\label{sec:callOp}
+\alida defines a unique invocation mechanism for operators which needs to be applied when using
+operators on the programmatic level. Basically the following steps are necessary to use a \mitobo
+operator in your own code:
+\begin{enumerate}
+  \item instantiate an object of the desired operator class
+  \item set the operator parameters
+  \item execute the operator by calling its {\tt 'runOp(\ldots)'} method
+  \item get the results
+\end{enumerate}
+
+\begin{figure*}[tbp]
+\centering
+\lstinputlisting[linerange={133-142},basicstyle=\small, xrightmargin=.1\textwidth,
+xleftmargin=.1\textwidth]{../code/ImgOpen.java }
+\caption{\label{exa:openExample}Example of a hypothetical function applying an opening to an 
+image which is implemented based on \mitobo operators for morphological operations.}
+\end{figure*}
+In Fig.~\ref{exa:openExample} an examplary function calling \mitobo operators is shown based on 
+which we will now outline the different steps listed above in detail. Suppose that the function 
+that is to be realized based on \mitobo operators should perform an opening operation on an image,
+i.e.~first do an erosion, then a dilation. \mitobo includes two operators for these tasks, the
+erosion operator {\tt 'ImgErode'} and the dilation operator {\tt 'ImgDilate'}. Given these 
+operators our opening function can be implemented as follows. First of all we instantiate an 
+object of class {\tt 'ImgErode'} (line $2$ in Fig.~\ref{exa:openExample}) and specify the 
+parameters using its {\tt 'setParameter(\ldots)'} method (lines $3-4$). 
+The method actually takes as input the name of
+the parameter to be set and the corresponding value. In line $5$ we are running the operator 
+calling its {\tt 'runOp(\ldots)'} method. Note that this method is the {\em only} way of 
+executing an operator. Although there are different versions of the method dedicated
+to different strategies on how to document the call to the operator in the processing history
+all of them basically do some logging for the processing history and then call the operator's
+{\tt 'operate()'} method. Please refer to the \alida guide for further details. 
+
+After eroding the input image we want to apply a
+dilation to the result image of the erosion. To this end we instantiate an object of type
+{\tt 'ImgDilate'} (line $6$). This operator class, for convenience, offers a constructor which 
+already takes the parameter values as arguments. Consequently, the call of the constructor is 
+sufficient in this case to readily configure the operator. In line $7$ the dilation operator is 
+finally executed, and subsequently the result image is fetched from the operator and returned by
+the function that was just implemented.
+
+\section{Implementing Operators}
+\label{sec:makeOp}
+When the \mitobo operator runners or Grappa are required to invoke an operator, they basically 
+follow the steps outlined in the previous section that have to be performed for using an operator on 
+the programmatic level. First they instantiate an object of the corresponding class, then they set 
+the operator's parameters to the values queried graphically or via commandline from the user,
+and finally they call the {\tt 'runOp(\ldots)'} method for executing the operator. To enable this
+procedure generically for all operators the implementation of an operator requires the following
+things to be done:
+\begin{enumerate}
+  \item implementation of a public default constructor for the new operator class without any 
+  	parameters as this is the only constructor of a class which can be called generically
+  \item definition of the operator parameters, in \alida/\mitobo this is accomplished
+  	by annotating corresponding member variables of the operator class
+  \item implementation of the method {\tt 'operate()'} which should contain the functionality
+  \item annotation of the operator class as a whole
+\end{enumerate}
+The last step is necessary to enable \alida to automatically register operators upon
+start-up, e.g., to make them available to the graphical operator runner or as nodes in Grappa.
+
+In Fig.~\ref{exa:opExample} a code snippet of a prototypical operator class is shown. The code 
+is a slightly simplified version of the operator class 
+{\tt 'de.unihalle.informa\-tik.MiToBo.morpholo\-gy.ImgErode'} shipped with \mitobo.
+
+An operator in \mitobo is basically the implementation of a class extending the base class 
+{\tt 'de.unihalle.informatik.MiToBo.core.operator.MTBOperator'} common for all operators (which 
+by itself extends {\tt 'de.unihalle.informatik.Alida.operator.ALDOperator'}). Accordingly
+from line $4$ of the code it can be seen that the new class extends \mitobo's operator base 
+class. Subsequently in lines $6-16$ the parameters of the operator are declared. They are given by 
+member variables annotated as {\tt 'Parameter'}. This annotation is an \alida annotation, but 
+is quite similar to the corresponding annotation used in ImageJ $2.0$. The annotation requires 
+for each parameter to specify a label that, e.g., is used for automatic GUI generation. In addition,
+the direction of the parameter needs to be specified, i.e.~if it is an input or an output parameter,
+and a short description should be given. This description is for example used to generate tooltips 
+for the parameters in the operator configuration windows. 
+
+In lines $18-24$ the default constructor of the class is implemented, while its main function is
+to be found in lines $33-40$. The {\tt 'operate()'} function does the actual work. In this example 
+it simply calls an internal method of the operator class (not shown for clarity), and stores the 
+result of this function in the operator's output parameter 'resultImg'.
+
+As mentioned above the operator class by itself needs to be annotated to be automatically 
+registered by the \alida/\mitobo framework. This annotation can be seen in lines $2-3$. The 
+annotation {\tt 'ALDAOperator'} has certain parameters, e.g.~a generic execution mode can be 
+specified which allows to exclude operators from generic graphical or commandline execution. 
+Also the category of the operator can be specified, i.e.~if it is easily applicable and of common 
+interest, or if it is rather specialized and most probably not of common interest for most users
+(cf.~Sec.~\ref{sec:opRunImageJ}).   
+ \begin{figure*}[htbp]
+\centering
+\lstinputlisting[linerange={67-108},basicstyle=\small, xrightmargin=.1\textwidth,
+xleftmargin=.1\textwidth]{../code/ImgErode.java }
+\caption[Implementation example for a standard
+ImageJ plugin]{\label{exa:opExample}Example implementation of an operator in \mitobo.}
+\end{figure*}
+
+On implementing a new operator you are basically free on how to organize your class. One thing 
+you should keep in mind, however, is that the {\tt 'operate()'} method is the only method ever 
+called on operator objects from outside (except from public getter and setter methods, if provided). 
+Hence, all initialization required by the 
+operator should be done within or at least be invoked from within this function, and never 
+within any constructor. Finally, for improving usability of operators it is advisable,
+even if not mandatory, to provide getter and setter methods for its parameters as these 
+significantly simplify usage of the operator on the programmatic level.

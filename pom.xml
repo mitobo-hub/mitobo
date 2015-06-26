@@ -1,0 +1,708 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>de.unihalle.informatik.MiToBo</groupId>
+  <artifactId>mitobo</artifactId>
+  <version>1.6</version>
+  <packaging>jar</packaging>
+
+  <name>mitobo</name>
+  <description>MiToBo - A Microscope Image Analysis TOolBox</description> 
+  <url>http://www.informatik.uni-halle.de/mitobo</url>
+  <inceptionYear>2010</inceptionYear>
+
+  <licenses>
+    <license>
+      <name>GNU General Public License version 3.0</name>
+      <url>http://www.gnu.org/licenses/gpl-3.0.html</url>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>Martin Luther University Halle-Wittenberg</name>
+    <url>http://www.uni-halle.de</url>
+  </organization>
+
+  <developers>
+    <developer>
+      <id>moeller</id>
+      <email>birgit.moeller@informatik.uni-halle.de</email>
+      <name>Birgit Moeller</name>
+      <organization>Martin Luther University Halle-Wittenberg</organization>
+      <organizationUrl>http://www.informatik.uni-halle.de/moeller</organizationUrl>
+      <roles>
+	<role>Developer</role>
+      </roles>
+      <timezone>+1</timezone>
+    </developer>
+    <developer>
+      <id>posch</id>
+      <email>stefan.posch@informatik.uni-halle.de</email>
+      <name>Stefan Posch</name>
+      <organization>Martin Luther University Halle-Wittenberg</organization>
+      <organizationUrl>http://www.informatik.uni-halle.de/posch</organizationUrl>
+      <roles>
+	<role>Developer</role>
+      </roles>
+      <timezone>+1</timezone>
+    </developer>
+    <developer>
+      <id>gress</id>
+      <email>oliver.gress@informatik.uni-halle.de</email>
+      <name>Oliver Gress</name>
+      <organization>Martin Luther University Halle-Wittenberg</organization>
+      <roles>
+	<role>Developer</role>
+      </roles>
+      <timezone>+1</timezone>
+    </developer>
+    <developer>
+      <id>glass</id>
+      <email>markus.glass@medizin.uni-halle.de</email>
+      <name>Markus Glass</name>
+      <organization>Martin Luther University Halle-Wittenberg</organization>
+      <roles>
+	<role>Developer</role>
+      </roles>
+      <timezone>+1</timezone>
+    </developer>
+    <developer>
+      <id>misiak</id>
+      <email>danny.misiak@informatik.uni-halle.de</email>
+      <name>Danny Misiak</name>
+      <organization>Martin Luther University Halle-Wittenberg</organization>
+      <roles>
+	<role>Developer</role>
+      </roles>
+      <timezone>+1</timezone>
+    </developer>
+  </developers>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <YEAR>2015</YEAR>
+    <!-- define a default native directory, does not work in all cases,
+	 but avoids that Maven fails completely -->
+    <native.libdir>lib64</native.libdir>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>2.6</version>
+        <executions>
+          <!-- files needed for execution -->
+          <execution>
+            <id>copy-resources-for-execution</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+	      <delimiters>
+	        <delimiter>${*}</delimiter> <!-- to keep the default behavior --> 
+	        <delimiter>@*@</delimiter>  <!-- to add Ant-like tokens style --> 
+	      </delimiters>
+              <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+              <resources>
+                <resource>
+	          <directory>src/main/resources</directory>
+	          <includes>
+                    <include>revision-mitobo.txt</include>
+	          </includes>
+	          <filtering>true</filtering>
+                  </resource>
+                <resource>
+	           <directory>src/main/resources</directory>
+	           <excludes>
+                     <exclude>revision-mitobo.txt</exclude>
+	           </excludes>
+	           <filtering>false</filtering>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+          <!-- files needed to package -->
+          <execution>
+            <id>copy-resources-for-packaging</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+	      <delimiters>
+	        <delimiter>${*}</delimiter> <!-- to keep the default behavior --> 
+	        <delimiter>@*@</delimiter>  <!-- to add Ant-like tokens style --> 
+	      </delimiters>
+              <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+              <resources>
+                <resource>
+	          <directory>src/main/java</directory>
+	          <filtering>true</filtering>
+	          <includes>
+                    <include>**/*.java</include>
+	          </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- prepare packaging, extract online help comments -->
+      <plugin>
+        <groupId>de.unihalle.informatik.AlidaMiToBo.maven.plugins.help</groupId>
+        <artifactId>comment-parser-maven-plugin</artifactId>
+        <version>1.6</version>
+	<executions>
+          <execution>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>parse-comments</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- copy dependencies incl. help jar to local folder -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+	<version>2.10</version>
+        <executions>
+          <execution>
+            <id>Copy dependency jars</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+	    <configuration>
+	      <outputDirectory>
+		${project.build.directory}/dependency-jars
+	      </outputDirectory>
+	    </configuration>
+          </execution>
+	  <execution>
+	    <id>unpack</id>
+	    <phase>compile</phase>
+	    <goals>
+	      <goal>unpack</goal>
+	    </goals>
+	    <configuration>
+	      <artifactItems>
+		<artifactItem>
+		  <groupId>de.unihalle.informatik.MiToBo.native</groupId>
+		  <artifactId>mitobo-native-${native.libdir}</artifactId>
+		  <version>1.0</version>
+		  <type>jar</type>
+		  <overWrite>true</overWrite>
+		  <outputDirectory>target/natives/${native.libdir}</outputDirectory>
+		</artifactItem>
+	      </artifactItems>
+	    </configuration>
+	  </execution>
+        </executions>
+      </plugin>
+      <!-- update helpset archive and copy files to target/classes -->
+      <plugin>
+        <groupId>de.unihalle.informatik.AlidaMiToBo.maven.plugins.help</groupId>
+        <artifactId>helpset-file-injector-maven-plugin</artifactId>
+        <version>1.4</version>
+	<executions>
+          <execution>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>update-helpset</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+	<groupId>org.apache.maven.plugins</groupId>
+	<artifactId>maven-compiler-plugin</artifactId>
+	<version>3.3</version>
+	<configuration>
+	  <source>1.6</source>
+	  <target>1.6</target>
+	  <encoding>${project.build.sourceEncoding}</encoding>
+	  <!-- Disable annotation processors during normal compilation! -->
+	  <compilerArgument>-proc:none</compilerArgument>
+	</configuration>
+      </plugin>
+      <plugin>
+	<!-- run annotation processing -->
+	<groupId>org.bsc.maven</groupId>
+	<artifactId>maven-processor-plugin</artifactId>
+	<version>2.2.4</version>
+	<executions>
+	  <execution>
+	    <id>process</id>
+	    <goals>
+	      <goal>process</goal>
+	    </goals>
+	    <phase>generate-sources</phase>
+	    <configuration>
+	      <compilerArguments>-encoding ${project.build.sourceEncoding}</compilerArguments>
+	    </configuration>
+	  </execution>
+	  <execution>
+	    <id>process-test</id>
+	    <goals>
+	      <goal>process-test</goal>
+	    </goals>
+	    <phase>generate-test-sources</phase>
+	    <configuration>
+	      <compilerArguments>-encoding ${project.build.sourceEncoding}</compilerArguments>
+	    </configuration>
+	  </execution>
+	</executions>
+      </plugin>
+      <!-- configure native resources for unit testing -->
+      <plugin>
+	<groupId>org.apache.maven.plugins</groupId>
+	<artifactId>maven-surefire-plugin</artifactId>
+	<version>2.18.1</version>
+	<configuration>
+	  <forkMode>once</forkMode>
+	  <argLine>-Djava.library.path=./target/natives/${native.libdir}</argLine>
+	</configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.6</version>
+      </plugin>
+      <plugin>
+	<groupId>org.apache.maven.plugins</groupId>
+	<artifactId>maven-site-plugin</artifactId>
+	<version>3.4</version>
+      </plugin>
+      <plugin>
+	<!-- package binaries and sources into zip files;
+	     Attention: here we use our own assembly descriptors! -->
+	<artifactId>maven-assembly-plugin</artifactId>
+	<version>2.5.4</version>
+	<configuration>
+	  <descriptors>
+	    <descriptor>src/main/assembly/mitobo-bin.xml</descriptor>
+	    <descriptor>src/main/assembly/mitobo-src.xml</descriptor>
+	  </descriptors>
+	</configuration>
+	<executions>
+	  <execution>
+	    <id>assembly-distribution-Id</id>
+	    <phase>package</phase>
+	    <goals>
+	      <goal>single</goal>
+	    </goals>
+	  </execution>
+	</executions>
+      </plugin>
+      <plugin>
+	<!-- package javadocs -->
+	<groupId>org.apache.maven.plugins</groupId>
+	<artifactId>maven-javadoc-plugin</artifactId>
+	<version>2.10.3</version>
+	<configuration>
+	  <javadocVersion>1.6</javadocVersion>
+	  <stylesheet>java</stylesheet>
+          <show>private</show>
+	  <taglets>
+	    <taglet>
+	      <tagletClass>latexlet.InlineLaTeXlet</tagletClass>
+	      <tagletArtifact>
+		<groupId>latexlet</groupId>
+		<artifactId>latexlet</artifactId>
+		<version>1.2f7</version>
+	      </tagletArtifact>
+	    </taglet>
+	    <taglet>
+	      <tagletClass>latexlet.InlineBlockLaTeXlet</tagletClass>
+	      <tagletArtifact>
+		<groupId>latexlet</groupId>
+		<artifactId>latexlet</artifactId>
+		<version>1.2f7</version>
+	      </tagletArtifact>
+	    </taglet>
+	    <taglet>
+	      <tagletClass>latexlet.BlockLaTeXlet</tagletClass>
+	      <tagletArtifact>
+		<groupId>latexlet</groupId>
+		<artifactId>latexlet</artifactId>
+		<version>1.2f7</version>
+	      </tagletArtifact>
+	    </taglet>
+	  </taglets>
+        </configuration>
+	<executions>
+	  <execution>
+	    <id>attach-javadocs</id>
+	    <goals>
+	      <goal>jar</goal>
+	    </goals>
+	  </execution>
+	</executions>
+      </plugin>
+
+      <!-- configuration to run MiToBo via mvn exec:exec -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.4.0</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+          </execution>
+        </executions>
+	<configuration>
+          <executable>java</executable>
+	  <classpathScope>runtime</classpathScope>
+          <arguments>
+	    <argument>-classpath</argument>
+            <!-- automatically creates the classpath using all project dependencies,
+                 also adding the project build directory -->
+            <classpath/>
+	    <argument>-Xms2048m</argument>
+	    <argument>-Xmx2048m</argument>
+	    <argument>-Djava.library.path=target/natives/${native.libdir}</argument>
+	    <argument>-Dalida.versionprovider_class=de.unihalle.informatik.Alida.version.ALDVersionProviderGit</argument>
+	    <argument>-Dalida.oprunner.level=standard</argument>
+            <argument>ij.ImageJ</argument>
+            <argument>-ijpath</argument>
+            <argument>..</argument>
+          </arguments>
+        </configuration>
+      </plugin>
+
+    </plugins>
+
+    <pluginManagement>
+      <plugins>
+	<!--This plugin's configuration is used to store Eclipse m2e settings only. 
+	    It has no influence on the Maven build itself.-->
+	<plugin>
+	  <groupId>org.eclipse.m2e</groupId>
+	  <artifactId>lifecycle-mapping</artifactId>
+	  <version>1.0.0</version>
+	  <configuration>
+	    <lifecycleMappingMetadata>
+	      <pluginExecutions>
+		<pluginExecution>
+		  <pluginExecutionFilter>
+		    <groupId>
+		      org.apache.maven.plugins
+		    </groupId>
+		    <artifactId>
+		      maven-dependency-plugin
+		    </artifactId>
+		    <versionRange>[2.1,)</versionRange>
+		    <goals>
+		      <goal>copy-dependencies</goal>
+		      <goal>unpack</goal>
+		    </goals>
+		  </pluginExecutionFilter>
+		  <action>
+		    <ignore></ignore>
+		  </action>
+		</pluginExecution>
+	      </pluginExecutions>
+	    </lifecycleMappingMetadata>
+	  </configuration>
+	</plugin>
+      </plugins>
+    </pluginManagement>
+
+  </build>
+
+  <repositories>
+<!--
+    <repository>
+      <id>jboss</id>
+      <name>JBoss Thirdparty Releases</name>
+      <url>https://repository.jboss.org/nexus/content/repositories/thirdparty-releases</url>
+      <layout>default</layout>
+    </repository>
+-->
+    <repository>
+      <id>central</id>
+      <name>Maven Central Repository</name>
+      <url>http://repo1.maven.org/maven2</url>
+    </repository>
+    <repository>
+      <id>imagej.public</id>
+      <url>http://maven.imagej.net/content/groups/public</url>
+    </repository>
+    <repository>
+      <id>snapshots</id>
+      <name>Archiva Snapshot Repository on 'moon'</name>
+      <url>https://moon.informatik.uni-halle.de/archiva/repository/snapshots/</url>
+      <layout>default</layout>
+    </repository>
+    <repository>
+      <id>internal</id>
+      <name>Archiva Internal Repository on 'moon'</name>
+      <url>https://moon.informatik.uni-halle.de/archiva/repository/internal/</url>
+      <layout>default</layout>
+    </repository>
+    <repository>
+      <id>releases</id>
+      <name>Archiva Release Repository on 'moon'</name>
+      <url>https://moon.informatik.uni-halle.de/archiva/repository/releases/</url>
+      <layout>default</layout>
+    </repository>
+  </repositories>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>central</id>
+      <name>Maven Central Repository</name>
+      <url>http://repo1.maven.org/maven2</url>
+    </pluginRepository>
+    <pluginRepository>
+      <id>snapshots</id>
+      <name>Archiva Snapshot Repository on 'moon'</name>
+      <url>https://moon.informatik.uni-halle.de/archiva/repository/snapshots/</url>
+      <layout>default</layout>
+    </pluginRepository>
+    <pluginRepository>
+      <id>internal</id>
+      <name>Archiva Internal Repository on 'moon'</name>
+      <url>https://moon.informatik.uni-halle.de/archiva/repository/internal/</url>
+      <layout>default</layout>
+    </pluginRepository>
+    <pluginRepository>
+      <id>releases</id>
+      <name>Archiva Release Repository on 'moon'</name>
+      <url>https://moon.informatik.uni-halle.de/archiva/repository/releases/</url>
+      <layout>default</layout>
+    </pluginRepository>
+  </pluginRepositories>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+	<groupId>net.imagej</groupId>
+	<artifactId>pom-imagej</artifactId>
+	<version>8.0.1</version>
+	<type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+  <dependencies>
+    <!-- Compile dependencies -->
+    <dependency>
+      <groupId>net.imagej</groupId>
+      <artifactId>ij</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>ome</groupId>
+      <artifactId>formats-api</artifactId>
+    </dependency>
+<!--
+    <dependency>
+      <groupId>ome</groupId>
+      <artifactId>formats-common</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>ome</groupId>
+      <artifactId>ome-xml</artifactId>
+    </dependency>
+-->
+    <dependency>
+      <groupId>ome</groupId>
+      <artifactId>formats-bsd</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>gov.nist.math</groupId>
+      <artifactId>jama</artifactId>
+      <version>1.0.3</version>
+    </dependency>
+		<dependency>
+			<groupId>org.ejml</groupId>
+			<artifactId>all</artifactId>
+			<version>0.27</version>
+		</dependency>
+		<dependency>
+      <groupId>tw.edu.ntu.csie</groupId>
+      <artifactId>libsvm</artifactId>
+      <version>3.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.nuiton.thirdparty</groupId>
+      <artifactId>JRI</artifactId>
+      <version>0.9-6</version>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.11</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <!-- used for numerical calculations, e.g., in vesselness package -->
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-math3</artifactId>
+      <version>3.4.1</version>
+    </dependency>
+    <dependency>
+      <!-- used for clustering, e.g., in actin analysis -->
+      <groupId>nz.ac.waikato.cms.weka</groupId>
+      <artifactId>weka-dev</artifactId>
+      <version>3.7.11</version>
+    </dependency>
+    <dependency>
+      <!-- used for data visualization, e.g., in actin analysis -->
+      <groupId>org.jfree</groupId>
+      <artifactId>jfreechart</artifactId>
+      <version>1.0.19</version>
+    </dependency>
+    <dependency>
+      <!-- used by MTBPolygon2D -->
+      <groupId>uk.co.geolib</groupId>
+      <artifactId>geopolygons</artifactId>
+      <version>4.0</version>
+    </dependency>
+    <!-- ImgLib2 dependencies -->
+    <dependency>
+      <groupId>net.imglib2</groupId>
+      <artifactId>imglib2</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>net.imglib2</groupId>
+      <artifactId>imglib2-algorithm</artifactId>
+    </dependency>
+    <!-- MLU stuff -->
+    <dependency>
+      <groupId>de</groupId>
+      <artifactId>jstacs</artifactId>
+      <version>2.1</version>
+    </dependency>
+    <dependency>
+      <groupId>de.unihalle.informatik.MiToBo</groupId>
+      <artifactId>mitobo-xml</artifactId>
+      <version>2.0</version>
+    </dependency>
+    <dependency>
+      <groupId>de.unihalle.informatik.Alida</groupId>
+      <artifactId>alida</artifactId>
+      <version>2.6</version>
+      <scope>compile</scope>
+      <exclusions>
+	<exclusion>
+	  <groupId>org.slf4j</groupId>
+	  <artifactId>slf4j-log4j12</artifactId>
+	</exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>de.unihalle.informatik.AlidaMiToBo</groupId>
+      <artifactId>help-resources</artifactId>
+      <version>1.6</version>
+    </dependency>
+    <!-- Runtime dependencies -->
+    <dependency>
+      <groupId>ome</groupId>
+      <artifactId>formats-gpl</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <!-- Native dependencies -->
+    <dependency>
+      <groupId>de.unihalle.informatik.MiToBo.native</groupId>
+      <artifactId>mitobo-native-${native.libdir}</artifactId>
+      <version>1.2</version>
+    </dependency>
+  </dependencies>
+
+  <scm>
+    <connection>scm:git:https://trac.informatik.uni-halle.de/git/mitoboGit</connection>
+    <developerConnection>scm:git:https://trac.informatik.uni-halle.de/git/mitoboGit</developerConnection>
+  </scm>
+
+  <profiles>
+    <profile>
+      <id>deploy-internal</id>
+      <activation>
+	<activeByDefault>true</activeByDefault>
+      </activation>
+      <distributionManagement>
+	<snapshotRepository>
+	  <id>snapshots</id>
+	  <name>Archiva Snapshot Repository on 'moon'</name>
+	  <url>https://moon.informatik.uni-halle.de/archiva/repository/snapshots/</url>
+	</snapshotRepository>
+	<repository>
+	  <id>internal</id>
+	  <name>Archiva Internal Repository on 'moon'</name>
+	  <url>https://moon.informatik.uni-halle.de/archiva/repository/internal/</url>
+	</repository>
+      </distributionManagement>
+    </profile>
+    <profile>
+      <id>deploy-release</id>
+      <activation>
+	<activeByDefault>false</activeByDefault>
+      </activation>
+      <distributionManagement>
+	<snapshotRepository>
+	  <id>snapshots</id>
+	  <name>Archiva Snapshot Repository on 'moon'</name>
+	  <url>https://moon.informatik.uni-halle.de/archiva/repository/snapshots/</url>
+	</snapshotRepository>
+	<repository>
+	  <id>releases</id>
+	  <name>Archiva Release Repository on 'moon'</name>
+	  <url>https://moon.informatik.uni-halle.de/archiva/repository/releases/</url>
+	</repository>
+      </distributionManagement>
+    </profile>
+    <!-- architecture dependent settings -->
+    <profile>
+      <id>linux-x86</id>
+      <activation>
+	<os>
+	  <arch>i386</arch>
+	</os>
+      </activation>
+      <properties>
+	<native.libdir>lib32</native.libdir>
+      </properties>
+    </profile>
+    <profile>
+      <id>linux-x64</id>
+      <activation>
+	<os>
+	  <arch>amd64</arch>
+	</os>
+      </activation>
+      <properties>
+	<native.libdir>lib64</native.libdir>
+      </properties>
+    </profile>
+    <profile>
+      <id>win32</id>
+      <activation>
+	<os>
+	  <arch>Windows</arch>
+	</os>
+      </activation>
+      <properties>
+	<native.libdir>win32</native.libdir>
+      </properties>
+    </profile>
+  </profiles>
+
+  <issueManagement>
+    <system>MantisBT</system>
+    <url>http://www2.informatik.uni-halle.de/agprbio/mitobo-bts/main_page.php</url>
+  </issueManagement>
+
+</project>
+

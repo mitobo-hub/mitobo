@@ -1,0 +1,72 @@
+When using ImageJ or ImageJ $2.0$ it is quite natural to interact with plugins and operators, respectively, via 
+graphical user interfaces. Nevertheless, quite often not only some few images need to be analyzed,
+but nowadays even high-throughput processing is an important issue. While ImageJ has built-in
+functionality for scripting and macros, \mitobo in addition offers a handy commandline tool by 
+which all of its operators (and also ImageJ $2.0$ plugins) can directly be called from console in a
+generic fashion. This way they can easily be applied to large collections of image data and also be used
+from within shell scripts or comparable frameworks.  
+
+The commandline operator runner is essentially an \alida tool, i.e.~is to be found in the package
+{\tt de.unihalle.informatik.Alida.tools.OpRunner}. Its basic usage is as follows:
+{\small
+\begin{center}
+{\tt java  de.unihalle.informatik.Alida.tools.OpRunner  <operator name>  \{
+parameter=value\}}
+\end{center}
+}
+Its first argument is the name of the operator class to be executed. You do not need to specify its complete 
+package name, but the simple class name by itself is usually sufficient. Moreoever, the commandline 
+operator runner also supports auto-completion if the given prefix is unique among all operators 
+and plugins found on the classpath.  
+
+Following the operator name the commandline operator runner expects a set of 'name=value' pairs 
+for the parameters of the operator. While the parameter names are defined by the operator's 
+member variables (execute the operator runner with option '-n' to only print its parameters), 
+the exact 
+syntax of the value strings depends on the data types of the parameter and their data I/O providers. 
+For native data types and 
+strings it is sufficient to simply provide the concrete values, for image data types a filename
+is required from where to load the image. The following example illustrates this by calling 
+an operator for image erosion:
+{\small
+\begin{center}
+{\tt java de.unihalle.informatik.Alida.tools.OpRunner ImgErode inImg=test.tif
+masksize=3}
+\end{center}
+}
+However, the commandline operator runner and its built-in parser also support far more complex 
+calls to operators. To illustrate this, below the call to an extended snake segmentation operator
+is shown. The operator {\tt 'SnakeOptimizerCoupled'} allows to apply multiple simple snake 
+optimizer operators of type 
+{\tt 'SnakeOptimizerSingleVarCalc'} simultaneously to one image, given by the parameter 'inImg'. 
+The operator among others takes a prototypical operator object 
+of type {\tt 'SnakeOptimizerSingleVarCalc'} as input parameter ('snakeOptimizer'). This object 
+by itself expects, e.g., a weighted set of energies ('energySet') which is formed by a collection 
+of energy objects ('energies') and an array of corresponding weights ('weights'). The energy
+objects can again be parametrized, e.g., in the example below the energy object of type 
+{\tt 'MTBSnakeEnergyCD\_CVRegionFit'} defines two parameters {\tt lambda\_in} and {\tt lambda\_out}:
+\begin{center}
+\hspace*{-1cm}{\tt java  de.unihalle.informatik.Alida.tools.OpRunner 
+SnakeOptimizerCoupled $\backslash$ }\\
+{\tt  initialSnakes=RoiSet.xml inImg=cell.tif outSnakes=snakesOut.xml $\backslash$}\\
+\hspace*{-1.25cm}{\tt snakeOptimizer='\$SnakeOptimizerSingleVarCalc:\{energySet= $\backslash$}\\
+{\tt \{energies=[\$MTBSnakeEnergyCD\_CVRegionFit:\{lambda\_in=1.0,$\backslash$}\\
+\hspace*{9cm}{\tt lambda\_out=5.0\}],$\backslash$}\\
+\hspace*{-7.5cm}{\tt weights=[1.0]\}\}'}
+\end{center}
+
+For accessing the results of an operator invoked by the commandline runner it is required to 
+specify targets for the operator's output parameters. In case of the image erosion operator it provides
+its result through an output parameter denoted 'resultImg'. Consequently, to save the eroded image to 
+file it is sufficient to extend the operator call as follows: 
+\begin{center}
+{\tt java  de.unihalle.informatik.Alida.tools.OpRunner ImgErode inImg=test.tif
+$\backslash$\\
+\hspace*{5cm} masksize=3 resultImg=result.tif}
+\end{center}
+Note that output parameters for which no target is provided will be ignored by the commandline 
+operator runner, thus, are not available upon termination.
+
+The examples shown above only provide you with a very brief overview of the functionality of the 
+commandline operator runner. To learn more about all its options and features, please refer to 
+the documentation of \alida where more details can be found.  

@@ -1,0 +1,34 @@
+#!/bin/tcsh
+#
+# Display images from commandline using MiToBo's image reader
+# USAGE: runDisplayImage [-v|--verbose] image1 [image2 ...]
+
+# enter here your MiToBo installation path:
+setenv MITOBO_HOME "absolute path"
+
+# append external MiToBo jars
+setenv CLASSPATH " "
+foreach jar ($MITOBO_HOME/extjars/*.jar)
+  if ($?CLASSPATH) then
+    setenv CLASSPATH $jar":"$CLASSPATH
+  else
+    setenv CLASSPATH $jar
+  endif
+end
+
+# append internal MiToBo jars
+foreach jar ($MITOBO_HOME/intjars/*.jar)
+    setenv CLASSPATH $jar":"$CLASSPATH
+end
+
+# set LD_LIBRARY_PATH
+setenv LD_LIBRARY_PATH "$MITOBO_HOME/lib"
+
+# append our own classes
+setenv CLASSPATH "$MITOBO_HOME/plugins:""$CLASSPATH"
+
+# add directory of log4j config to disable logging in bioformats
+setenv CLASSPATH "$MITOBO_HOME/etc:""$CLASSPATH"
+
+# run DisplayImage, maybe you will have to adapt the memory settings (Alida version querying is disabled, version set to NONE)
+java -Xmx1024m -Dalida.versionprovider_class=de.unihalle.informatik.Alida.version.ALDVersionProviderCmdLine -Dversion=NONE cmdTools.visualization.DisplayImage $argv 

@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# add here your Mitobo installation path
+export MITOBO_HOME="absolute path"
+
+# init class path for JVM
+export CLASSPATH=""
+
+# add external jars to CLASSPATH
+for jar in $MITOBO_HOME/extjars/*
+do
+	export CLASSPATH="${jar}:$CLASSPATH"
+done
+
+# add internal jars to CLASSPATH
+for jar in $MITOBO_HOME/intjars/*
+do
+	export CLASSPATH="${jar}:$CLASSPATH"
+done
+
+# append our own classes
+export CLASSPATH="$MITOBO_HOME/plugins:$CLASSPATH"
+
+# set LD_LIBRARY_PATH
+export LD_LIBRARY_PATH="$MITOBO_HOME/lib"
+
+# run MiToBo, maybe you will have to adapt the memory settings
+java -Xms1024m -Xmx1024m -Xss128m -Dplugins.dir=$MITOBO_HOME ij.ImageJ
+

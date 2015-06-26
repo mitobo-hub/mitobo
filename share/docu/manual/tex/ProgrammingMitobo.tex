@@ -1,0 +1,23 @@
+\mitobo contains a selection of different operators for image analysis which can readily 
+be applied to solve specific problems. While the first part of this guide shows how operators 
+can be executed within ImageJ and via commandline, in this second part we are discussing how 
+operators can be invoked on the programmatic level (Sec.~\ref{sec:callOp}). 
+Moreover, we not only show how to use existing
+operators, but we also introduce you to the basics of writing operators on your own 
+(Sec.~\ref{sec:makeOp}). This becomes
+necessary, e.g., if the existing \mitobo operators do not suit your needs, if you
+would like to benefit from \mitobo's support for automatically generating graphical and 
+commandline interfaces for your own algorithms, or if you would like to have your own analysis 
+procedures automatically documented. Note that as \mitobo operators are basically \alida operators 
+here we will focus on the substantial basics of writing \mitobo operators in the context of 
+ImageJ. For more general details about implementing operators in general please refer to the 
+\alida programmer's guide where much more details about \alida's concepts can be found. 
+
+\input{Implementation}
+%==================================
+\input{ImplPlugins}
+%==================================
+\input{Datatypes}
+
+
+

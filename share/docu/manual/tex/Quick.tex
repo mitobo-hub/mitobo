@@ -1,0 +1,84 @@
+Getting in touch with \mitobo\ is quite easy!\\
+If \mitobo\ was successfully installed (cf.~Chap.~\ref{sec:install}), you
+can use the included plugins and tools in the same way as you are familiar with 
+from ImageJ. And of course feel free to use \mitobo\ for your own data types,
+operators and plugin development to solve special problems of interest in the
+field of image analysis and processing.\\
+\subsection*{\underline{Simply use \mitobo\ in ImageJ}}
+   \begin{enumerate}
+    \item use \mitobo\ like every other ImageJ software tool or plugin
+    \item \textbf{open image(s)} of interest (internal \mitobo\ IO-plugins are
+          recommended)
+    \item \textbf{choose a plugin} or tool out of \mitobo\
+          (cf.~Sec.~\ref{sec:plugAndOp})
+    \item \textbf{display} or process the plugin \textbf{results} in any way you
+          can imagine
+    \item \textbf{save} the plugin \textbf{results and} store the containing
+          \textbf{history graph}
+    \item \textbf{use the history for further research}, improvement,
+          parameter\\tuning and so on (cf.~Chap.~\ref{chap:features})\\
+\end{enumerate}
+
+\subsection*{\underline{Write your own \mitobo\ operator}}
+\begin{enumerate}
+ \item \textbf{implement the interface} of the operator
+ \begin{enumerate}
+  \item implement a new operator (cf.~Sec.~\ref{sec:implOperators}) by
+        \textbf{extending} the \textbf{abstract class MTBOperator}
+  %%\item \textbf{implement a standard constructor}  without arguments, this
+        %%constructor needs to do nothing, but needs to be implemented for
+        %%self-documentation and code generation capabilities
+  \item \textbf{define the operator descriptors} for all parameters,
+        inputs, outputs, and supplemental arguments (not stored in the
+        processing history)
+  %%\item \textbf{input and output} arguments are \textbf{derived from} the
+        %%abstract class \textbf{MTBData}
+ \end{enumerate}
+\item \textbf{implement the operation} of the operator
+ \begin{enumerate}
+  \item \textbf{overwrite the \lstinline+operate()+ method} which implements
+	the operator \textbf{algorithm} per se
+	%%and set the
+        %%parameters, inputs, outputs, and supplemental arguments
+  %%\item \textbf{implement} the operator \textbf{algorithm} per se\\
+  \item optionally \textbf{implement getter and setter methods} for 
+        parameters, inputs, outputs, and supplemental arguments
+ \end{enumerate}
+\end{enumerate}
+
+\subsection*{\underline{Write your own \mitobo\ data type}}
+ \begin{enumerate}
+  \item \textbf{implement} a new \mitobo\ data type
+        (cf.~Sec.~\ref{sec:dataTypes}) \textbf{as subclass from} the class
+        \textbf{MTBData}
+  \item \textbf{set the predefined ’location’ property}, where it is physically
+        stored\\
+        (file name on disc, URL, point to virtual location, et cetera)
+  \item \textbf{set additional properties} of the data type\\
+   (feel free to choose arbitrary names for the data type properties)
+ \end{enumerate}
+
+\subsection*{\underline{Write your own \mitobo\ plugin}}
+ \begin{enumerate}
+  \item \textbf{implement your plugin} as
+  \begin{enumerate}
+    \item standard ImageJ plugin (cf.~Sec.~\ref{sec:PlugIn})
+    \item \mitobo\ operator plugin (cf.~Sec.~\ref{sec:MTBPlugIn})
+  \end{enumerate}
+  \item simply \textbf{use operator(s)} (cf.~Sec.~\ref{sec:programmer}) 
+        as included or implemented by yourself
+  \item make \textbf{use} of \textbf{different kinds of} pre-defined
+        (cf.~Sec.~\ref{sec:basicDataTypes}) or self-constructed \textbf{data
+types},        derived from the abstract class \lstinline+MTBData+
+  \item \textbf{set the output} of your plugin
+  \begin{enumerate}
+   \item image, ROI, table and so on
+   \item any kind of data types and their containing history graph\\
+  \end{enumerate}
+ \end{enumerate}
+Using \mitobo\ you are always able to get self-documentation of
+your image analyzing or processing work flow. This concept is very helpful to
+reproduce the data creation, just as the comparison of your parameter settings
+and theirs subsequent results (cf.~Chap.~\ref{}).\\
+\TODO{hier vielleicht besser eine Referenz auf ein detailiertes Beispiel, wo man
+auch mal die Parameter im Graph sieht oder aehnliches ?}

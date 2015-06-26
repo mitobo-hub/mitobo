@@ -1,0 +1,30 @@
+############################################################################################
+#
+# MiToBo is a Java library and plugin collection that extends ImageJ with 
+# capabilities like automatic documentation of analysis processes and automatic
+# generation of user interfaces based on a profound operator concept and auto. 
+# 
+# For more information please visit 
+# http://www.informatik.uni-halle.de/mitobo
+# 
+# Please send questions and suggestions to
+# <mitobo@informatik.uni-halle.de>.
+# 
+# Please report bugs using 
+# http://www2.informatik.uni-halle.de/agprbio/mitobo-bts/bug_report_page.php
+# 
+# MiToBo is licensed under the GPL.
+# See the files 'licenses/LICENSE.mitobo.txt' and 'licenses/gpl-3.0.txt' for more details.
+#
+############################################################################################
+
+==== PREREQUISITES ====
+MiTobo requires Java 1.6.
+Note that Java 1.7 is currently not supported.
+
+
+==== INSTALLATION INSTRUCTIONS ====
+Instructions on installing and running MiToBo can be found online under:
+
+  http://www2.informatik.uni-halle.de/agprbio/mitobo/index.php/Installation
+

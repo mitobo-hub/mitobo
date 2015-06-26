@@ -1,0 +1,34 @@
+#!/bin/bash
+#
+# Display images from commandline using MiToBo's image reader
+# USAGE: runDisplayImage [-v|--verbose] image1 [image2 ...]
+
+# add here your Mitobo installation path
+export MITOBO_HOME="absolute path"
+
+# init class path for JVM
+export CLASSPATH=""
+
+# add external jars to CLASSPATH
+for jar in $MITOBO_HOME/extjars/*
+do
+	export CLASSPATH="${jar}:$CLASSPATH"
+done
+
+# add internal jars to CLASSPATH
+for jar in $MITOBO_HOME/intjars/*
+do
+	export CLASSPATH="${jar}:$CLASSPATH"
+done
+
+# set LD_LIBRARY_PATH
+export LD_LIBRARY_PATH="$MITOBO_HOME/lib"
+
+# append our own classes
+export CLASSPATH="$MITOBO_HOME/plugins:$CLASSPATH"
+
+# add directory of log4j config to disable logging in bioformats
+export CLASSPATH="$MITOBO_HOME/etc:$CLASSPATH"
+
+# run DisplayImage, maybe you will have to adapt the memory settings (Alida version querying is disabled, version set to NONE)
+java -Xmx1024m -Dalida.versionprovider_class=de.unihalle.informatik.Alida.version.ALDVersionProviderCmdLine -Dversion=NONE cmdTools.visualization.DisplayImage $@ 

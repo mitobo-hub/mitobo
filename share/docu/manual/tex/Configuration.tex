@@ -1,0 +1,123 @@
+Several of \mitobo's operators as well as the framework itself support individual configuration by the user. For example initial
+files or directories the operators should work on can be specified by the user. The probably most common way of individual
+configuration is to pass specific path or flag settings to \mitobo\ operators by environment settings as outlined in this chapter.
+
+\section{Environment Variables and Properties}
+\mitobo operators support three different ways for user specific configuration:
+\begin{itemize}
+    \item[a)] environment variables
+    \item[b)] properties of the Java virtual machine (JVM) specified with\\
+     the option \texttt{'-Dproperty=value'} upon invocation of the JVM
+    \item[c)] ImageJ preferences as specified in the file $\;\tilde{ }$/.imagej/IJ\_Prefs.txt\footnote{Please note that this is the
+    	default configuration file of the (old) ImageJ framework, in ImageJ $2.0$ its name and place in the file system might change. 
+    	Refer to the documentation of the ImageJDev project for details.} 
+\end{itemize}
+This order reflects the priority of the three options, i.e.~environment variables overwrite JVM
+properties, and the latter ones overwrite ImageJ preferences. If for a certain operator no configuration values are
+provided by any of these three ways, all default settings of the corresponding internal variables are solely 
+depending on the internal settings of each individual operator.
+
+In general there is no limitation for an operator to define configuration variables. Usually they should be properly
+documented in the Javadoc of the corresponding class. Some variables of general
+interest, however, are listed in the next Section \ref{sec:importantVars} as almost all users might be interested in
+using them. 
+
+The naming of the environment variables and properties is not subject to strict rules, i.e.~there are no restrictions in  
+\alida/\mitobo on how to choose the names. However, it is strongly
+recommended to adhere to the \alida/\mitobo naming convention as this helps to avoid
+name conflicts. In \mitobo all variables start with prefix 'MITOBO'. 
+Likewise in \alida all variables start with prefix 'ALIDA'. Note that some of the \alida specific
+variables are also of interest in \mitobo.
+The second part of the name is usually the operator class using the variable, and the third part is the actual
+variable name.
+
+\begin{center}
+\fbox{\parbox{0.95\textwidth}{
+\underline{Example:}\\
+Imagine an operator called 'DummyOperator' which defines a variable 'Input'.\\
+The environment variable that will be checked
+by the operator is then
+
+\centerline{\texttt{MITOBO\_DUMMYOPERATOR\_INPUT}}
+
+\vspace*{0.25cm}
+Obeying the naming conventions for ImageJ properties the\\
+corresponding preference and also the JVM property is named\\[-0.2cm]
+
+\centerline{\texttt{mitobo.dummyoperator.input}}
+}}
+\end{center}
+
+Besides operator specific variables there may exist variables of global interest shared by different operators. In their
+names the second part is simply missing, like in\\\\
+\centerline{\texttt{MITOBO\_IMAGEDIR}\hspace*{1cm} or \hspace*{1cm}{\tt mitobo.imagedir},}\\\\
+repectively. When defining such variables, however, special care has to be taken for
+ensuring that such variables are interpreted the
+same wherever they are used. And even more important, it needs to be thoroughly
+verified that the variables were not
+already defined elsewhere which might result in strange behavior of certain operators.
+
+\section{List of Important Variables and Properties}
+\label{sec:importantVars}
+Below you find a list of variables and properties of presumably common interest.
+\begin{itemize}
+\item ALIDA\_OPRUNNER\_FAVORITEOPS
+	\begin{itemize}
+	    \item used by: {\tt ALDOpRunnerGUI}, {\tt ALDGrappaRunner}, {\tt Op\_Runner}, {\tt Grappa\_Editor}
+	    \item description: configures which operators should automatically be unfolded in the operator selection menus of the 
+	    	graphical operator runners and Grappa upon start-up; it should be set to a filename, and the corresponding file should 
+	    	contain one operator per line, e.g.\\
+	    	{\tt 
+				de.unihalle.informatik.Alida.demo.ALDCalcMeanVector\\
+				de.unihalle.informatik.MiToBo.tools.image.ImageDimensionReducer\\
+				\ldots
+				}
+	\end{itemize}
+\item ALIDA\_OPRUNNER\_OPERATORPATH
+        \begin{itemize}
+            \item used by: {\tt ALDOpRunnerGUI}, {\tt ALDGrappaRunner}, {\tt Op\_Runner}, {\tt Grappa\_Editor}
+		\item	description: specifies colon separated list of packages; 
+        Each package and all its sub-packages 
+        is searched for operators in the classpath.
+        These operators are incorporated in the tree of available operators
+        in the graphical user interface.
+        This feature is useful to incorporate operators which are not compiled
+        but just added as within a jar-archive.
+	\end{itemize}
+
+\item ALIDA\_OPRUNNER\_LEVEL
+	\begin{itemize}
+	    \item used by: {\tt ALDOpRunnerGUI}, {\tt ALDGrappaRunner}, {\tt Op\_Runner}, {\tt Grappa\_Editor}
+	    \item description: configures which set of operators is to be displayed initially in the selection menu; 
+	    	possible options are either all available operators ('standard') or just the ones categorized as being easier 
+	    	to use ('application') 
+	\end{itemize}
+\item ALIDA\_OPRUNNER\_WORKFLOWPATH
+	\begin{itemize}
+	    \item used by: all graphical and commandline operator runners, and by Grappa
+	    \item description: specifies a directory where the runners are searching for additional workflows that are to be registered
+	    	by the framework
+	\end{itemize}
+\item ALIDA\_VERSIONPROVIDER\_CLASS
+	\begin{itemize}
+	    \item used by: Framework
+	    \item description: class used for acquiring software versions for process documentation; the class must extend the base class 
+	    	{\tt ALDVersionProvider} to be found in the \alida package {\tt de.unihalle.informatik.Alida.version}  
+	\end{itemize}
+\item MITOBO\_IMAGEDIR
+	\begin{itemize}
+	    \item used by: {\tt Open\_Image\_MTB} , {\tt Save\_Image\_MTB}
+	    \item description: Directory where images are expected; checked if the two variables\\
+	    	MITOBO\_OPENDIR and/or MITOBO\_SAVEDIR	are not set
+	\end{itemize}
+\item MITOBO\_OPENDIR
+	\begin{itemize}
+	    \item used by: {\tt Open\_Image\_MTB}
+	    \item description: directory where image browsing starts the first time 
+	\end{itemize}
+\item MITOBO\_SAVEDIR
+	\begin{itemize}
+	    \item used by: {\tt Save\_Image\_MTB}
+	    \item description: directory where file selection starts the first time 
+	\end{itemize}
+\end{itemize}

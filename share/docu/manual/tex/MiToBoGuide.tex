@@ -1,0 +1,249 @@
+% #####################################################
+% MiToBo User/Developer Manual
+%
+% File:               MiToBoManual.tex
+% Author:             Birgit Moeller
+% Date:               13.11.2009
+% last update:        20.10.2010
+% #####################################################
+
+%  #[ style settings :
+
+\documentclass[11pt,a4paper,english]{report}
+
+\usepackage{amsmath}                   %% mathmatical symbols and formulas
+\usepackage[english]{babel}             %% german special signs
+\usepackage{epsfig}
+\usepackage{fancyheadings}             %% headings and footer
+%\usepackage{german}                    %% german speech characteristics
+\usepackage{graphics}                  %% inclusion of graphics
+\usepackage{graphicx}                  %%     "       "      "
+%\usepackage{inputenc}          %% latin-1-coding
+\usepackage{listings}
+\usepackage{color}
+\usepackage{subfigure}
+\usepackage{framed}
+%\usepackage{../styles/hangcaption}
+\usepackage{url}
+%\usepackage{hyperref}
+\usepackage[pdfpagelabels,linktocpage,breaklinks]{hyperref}
+%\usepackage[T1]{fontenc}
+\usepackage{xspace}
+\usepackage{wrapfig}
+%\usepackage{framed} 
+
+% margins
+\evensidemargin = -1.5cm
+\oddsidemargin = 0.0cm
+\textheight 23cm 
+\textwidth 16cm
+\topmargin -0.75cm
+\headsep 1cm
+\footskip 1.5cm
+
+%\parindent0pt                          %% no indent of new paragraphs
+\renewcommand{\baselinestretch}{1.2}   %% big lineskips
+
+\frenchspacing                         
+\sloppy                                %% newlines
+
+\setcounter{tocdepth}{3}               %% depth of table of contents
+
+\setlength\parskip{\medskipamount}     %% line skippings
+\parskip1.5ex plus 0.5ex minus 0.5ex   %%
+
+% standard headings and footer
+\pagestyle{fancy}
+\lhead[\fancyplain{}{}]{\fancyplain{}{}}
+\rhead[\fancyplain{}{}]{\fancyplain{}{}}
+\lfoot[\fancyplain{\thepage}{\thepage}]{\fancyplain{}{}}
+\cfoot[\fancyplain{}{}]{\fancyplain{\thepage}{\thepage}}
+\rfoot[\fancyplain{}{}]{\fancyplain{}{}}
+
+% \makeatletter
+% \def\@evenhead{
+%  \vbox{\hbox to\hsize{\footnotesize \sl \leftmark \hfill }
+%  \vspace{10pt} \hbox to\hsize{\hrulefill}}}
+% \def\@oddhead{
+%  \vbox{\hbox to\hsize{\footnotesize \hfill \sl \rightmark}
+%  \vspace{10pt} \hbox to\hsize{\hrulefill}}}
+% \def\@evenfoot{\vbox{ \hbox to\hsize{}
+%  \vspace{0pt} \hbox to\hsize{\thepage \hfill \sl}}}
+% \def\@oddfoot{\vbox{ \hbox to\hsize{}
+%  \vspace{0pt} \hbox to\hsize{\sl \hfill \rm \thepage}}}
+% \makeatother
+
+% small captions
+\makeatletter
+\renewcommand{\fnum@figure}[1]{\small\figurename~\thefigure:}
+\makeatother
+
+\makeatletter
+\renewcommand{\fnum@table}[1]{\small\tablename~\thetable:}
+\makeatother
+
+% change footnote color to black
+\makeatletter
+ \newcommand{\org@footnotemark}{}
+ \let\org@footnotemark\@footnotemark
+ \def\@footnotemark{%
+   \begingroup
+    \hypersetup{linkcolor=black}%
+     \org@footnotemark
+  \endgroup} 
+\makeatother
+
+\hypersetup{
+  a4paper,
+  colorlinks=true,
+%  colorlinks=false,
+  linkbordercolor=1 1 1,
+  urlbordercolor= 1 1 1,
+  citecolor=blue,
+  %citecolor=black,
+  pagecolor=magenta,
+  %pagecolor=black,
+%  urlcolor=blue
+  urlcolor=blue,
+  anchorcolor=blue,
+  filecolor=black,
+  linkcolor=blue
+}
+
+
+\include{defines}
+%  #]  :
+
+\begin{document}
+
+%  #[ title page :
+
+\thispagestyle{empty}
+
+\begin{flushleft}
+\large{Martin Luther University Halle-Wittenberg} \\
+\normalsize{Institute of Computer Science} \\
+\normalsize{Pattern Recognition and Bioinformatics}
+\end{flushleft}
+
+\vspace*{1cm}
+
+\hrulefill
+
+\vspace*{2cm}
+
+\begin{center}
+
+\large{User and Programmer Guide} \\
+\vspace*{0.5cm}
+
+  \begin{figure}[htbp]
+    \centering
+     \includegraphics[width = 5cm]{../images/MiToBo_logo.pdf}
+  \end{figure}
+%\vspace*{-0.5cm}
+\Large{
+MiToBo - Microscope Image Analysis Toolbox 
+}
+
+\vspace*{0.7cm}
+
+\large{
+Version 1.0
+}
+\vspace*{0.5cm}
+
+\normalsize{written by}\\
+\vspace*{1.0cm}
+\large{The MiToBo Development Team}\\
+\vspace*{1.0cm}
+\end{center}
+
+\begin{center}
+{\Large
+{Markus Gla\ss} \hspace*{1cm} {Oliver Gre\ss} \hspace*{1cm} {Danny Misiak}\\[1cm]
+       {Birgit M\"oller} \hspace*{1cm} {Stefan Posch} 
+}
+\end{center}
+
+\newpage
+\thispagestyle{empty}
+\parindent0pt
+%==================================
+%Licensing information and copyright
+%==================================
+{\large \textbf{Licensing information.}}\\[0.5cm]
+This manual is part of \mitobo\ - the Microscope Image Analysis
+Toolbox.\\[0.5cm]
+Copyright \copyright\ 2010-2013\\[0.5cm]
+This program is free software: you can redistribute it and/or modify
+it under the terms of the \href{http://www.gnu.org/licenses/gpl-3.0.html}{GNU
+General Public License
+version
+3}\footnote{\href{http://www.gnu.org/licenses/gpl-3.0.html}{http://www.gnu.org/licenses/gpl-3.0.html}}
+as published by the \href{http://www.fsf.org/}{Free Software
+Foundation}\footnote{\href{http://www.fsf.org/}{http://www.fsf.org/}}, either
+version 3 of the License, or (at your option) any later version.\\ 
+You should have received a copy of the GNU General Public License along with this guide.\\
+If not,
+see \href{http://www.gnu.org/licenses/}{http://www.gnu.org/licenses/}.\\[1.0cm]
+Fore more information on \mitobo\ visit
+\href{http://www.informatik.uni-halle.de/mitobo/}{
+http://www.informatik.uni-halle.de/mitobo/}.\\[5.0cm] 
+
+{\large \textbf{\mitobo\ is a project at the Martin Luther University
+Halle-Wittenberg, \\ Halle (Saale), Germany.}}\\[0.5cm]
+
+\textbf{Institution:}\\[0.5cm]
+Institute of Computer Science\\
+Faculty of Natural Sciences III\\
+Martin Luther University Halle-Wittenberg\\
+Von-Seckendorff-Platz 1, 06120 Halle, Germany\\\\
+\textbf{Contact:} mitobo@informatik.uni-halle.de\\
+\textbf{Webpage:} www.informatik.uni-halle.de/mitobo
+\parindent20pt
+\newpage
+\pagenumbering{roman}
+
+
+\tableofcontents
+
+%\listoffigures
+
+%\listoftables
+
+%  #]  :
+
+%  #[ main part :
+
+\input{contents}
+
+%  #]  :
+
+\clearpage
+
+%  #[ bibliography :
+
+% some additional literature
+%\nocite{LatexBegleiter}
+%\nocite{LatexTips}
+
+\addcontentsline{toc}{chapter}{\numberline{}Bibliography}
+
+\bibliographystyle{alpha}
+% \normalsize
+% \begin{raggedright}
+\bibliography{../bibfile/MiToBo_Literature}
+% \end{raggedright}
+% \newpage
+
+%  #[ appendix :
+
+\begin{appendix}
+
+\end{appendix}
+
+%  #]  :
+
+\end{document}
+

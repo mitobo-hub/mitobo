@@ -1,0 +1,57 @@
+This directory contains all stuff dealing with native code in MiToBo:
+
+- external
+  third-party libraries taken "as they are" for usage with MiToBo
+
+- hybrid
+  third-party libraries or parts of them, partially modified,
+  to run with MiToBo
+
+- internal
+  MiToBo's own native code 
+
+Note that all libs are compiled for different architectures. 
+Usually the following architectures are supported:
+
+- Linux, 32-bit
+- Windows, 32-bit
+
+Important notice:
+=================
+
+For 64-bit linux providing a single self-contained dynamic library is no 
+longer possible due to linker restrictions. Accordingly only an internal 
+MiToBo library is provided, which however depends on several system libraries 
+that have to be installed on the target system to allow MiToBo native code to 
+be used. In detail, we require
+
+- CGAL
+- gmp
+- mpfr
+- boost
+
+For building the native libraries for Windows and 32-bit machines you need 
+to have installed the following packages on your machine:
+
+- gcc-multilib / g++-multilib
+- libc6-dev-i386 / libc6-dev-x86
+- bjam
+- mingw32
+- m4
+
+In addition, standard tools like make/configure/cmake are 
+obligatory.
+
+Important notice:
+=================
+
+For building the libs the correct order of compiling is essential!
+Always proceed as follows:
+
+1. build external libs (at least gml / mpfr / boost)
+
+2. build hybrid lib
+
+3. build internal libs
+
+

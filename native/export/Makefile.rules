@@ -1,0 +1,24 @@
+###########################################################
+# This file contains variables that point to the resources
+# that are required to build the native libraries used by
+# some parts of MiToBo.
+# Please change the defaults if necessary.
+###########################################################
+
+
+## the directory of your MiToBo installation
+MITOBO_HOME=../..
+
+## the path to your java installation
+JAVA_PATH=/usr/lib/jvm/java-6-sun
+
+## the path of the CGAL libraries
+CGAL_LIBRARY_PATH=/usr/lib
+
+## the path of the CGAL headers
+CGAL_HEADERS_PATH=/usr/include
+
+## the type (32- or 64-Bit) of libraries built is determined
+## automatically. If you want to force a build of 32-Bit libraries
+## using a 64-Bit system, uncomment the next line:
+# LIB32=1

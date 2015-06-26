@@ -1,0 +1,407 @@
+\chapter{\mitobo Data Types}
+\label{chap:dataTypes}
+\mitobo\ defines a set of its own data types. Besides new image data types
+improving the ImageJ image classes, these
+include for example regions and contours and some other data type primitives frequently used
+with regard to image analysis applications. 
+Most data types can be found in the package {\tt 'de.unihalle.informatik.MiToBo.core.datatypes'} and its
+subpackages.
+To allow for easy identification of the datatypes the
+classnames of the data types in \mitobo\ always start with {\tt 'MTB'}, like in {\tt 'MTBRegion2D'} or {\tt
+'MTBImageDouble'}.
+
+There are several reasons why \mitobo\ implements its own data types and not
+simply builds on top of the data types provided by ImageJ. First of all the handling of data objects in ImageJ is solved only in
+a rudimentary fashion, at least with regard to the API. As there are only some few explicit data types apart from
+images in ImageJ, data access or exchange is often cumbersome. Accordingly, \mitobo\ tries to enhance the usability and
+flexibility of image processing modules by defining its own data types trying to overcome some limitations
+nowadays present in ImageJ\footnote{Note that also ImageJ $2.0$ will provide a larger flexibility in data type handling, in particular 
+more flexible image data types based on {\em ImgLib2}, website \href{http://fiji.sc/ImgLib2}{http://fiji.sc/ImgLib2},
+will be available. Support for these extended image data types in \mitobo is planned.}.
+
+Furthermore \mitobo defines some specific needs for data types with regard to its
+feature of automatic process documentation (cf.~Sec.~\ref{sec:history}). 
+Although \mitobo\ operators in principal support almost all available kinds of
+objects as input and output parameters for operators, some few object
+types cannot be handled natively within our concept of automatic process documentation.
+Among those data types are for example Java's native data types like {\tt int} or {\tt double}, and wrapper classes like {\tt
+'Integer'} and {\tt 'Double'}, i.e.~-- more generally speaking -- all
+classes that implement the comparison of objects based on equality of object
+values. If objects of these kinds should be used as operator input or output
+parameters and, in particular, should be handed over from one operator to another, proper documentation of these data flows in the 
+processing history can only be guaranteed by wrapping them in data types providing unique object identification independent of 
+the current value. Accordingly, for some basic and frequently used data types \mitobo\ implements such data object wrappers.
+They can be found in the package {\tt 'de.unihalle.informatik.MiToBo.core.datatypes.wrapper'}. 
+
+Regarding automatic process documentation sometimes proper
+documentation of operator configurations requires more than just logging an
+input or output parameter's type and current value. There might be other object
+parameters that are worth to be documented, e.g., like certain image-specific properties in case of
+images. To support the documentation of such object properties \alida defines a basic data type class supporting management and
+automated documentation of additional object properties. This class, {\tt ALDData}, 
+serves as superclass for most \mitobo data types and can easily be adopted as basis for new data types. 
+
+In the following sections first the properties of \alida's data type base class 
+'{\tt ALDData}' will be outlined, and then we will discuss the different features and motivations 
+of the most important \mitobo data types. 
+
+\section{The Data Type Class {\tt ALDData} and its Properties}
+\alida and \mitobo, respectively, allow to represent data and image processing pipelines as graph data structures, i.e.~history graphs. 
+In particular, for each data object being the result of an analysis process composed of a series of data manipulations by \alida or
+\mitobo operators,
+the history graph allows to backtrace each single intermediate processing step subsuming all interactions with other
+objects and the parameter settings of the involved operators. These data, together with the overall structure of the graph, already
+draw a detailed picture of the process pipeline. However, sometimes extended information about manipulated and generated data
+objects, i.e.~input and output parameters of the operators, are of interest that rise beyond the default data, like name, object
+class and package. 
+
+\alida defines the super class '{\tt de.unihalle.informatik.Alida.operator.ALDData}' to support
+adding such specific information to input and output parameter objects of operators. The
+class mainly adds the concept of data type {\em properties} to data types
+derived from this class, allowing programmers to further characterize
+objects in the processing history and also in general. Properties of
+operator input and output parameter objects are automatically embedded in the history graph representation. 
+Each time a data object passes an output port, i.e.~is taken out of an operator, 
+the properties will be associated with the corresponding data port in the
+graph. When later on viewing the graph with \mtbc (cf.~Sec.~\ref{sec:history}), the properties can then be
+displayed as additional information of the corresponding ports. 
+
+A property is basically given as a pair of key and value and is supposed to specify object characteristics. For
+example in case of the \mitobo\ image data types properties subsume information like physical image and pixel sizes in all
+dimensions and the units of the axes. Examplary key value pairs are shown in Table \ref{tab:propImg}.
+
+For setting and getting object properties '{\tt ALDData}' defines two methods:
+\begin{itemize}
+    \item {\tt public void setProperty( String key, Object obj )}\\
+    	allows to set a property named 'key' to the string representation of 'obj'
+    \item {\tt public String getProperty( String key )}\\
+		returns the string describing the value of the property named 'key'
+\end{itemize}
+
+Internally the properties are stored in a hashtable of the Java type {\tt 'Hashtable<String, String>'} to be found in
+the package {\tt java.util}. Accordingly, keys and values are represented as strings. Nevertheless,
+for convenience an arbitrary object can be handed over to the set routine as
+shown above. It is automatically converted to a string via its {\tt toString()} method that consequently should return an informative description of the object at hand.
+\begin{center}
+\begin{table}[t]
+\begin{center}
+\begin{tabular}{l|l}
+Property & Value \\
+\hline
+{\em location}  & ''/home/user/images/microscope.tif'' \\
+{\em StepsizeX} & ''1''  \\
+{\em StepsizeZ} & ''0.5''\\
+{\em UnitX}     & ''cm'' \\
+\ldots & \ldots 
+\end{tabular}
+\caption[Example properties of {\tt MTBImage}.]
+  {\label{tab:propImg}Examplary properties and its values for an object of type {\tt MTBImage}.}
+\end{center}
+\end{table}
+\end{center}
+
+The programmer of a new \mitobo\ data type is in general allowed to choose arbitrary names for
+the object properties without any restrictions, apart from one exception. There is one property predefined for all
+\alida and \mitobo data types which is the property denoted '{\tt location}'. The location
+of a data object defines the place of origin where the data object is coming from. This can be the place where it is physically stored, i.e.~the name of a
+file on disk or an URL, or it can point to a virtual location if the object was generated by an operator in the course
+of the processing pipeline. Note that although this property is by default
+attached to all data types extending {\tt 'ALDData'}, it is, however, only set
+automatically for \mitobo\ images by \mitobo's image I/O operators. For other data types setting the location
+to proper values remains to the responsibility of the programmer of
+the specific data type. 
+
+To set and read the location of an object the following methods are available:
+\begin{itemize}
+ 	\item {\tt public void setLocation( String location )}\\
+ 		sets the object location to the given string
+    \item {\tt public String getLocation() }\\
+ 		returns the current location of the object 
+\end{itemize} 
+
+Note that there are no automatic checks to ensure that property names are unique. Thus, if the {\tt setProperty()} method
+is called on a property which is already defined its previous value will be overwritten. This is
+particularly true for the property '{\tt location}', so this key should never be
+used by the programmer within another context than intended to omit confusion.
+
+
+\section{Images in \mitobo: {\tt MTBImage}}
+\label{sec:MTBImage}	
+\mitobo defines its own image classes, namely \mtbimg~and its subclasses (which can all be found in the package
+{\tt de.unihalle.informatik.MiToBo.datatypes.images}), for the following reasons:
+\begin{itemize}
+  \item extended pixel value precision to support all primitive numeric
+  data types of Java
+  \item easy access to image pixel data, but also to properties like physical pixel
+  size etc.
+  \item additional functionality for \mitobo's operator concept, i.e.~for documentation of
+  specific image properties
+\end{itemize}
+
+In this section the internals of the \mitobo image data types are explained with more detail. The section is 
+roughly divided into the following parts. At
+first, some important details about the structure of \mtbimg~are given and available
+image types are introduced. An overview of most common methods
+for creation and manipulation of \mtbimg s follows. The section is closed
+by the description of file I/O for \mtbimg~objects and how it integrates in \mitobo's
+operator concept.
+
+\subsection{The Ideas Behind \mtbimg}
+\mtbimg~was not developed to fully replace ImageJ's 
+\imgplus, but rather to wrap the \imgplus~objects if possible.
+The most convenient way to create
+a \mtbimg~from an existing \imgplus~object is to simply specify the \imgplus~as input parameter for the
+method 
+\centerline{\texttt{public static} \mtbimg{\tt .createMTBImage(ImagePlus img)}.}
+The created \mtbimg~holds a reference to that \imgplus~object and explicitly stores the
+image size as well as physical pixel size and units if available. For fast pixel
+access, the \mtbimg~keeps direct references to the ImageJ data array or arrays in case
+of a (hyper-)stack.
+
+When a \mtbimg~is created from an \imgplus~the instantiated \mtbimg~must uniquely be
+associated with the specified \imgplus, as no new \imgplus~is
+created, but the existing one is used. This case occurs very often, e.g., when an
+image window is selected from the ImageJ GUI and used as input for a \mitobo operator or plugin. 
+Therefore an additional reference to the initially created \mtbimg~is added to the \textit{properties}
+hashtable of the \imgplus. When an
+\imgplus~with a reference to an existing \mtbimg~is passed to {\tt
+createMTBImage(ImagePlus img)}, the existing \mtbimg~is simply returned.
+
+Another aspect of \mtbimg~is to think of an \imgplus~as a 5-dimensional
+image, which is the highest possible dimensionality of an image in ImageJ
+(commonly denoted as 'hyperstack'). To provide easy access to higher dimensional image data
+methods exist to access data in 5D hyperstacks, 3D stacks and 2D images,
+which will be discussed with more detail in Section \ref{sssec:mtbimgfunc}.\\ 
+\mtbimg~objects are designed in a similar way as ImageJ's \imgproc. You usually reference 
+them by the abstract type \mtbimg, while one of its subclasses is actually instantiated.
+
+
+\subsection{Subclasses of \mtbimg: Image Types}
+One reason to develop a new image type was the limitation of ImageJ
+images to 32-bit pixel value precision. The need for a 64-bit precision
+floating-point image type to store results with higher accuracy was obvious.
+Also the lack of a (true) 32-bit integer type in ImageJ can bear some
+problems, e.g., when consecutive labels are given to image regions especially in
+higher dimensional data. 
+
+The concrete subclasses of {\tt MTBImage} indicate their types by their names. 
+They share the common prefix '\mtbimg' followed by the name of the Java data type of their pixel values. 
+The following list shows the image types available in \mitobo:
+\begin{itemize}
+  \item \mtbimg{\tt Byte} for {\tt byte}-type pixel values (unsigned as
+  in ImageJ)
+  \item \mtbimg{\tt Short} for {\tt short}-type pixel values (unsigned as in
+  ImageJ)
+  \item \mtbimg{\tt Int} for {\tt int}-type pixel values
+  \item \mtbimg{\tt Float} for {\tt float}-type pixel values
+  \item \mtbimg{\tt Double} for {\tt double}-type pixel values
+  \item \mtbimg{\tt RGB} for three {\tt byte}-type pixel values, one
+  for each color channel red, green and blue (unsigned)
+\end{itemize}
+
+All these image types share the same interface, but can be subdivided into two categories.
+On the one hand there are image types that are directly linked to a corresponding ImageJ type and, thus,
+simply wrap a corresponding \imgplus. On the other hander there are types that do not have a corresponding
+ImageJ type. If only object references of type \mtbimg\ are used in an implementation, there is no difference 
+between both classes. However, if functionality directly related to an \imgplus~object is requested or accessed 
+(e.g., calls to ImageJ functions or the display of images in ImageJ's GUI), please keep in mind the differences
+described in the following two paragraphs.
+
+\paragraph{MTBImages with corresponding ImageJ types.}
+If values of an \mtbimg~are changed which simply wraps the corresponding
+\imgplus, the changes are directly applied to that \imgplus~as well, because 
+\mtbimg~and \imgplus~share the same data arrays. Table \ref{tab:mtbimgIJ}
+lists the subtypes of \mtbimg~of this category and their corresponding ImageJ image types.
+\begin{table}[h]
+	\begin{center}
+	\begin{tabular}{|l|c|}
+	\hline
+	\mtbimg~subtype & \imgproc~of corresponding \imgplus \\
+	\hline\hline
+	\mtbimg{\tt Byte} & {\tt ByteProcessor} \\
+	\hline
+	\mtbimg{\tt Short} & {\tt ShortProcessor} \\
+	\hline
+	\mtbimg{\tt Float} & {\tt FloatProcessor} \\
+	\hline
+	\end{tabular}
+	\end{center}
+\caption{\mtbimg~types with corresponding ImageJ types.}
+\label{tab:mtbimgIJ}
+\end{table}
+
+\paragraph{MTBImages without corresponding ImageJ types.}
+\mtbimg s which cannot be represented by corresponding ImageJ types keep their
+own data arrays and are not linked to an \imgplus~object upon creation.
+Images of such data types cannot be instantiated by the {\tt createMTBImage(ImagePlus img)} method. These images are
+usually constructed from scratch by specifying datatype and image size, or by
+converting another \mtbimg~to that datatype.
+Nevertheless, quite often an \imgplus~object needs to be associated to these images as well, usually for visualization
+purposes.
+\mtbimg~provides the function {\tt getImagePlus()} to obtain such an \imgplus. The
+\imgplus~created is firmly associated with the \mtbimg. The new \imgplus~is of that ImageJ type which is supposed to provide the least
+loss of information compared to the \mitobo source image. 
+Note that \mtbimg~provides its own {\tt show()} and {\tt updateAndRepaint()} methods which already internally call the 
+{\tt getImagePlus()} method. Consequently, it is not necessary to explicitly get an \imgplus~object for pure displaying purposes. \\[0.25cm]
+\textbf{Important:\\
+Always keep in mind, that a second image data object is kept in
+memory, once {\tt getImagePlus()} or the displaying methods are called!}\\[0.25cm]
+ Table \ref{tab:mtbimgNonIJ} describes the \mtbimg~types that do not have a
+ corresponding ImageJ type and explains, how they are mapped to \imgplus.
+
+\begin{table}[h]
+	\begin{center}
+	\begin{tabular}{|l|c|p{0.29\textwidth}|}
+	\hline
+	\mtbimg~subtype & \imgproc~of created \imgplus & Pixel value conversion \\ 
+	\hline\hline
+	\mtbimg{\tt Int} & {\tt FloatProcessor} & cast from {\tt int} to {\tt float} \\
+	\hline
+	\mtbimg{\tt Double} & {\tt FloatProcessor} & cast from {\tt double} to {\tt
+	float} \\
+	\hline
+	\mtbimg{\tt RGB} & {\tt ColorProcessor} & lossless encoding of three {\tt
+	byte} values to ImageJ's {\tt int} color representation \\
+	\hline
+	\end{tabular}
+	\end{center}
+\caption{\mtbimg~types without corresponding ImageJ types.}
+\label{tab:mtbimgNonIJ}
+\end{table}
+
+\subsection{Construction, Data Access and Other Useful Methods of \mtbimg}
+\label{sssec:mtbimgfunc} 
+This subsection gives a short overview of the methods of \mtbimg~that are
+widely used when working with \mitobo. A full description can be found in the
+Javadoc \href{http://www.informatik.uni-halle.de/mitobo/api/index.html}{API} of \mitobo.\\[0.5cm]
+At first, methods to create new \mtbimg s are presented. As there are no visible
+constructors, you have to use the following {\tt static} factory functions:
+\begin{itemize}
+  \item {\tt public static \mtbimg~createMTBImage(\imgplus~img)}\\
+  		creates a new \mtbimg~ of the correct subtype, which is uniquely linked to
+  		the \imgplus
+  \item {\tt public static \mtbimg~createMTBImage(int sizeX, int sizeY, int
+  sizeZ, int sizeT, int sizeC, MTBImageType type)}\\
+      	creates a new \mtbimg~ from scratch given the size and the data type of the
+      	new image
+\end{itemize}
+The following methods can be used to create \mtbimg s from existing ones:
+\begin{itemize}
+  \item {\tt \mtbimg~duplicate()}\\
+  		duplicates a \mtbimg.
+  \item {\tt \mtbimg~convertType(MTBImageType type, boolean scaleDown)}\\
+  		creates a \mtbimg~of the given type from the source image
+\end{itemize}
+There are more methods (e.g., to create a new \mtbimg~only from a part of an
+existing image), please refer to the API for the other methods.
+
+Methods for image pixel data access are declared by the \mtbimg{\tt
+Manipulator} interface, which is implemented by the \mtbimg\ class. The behavior of data
+access methods is similar to ImageJ's {\tt getPixel(\ldots)} and {\tt putPixel(\ldots)} methods, which
+return or take a value of type {\tt 'int'} to cover 8-bit to 32-bit values. \mtbimg~provides
+the same methods called {\tt getValueInt(\ldots)} and {\tt setValueInt(\ldots)}, with the only
+difference that {\tt int}s are casted and not reinterpreted in case of
+underlying floating point data types. Keep in mind that methods dealing with {\tt byte} types return and take values in the 
+range of $[0,255]$, and methods dealing with {\tt short} types return and take values in the range of $[0,65535]$, like in ImageJ
+as well. To cover floating point types additional methods
+exist, which return or take {\tt double} values. These methods are called {\tt getValueDouble(\ldots)} and {\tt putValueDouble(\ldots)}. 
+They define the safest way to go, if you cannot be sure which kind of images is passed to your method.
+
+A word to (hyper-)stacks: ImageJ holds an array of 2D images, no matter if the
+image is three-, four- or five-dimensional. 2D images (called 
+\textit{slices} in the following) in this array (called \textit{stack}) are
+referenced by $1$ to $N$, where $N$ is the total number of slices. \mtbimg~uses
+indexing that every programmer is familiar with, starting from $0$ to $(N-1)$.
+
+Below the methods to access pixel values in \mtbimg~are reviewed:
+\begin{itemize}
+  \item {\tt int getValueInt(int x, int y, int z, int t, int c)}\\
+  		returns the pixel value at position (x,y,z,t,c) as {\tt int}
+  \item {\tt void putValueInt(int x, int y, int z, int t, int c, int value)}\\
+  		sets the pixel value at position (x,y,z,t,c) using an {\tt int} as input value
+  \item {\tt double getValueDouble(int x, int y, int z, int t, int c)}\\
+  		returns the pixel value at position (x,y,z,t,c) as {\tt double}
+  \item {\tt void putValueDouble(int x, int y, int z, int t, int c, double
+  value)}\\
+  		sets the pixel value at position (x,y,z,t,c) using a {\tt double} as input value		
+\end{itemize}
+
+\mtbimg{\tt RGB} can be modified in the same way as color images in ImageJ, by
+encoding the color values as an {\tt int} value (please refer to the ImageJ documentation for details)
+and then passing that {\tt int} value to the {\tt putValueInt()} or {\tt putValueDouble()} method. 
+In addition, \mtbimg{\tt RGB} further provides methods to get
+and set values of the different color channels separately, or even get and work
+on the \mtbimg{\tt Byte}s that represent the separate color channels.
+
+For working with 2D images or 3D stacks there are equivalent methods that take
+only 2D (i.e.~(x,y)) or 3D (i.e.~(x,y,z)) coordinates. You can also use these methods to access
+certain slices (2D images) or z-stacks (3D images) of a (hyper-)stack. Therefore
+you can set internal variables of \mtbimg~to specify a ``current'' slice or
+z-stack with the following methods:
+\begin{itemize}
+  \item {\tt void setActualSliceCoords(int z, int t, int c)}\\
+  		sets the coordinates of the ``current'' slice
+  \item {\tt void setActualSliceIndex(int idx)}\\
+  		sets the index of the ``current'' slice, i.e.~the index in the array of slices
+  \item {\tt void setActualZStackCoords(int t, int c)}\\
+  		sets the coordinates of the ``current'' z-stack (leaves ``current''
+  		slice index unchanged)
+\end{itemize}
+
+The image data should be accessed by the above methods to develop algorithms for
+generic image types. The data access methods are kept as fast as possible 
+(e.g., subsume no further function calls). However, be aware that for this reason the
+specified coordinates are not verified in any way. This means that running out of the
+data array's bounds will cause an {\tt ArrayOutOfBoundsException} which is not caught by \mitobo.
+
+For fast processing of higher dimensional images, you should also be aware of
+how to iterate through the pixels. The usual ordering in \imgplus~hyperstacks 
+is XYCZT, while \mitobo's interface
+order is XYZTC. You should therefore iterate over the pixels of a \mtbimg~as
+shown in the example below:\\[0.5cm]
+\texttt{
+\noindent\mtbimg~img = \mtbimg.createMTBImage(100, 100, 100, 100, 100,\\[-0.1cm]
+						\hspace*{8.3cm}MTBImageType.MTB\_BYTE);\\[0.3cm]
+for (int c = 0; c < img.getSizeC(); c++)\\[-0.1cm]
+\hspace*{0.5cm}for (int t = 0; t < img.getSizeT(); t++)\\[-0.1cm] 
+\hspace*{1.0cm}for (int z = 0; z < img.getSizeZ(); z++) \\[-0.1cm]
+\hspace*{1.5cm}for (int y = 0; y < img.getSizeY(); y++) \\[-0.1cm]
+\hspace*{2.0cm}for (int x = 0; x < img.getSizeX(); x++) \\[-0.1cm]
+\hspace*{2.5cm}img.putValueInt(x,y,z,t,c,255);
+}
+
+If slicewise processing is possible, you can simply iterate over all slices,
+which produces less lines of code and is the fastest way to access all
+pixels:\\[0.3cm]
+\texttt{
+\noindent\mtbimg~img = \mtbimg.createMTBImage(100, 100, 100, 100, 100,\\[-0.1cm]
+						\hspace*{8.3cm}MTBImageType.MTB\_BYTE);\\[0.3cm]
+for (int i = 0; i < img.getSizeStack(); i++) \{ \\[-0.1cm]
+\hspace*{0.5cm}img.setActualSliceIndex(i);\\[0.3cm]
+\hspace*{0.5cm}for (int y = 0; y < img.getSizeY(); y++) \\[-0.1cm]
+\hspace*{1.0cm}for (int x = 0; x < img.getSizeX(); x++) \\[-0.1cm]
+\hspace*{1.5cm}img.putValueInt(x,y,255); \\[-0.1cm]
+\}
+}
+
+\subsection{\mtbimg~I/O and the \mitobo~Operator Concept}
+\mtbimg~extends the {\tt ALDData} base class for data types and therefore fully integrates in
+\alida's and \mitobo's operator concept. 
+A difference to other {\tt ALDData} types is, however, the
+file input and output. \mtbimg~objects can be written to and read from disk
+using the {\tt ImageWriterMTB} and {\tt ImageReaderMTB} operators, which can be
+found in the package {\tt de.unihalle.informatik.MiToBo.io.images}.
+
+The output of the save operator is comprised of two separate files: one image file in any supported
+format, and a file (with ending .ald) that contains the image's processing history (see
+Sec.~\ref{sec:history}). This history file -- if present -- is automatically
+loaded when the image is opened using \mitobo's {\tt ImageReaderMTB} operator. The processing
+history files can be examined using {\tt chipory}.
+
+\mitobo~relies on the Bio-Formats Library
+(\url{http://www.loci.wisc.edu/software/bio-formats}) and, thus, allows reading and writing
+all file formats supported by Bio-Formats. Bio-Formats is a sophisticated library for image I/O
+targetting at the various file formats in biomedical imaging and being compatible with the Open Microscopy Environment
+(OME) standard (\url{http://www.openmicroscopy.org}).
+
+

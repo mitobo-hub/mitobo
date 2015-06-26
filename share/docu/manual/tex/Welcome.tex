@@ -1,0 +1,253 @@
+\vspace*{-1cm}
+\href{http://rsbweb.nih.gov/ij/}{ImageJ}\footnote{%
+ImageJ -- {\em Image Processing and Analysis in Java},
+\href{http://rsbweb.nih.gov/ij/}{http://rsbweb.nih.gov/ij/}}
+is a widely-used Java toolkit for image processing and analysis. Particularly
+in biomedical applications ImageJ has gained large
+interest. ImageJ provides the user with a flexible graphical user
+interface (GUI), with a large variety of basic built-in image processing operations,
+and also with a huge collection of optional plugins downloadable from the
+web. From a programmer's point of view, however, the ImageJ API provides less flexibility
+to support plugin and application development. Especially easy data access
+and exchange between more complex plugins below the GUI appear worth to be improved.
+
+The ImageJ development project {\em ImageJDev }\footnote{ImageJDev website, 
+\href{http://developer.imagej.net/}{http://developer.imagej.net/}}
+is working towards a new release of ImageJ, {\em ImageJ $2.0$}, 
+which is supposed to overcome many of these shortcomings of ImageJ on the programming level. 
+The project developers are working on a complete restructuring of ImageJ's system architecture to 
+decouple algorithms and user interfaces, and to allow for a much larger flexibility with regard to 
+customizing ImageJ's core to specific needs\footnote{To differentiate between both versions of ImageJ throughout the remainder
+of this guide, we will refer to the old release simply as 'ImageJ', and to the new version of the ImageJDev project as ImageJ $2.0$.}. 
+
+\mitobo, which is the {\em {\bf \em M}icroscope {\bf \em I}mage Analysis {\bf \em To}ol{\bf \em Bo}x} 
+developed at the Martin Luther University Halle-Wittenberg, targets at manifold goals. 
+On the one hand it seeks to enhance the functionality and usability of ImageJ for programmers and users.
+It shares the goals of an improved API and a strict decoupling of algorithmic 
+functionality and user interfaces with the ImageJDev project. For example, \mitobo and ImageJ $2.0$ 
+both define unified frameworks for implementing new functionality in terms of plugins and operators,
+respectively, and both systems support the automatic generation of graphical user interfaces from 
+these implementations.
+
+On the other hand, however, \mitobo 
+offers additional functionality going behind the features of ImageJ $2.0$.
+With regard to graphical user interfaces it not just supports the automatic generation of user 
+interfaces for single operators or plugins, respectively. 
+Rather it extends the underlying model of image analysis procedures towards {\em workflows} 
+where multiple operators are sequentially or in parallel applied to given input data for 
+extracting desired results. 
+This extension is inherently included in \mitobo's core and available to the user in 
+terms of a graphical editor named {\bf \em Grappa} (Sec.~\ref{sec:grappa}) which supports users in designing workflows.
+  
+In general and contrary to the ImageJDev project \mitobo not only focusses on graphical user 
+interfaces, but provides mature functionality for assessing implemented algorithms from commandline 
+as well. In addition, it features a built-in mechanism for automatic documentation of analysis 
+procedures which significantly simplifies the reconstruction of results and their long-term archival.
+Finally, \mitobo not only inherently provides a comfortable framework for developing and 
+implementing new image analysis algorithms. The toolbox also includes a selected collection of common image 
+analysis techniques. They are mainly dedicated to the area of biomedical image analysis, but not restricted
+to this field. Among these algorithms are for example segmentation approaches based on active 
+contours for cell and scratch assay images, tools for neuron image analysis, or wavelet-based 
+algorithms for detecting subcellular structures.
+
+\mitobo is fully compatible with ImageJ, and features prototypical support for ImageJ $2.0$
+which, however, will soon be completed towards full support. \mitobo's operators can be used both from 
+within ImageJ and ImageJ $2.0$. In addition, \mitobo is capable of executing plugins from ImageJ 
+$2.0$ and, e.g., include them in its process documentation. \mitobo is licensed under GPL, version
+$3$, and can be downloaded from its website 
+\href{http://www.informatik.uni-halle.de/mitobo}{http://www.informatik.uni-halle.de/mitobo}.
+Please also have a look at the website for installation instructions.
+
+\section{\mitobo's Core: Alida}
+\mitobo's main paradigm is the idea of completely decoupling the implementation of functionality
+from corresponding user interfaces for making this functionality available to users. The strict 
+separation of algorithms and potential user interfaces offers largest flexibility to programmers.
+It releases them from the cumbersome task to explicitly implement a variety of different interfaces.
+At the same time the programmers are guided in implementing new functionality by clearly defined 
+specifications and interfaces from which also users benefit. The usage of implemented 
+functionality gets significantly simpler as the user interfaces for different algorithms follow 
+common principles with regard to structure, appearance and handling.    
+
+\mitobo\ is build on top of
+\href{http://www.informatik.uni-halle.de/alida}{\alida}\hspace{-0.15cm}\footnotemark[4]
+\footnotetext[4]{Alida website, \href{http://www.informatik.uni-halle.de/alida}{http://www.informatik.uni-halle.de/alida}}
+from which it inherits the functionality for automatic user interface generation and automatic
+documentation of analysis processes. \alida, which is the acronyme for 
+{\em {\bf \em A}dvanced {\bf \em L}ibrary for {\bf \em I}ntegrated {\bf \em D}evelopment of 
+Data Analysis {\bf \em A}pplications}, is a framework for supporting programmers in developing 
+data analysis applications. It ships as a library providing core functionality for implementing
+so-called {\em operators} as functional units for data analysis, and which also subsumes handy 
+applications for running operators in a graphical or commandline context, as well as the graphical workflow editor {\bf \em Grappa}.
+
+\alida basically interprets each data analysis pipeline as a 
+process of modifying given input data (not necessarily image data) by a series of operations to produce the desired output data. 
+Accordingly, all data analysis procedures in \alida\ are implemented by {\em operators} which are the only places to manipulate 
+data. Furthermore, operators can be combined into {\em workflows}. 
+Each workflow consists of a set of operators executed sequentially, in parallel or in a
+nested fashion. Particularly the latter option naturally renders each workflow to form a new 
+operator by itself, hence, in \alida a workflow is just an operator with extended functionality.  
+
+It is straightforward to associate a selection of sequential and/or parallel operator calls 
+with a directed graph data structure, where each operator is linked to a certain node of the graph, 
+and input and output data is passed from one operator to another along the graph edges. This graph
+together with the individual configuration parameters of all involved operators is a sufficient base
+for lateron reconstructing all steps of data manipulation for a given result data object.
+\alida\ allows to extract such {\em history graphs} explicitly and by this offers a powerful tool 
+for the automatic documentation of data analysis processes. 
+Note that these history graphs are not 
+identical to the graphs implicitly defined by workflows as introduced above. 
+Rather a workflow graph is often
+only a subgraph of the history graph associated with the results generated by executing the 
+workflow. This is due to the fact that operators usually rely on internal calls to other operators 
+and these calls are not linked to an operator node in the workflow graph.   
+
+\mitobo\ fully adopts the concepts of \alida, i.e.~\alida is an integral part of the \mitobo
+framework. Consequently, image analysis procedures are realized in terms of operators which can be 
+applied to data objects, e.g., images, regions or image primitives like keypoints and lines, 
+and yield certain results. Contrary to \alida, which does not depend on any other data analysis
+framework, \mitobo\ builds upon ImageJ. It basically relies on ImageJ's image data types, however,
+does not interfere with ImageJ's plugin interfaces. Rather it allows to program ImageJ-compatible 
+plugins based on the \alida\ operator concept.
+Thus, in addition to the ImageJ interfaces which focus on plugin and script development,
+\mitobo\ defines unique interfaces for the underlying image processing modules, i.e.~operators, in
+terms of input/output data and parameters, and also with regard to the way how operators can be
+invoked from other operators or user interfaces. This significantly improves data exchange and
+operator handling, and establishes -- besides the already mentioned concept of automatic 
+documentation -- a powerful fundament for adding new sophisticated features to ImageJ and ImageJ 
+$2.0$. 
+
+In the remainder of this guide we will outline the core functionality of \mitobo\ and its features with more 
+detail. In doing so we will refer to the basic concepts of \alida only in a rudimentary fashion. 
+If you are interested in more details about \alida, please refer to the \alida website\footnotemark[4] 
+where you can find more information on \alida
+bundled with examples of how to implement operators and how to execute them.
+
+\section[\mitobo's Main Features: Operators, History Graphs and User Interfaces]
+         {\mitobo's Main Features:\\ Operators, History Graphs and User Interfaces}
+\label{sec:features}
+\enlargethispage{0.2cm}
+Besides providing modern image analysis tools and algorithms for microscope image analysis the
+overall goal of the \mitobo\ project is to ease the analysis in terms of the development of appropriate algorithms and flexible user interfaces. These interfaces should, of
+course, not only be designed for experts,
+but also for researchers using image processing software as a tool rather than
+developing their own
+algorithms. \mitobo\ builds on top of ImageJ which has achieved large success and broad acceptance by researchers from
+many different disciplines who need to solve their individual image analysis
+problems. 
+
+From the programmer point of view, ImageJ yields a suitable base for developing
+image analysis tools in an integrated
+framework. The programmer does not need to take care of, e.g., image display and zooming, as ImageJ
+has answered such questions already. However, providing a certain degree of usability and easy integration
+of new algorithms in terms of plugins is only one side of the medal. On the
+other hand the underlying software
+structures and interfaces should also provide a sufficient degree of comfort to the
+programmer. In particular, image processing algorithms and user interfaces should be clearly separated from each other and data exchange between
+different modules should be easy in terms of well-specified interfaces. 
+
+As ImageJ is not optimally designed with regard to some of these aspects,
+\mitobo\ does not exclusively focus on the
+development of image analysis tools for microscope images, but also optimizes underlying software
+in terms of data flow and data structures. In addition, self-documentation of image processing
+pipelines is natively supported.
+
+Based on the underlying concepts of \alida, \mitobo\ defines an image analysis pipeline as a sequence of operations sequentially or in
+parallel applied to data that is handed over from operator to operator. Such a pipeline may be
+viewed as a directed graph structure, where the nodes represent different operators and the data
+flow is indicated by edges in between. From this interpretation of image analysis in
+general, several design issues are derived that are embedded in the \alida\ core of
+\mitobo. The concepts by themselves as well as functionality build on top of them are an integral part of \mitobo 
+and provide users as well as programmers with enhanced image analysis tools and an improved
+infrastructure for development and research.
+
+\paragraph{Operator Concept.} The interpretation of image analysis pipelines as a
+sequence of operations directly leads to the concept of {\em operators} implemented in \mitobo. 
+All manipulations that are performed on data are done by operators. Vice versa operators
+are the only actors that work on given data, modify the data or generate new
+data entities from given input data. Accordingly, all image processing and
+analysis algorithms in \mitobo\ are implemented in terms of operators with clearly specified input and output interfaces.
+
+The operator concept is adopted from \alida. Technically \alida\ defines a common superclass for
+data analysis modules denoted '{\tt ALDOperator}' from which the \mitobo\ main operator
+class '{\tt MTBOperator}' is derived, and which all \mitobo\ operator classes extend. 
+Furthermore, the concept incorporates a formal description of the interface of an operator,
+i.e.~a formal specification of its inputs, outputs, and parameters, which is realized by the Java annotation
+mechanism. In addition, there is only one possibility to invoke operators which is a single public routine to be
+called from external which results in a unified invocation procedure for all operators. Among other things, this 
+yields the base for automatic process documentation and user interface generation.
+Moreover, every new operator implemented based on \mitobo and following these rules directly benefits from this
+infrastructure, i.e.~can generically be executed and is automatically considered in extracting processing graphs.
+
+\paragraph{Automatic Process Documentation and History Graphs.} The \alida\ operator concept with its transparent
+interface specifications allows a unified handling of operators in various contexts, e.g., with
+regard to graphical programming or automatic or semi-automatic code generation
+where compatibility checks and operator calls have to be standardized. In
+addition, the restriction of operator invocation to a single available method
+also serves as a basis for another sophisticated feature of \mitobo\ which is the
+fully automatic
+documentation of image analysis pipelines. Given the interpretation of image
+analysis pipelines as sequences of operators, all that remains to be done for
+process documentation is to log the calls of all operators as well as their input and
+output data and save their parameter settings. Together with
+information about the order of operator
+calls, for example represented in a directed graph data structure, these data
+form a complete protocol of the pipeline and allow for longterm documentation of
+analysis processes. In particular, linked to specific result data
+objects, they allow to reproduce all results ever produced during the course of
+algorithm development, testing, or
+experimental evaluation.
+
+The concept of automatic process documentation is realized in \alida, thus, it is also an integral part of
+\mitobo\ and directly embedded into the operator concept. Operators provide internal functionality to
+store process data during the course of an analysis procedure which later on can be extracted in terms of a
+{\em history graph} file in XML format. Such a graph is associated with each data object being the
+result of a certain operator or sequence of operations. Although the majority of objects will be
+images, processing histories can also be associated with
+segmentation results like regions or contours as well as histograms or any
+other numerical data. See Figure~\ref{fig:DAG} for an example processing graph.
+
+\paragraph{User Interfaces and Workflow Design} For (scientific) programmers the development of new image analysis algorithms
+is mainly linked to the implementation of functionality to achieve desired results. For users who would like to 
+benefit from new algorithms in their daily work the availability of suitable user interfaces is equally important. 
+But as interface design and development usually coincides with a significantly increased amount of time for the programmer 
+required to provide users with handy interfaces this aspect is often neglected. 
+
+The unified invocation procedures for operators in \alida and their clear specification of input and output parameters pave 
+the way for releasing programmers from the cumbersome task of implementing user interfaces. \alida, and consequently \mitobo,
+inherently include mechanisms to automatically generate graphical as well as commandline user interfaces from operators in a 
+completely generic fashion. Particularly, \alida's built-in support for a large variety of standard Java datatypes as operator 
+parameters as well as for more sophisticated types like arrays, collections or enumerations renders it quite easy to implement
+new functionality including suitable user interfaces with a minimum of programming overhead. 
+
+And also users benefit from \mitobo's automatically generated user interfaces. Naturally all interfaces 
+follow the same design and handling principles, e.g., all of them provide access to \mitobo's online help or allow for running 
+the operator in batch mode. Moreover, \alida and \mitobo not only automatically generate user interfaces for single operators, 
+but inherently support also the design of complete workflows formed by multiple operators which only in combination yield 
+desired results. The graphical workflow editor {\bf \em Grappa} being shipped with \alida and \mitobo targets at supporting 
+users in designing new workflows in a graphical manner. It integrates all operators implemented in the \mitobo framework as 
+potential nodes of workflow graphs and allows for linking input and output parameters of these nodes to define more 
+complex workflows. Thereby it takes full benefit of \alida's functionality, i.e.~Grappa offers automatically generated graphical
+components for node configuration, data compatibility checks on dragging edges, and the fully automatic verification of operator 
+configurations at runtime.
+
+\section{About this Guide}
+\label{sec:about}
+This guide is organized in a short introductory section and two main parts. The introductory
+section -- which you most probably have already read in the last few minutes -- is dealing with
+some general remarks, while the two main parts provide more details. 
+The first part is dedicated to users who are interested in using \mitobo\
+plugins or commandline tools for their own work, e.g., to benefit from the automatic process documentation
+capabilites of \mitobo or to adopt provided image analysis algorithms for solving their own image
+processing problems. 
+The second part introduces the reader to some more internals of \mitobo,
+i.e.~it presents more details about the operator concept and how to use it with own
+code, more information about specific \mitobo\ data types and also about programming with \mitobo\
+in general. Note that only some few basics of the underlying concept of \alida\ are presented. 
+For more details about its functionality and technical implementation refer
+to the \alida\ manual to be found on the \alida\ webpage\footnotemark[4].
+
+We hope that the new perspectives that \alida and in particular \mitobo\ open with 
+their concepts might be helpful for developers and users of image processing applications, 
+and by this extend ImageJ's selection of valuable features.  
+If something remains to be clarified or if you have further notes and comments, just write an email
+to us at {\tt mitobo@informatik.uni-halle.de}. We are happy to get in touch with you! 

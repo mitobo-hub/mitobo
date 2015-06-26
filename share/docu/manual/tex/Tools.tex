@@ -1,0 +1,40 @@
+\alida and \mitobo provide certain classes not directly related to image processing, however, useful for doing things like time
+measurements or operator configuration. Such tools can usually be found in the packages {\tt de.unihalle.informatik.Alida.helpers}
+and {\tt de.unihalle.informatik.MiToBo.core.helpers}, respectively.
+
+\section{Operator Configuration}
+\label{tools:plugconf}
+For user specific configuration of operators \alida supports environment variables and JVM properties, while \mitobo as well supports 
+ImageJ preferences (see also Chap. \ref{chap:config}). For accessing environment variables and properties/preferences \alida 
+provides the class \texttt{de.unihalle.informatik.Alida.helpers.ALDEnvironmentConfig} which supports easy access to these variables
+and properties. It basically defines the following methods:
+\begin{itemize}
+    \item {\small \texttt{public static void getConfigValue( String operator,	String propname )}}\\[0.2cm]
+    	reads the value of the environment variable or property with name \mbox{'ALIDA\_operator\_propname'} or 'alida.operator.propname',
+    	respectively; it follows the formerly defined 
+    	priority ordering of the different configuration options, i.e.~first looks for an environment variable with the given name, 
+    	then checks for JVM properties 
+\end{itemize} 
+If not all options should be checked, the following methods can be used alternatively:
+\begin{itemize}
+    \item {\small \texttt{public static String getEnvVarValue( String operator, String envVariable )}}\\[0.2cm] 
+    	This method allows to directly read (only) environment variables. 
+    \item {\small \texttt{public static String getJVMPropValue( String operator, String envVariable )}}\\[0.2cm] 
+    	This method allows to directly read (only) JVM properties. 
+\end{itemize}
+\mitobo includes the class \texttt{de.unihalle.informatik.MiToBo.core.helpers.MTBEnviron\-mentConfig} extending its \alida superclass
+by additional methods for accessing ImageJ properties:
+\begin{itemize}
+    \item {\small \texttt{public static String getImageJPropValue( String operator, String envVariable )}}\\[0.2cm] 
+    	This method allows to directly read ImageJ preferences.  
+    \item {\small \texttt{public static void setImageJPref( String operator, String envVar, String val )}}\\[0.2cm]
+    	This method allows to set a preference in the ImageJ configuration file.
+    	It is saved to the user specific ImageJ configuration file (in ImageJ usually $\;\tilde{ }$/.imagej/IJ\_Prefs.txt, but this
+    	may be different in ImageJ $2.0$). Note that for actually saving the settings it is required to have the ImageJ GUI open,
+    	because only on closing the GUI the preferences are actually written to the configuration file.
+\end{itemize}
+Note that in all cases the prefix 'mitobo.' for properties and preferences or 'MITOBO\_' for environment variables,
+respectively, is internally added to the variable and property names. Likewise \mitobo overwrites the superclass methods of \alida 
+as introduced above to automatically
+set the \mitobo prefixes in the variable and property names. Anyway, the programmer usually does not need to pay
+attention on this feature as long as he or she follows the standard naming conventions in \alida and \mitobo.
