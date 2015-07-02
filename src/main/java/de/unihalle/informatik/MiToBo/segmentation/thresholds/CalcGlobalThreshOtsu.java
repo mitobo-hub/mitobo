@@ -209,6 +209,11 @@ public class CalcGlobalThreshOtsu extends MTBOperator {
 						    + maxBinValue);
 				}
 
+				if(minBinValue == maxBinValue)	// if there is only one pixel value present, return this value
+				{
+					return new MTBDoubleData(minBinValue);
+				}
+				
 				int binCount = (int) (maxBinValue - minBinValue + 1);
 				if (binCount < 128)
 						binCount = 128;
