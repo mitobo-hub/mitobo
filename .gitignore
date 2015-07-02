@@ -1,5 +1,8 @@
+*.o
 .classpath
 .factorypath
 .project
 .settings/
+native/export/lib32
+native/export/lib64
 target

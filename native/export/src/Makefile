@@ -1,5 +1,4 @@
-LIB_DIRS= 	./polygon	\
-		./time
+LIB_DIRS= 	./time
 
 .PHONY: all clean 
 
@@ -9,7 +8,7 @@ all:
 			echo "\n Building library in $$dir....";		\
 			$(MAKE) -w -C $$dir -f Makefile all;	\
 		done ) ;
-	
+
 clean:
 	@( for dir in $(LIB_DIRS) ;						\
 		do								\
