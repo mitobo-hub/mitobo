@@ -56,9 +56,30 @@
     </fileSet>
     <fileSet>
       <directory>share/testimages</directory>
-      <outputDirectory>testimages</outputDirectory>
+      <outputDirectory>share/testimages</outputDirectory>
       <includes>
         <include>scratch_example1.tif</include>
+      </includes>
+    </fileSet>
+    <fileSet>
+      <directory>intlibs/lib32</directory>
+      <outputDirectory>share/intlibs/lib32</outputDirectory>
+      <includes>
+        <include>*</include>
+      </includes>
+    </fileSet>
+    <fileSet>
+      <directory>intlibs/lib64</directory>
+      <outputDirectory>share/intlibs/lib64</outputDirectory>
+      <includes>
+        <include>*</include>
+      </includes>
+    </fileSet>
+    <fileSet>
+      <directory>intlibs/libwin32</directory>
+      <outputDirectory>share/intlibs/libwin32</outputDirectory>
+      <includes>
+        <include>*</include>
       </includes>
     </fileSet>
   </fileSets>
@@ -67,7 +88,6 @@
     <dependencySet>
       <outputDirectory>jars</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
-      <!-- it is unclear why, but "loci_tools" triggers redundant dependencies ImageJ complains about... -->
       <excludes>
 	<exclude>de.unihalle.informatik.MiToBo.native:mitobo-native-${native.libdir}:jar:*</exclude>
       </excludes>
