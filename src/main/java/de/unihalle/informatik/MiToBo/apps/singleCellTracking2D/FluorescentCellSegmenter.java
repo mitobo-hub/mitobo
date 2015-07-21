@@ -59,8 +59,8 @@ public class FluorescentCellSegmenter extends CellSegmenter
 {
 	//TODO: rename median related stuff to Gaussian (also in related operators)
 	
-	@Parameter(label = "median filter radius", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "radius of median filter mask", dataIOOrder = 1)
-	private Integer medianRadius = 1;
+	@Parameter(label = "\u03C3", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "standard deviation of Gaussian filter mask", dataIOOrder = 1)
+	private Integer sigma = 1;
 	
 	@Parameter(label = "maximum number of iterations", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "maximum number of iterations for level set evolution", mode=ExpertMode.ADVANCED, dataIOOrder = 2)
 	private Integer maxIter = 1000;
@@ -193,7 +193,7 @@ public class FluorescentCellSegmenter extends CellSegmenter
 //		
 //		filterFrame = medianFilter.getResultImg();
 		
-		GaussFilter gf = new GaussFilter(filterFrame, medianRadius, medianRadius);
+		GaussFilter gf = new GaussFilter(filterFrame, sigma, sigma);
 		gf.setSigmaInterpretation(SigmaInterpretation.PIXEL);
 		gf.setResultImageType(MTBImage.MTBImageType.MTB_BYTE);
 		gf.runOp();
@@ -208,9 +208,9 @@ public class FluorescentCellSegmenter extends CellSegmenter
 	 * 
 	 * @param size
 	 */
-	public void setMedianMaskSize(int size)
+	public void setSigma(int sigma)
 	{
-		this.medianRadius = size;
+		this.sigma = sigma;
 	}
 	
 	/**
