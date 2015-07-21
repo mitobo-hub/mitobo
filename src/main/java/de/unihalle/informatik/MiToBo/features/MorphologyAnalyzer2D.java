@@ -106,7 +106,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 		/**
 		 * Elongation based on ratio of major to minor axes lengths.
 		 */
-		Excentricity,
+		Eccentricity,
 		/**
 		 * Ratio of convex hull area to cell area.
 		 */
@@ -625,7 +625,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 		}
 		if(this.calcEccentricity)
 		{
-			header.add(FeatureNames.Excentricity.toString());
+			header.add(FeatureNames.Eccentricity.toString());
 		}
 		if(this.calcSolidity)
 		{
