@@ -233,7 +233,7 @@ public class ScratchAssaySegmenter extends MTBOperator
 		//solver.setSpacingIntermediate(100);
 		solver.runOp();
 		
-		resultImg = solver.getResultImage();
+		resultImg = solver.getResultImage().convertType(MTBImage.MTBImageType.MTB_BYTE, false);
 		
 		numIterations = solver.getNumIterations();
 		
@@ -275,7 +275,7 @@ public class ScratchAssaySegmenter extends MTBOperator
 		// fill holes
 		FillHoles2D fh = new FillHoles2D(resultImg);
 		fh.runOp();
-		resultImg = (MTBImageByte)fh.getResultImage();
+		resultImg = fh.getResultImage();
 		
 		// measure wound area
 		scratchArea = measure(); //new MTBDoubleData(measure());
