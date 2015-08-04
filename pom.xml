@@ -574,6 +574,10 @@
       <groupId>net.imglib2</groupId>
       <artifactId>imglib2-algorithm</artifactId>
     </dependency>
+    <dependency>
+      <groupId>net.imglib2</groupId>
+      <artifactId>imglib2-algorithm-gpl</artifactId>
+    </dependency>
     <!-- MLU stuff -->
     <dependency>
       <groupId>de</groupId>

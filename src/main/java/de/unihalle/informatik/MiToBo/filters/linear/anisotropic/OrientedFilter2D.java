@@ -26,6 +26,12 @@ package de.unihalle.informatik.MiToBo.filters.linear.anisotropic;
 
 import java.util.Vector;
 
+import net.imglib2.Cursor;
+import net.imglib2.algorithm.fft2.FFTConvolution;
+import net.imglib2.img.Img;
+import net.imglib2.img.ImgFactory;
+import net.imglib2.img.cell.CellImgFactory;
+import net.imglib2.type.numeric.real.FloatType;
 import loci.common.StatusEvent;
 import loci.common.StatusListener;
 import loci.common.StatusReporter;
@@ -41,12 +47,44 @@ import de.unihalle.informatik.MiToBo.filters.linear.LinearFilter;
 
 /**
  * Base class for anisotropic linear filters in 2D.
+ * <p>
+ * This operator supports two modes how to compute the convolution. 
+ * The first mode 'STANDARD' is based on the plain implementation of 
+ * a convolution, i.e. relies on class {@link LinearFilter}.
+ * The second mode 'FFT' makes use of the fast implementations of 
+ * convolutions available in ImgLib2. In particular, we apply FFT 
+ * convolution which is almost two times faster than the implementation 
+ * of linear filtering from scratch to be found in 
+ * {@link OrientedFilter2D}. 
+ * <p>
+ * Please note that the energy of the input image might be changed by 
+ * the convolution if mode 'FFT' is applied since the masks of the 
+ * anisotropic kernels are normalized to a sum of zero rather than 1 as 
+ * usual.
+ * <p>
+ * The code for convolving the input image is leaned on example 6b
+ * to be found at the ImgLib2  
+ * <a href="http://fiji.sc/ImgLib2_Examples">web page</a>.
  * 
  * @author Birgit Moeller
  */
 public abstract class OrientedFilter2D extends MTBOperator 
 	implements StatusReporter {
 
+	/**
+	 * Modes how to apply the filter to an image.
+	 */
+	public static enum ApplicationMode {
+		/**
+		 * Use standard implementation of convolution.
+		 */
+		STANDARD,
+		/**
+		 * Use ImgLib2 FFT convolution (faster). 
+		 */
+		FFT
+	}
+	
 	/**
 	 * Input image to process.
 	 */
@@ -60,9 +98,17 @@ public abstract class OrientedFilter2D extends MTBOperator
 	 */
 	@Parameter( label= "Orientation", required = true, dataIOOrder = -9,
 		direction= Parameter.Direction.IN, mode=ExpertMode.STANDARD, 
-    description = "Orientation for which to apply the filter (in degrees).")	
+    description = "Orientation of the filter to apply (in degrees).")	
 	protected Double angle = new Double(0.0);
 
+	/**
+	 * Mode of application.
+	 */
+	@Parameter( label= "Application Mode", required = true, 
+		dataIOOrder = -8, direction= Parameter.Direction.IN, 
+		mode=ExpertMode.ADVANCED, description = "Computation mode.")	
+	protected ApplicationMode mode = ApplicationMode.FFT;	
+	
 	/**
 	 * Filtered image.
 	 */
@@ -77,7 +123,7 @@ public abstract class OrientedFilter2D extends MTBOperator
 
 	/**
 	 * Default constructor.
-	 * @throws ALDOperatorException
+	 * @throws ALDOperatorException Thrown in case of failure.
 	 */
 	public OrientedFilter2D() throws ALDOperatorException {
 	  super();
@@ -111,15 +157,67 @@ public abstract class OrientedFilter2D extends MTBOperator
 		// apply convolution mask to image
 		MTBImageDouble kernel;
 		kernel = this.getKernel(this.angle.doubleValue());
-		LinearFilter lf = new LinearFilter();
-		for (StatusListener l : this.statusListeners)
-			lf.addStatusListener(l);
-		lf.setInputImg(this.inputImg);
-		lf.setKernelImg(kernel); 
-		lf.setKernelNormalization(false);
-		lf.setResultImageType(MTBImageType.MTB_DOUBLE);
-		lf.runOp();
-		this.resultImg = (MTBImageDouble)lf.getResultImg();
+		
+		switch(this.mode) 
+		{
+		case STANDARD:
+			LinearFilter lf = new LinearFilter();
+			for (StatusListener l : this.statusListeners)
+				lf.addStatusListener(l);
+			lf.setInputImg(this.inputImg);
+			lf.setKernelImg(kernel); 
+			lf.setKernelNormalization(false);
+			lf.setResultImageType(MTBImageType.MTB_DOUBLE);
+			lf.runOp();
+			this.resultImg = (MTBImageDouble)lf.getResultImg();
+			break;
+		case FFT:
+			int iWidth = this.inputImg.getSizeX();
+			int iHeight = this.inputImg.getSizeY();
+
+			// create an image factory that will instantiate the ImgLib2 images
+			final ImgFactory<FloatType> imgFactory = 
+				new CellImgFactory<FloatType>( 1 );
+	    final Img<FloatType> iLibImg = imgFactory.create( 
+	      	new long[]{ iWidth, iHeight, 1, 1},	new FloatType() );
+			// copy data from input image to ImgLib2 image
+	    Cursor<FloatType> iLibCursor = iLibImg.cursor();
+	    for (int y=0; y<iHeight; ++y) {
+	    	for (int x=0; x<iWidth; ++x) {
+	    		iLibCursor.fwd();
+	    		iLibCursor.get().set((float)this.inputImg.getValueDouble(x,y));
+	    	}
+	    }
+
+	    // create ImgLib2 kernel image
+	    int kernelWidth = kernel.getSizeX();
+	    int kernelHeight = kernel.getSizeY();
+	    final Img<FloatType> iLibKernel = imgFactory.create( 
+	    		new long[]{ kernelWidth, kernelHeight, 1, 1},	new FloatType());
+	    // set data
+	    iLibCursor = iLibKernel.cursor();
+	    for (int y=0; y<kernelHeight; ++y) {
+	    	for (int x=0; x<kernelWidth; ++x) {
+	    		iLibCursor.fwd();
+	    		iLibCursor.get().set((float)kernel.getValueDouble(x,y));
+	    	}
+	    }
+
+	    // compute fourier convolution (in-place)
+	    new FFTConvolution<FloatType>( iLibImg, iLibKernel ).convolve();
+
+	    // copy data to result image
+	    this.resultImg = (MTBImageDouble)MTBImage.createMTBImage(
+	    		iWidth, iHeight, 1, 1, 1, MTBImageType.MTB_DOUBLE);
+	    iLibCursor = iLibImg.cursor();
+	    for (int y=0; y<iHeight; ++y) {
+	    	for (int x=0; x<iWidth; ++x) {
+	    		iLibCursor.fwd();
+	    		this.resultImg.putValueDouble(x, y, iLibCursor.get().get());   				
+	    	}
+	    }
+	    break;
+		}
 	}
 
 	/**
@@ -136,6 +234,14 @@ public abstract class OrientedFilter2D extends MTBOperator
 	 */
 	public void setAngle(double _angle) {
 		this.angle = new Double(_angle);
+	}
+
+	/**
+	 * Get application mode.
+	 * @return	Application mode.
+	 */
+	public ApplicationMode getApplicationMode() {
+		return this.mode;
 	}
 
 	/**

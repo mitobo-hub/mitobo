@@ -41,17 +41,19 @@ import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageByte;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageDouble;
 import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
+import de.unihalle.informatik.MiToBo.filters.linear.anisotropic.OrientedFilter2D.ApplicationMode;
 
 /**
  * Base class for applying oriented filters in different orientations.
  * <p>
- * The operator applies a given oriented filter in different orientations to 
- * the given image. Subsequently all filter responses are merged into a final
- * result using the specified mode for joining.
+ * The operator applies a given oriented filter in different orientations 
+ * to the given image. Subsequently all filter responses are merged into 
+ * a final result using the specified mode for joining.
  * 
  * @author Birgit Moeller
  */
-@ALDAOperator(genericExecutionMode=ExecutionMode.ALL, level=Level.APPLICATION)
+@ALDAOperator(genericExecutionMode=ExecutionMode.ALL, 
+	level=Level.APPLICATION)
 public class OrientedFilter2DBatchAnalyzer extends MTBOperator 
 	implements StatusReporter {
 
@@ -67,12 +69,18 @@ public class OrientedFilter2DBatchAnalyzer extends MTBOperator
 		 * Result is the pixel-wise product over all orientations.
 		 * <p>
 		 * Prior to joining the responses they are all normalized to a common 
-		 * interval of [0,1]. Note that this might cause problems if the filter 
-		 * responses also include negative values. 
+		 * interval of [0,1]. Note that this might cause problems if the 
+		 * filter responses also include negative values. 
 		 */
 		JOIN_PRODUCT
 	}
 	
+	/**
+	 * Identifier string for this operator class.
+	 */
+	private static final String operatorID = 
+			"[OrientedFilter2DBatchAnalyzer]";
+
 	/** 
 	 * Vector of installed StatusListeners.
 	 */
@@ -97,17 +105,19 @@ public class OrientedFilter2DBatchAnalyzer extends MTBOperator
 	/**
 	 * Minimal orientation from where to start.
 	 */
-	@Parameter( label= "Minimal Orientation", required = true, dataIOOrder = 2,
-		direction= Parameter.Direction.IN, mode=ExpertMode.ADVANCED, 
-	   description = "Minimal orientation to consider (in degrees).")	
+	@Parameter( label= "Minimal Orientation", required = true, 
+		dataIOOrder = 2, direction= Parameter.Direction.IN, 
+		mode=ExpertMode.ADVANCED, 
+	  description = "Minimal orientation to consider (in degrees).")	
 	protected int minAngle = 0;
 
 	/**
 	 * Maximal orientation where to end.
 	 */
-	@Parameter( label= "Maximal Orientation", required = true, dataIOOrder = 3, 
-			direction= Parameter.Direction.IN, mode=ExpertMode.ADVANCED, 
-	    description = "Maximal orientation to consider (in degrees).")	
+	@Parameter( label= "Maximal Orientation", required = true, 
+		dataIOOrder = 3, 
+		direction= Parameter.Direction.IN, mode=ExpertMode.ADVANCED, 
+	  description = "Maximal orientation to consider (in degrees).")	
 	protected int maxAngle = 180;
 
 	/**
@@ -115,7 +125,8 @@ public class OrientedFilter2DBatchAnalyzer extends MTBOperator
 	 */
 	@Parameter( label= "Angular Sampling Steps", required = true, 
 		direction= Parameter.Direction.IN, mode=ExpertMode.ADVANCED, 
-    description = "Angular sampling step size (in degrees).", dataIOOrder = 4)	
+    description = "Angular sampling step size (in degrees).", 
+    dataIOOrder = 4)	
 	protected int angleSampling = 15;
 
 	/**
@@ -137,20 +148,22 @@ public class OrientedFilter2DBatchAnalyzer extends MTBOperator
 	 * Stack with filter responses of all orientations.
 	 */
 	@Parameter( label= "Filter Response Stack", dataIOOrder = 1, 
-		direction=Parameter.Direction.OUT, description = "Filter response stack.")
+		direction=Parameter.Direction.OUT, 
+		description = "Filter response stack.")
 	protected transient MTBImageDouble responseStack = null;
 
 	/**
 	 * Map of indices of maximal responses.
 	 * <p>
 	 * The map is available after running the operator.
-	 * Note that this is not an operator parameter because it is only useful
-	 * internally for some vessel filters.
+	 * Note that this is not an operator parameter because it is only 
+	 * useful internally for some vessel filters.
 	 */
 	private transient MTBImageByte maxIndexMap = null;
 
 	/**
 	 * Default constructor.
+	 * @throws ALDOperatorException Thrown in case of failure.
 	 */
 	public OrientedFilter2DBatchAnalyzer() throws ALDOperatorException {
 		this.statusListeners = new Vector<StatusListener>(1);
@@ -181,10 +194,19 @@ public class OrientedFilter2DBatchAnalyzer extends MTBOperator
 		// apply all convolutions to image
 		MTBImageDouble[] filteredImages = new MTBImageDouble[steps];
 		this.oFilter.setInputImage(this.inputImg);
-		for (StatusListener l : this.statusListeners)
-			this.oFilter.addStatusListener(l);
+		// if our linear filter class is used, register the status listener
+		if (this.oFilter.getApplicationMode() == ApplicationMode.STANDARD) {
+			for (StatusListener l : this.statusListeners)
+				this.oFilter.addStatusListener(l);
+		}
 		for (int s=0; s<steps; ++s) {
 			double angle = 	this.angleSampling * s + this.minAngle;
+			// if ImgLib2 FFT is applied, send status messages on our own
+			if (this.oFilter.getApplicationMode() == ApplicationMode.FFT) {
+				this.notifyListeners(new StatusEvent(
+					(int)((double)(s+1)/(double)steps*100.0), 100, 
+					operatorID + " analyzing angle of " + angle + " degrees..."));
+			}
 			this.oFilter.setAngle(angle);
 			this.oFilter.runOp();
 			filteredImages[s] = this.oFilter.getResultImage();
