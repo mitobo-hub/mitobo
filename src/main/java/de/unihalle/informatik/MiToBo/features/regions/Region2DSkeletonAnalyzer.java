@@ -353,7 +353,7 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 					if (        nCount==1 
 							|| (    nCount==2 
 						     && (nSum==3  || nSum==6  || nSum==12  || nSum==24 
-						      || nSum==48 || nSum==96 || nSum==196 || nSum==129))) {
+						      || nSum==48 || nSum==96 || nSum==192 || nSum==129))) {
 						MTBNeuriteSkelGraph nsg = new MTBNeuriteSkelGraph(); 
 						boolean done = nsg.buildSkeletonGraph(x, y, this.width, 
 								this.height, skelImg, 255);
