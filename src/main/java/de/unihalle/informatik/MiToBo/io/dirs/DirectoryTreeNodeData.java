@@ -33,6 +33,7 @@
 
 package de.unihalle.informatik.MiToBo.io.dirs;
 
+import java.io.File;
 import java.util.*;
 
 import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
@@ -74,7 +75,8 @@ public class DirectoryTreeNodeData extends MTBTreeNodeData {
 	/* (non-Javadoc)
 	 * @see datatypes.TreeNodeData#setNode(datatypes.TreeNode)
 	 */
-	public void setNode(MTBTreeNode n) {
+	@Override
+  public void setNode(MTBTreeNode n) {
 		this.node= n;
 	}
 	
@@ -117,14 +119,15 @@ public class DirectoryTreeNodeData extends MTBTreeNodeData {
 	/* (non-Javadoc)
 	 * @see datatypes.TreeNodeData#printData()
 	 */
-	public void printData() {
+	@Override
+  public void printData() {
 		System.out.println("=> Directory= " + this.path);
-		if (files.size()>0)
+		if (this.files.size()>0)
 			System.out.println("     Files: ");
 		else
 			System.out.println("     <no files>");
-		for (int i=0;i<files.size();++i)
-			System.out.println("     - " + files.get(i));
+		for (int i=0;i<this.files.size();++i)
+			System.out.println("     - " + this.files.get(i));
 	}
 	
 	/**
@@ -140,7 +143,7 @@ public class DirectoryTreeNodeData extends MTBTreeNodeData {
 
 		// add files, if available
 		for (int i=0;i<this.files.size();++i) {
-			datalist.add(this.path + "/" + files.get(i));
+			datalist.add(this.path + File.separator + this.files.get(i));
 		}
 
 		// get childs of the node associated with this directory
@@ -149,12 +152,13 @@ public class DirectoryTreeNodeData extends MTBTreeNodeData {
 		// get the strings from these childs recursively
 		for (int i=0;i<childs.size();++i) {
 
-			DirectoryTreeNodeData clist= (DirectoryTreeNodeData)(childs.get(i).getData());
+			DirectoryTreeNodeData clist= 
+					(DirectoryTreeNodeData)(childs.get(i).getData());
 			Vector<String> cpaths= clist.getSubtreeFileList();
 			
 			// append children paths to your own
 			for (int j=0;j<cpaths.size();++j) {
-				datalist.add(this.path + "/" + cpaths.get(j));
+				datalist.add(this.path + File.separator + cpaths.get(j));
 			}
 		}
 		return datalist;
