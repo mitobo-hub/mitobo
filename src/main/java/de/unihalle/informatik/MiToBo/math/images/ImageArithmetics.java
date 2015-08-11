@@ -22,19 +22,8 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev: 4399 $
- * $Date: 2011-10-17 14:11:39 +0200 (Mo, 17 Okt 2011) $
- * $Author: moeller $
- * 
- */
-
 package de.unihalle.informatik.MiToBo.math.images;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator.Level;
 import de.unihalle.informatik.Alida.annotations.Parameter;
@@ -45,20 +34,25 @@ import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
 
 /**
- * Image arithmetics class for MTBImage objects. The arithmetic operations are sub-divided into operations
- * regarding two images (ADD, SUB, MULT, DIV, MIN, MAX, AND, OR) and operations regarding one image and one constant
- * (ADD_CONST, MULT_CONST, POW_CONST, INV).
- * 
+ * Image arithmetics class for {@link MTBImage} objects. 
+ * <p>
+ * The arithmetic operations are sub-divided into operations
+ * regarding two images (ADD, SUB, MULT, DIV, MIN, MAX, AND, OR) and 
+ * operations regarding one image and one constant
+ * (ADD_CONST, MULT_CONST, DIV_CONST, POW_CONST, INV).
+ * <p>
  * Operations with one input image result in images of the same type!!
- * Operations with two input images result in an image of type of the higher input image precision!!
+ * Operations with two input images result in an image of type of the higher 
+ * input image precision!!
+ * <p>
  * If two input images do not have the same size the resulting image is null.
  * Each operation is elementwise.
  * 
  * @author gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
-@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL,level=Level.STANDARD)
+@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL,
+	level=Level.STANDARD)
 public class ImageArithmetics extends MTBOperator {
 	
 	@Parameter( label= "First input image", required = true, direction = Parameter.Direction.IN, 
@@ -85,19 +79,19 @@ public class ImageArithmetics extends MTBOperator {
 	private final int firstOneImageOneConstOrdinal = 9;
 	
 	// ordinal of first "one image only"-operation in ArithOp enum
-	private final int firstOneImageOnlyOrdinal = 12;
+	private final int firstOneImageOnlyOrdinal = 13;
 	
 	/**
 	 * Arithmetic operations: <br/>
 	 * ADD, SUB, MULT, DIV, MIN, MAX, AND, OR, ABS_DIFF require two input images,  <br/>
-	 * ADD_CONST, MULT_CONST, POW_CONST require one input image and a constant <br/>
+	 * ADD_CONST, MULT_CONST, DIV_CONST, POW_CONST require one input image and a constant <br/>
 	 * INV, ABS require one input image only
 	 * @author Oliver Gress
 	 *
 	 */
 	public enum ArithOp {
-		ADD, SUB, MULT, DIV, MIN, MAX, AND, OR, ABS_DIFF, ADD_CONST, MULT_CONST, POW_CONST, 
-		INV, ABS
+		ADD, SUB, MULT, DIV, MIN, MAX, AND, OR, ABS_DIFF, ADD_CONST, MULT_CONST, 
+		DIV_CONST, POW_CONST, INV, ABS
 	}
 	
 	/**
@@ -146,12 +140,20 @@ public class ImageArithmetics extends MTBOperator {
 			else if (this.getArithmeticOperation().ordinal() < this.firstOneImageOnlyOrdinal){
 				// operations with one image and one constant
 				valid = (this.getInImg1() != null && this.getInConst() != null);
-				
 				if (!valid)
 					throw new ALDOperatorException(OperatorExceptionType.VALIDATION_FAILED, "Operation needs an image and a constant.");
+				
+				// check if divisor is not close to zero...
+				if (this.arithmeticOp == ArithOp.DIV_CONST) {
+					valid = Math.abs(this.inConst.doubleValue()) > 10e-10;
+					if (!valid)
+						throw new ALDOperatorException(
+								OperatorExceptionType.VALIDATION_FAILED, 
+									"Constant for division is too close to zero!");
+				}
 			}
 	}
-	
+
 	
 
 	@Override
@@ -201,6 +203,8 @@ public class ImageArithmetics extends MTBOperator {
 				resultImg = this.add(inImg, inConst);
 			else if (op == ArithOp.MULT_CONST)
 				resultImg = this.mult(inImg, inConst);
+			else if (op == ArithOp.DIV_CONST)
+				resultImg = this.div(inImg, inConst);
 			else if (op == ArithOp.POW_CONST)
 				resultImg = this.pow(inImg, inConst);
 			else if (op == ArithOp.INV)
@@ -344,6 +348,54 @@ public class ImageArithmetics extends MTBOperator {
 		return newImg;
 	}	
 	
+	/**
+	 * Divide each image value by a constant.
+	 * <p>
+	 * Note that invalid values might result if constant is zero. 
+	 * 
+	 * @param img 			Input image.
+	 * @param constant	Constant.
+	 * @return Result image.
+	 */
+	protected MTBImage div(MTBImage img, double constant) {
+		int sizeStack = img.getSizeStack();
+		int sizeY = img.getSizeY();
+		int sizeX = img.getSizeX();
+		
+		int idx = img.getCurrentSliceIndex();
+		
+		MTBImage newImg = 
+				MTBImage.createMTBImage(sizeX, sizeY, img.getSizeZ(), img.getSizeT(), 
+						img.getSizeC(), img.getType());
+
+		newImg.setTitle(img.getTitle());
+		newImg.setStepsizeX(img.getStepsizeX());
+		newImg.setStepsizeY(img.getStepsizeY());
+		newImg.setStepsizeZ(img.getStepsizeZ());
+		newImg.setStepsizeT(img.getStepsizeT());
+		newImg.setUnitX(img.getUnitX());
+		newImg.setUnitY(img.getUnitY());
+		newImg.setUnitZ(img.getUnitZ());
+		newImg.setUnitT(img.getUnitT());
+		
+		for (int i = 0; i < sizeStack; i++) {
+			img.setCurrentSliceIndex(i);
+			newImg.setCurrentSliceIndex(i);
+			
+			for (int y = 0; y < sizeY; y++) {
+				for (int x = 0; x < sizeX; x++) {
+					newImg.putValueDouble(x, y, img.getValueDouble(x,y) / constant);
+				}
+			}
+		}
+		
+		// restore actual slice index
+		img.setCurrentSliceIndex(idx);
+		newImg.setCurrentSliceIndex(0);
+		
+		return newImg;
+	}	
+
 	/**
 	 * Raise image values to the power of 'constant'
 	 * @param img
