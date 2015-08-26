@@ -58,7 +58,7 @@ public abstract class FeatureCalculator extends MTBOperator
 	
 	/**
 	 * Default constructor.
-	 * @throws ALDOperatorException
+	 * @throws ALDOperatorException Thrown in case of failure.
 	 */
 	protected FeatureCalculator() throws ALDOperatorException {
 		// nothing to do here
