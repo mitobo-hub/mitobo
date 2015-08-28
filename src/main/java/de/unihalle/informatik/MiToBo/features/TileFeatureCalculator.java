@@ -41,7 +41,7 @@ import de.unihalle.informatik.MiToBo.features.texture.FeatureCalculatorHaralickM
 
 /**
  * Calculates features on images tile-wise, based on operators extending
- * {@link FeatureCalculator} or {@link FeatureCalculatorTilesJointly}.
+ * {@link FeatureCalculator}.
  * 
  * @author moeller
  */
@@ -208,22 +208,22 @@ public class TileFeatureCalculator extends MTBOperator
 		for (FeatureCalculator calcOp: this.featureOps) {
 			
 			// feature operator handles tiles already
-			if (calcOp instanceof FeatureCalculatorTilesJointly) {
-				FeatureCalculatorTilesJointly calcOpTiled = 
-						(FeatureCalculatorTilesJointly)calcOp;
-				calcOpTiled.setImageTiles(tileAdapter);
-				calcOpTiled.setMaskTiles(tileAdapterMask);
-				calcOpTiled.setInputImage(this.inImg);
-				calcOpTiled.runOp(HidingMode.HIDDEN);
-				FeatureCalculatorResult opData = calcOpTiled.getResultData();
-				FeatureCalculatorResult[] tileData = 
-						(FeatureCalculatorResult[])opData.getResult();
-				this.resultData.addResult(tileData);
-				if (tileData[0].isConvertableToNumericalData())
-					this.addResultImages(tileData);
-			}
+//			if (calcOp instanceof FeatureCalculatorTilesJointly) {
+//				FeatureCalculatorTilesJointly calcOpTiled = 
+//						(FeatureCalculatorTilesJointly)calcOp;
+//				calcOpTiled.setImageTiles(tileAdapter);
+//				calcOpTiled.setMaskTiles(tileAdapterMask);
+//				calcOpTiled.setInputImage(this.inImg);
+//				calcOpTiled.runOp(HidingMode.HIDDEN);
+//				FeatureCalculatorResult opData = calcOpTiled.getResultData();
+//				FeatureCalculatorResult[] tileData = 
+//						(FeatureCalculatorResult[])opData.getResult();
+//				this.resultData.addResult(tileData);
+//				if (tileData[0].isConvertableToNumericalData())
+//					this.addResultImages(tileData);
+//			}
 			// process each tile explicitly
-			else {
+//			else {
 				FeatureCalculatorResult[] opData = 
 						new FeatureCalculatorResult[tileNum];
 				int i=0;
@@ -297,7 +297,7 @@ public class TileFeatureCalculator extends MTBOperator
 				if (!tileValid[i]) 
 					++invalidCounter;
 			this.resultData.setInvalidTilesNum(invalidCounter);
-		}
+//		}
 	}
 	
 	/**

@@ -26,7 +26,7 @@ package de.unihalle.informatik.MiToBo.features;
 
 /**
  * Interface for result data returned from classes extending 
- * {@link FeatureCalculator} or {@link FeatureCalculatorTilesJointly}.
+ * {@link FeatureCalculator}.
  * <p>
  * In principal any kind of object could be used as result object. 
  * For easier handling of the result object, in particular in a generic 
