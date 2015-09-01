@@ -31,8 +31,6 @@ import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.unihalle.informatik.Alida.operator.ALDOperator;
 import de.unihalle.informatik.Alida.operator.events.ALDOperatorExecutionProgressEvent;
-import de.unihalle.informatik.Alida.annotations.ALDAOperator;
-import de.unihalle.informatik.Alida.annotations.ALDAOperator.Level;
 import de.unihalle.informatik.Alida.annotations.Parameter;
 import de.unihalle.informatik.Alida.annotations.Parameter.Direction;
 import de.unihalle.informatik.Alida.annotations.Parameter.ExpertMode;
@@ -55,8 +53,6 @@ import de.unihalle.informatik.MiToBo.visualization.drawing.DrawRegion2DSet.DrawT
  * 
  * @author moeller
  */
-@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.SWING,
-	level=Level.STANDARD, allowBatchMode=false)
 public abstract class FilamentFeatureExtractor extends MTBOperator {
 
 	/**

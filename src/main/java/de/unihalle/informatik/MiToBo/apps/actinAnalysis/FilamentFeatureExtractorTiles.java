@@ -35,8 +35,6 @@ import de.unihalle.informatik.Alida.exceptions.ALDOperatorException.OperatorExce
 import de.unihalle.informatik.Alida.helpers.ALDFilePathManipulator;
 import de.unihalle.informatik.Alida.operator.ALDOperator;
 import de.unihalle.informatik.Alida.operator.events.ALDOperatorExecutionProgressEvent;
-import de.unihalle.informatik.Alida.annotations.ALDAOperator;
-import de.unihalle.informatik.Alida.annotations.ALDAOperator.Level;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.*;
 import de.unihalle.informatik.MiToBo.features.FeatureCalculator;
 import de.unihalle.informatik.MiToBo.features.TileFeatureCalculator;
@@ -56,8 +54,6 @@ import de.unihalle.informatik.MiToBo.io.images.ImageWriterMTB;
  * 
  * @author moeller
  */
-@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.SWING,
-	level=Level.STANDARD, allowBatchMode=false)
 public abstract class FilamentFeatureExtractorTiles 
 	extends FilamentFeatureExtractor {
 
