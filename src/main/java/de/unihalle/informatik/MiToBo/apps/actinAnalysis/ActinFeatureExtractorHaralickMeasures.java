@@ -24,31 +24,17 @@
 
 package de.unihalle.informatik.MiToBo.apps.actinAnalysis;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.Vector;
 
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
-import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
-import de.unihalle.informatik.Alida.exceptions.ALDOperatorException.OperatorExceptionType;
-import de.unihalle.informatik.Alida.helpers.ALDFilePathManipulator;
-import de.unihalle.informatik.Alida.operator.ALDOperator;
-import de.unihalle.informatik.Alida.operator.events.ALDOperatorExecutionProgressEvent;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator.Level;
 import de.unihalle.informatik.Alida.annotations.ALDDerivedClass;
 import de.unihalle.informatik.Alida.annotations.Parameter;
 import de.unihalle.informatik.Alida.annotations.Parameter.ExpertMode;
-import de.unihalle.informatik.MiToBo.core.datatypes.images.*;
 import de.unihalle.informatik.MiToBo.features.FeatureCalculator;
-import de.unihalle.informatik.MiToBo.features.TileFeatureCalculator;
 import de.unihalle.informatik.MiToBo.features.texture.FeatureCalculatorHaralickMeasures;
 import de.unihalle.informatik.MiToBo.features.texture.FeatureCalculatorHaralickMeasures.HaralickDirection;
-import de.unihalle.informatik.MiToBo.gui.MTBTableModel;
-import de.unihalle.informatik.MiToBo.io.dirs.DirectoryTree;
-import de.unihalle.informatik.MiToBo.io.images.ImageReaderMTB;
-import de.unihalle.informatik.MiToBo.io.images.ImageWriterMTB;
 
 /**
  * Operator for extracting Haralick texture measures from 
@@ -61,13 +47,7 @@ import de.unihalle.informatik.MiToBo.io.images.ImageWriterMTB;
 	level=Level.STANDARD, allowBatchMode=false)
 @ALDDerivedClass
 public class ActinFeatureExtractorHaralickMeasures 
-	extends FilamentFeatureExtractor {
-
-	/**
-	 * Identifier string for this operator class.
-	 */
-	private static final String operatorID = 
-			"[ActinFeatureExtractorHaralickMeasures]";
+	extends FilamentFeatureExtractorTiles {
 
 	/**
 	 * Default directions for Haralick features.
@@ -120,7 +100,7 @@ public class ActinFeatureExtractorHaralickMeasures
 	 */
 	public ActinFeatureExtractorHaralickMeasures() 
 			throws ALDOperatorException {
-		// nothing to be done here
+		this.operatorID = "[ActinFeatureExtractorHaralickMeasures]";
 	}
 	
 	/**
@@ -148,13 +128,9 @@ public class ActinFeatureExtractorHaralickMeasures
 	}
 	
 	@Override
-	protected void calculateFeatures() 
-		throws ALDOperatorException, ALDProcessingDAGException {
+	protected Vector<FeatureCalculator> getFeatureOps() 
+			throws ALDOperatorException {
 		
-		MTBImage img;
-		ImageReaderMTB iRead = new ImageReaderMTB();
-		ImageWriterMTB iWrite = new ImageWriterMTB();
-
 		// check if vector of directions is null or empty, 
 		// if so init with default
 		if (this.directions == null || this.directions.isEmpty()) {
@@ -163,12 +139,6 @@ public class ActinFeatureExtractorHaralickMeasures
 			this.directions.add(HaralickDirection.EAST);
 		}
 		
-  	if (this.verbose.booleanValue())
-  		System.out.println(operatorID + " Calculating features...");
-  	this.fireOperatorExecutionProgressEvent(
-     	new ALDOperatorExecutionProgressEvent(this,
-     		" calculating features..."));
-	
 		// initialize the feature calculator
 		Vector<FeatureCalculator> featureOps = 
 				new Vector<FeatureCalculator>();
@@ -179,132 +149,8 @@ public class ActinFeatureExtractorHaralickMeasures
 		fOp.setDirections(this.directions);
 		fOp.setFlagThrinkMatrix(true);
 		featureOps.add(fOp);
-
-		TileFeatureCalculator tCalc = 
-			new TileFeatureCalculator(this.tileSizeX, this.tileSizeY,
-				this.tileShiftX, this.tileShiftY);
-		tCalc.setFeatureOperators(featureOps);
-		MTBTableModel features;
-		int tilesX = -1, tilesY = -1;
 		
-		if (this.verbose.booleanValue())
-  		System.out.println(operatorID + " Image directory= "
-  				+ this.imageDir);
-		
-		DirectoryTree dirTree = 
-			new DirectoryTree(this.imageDir.getDirectoryName());
-		Vector<String> imageList = dirTree.getFileList();
-		for (String file : imageList) {
-			if (this.verbose.booleanValue())
-				System.out.println("\t Processing file " + file + "...");
-			this.fireOperatorExecutionProgressEvent(
-				new ALDOperatorExecutionProgressEvent(this,
-					" processing file " + file + "..."));
-			String basename = ALDFilePathManipulator.getFileName(file);
-
-			try {
-        iRead.setFileName(file);
-				iRead.runOp(HidingMode.HIDDEN);
-				img = iRead.getResultMTBImage(); 
-				if (this.imageWidth == -1)
-					this.imageWidth = img.getSizeX();
-				if (this.imageHeight == -1)
-					this.imageHeight = img.getSizeY();
-      } catch (Exception e) {
-      	System.err.println(operatorID + " Error reading file, " + 
-      			"skipping " + file + "...");
-      	continue;
-      }
-			
-			// check if mask available
-			MTBImage maskImage = null;
-			String maskName = "undefined";
-			maskImage = this.readMaskImage(basename, 
-				0, 0, this.imageWidth-1, this.imageHeight-1);
-			if (maskImage != null)
-				maskName = maskImage.getProperty("Filename");
-			
-    	if (this.verbose.booleanValue())
-    		System.out.print(
-    				"\t\t - initializing and running tile calculator...");
-   		fireOperatorExecutionProgressEvent(
-      	new ALDOperatorExecutionProgressEvent(this,
-      		" initializing and running tile calculator..."));
-			
-			tCalc.setInputImage(img);
-			if (maskImage != null)
-				tCalc.setMask(maskImage);
-			tCalc.runOp(HidingMode.HIDDEN);
-
-    	if (this.verbose.booleanValue())
-    		System.out.println(" ...done!");
-    	fireOperatorExecutionProgressEvent(
-      	new ALDOperatorExecutionProgressEvent(this, " ...done!"));
-
-			// get number of resulting tiles and check that all images are same
-			if (tilesX == -1 && tilesY == -1) {
-				tilesX = tCalc.getTileCountX();
-				tilesY = tCalc.getTileCountY();
-			}
-			else {
-				if (   tilesX != tCalc.getTileCountX()
-						|| tilesY != tCalc.getTileCountY()) {
-					throw new ALDOperatorException(
-						OperatorExceptionType.OPERATE_FAILED, 
-						operatorID + " different tile sizes for images, exiting...");
-				}
-			}
-			// save result data to output directory
-			String outname= this.outDir + "/" +basename+ "-features.txt";
-			String outhistname= 
-					this.outDir + "/" +basename+ "-features-config";
-			String outimgname= this.outDir + "/" +basename+ "-features.tif";
-			if (this.verbose.booleanValue())
-				System.out.println("\t\t - saving features to " + outname);
-			String eventMsg = " saving features...";
-			fireOperatorExecutionProgressEvent(
-				new ALDOperatorExecutionProgressEvent(this, eventMsg));
-			
-			// try to save operator configuration
-			try {
-				ALDOperator.writeHistory(tCalc.getResult(), outhistname);
-			} catch(Exception e) {
-				e.printStackTrace();
-			}
-			
-			features = tCalc.getResult().getResultTable();
-			StringBuffer[] tab = features.tableToString();
-      try {
-  			FileWriter ow;
-	      ow = new FileWriter(new File(outname).getPath());
-	      // write all relevant data into header
-	      ow.write("# filename: " + file + "\n");
-	      ow.write("# maskfile: " + maskName + "\n");
-	      ow.write("# tileSizeX: " + this.tileSizeX + "\n");
-	      ow.write("# tileSizeY: " + this.tileSizeY + "\n");
-	      ow.write("# tileShiftX: " + this.tileShiftX + "\n");
-	      ow.write("# tileShiftY: " + this.tileShiftY + "\n");
-	      ow.write("# tileCountX: " + tilesX + "\n");
-	      ow.write("# tileCountY: " + tilesY + "\n");
-	      ow.write("# tileCountTotal: " + tilesX * tilesY + "\n");
-	      ow.write("# invalidTiles: " 
-	      	+ tCalc.getResult().getInvalidTilesNum() + "\n");
-				for (int i=0;i<tab.length;++i)
-					ow.write(tab[i].toString());
-				ow.close();
-      } catch (IOException e1) {
-      	throw new ALDOperatorException(
-      		OperatorExceptionType.OPERATE_FAILED,	operatorID 
-      			+ " could not save features to \"" + outname + "\"!");
-      }
-			if (this.verbose.booleanValue())
-				System.out.println("\t\t - saving image to " + outimgname);
-			fireOperatorExecutionProgressEvent(
-      	new ALDOperatorExecutionProgressEvent(this, " saving image..."));
-			iWrite.setInputMTBImage(tCalc.getResultImage());
-			iWrite.setFileName(outimgname);
-			iWrite.runOp();
-		}
+		return featureOps;
 	}
 }
 

@@ -58,8 +58,6 @@ import de.unihalle.informatik.MiToBo.core.datatypes.images.*;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType;
 import de.unihalle.informatik.MiToBo.core.imageJ.RoiManagerAdapter;
 import de.unihalle.informatik.MiToBo.core.operator.*;
-import de.unihalle.informatik.MiToBo.features.texture.FeatureCalculatorHaralickMeasures;
-import de.unihalle.informatik.MiToBo.features.texture.FeatureCalculatorHaralickMeasures.HaralickDirection;
 import de.unihalle.informatik.MiToBo.gui.MTBTableModel;
 import de.unihalle.informatik.MiToBo.io.dirs.DirectoryTree;
 import de.unihalle.informatik.MiToBo.io.images.ImageReaderMTB;
@@ -84,16 +82,16 @@ public class ActinAnalyzer2D extends MTBOperator {
 	/**
 	 * Type of features to characterize local structure.
 	 */
-	public static enum FeatureType {
-		/**
-		 * Use Haralick features as structure measures.
-		 */
-		HARALICK_MEASURES,
-		/**
-		 * Use Eigen structures as structure measures.
-		 */
-		EIGEN_STRUCTURES
-	}
+//	public static enum FeatureType {
+//		/**
+//		 * Use Haralick features as structure measures.
+//		 */
+//		HARALICK_MEASURES,
+//		/**
+//		 * Use Eigen structures as structure measures.
+//		 */
+//		EIGEN_STRUCTURES
+//	}
 	
 	/**
 	 * Format of cell segmentation data.
@@ -112,17 +110,17 @@ public class ActinAnalyzer2D extends MTBOperator {
 	/**
 	 * Default directions for Haralick features.
 	 */
-	private static Vector<HaralickDirection> defaultDirections;
+//	private static Vector<HaralickDirection> defaultDirections;
 	
 	// this initialization block is necessary to set default directions
-	static {
-		defaultDirections = 
-			new Vector<FeatureCalculatorHaralickMeasures.HaralickDirection>();
-		defaultDirections.add(HaralickDirection.EAST);
-		defaultDirections.add(HaralickDirection.NORTH_EAST);
-		defaultDirections.add(HaralickDirection.NORTH);
-		defaultDirections.add(HaralickDirection.NORTH_WEST);		
-	}
+//	static {
+//		defaultDirections = 
+//			new Vector<FeatureCalculatorHaralickMeasures.HaralickDirection>();
+//		defaultDirections.add(HaralickDirection.EAST);
+//		defaultDirections.add(HaralickDirection.NORTH_EAST);
+//		defaultDirections.add(HaralickDirection.NORTH);
+//		defaultDirections.add(HaralickDirection.NORTH_WEST);		
+//	}
 	
 	/**
 	 * Input image directory.

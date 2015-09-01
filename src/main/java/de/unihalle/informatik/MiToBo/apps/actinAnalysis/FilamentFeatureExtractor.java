@@ -25,15 +25,10 @@
 package de.unihalle.informatik.MiToBo.apps.actinAnalysis;
 
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.Vector;
 
 import de.unihalle.informatik.Alida.datatypes.ALDDirectoryString;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
-import de.unihalle.informatik.Alida.exceptions.ALDOperatorException.OperatorExceptionType;
-import de.unihalle.informatik.Alida.helpers.ALDFilePathManipulator;
 import de.unihalle.informatik.Alida.operator.ALDOperator;
 import de.unihalle.informatik.Alida.operator.events.ALDOperatorExecutionProgressEvent;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
@@ -46,10 +41,6 @@ import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2DSet;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.*;
 import de.unihalle.informatik.MiToBo.core.imageJ.RoiManagerAdapter;
 import de.unihalle.informatik.MiToBo.core.operator.*;
-import de.unihalle.informatik.MiToBo.features.FeatureCalculator;
-import de.unihalle.informatik.MiToBo.features.TileFeatureCalculator;
-import de.unihalle.informatik.MiToBo.gui.MTBTableModel;
-import de.unihalle.informatik.MiToBo.io.dirs.DirectoryTree;
 import de.unihalle.informatik.MiToBo.io.images.ImageReaderMTB;
 import de.unihalle.informatik.MiToBo.io.images.ImageWriterMTB;
 import de.unihalle.informatik.MiToBo.visualization.drawing.DrawRegion2DSet;
@@ -145,6 +136,11 @@ public abstract class FilamentFeatureExtractor extends MTBOperator {
 	 * some helper variables
 	 */
 	
+	/**
+	 * Identifier string for the operator class.
+	 */
+	protected transient String operatorID;
+
 	/**
 	 * Width of the images, taking first image as reference.
 	 */
