@@ -174,12 +174,22 @@ public class ActinAnalyzer2D extends MTBOperator {
 	/**
 	 * Type of features to apply.
 	 */
-	@Parameter( label= "Type of features", required = true, 
+//	@Parameter( label= "Type of features", required = true, 
+//		dataIOOrder = 1, direction = Direction.IN, 
+//		description = "Select type of features to apply.", 
+//		mode = ExpertMode.STANDARD)
+//	protected FeatureType featureType = FeatureType.HARALICK_MEASURES;
+	
+	/**
+	 * Feature extractor to apply.
+	 */
+	@Parameter( label= "Feature Extractor", required = true, 
 		dataIOOrder = 1, direction = Direction.IN, 
 		description = "Select type of features to apply.", 
 		mode = ExpertMode.STANDARD)
-	protected FeatureType featureType = FeatureType.HARALICK_MEASURES;
-	
+	protected FilamentFeatureExtractor featureExtractor =
+		new ActinFeatureExtractorHaralickMeasures();
+
 	/**
 	 * Feature directory.
 	 */
@@ -223,18 +233,18 @@ public class ActinAnalyzer2D extends MTBOperator {
 	/**
 	 * Distance.
 	 */
-	@Parameter( label= "Haralick distance", required = true,
-		direction = Parameter.Direction.IN, dataIOOrder=7,  
-		mode=ExpertMode.STANDARD, description = "Desired distance.")
-	protected int distance= 4;
+//	@Parameter( label= "Haralick distance", required = true,
+//		direction = Parameter.Direction.IN, dataIOOrder=7,  
+//		mode=ExpertMode.STANDARD, description = "Desired distance.")
+//	protected int distance= 4;
 
 	/**
 	 * Set of directions.
 	 */
-	@Parameter( label= "Set of directions", required = true,
-		direction = Parameter.Direction.IN, dataIOOrder=8,  
-		mode=ExpertMode.STANDARD, description = "Desired directions.")
-	protected Vector<HaralickDirection> directions = defaultDirections;
+//	@Parameter( label= "Set of directions", required = true,
+//		direction = Parameter.Direction.IN, dataIOOrder=8,  
+//		mode=ExpertMode.STANDARD, description = "Desired directions.")
+//	protected Vector<HaralickDirection> directions = defaultDirections;
 
 	/**
 	 * Flag for isotropic calculations.
@@ -243,11 +253,11 @@ public class ActinAnalyzer2D extends MTBOperator {
 	 * NORTH_EAST, NORTH and NORTH_WEST is taken as result. But, note that this
 	 * causes the computation time to be increased by a factor of four as well.
 	 */
-	@Parameter( label= "Isotropic calculations", required = true,
-		direction = Parameter.Direction.IN, dataIOOrder=9,  
-		description = "Flag to enable isotropic calculations.",
-		mode=ExpertMode.ADVANCED)
-	protected boolean isotropicCalcs = false;
+//	@Parameter( label= "Isotropic calculations", required = true,
+//		direction = Parameter.Direction.IN, dataIOOrder=9,  
+//		description = "Flag to enable isotropic calculations.",
+//		mode=ExpertMode.ADVANCED)
+//	protected boolean isotropicCalcs = false;
 
 	/**
 	 * Number of clusters to be used in feature clustering.
@@ -357,40 +367,50 @@ public class ActinAnalyzer2D extends MTBOperator {
 	
 		// for each image calculate feature vectors (if requested)
 		if (this.doFeatureCalculation) {
-			switch(this.featureType)
-			{
-			case HARALICK_MEASURES:
-				ActinFeatureExtractorHaralickMeasures haralickOp =
-					new ActinFeatureExtractorHaralickMeasures();
-				haralickOp.setImageDir(this.imageDir);
-				haralickOp.setMaskDir(this.maskDir);
-				haralickOp.setMaskFormat(this.maskFormat);
-				haralickOp.setOutputDir(this.outDir);
-				haralickOp.setTileSizeX(this.tileSizeX);
-				haralickOp.setTileSizeY(this.tileSizeY);
-				haralickOp.setTileShiftX(this.tileShiftX);
-				haralickOp.setTileShiftY(this.tileShiftY);
-				haralickOp.setDistance(this.distance);
-				haralickOp.setHaralickDirections(this.directions);
-				haralickOp.setFlagIsotropicCalculations(this.isotropicCalcs);
-				haralickOp.setVerbose(this.verbose);
-				haralickOp.runOp();
-				break;
-			case EIGEN_STRUCTURES:
-				ActinFeatureExtractorEigenStructures eigenOp = 
-					new ActinFeatureExtractorEigenStructures();
-				eigenOp.setImageDir(this.imageDir);
-				eigenOp.setMaskDir(this.maskDir);
-				eigenOp.setMaskFormat(this.maskFormat);
-				eigenOp.setOutputDir(this.outDir);
-				eigenOp.setTileSizeX(this.tileSizeX);
-				eigenOp.setTileSizeY(this.tileSizeY);
-				eigenOp.setTileShiftX(this.tileShiftX);
-				eigenOp.setTileShiftY(this.tileShiftY);
-				eigenOp.setVerbose(this.verbose);
-				eigenOp.runOp();
-				break;
-			}
+//			switch(this.featureType)
+//			{
+//			case HARALICK_MEASURES:
+//				ActinFeatureExtractorHaralickMeasures haralickOp =
+//					new ActinFeatureExtractorHaralickMeasures();
+//				haralickOp.setImageDir(this.imageDir);
+//				haralickOp.setMaskDir(this.maskDir);
+//				haralickOp.setMaskFormat(this.maskFormat);
+//				haralickOp.setOutputDir(this.outDir);
+//				haralickOp.setTileSizeX(this.tileSizeX);
+//				haralickOp.setTileSizeY(this.tileSizeY);
+//				haralickOp.setTileShiftX(this.tileShiftX);
+//				haralickOp.setTileShiftY(this.tileShiftY);
+//				haralickOp.setDistance(this.distance);
+//				haralickOp.setHaralickDirections(this.directions);
+//				haralickOp.setFlagIsotropicCalculations(this.isotropicCalcs);
+//				haralickOp.setVerbose(this.verbose);
+//				haralickOp.runOp();
+//				break;
+//			case EIGEN_STRUCTURES:
+//				ActinFeatureExtractorEigenStructures eigenOp = 
+//					new ActinFeatureExtractorEigenStructures();
+//				eigenOp.setImageDir(this.imageDir);
+//				eigenOp.setMaskDir(this.maskDir);
+//				eigenOp.setMaskFormat(this.maskFormat);
+//				eigenOp.setOutputDir(this.outDir);
+//				eigenOp.setTileSizeX(this.tileSizeX);
+//				eigenOp.setTileSizeY(this.tileSizeY);
+//				eigenOp.setTileShiftX(this.tileShiftX);
+//				eigenOp.setTileShiftY(this.tileShiftY);
+//				eigenOp.setVerbose(this.verbose);
+//				eigenOp.runOp();
+//				break;
+//			}
+			this.featureExtractor.setImageDir(this.imageDir);
+			this.featureExtractor.setMaskDir(this.maskDir);
+			this.featureExtractor.setMaskFormat(this.maskFormat);
+			this.featureExtractor.setOutputDir(this.outDir);
+			this.featureExtractor.setTileSizeX(this.tileSizeX);
+			this.featureExtractor.setTileSizeY(this.tileSizeY);
+			this.featureExtractor.setTileShiftX(this.tileShiftX);
+			this.featureExtractor.setTileShiftY(this.tileShiftY);
+			this.featureExtractor.setVerbose(this.verbose);
+			this.featureExtractor.runOp();
 		}
 		
 		// cluster the features and analyze the distributions
