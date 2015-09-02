@@ -83,6 +83,8 @@ public class TileFeatureCalculatorResult
 	private void updateTable() {
 		int featCount= 0;
 		Vector<String> headers = new Vector<String>();
+		int tileCount = this.featureCalcResults.firstElement().length;
+		
 		// get dimensions and headers from first element of each result object
 		for (FeatureCalculatorResult[] result: this.featureCalcResults) {
 			featCount += result[0].getDimensionality();
@@ -90,8 +92,8 @@ public class TileFeatureCalculatorResult
 				headers.add(result[0].getOpIdentifier() + "_" 
 																				+ result[0].getResultIdentifier(i));
 		}
-		MTBTableModel newTable = new MTBTableModel(featCount,
-							this.featureCalcResults.size(), headers);
+		
+		MTBTableModel newTable = new MTBTableModel(tileCount, featCount, headers);
 		int colID = 0;
 		for (FeatureCalculatorResult[] res: this.featureCalcResults) {
 			int i = 0;
