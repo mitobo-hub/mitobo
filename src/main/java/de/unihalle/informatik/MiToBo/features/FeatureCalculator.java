@@ -80,5 +80,10 @@ public abstract class FeatureCalculator extends MTBOperator
 		return this.resultObj;
 	}
 	
+	/**
+	 * Helper method to allow for requesting invalid dummy results.
+	 * @param d	Desired dimension of output object.
+	 * @return	Invalid dummy result.
+	 */
 	protected abstract FeatureCalculatorResult getResultDataObjectInvalid(int d);
 }
