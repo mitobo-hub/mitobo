@@ -206,98 +206,75 @@ public class TileFeatureCalculator extends MTBOperator
 		for (int i=0; i<tileValid.length; ++i)
 			tileValid[i] = true;
 		for (FeatureCalculator calcOp: this.featureOps) {
-			
-			// feature operator handles tiles already
-//			if (calcOp instanceof FeatureCalculatorTilesJointly) {
-//				FeatureCalculatorTilesJointly calcOpTiled = 
-//						(FeatureCalculatorTilesJointly)calcOp;
-//				calcOpTiled.setImageTiles(tileAdapter);
-//				calcOpTiled.setMaskTiles(tileAdapterMask);
-//				calcOpTiled.setInputImage(this.inImg);
-//				calcOpTiled.runOp(HidingMode.HIDDEN);
-//				FeatureCalculatorResult opData = calcOpTiled.getResultData();
-//				FeatureCalculatorResult[] tileData = 
-//						(FeatureCalculatorResult[])opData.getResult();
-//				this.resultData.addResult(tileData);
-//				if (tileData[0].isConvertableToNumericalData())
-//					this.addResultImages(tileData);
-//			}
-			// process each tile explicitly
-//			else {
-				FeatureCalculatorResult[] opData = 
-						new FeatureCalculatorResult[tileNum];
-				int i=0;
-				int x = 0, y = 0;
-				for (MTBImage imageTile: tileAdapter) {
-					boolean invalid = false;
-					MTBImage maskTile;
-					if (tileAdapterMask != null) {
-						maskTile = tileAdapterMask.getTile(x,y);
-						for (int yy= 0; !invalid && yy<maskTile.getSizeY(); ++yy) {
-							for (int xx= 0; !invalid && xx<maskTile.getSizeX(); ++xx) {
-								if (maskTile.getValueInt(xx, yy) == 0) {
-									invalid = true;
-								}
+			FeatureCalculatorResult[] opData = 
+					new FeatureCalculatorResult[tileNum];
+			int i=0;
+			int x = 0, y = 0;
+			for (MTBImage imageTile: tileAdapter) {
+				boolean invalid = false;
+				MTBImage maskTile;
+				if (tileAdapterMask != null) {
+					maskTile = tileAdapterMask.getTile(x,y);
+					for (int yy= 0; !invalid && yy<maskTile.getSizeY(); ++yy) {
+						for (int xx= 0; !invalid && xx<maskTile.getSizeX(); ++xx) {
+							if (maskTile.getValueInt(xx, yy) == 0) {
+								invalid = true;
 							}
 						}
-					}
-					if (!invalid) {
-						calcOp.setInputImage(imageTile);
-						calcOp.runOp(HidingMode.HIDDEN);
-						// check if result data contains NaN values
-						opData[i] = calcOp.getResultData();
-						featureDim = opData[i].getDimensionality();
-						for (int e = 0; e < opData[i].getDimensionality(); ++e) {
-							if (Double.isNaN(opData[i].getNumericalValue(e))) {
-								opData[i] = null;
-								tileValid[i] = false;
-								break;
-							}
-						}
-					}
-					else {
-						// result is invalid
-						opData[i] = null;
-						tileValid[i] = false;
-					}
-					++i;
-					++x;
-					if (x == this.tileNumX) {
-						++y;
-						x = 0;
 					}
 				}
-				// check which tiles were invalid and set result to NaN
-				if (featureDim == -1)
-					// no calculations took place, error!
-					throw new ALDOperatorException(
-							OperatorExceptionType.OPERATE_FAILED,
-							"[TileFeatureCalculator] no valid tiles in image, " 
-									+ "all masked?!");
-
-				double[] nanResult = new double[featureDim];
-				for (i=0; i<featureDim; ++i)
-					nanResult[i] = Double.NaN;
-				for (i=0; i<tileNum; ++i)
-					if (opData[i] == null)
-						opData[i] = 
-						new FeatureCalculatorHaralickMeasuresResult(nanResult);
-
-				this.resultData.addResult(opData);
-				if (opData[0].isConvertableToNumericalData())
-					this.addResultImages(opData);
+				if (!invalid) {
+					calcOp.setInputImage(imageTile);
+					calcOp.runOp(HidingMode.HIDDEN);
+					// check if result data contains NaN values
+					opData[i] = calcOp.getResultData();
+					featureDim = opData[i].getDimensionality();
+					for (int e = 0; e < opData[i].getDimensionality(); ++e) {
+						if (Double.isNaN(opData[i].getNumericalValue(e))) {
+							opData[i] = null;
+							tileValid[i] = false;
+							break;
+						}
+					}
+				}
+				else {
+					// result is invalid
+					opData[i] = null;
+					tileValid[i] = false;
+				}
+				++i;
+				++x;
+				if (x == this.tileNumX) {
+					++y;
+					x = 0;
+				}
 			}
-			// prepare image stack
-			if (this.resultImages.size() > 0) {
-				this.prepareImageStack();
-			}
-			// count invalid tiles
-			int invalidCounter = 0;
-			for (int i=0; i<tileValid.length; ++i)
-				if (!tileValid[i]) 
-					++invalidCounter;
-			this.resultData.setInvalidTilesNum(invalidCounter);
-//		}
+			// check which tiles were invalid and set result to NaN
+			if (featureDim == -1)
+				// no calculations took place, error!
+				throw new ALDOperatorException(
+						OperatorExceptionType.OPERATE_FAILED,
+						"[TileFeatureCalculator] no valid tiles in image, " 
+								+ "all masked?!");
+
+			for (i=0; i<tileNum; ++i)
+				if (opData[i] == null)
+					opData[i] = calcOp.getResultDataObjectInvalid(featureDim);
+
+			this.resultData.addResult(opData);
+			if (opData[0].isConvertableToNumericalData())
+				this.addResultImages(opData);
+		}
+		// prepare image stack
+		if (this.resultImages.size() > 0) {
+			this.prepareImageStack();
+		}
+		// count invalid tiles
+		int invalidCounter = 0;
+		for (int i=0; i<tileValid.length; ++i)
+			if (!tileValid[i]) 
+				++invalidCounter;
+		this.resultData.setInvalidTilesNum(invalidCounter);
 	}
 	
 	/**

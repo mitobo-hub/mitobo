@@ -79,4 +79,6 @@ public abstract class FeatureCalculator extends MTBOperator
 	public FeatureCalculatorResult getResultData() {
 		return this.resultObj;
 	}
+	
+	protected abstract FeatureCalculatorResult getResultDataObjectInvalid(int d);
 }
