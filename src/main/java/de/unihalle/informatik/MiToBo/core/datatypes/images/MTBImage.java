@@ -2014,10 +2014,18 @@ public abstract class MTBImage extends ALDData
    *          image type (one of MTB_BYTE, MTB_SHORT, MTB_INT, MTB_FLOAT,
    *          MTB_DOUBLE)
    * @return MTBImage subclass object
+   * @throws IllegalArgumentException 
+   * 					Thrown in case of invalid arguments.
    */
   public static MTBImage createMTBImage(int sizeX, int sizeY, int sizeZ,
-      int sizeT, int sizeC, MTBImageType type) throws IllegalArgumentException {
+      int sizeT, int sizeC, MTBImageType type) 
+      		throws IllegalArgumentException {
 
+  	if (sizeX<=0 || sizeY<=0 || sizeC<=0 || sizeZ<=0 || sizeT<=0)
+      throw new IllegalArgumentException(
+        "[MTBImage] createMTBImage: one of the dimensions has "
+      		+ "a size of zero... please specify sizes larger than zero!");
+  	
     if (type == MTBImageType.MTB_BYTE) {
       return new MTBImageByte(sizeX, sizeY, sizeZ, sizeT, sizeC);
     } else if (type == MTBImageType.MTB_SHORT) {
