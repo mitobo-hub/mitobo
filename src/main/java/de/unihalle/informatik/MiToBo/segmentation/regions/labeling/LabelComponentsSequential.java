@@ -364,8 +364,10 @@ public class LabelComponentsSequential extends MTBOperator {
 				MTBImage distances = dt.getDistanceImage();
 				
 				// search for pixel with largest distance in each region
-				HashMap<Integer, Point2D.Double> maxPoints = new HashMap<>();
-				HashMap<Integer, Double> maxValues = new HashMap<>();				
+				HashMap<Integer, Point2D.Double> maxPoints = 
+						new HashMap<Integer, Point2D.Double>();
+				HashMap<Integer, Double> maxValues = 
+						new HashMap<Integer, Double>();				
 				int label;
 				for (int y=0;y<lImg.getSizeY();++y) {
 					for (int x=0;x<lImg.getSizeX();++x) {
