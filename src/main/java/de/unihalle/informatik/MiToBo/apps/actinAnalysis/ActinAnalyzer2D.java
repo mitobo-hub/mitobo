@@ -399,6 +399,9 @@ public class ActinAnalyzer2D extends MTBOperator {
 //				eigenOp.runOp();
 //				break;
 //			}
+			if (this.verbose.booleanValue())
+				System.out.println("Feature extractor: " 
+						+ this.featureExtractor.getName());
 			this.featureExtractor.setImageDir(this.imageDir);
 			this.featureExtractor.setMaskDir(this.maskDir);
 			this.featureExtractor.setMaskFormat(this.maskFormat);
@@ -460,6 +463,7 @@ public class ActinAnalyzer2D extends MTBOperator {
 		int tileCountX = -1, tileCountY = -1;
 		int tileCountTotal = -1, invalidTiles = -1;
 		int tileSizeXFromFile = -1, tileSizeYFromFile = -1;
+		int tileShiftXFromFile = -1, tileShiftYFromFile = -1;
 		
 		String fDir = ((this.featureDir == null) ? 
 				this.outDir : this.featureDir).getDirectoryName();
@@ -522,8 +526,12 @@ public class ActinAnalyzer2D extends MTBOperator {
 						System.err.println("[ActinAnalyzer2D] " 
 							+ "tile sizes in y of different images do not match!");
 				// skip tile shifts
-				fRead.readLine();
-				fRead.readLine();
+				line = fRead.readLine();
+				tileShiftXFromFile = 
+						Integer.valueOf(line.split(" ")[2]).intValue();
+				line = fRead.readLine();
+				tileShiftYFromFile = 
+						Integer.valueOf(line.split(" ")[2]).intValue();
 				// get count in x
 				line = fRead.readLine();
 				tileCountX = Integer.valueOf(line.split(" ")[2]).intValue();
@@ -787,8 +795,8 @@ public class ActinAnalyzer2D extends MTBOperator {
 				int y = tileID / tileCountY;
 				int cellID = 1;
 				if (maskImage != null) {
-					cellID = 
-						maskImage.getValueInt(x*tileSizeXFromFile, y*tileSizeYFromFile);
+					cellID = maskImage.getValueInt(
+							x*tileShiftXFromFile, y*tileShiftYFromFile);
 				}
 				// usually cellID should not be 0 if mask image is ok, however, if 
 				// this nevertheless happens, just skip the tile
