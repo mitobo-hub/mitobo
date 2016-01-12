@@ -4,7 +4,7 @@
 
   <groupId>de.unihalle.informatik.MiToBo</groupId>
   <artifactId>mitobo</artifactId>
-  <version>1.7.1-SNAPSHOT</version>
+  <version>1.7.1-jre8-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>mitobo</name>
@@ -227,8 +227,8 @@
 	<artifactId>maven-compiler-plugin</artifactId>
 	<version>3.3</version>
 	<configuration>
-	  <source>1.6</source>
-	  <target>1.6</target>
+	  <source>1.8</source>
+	  <target>1.8</target>
 	  <encoding>${project.build.sourceEncoding}</encoding>
 	  <!-- Disable annotation processors during normal compilation! -->
 	  <compilerArgument>-proc:none</compilerArgument>
@@ -268,6 +268,9 @@
 	<artifactId>maven-surefire-plugin</artifactId>
 	<version>2.18.1</version>
 	<configuration>
+         <excludes>
+            <exclude>**/TestMTBLevelsetFunctionPDE.java</exclude>
+          </excludes>
 	  <forkMode>once</forkMode>
 	  <argLine>-Djava.library.path=./target/natives/${native.libdir}</argLine>
 	</configuration>
@@ -310,16 +313,17 @@
 	<artifactId>maven-javadoc-plugin</artifactId>
 	<version>2.10.3</version>
 	<configuration>
-	  <javadocVersion>1.6</javadocVersion>
+	  <javadocVersion>1.8</javadocVersion>
 	  <stylesheet>java</stylesheet>
           <show>private</show>
+	  <additionalparam>-Xdoclint:none</additionalparam>
 	  <taglets>
 	    <taglet>
 	      <tagletClass>latexlet.InlineLaTeXlet</tagletClass>
 	      <tagletArtifact>
 		<groupId>latexlet</groupId>
 		<artifactId>latexlet</artifactId>
-		<version>1.2f7</version>
+		<version>1.2f8-SNAPSHOT</version>
 	      </tagletArtifact>
 	    </taglet>
 	    <taglet>
@@ -327,7 +331,7 @@
 	      <tagletArtifact>
 		<groupId>latexlet</groupId>
 		<artifactId>latexlet</artifactId>
-		<version>1.2f7</version>
+		<version>1.2f8-SNAPSHOT</version>
 	      </tagletArtifact>
 	    </taglet>
 	    <taglet>
@@ -335,7 +339,7 @@
 	      <tagletArtifact>
 		<groupId>latexlet</groupId>
 		<artifactId>latexlet</artifactId>
-		<version>1.2f7</version>
+		<version>1.2f8-SNAPSHOT</version>
 	      </tagletArtifact>
 	    </taglet>
 	  </taglets>
