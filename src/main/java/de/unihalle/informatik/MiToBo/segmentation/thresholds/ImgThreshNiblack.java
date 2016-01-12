@@ -76,9 +76,9 @@ import ij.gui.*;
  * In standard mode, as proposed by Niblack, the operator calculates a 
  * local threshold T based on the local mean m and standard deviation s 
  * in a local sliding window around pixel (x,y):
- * {@latex.ilb %preamble{\\usepackage{amssymb}}
+ * {@latex.ilb %preamble{\\usepackage{amssymb,amsmath}}
  * 	\\begin{equation*}
- *  		T(x,y) &=& m(x,y) + k \\cdot s(x,y)
+ *  		T(x,y) = m(x,y) + k \\cdot s(x,y)
  *  \\end{equation*}}
  * k is a scaling constant which has to be chosen depending on the 
  * application at hand. As stated above, this mode can be combined with 
@@ -87,9 +87,9 @@ import ij.gui.*;
  * In additon to the standard version of the Niblack approach the 
  * operator also implements an enhanced version as proposed by 
  * Zhang et al: 
- * {@latex.ilb %preamble{\\usepackage{amssymb}}
+ * {@latex.ilb %preamble{\\usepackage{amssymb,amsmath}}
  * 	\\begin{equation*}
- *  		T(x,y) &=& m(x,y) \\cdot \\left( 1 + k \\cdot \\left(
+ *  		T(x,y) = m(x,y) \\cdot \\left( 1 + k \\cdot \\left(
  *  				1 - \\frac{s(x,y)}{R} \\right) \\right)
  *  \\end{equation*}}
  * This version can be selected in standard mode by setting the 
@@ -289,9 +289,12 @@ public class ImgThreshNiblack extends MTBOperator {
    * This function implements the conventional (enhanced) Niblack binarization.
    * If R equals -1, the non-enhanced conventional variant is used.
    * 
-   * @latex.block %preamble{\\usepackage{amssymb}} Niblack binarization:
-   *              \\begin{eqnarray*} t &=& \\mu + k \\cdot ( \\mu \\cdot ( 1 -
-   *              \\sigma / R ) ). \\\\ \\end{eqnarray*}
+   * @latex.block %preamble{\\usepackage{amssymb,amsmath}} 
+   * 				Niblack binarization:
+   *        \\begin{eqnarray*} 
+   *           	t &=& \\mu + k \\cdot ( \\mu \\cdot ( 1 - \\sigma / R ) ). \\\\ 
+   *        \\end{eqnarray*}
+   *        
    * @param mimg	Input image to process.
    * @param w			Size of sliding window.
    * @param k			Niblack factor.
@@ -365,11 +368,20 @@ public class ImgThreshNiblack extends MTBOperator {
    * Enhanced Niblack binarization applied maskwise to the image, i.e. all
    * pixels inside the mask get the same threshold.
    * 
-   * The threshold is calculated as {@latex.ilb %preamble
-   * \\usepackage{amsmath}}\\begin{equation*} t = \\mu + k * ( \\mu \\cdot ( 1 -
-   * \\sigma / R ) ), \\end{equation*}} if R does not equal -1. Otherwise, the
-   * conventional variant {@latex.ilb %preamble \\usepackage{amsmath}}
-   * \\begin{equation*} t = \\mu + k \\cdot \\sigma \\end{equation*}} is used.
+   * The threshold is calculated as 
+   * {@latex.ilb %preamble{\\usepackage{amsmath}}
+   * 		\\begin{equation*} 
+   * 				t = \\mu + k * ( \\mu \\cdot ( 1 - \\sigma / R ) ), 
+   * 		\\end{equation*}
+   * } 
+   * if R does not equal -1. Otherwise, the
+   * conventional variant 
+   * {@latex.ilb %preamble{\\usepackage{amsmath}}
+   * 		\\begin{equation*} 
+   * 				t = \\mu + k \\cdot \\sigma 
+   * 		\\end{equation*}
+   * } 
+   * is used.
    * 
    * The main difference is here, that compared to the original approach,
    * thresholds are not calculated pixelwise, but just maskwise. In detail, the
@@ -458,12 +470,12 @@ public class ImgThreshNiblack extends MTBOperator {
    * enhanced with a local variance check.
    * 
    * If parameter R does not equal -1 the method applies the threshold
-   * {@latex.inline %preamble \\usepackage{amsmath} 
+   * {@latex.inline %preamble{\\usepackage{amsmath}} 
    * \\begin{equation*} 
    * 		t = \\mu + k * ( \\mu \\cdot ( 1 - \\sigma / R ) )
    * \\end{equation*}}. 
    * If R equals -1, the conventional variant is used, i.e., 
-   * {@latex.inline %preamble \\usepackage{amsmath}
+   * {@latex.inline %preamble{\\usepackage{amsmath}}
    * \\begin{equation*} 
    * 		t = \\mu + k \\cdot \\sigma 
    * \\end{equation*}}.
@@ -590,9 +602,12 @@ public class ImgThreshNiblack extends MTBOperator {
    * image region. Consequently this method does a global binarization applying
    * a single threshold on each image pixel.
    * 
-   * @latex.block %preamble{\\usepackage{amssymb}} Niblack binarization:
-   *              \\begin{eqnarray*} t &=& \\mu + k \\cdot ( \\mu \\cdot ( 1 -
-   *              \\sigma / R ) ). \\\\ \\end{eqnarray*}
+   * @latex.block %preamble{\\usepackage{amssymb,amsmath}} 
+   * 		Niblack binarization:
+   *    \\begin{eqnarray*} 
+   *    	t &=& \\mu + k \\cdot ( \\mu \\cdot ( 1 - \\sigma / R ) ). \\\\ 
+   *    \\end{eqnarray*}
+   *    
    * @param ip
    *          input image processor
    * @param k

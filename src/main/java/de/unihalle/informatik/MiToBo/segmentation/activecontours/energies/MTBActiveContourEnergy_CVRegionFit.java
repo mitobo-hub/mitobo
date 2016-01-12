@@ -45,7 +45,7 @@ import de.unihalle.informatik.MiToBo.segmentation.basics.CalcSegmentationStatist
  * a Gaussian model, i.e. each of the two regions is characterized by a 
  * mean intensity value, and deviations from this value are penalized. 
  * The energy is defined as follows:
- * {@latex.ilb %preamble{\\usepackage{amssymb}}
+ * {@latex.ilb %preamble{\\usepackage{amssymb,amsmath}}
  *      \\begin{equation*}
  *      E(C) = \\int_{inside(C)} \\frac{1}{N} \\sum_{i=1}^N 
  *      	\\lambda_{in,i} \\cdot (I_i(x,y,z) - c_{in,i})^2 dx dy

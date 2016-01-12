@@ -59,7 +59,7 @@ public class GaussPDxxFilter2D extends OrientedFilter2D {
 	 * <p>
 	 * The mask width is derived from the standard deviation of the Gaussian,<br>
 	 * i.e. the width is given by 
-	 * {@latex.inline %preamble{\\usepackage{amssymb, amsmath}}
+	 * {@latex.ilb %preamble{\\usepackage{amssymb, amsmath}}
 	 * $w = 2 \\cdot 3 \\cdot (\\text{int})(\\sigma+0.5)+1$}.<br>
 	 * Note that the minimum width is 3.
 	 */

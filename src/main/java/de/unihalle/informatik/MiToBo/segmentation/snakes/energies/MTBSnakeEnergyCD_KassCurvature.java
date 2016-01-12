@@ -39,7 +39,7 @@ import de.unihalle.informatik.MiToBo.segmentation.snakes.optimize.SnakeOptimizer
  * <p>
  * The energy is based on second order derivatives of a snake C and  
  * is defined as follows:
- * {@latex.ilb %preamble{\\usepackage{amssymb}}
+ * {@latex.ilb %preamble{\\usepackage{amssymb,amsmath}}
  *      \\begin{equation*}
  *      	E(C) = 0.5 \\cdot \\int_0^1 \\beta(s) \\cdot |C_{ss}(s)|^2 ds 
  *      \\end{equation*}}

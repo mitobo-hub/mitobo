@@ -104,7 +104,7 @@ public class MFFDOGFilter2D extends MTBOperator implements StatusReporter {
 	 * Expected width of vessels.
 	 * <p>
 	 * The width is used to select the standard deviation of the Gaussian,
-	 * i.e. {@latex.inline %preamble{\\usepackage{amssymb, amsmath}}
+	 * i.e. {@latex.ilb %preamble{\\usepackage{amssymb, amsmath}}
 	 * $\\sigma = 2 \\cdot \\text{width}$}.
 	 */
 	@Parameter(label= "Expected Vessel Width", required = false, dataIOOrder = 2,
