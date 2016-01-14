@@ -26,3 +26,5 @@ Alida defines unified interfaces and execution procedures for operators which yi
     * a graphical programming editor named Grappa automatically considering all implemented operators as potential processing nodes 
 
 MiToBo takes full advantage of Alida's features, hence, provides a framework for implementing image analysis algorithms allowing for automatic documentation and automatic user interface generation, and includes the graphical programming editor Grappa for user-friendly design of more complex processing pipelines. 
+
+The main project homepage is located [**here**](http://www.informatik.uni-halle.de/mitobo) 
