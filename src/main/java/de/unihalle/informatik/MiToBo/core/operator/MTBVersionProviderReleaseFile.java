@@ -29,8 +29,8 @@ import java.io.*;
 import de.unihalle.informatik.Alida.version.ALDVersionProvider;
 
 /**
- * Info class which provides MiToBo plugins with version information from 
- * release file in a jar archive.
+ * Info class which provides MiToBo plugins with version information 
+ * from release file in a jar archive.
  *
  * @author moeller
  */
@@ -44,8 +44,8 @@ public class MTBVersionProviderReleaseFile extends ALDVersionProvider {
 	/**
 	 * Name of revision file from where to read revision information.
 	 * <p>
-	 * If the name needs to be changed to a non-default name this needs to be 
-	 * done prior to the first call of getVersion() of the provider.
+	 * If the name needs to be changed to a non-default name this needs to  
+	 * be done prior to the first call of getVersion() of the provider.
 	 */
 	private static String revisionFile = "revision-mitobo.txt";
 
@@ -69,8 +69,8 @@ public class MTBVersionProviderReleaseFile extends ALDVersionProvider {
 	 * extracted from that file. If the file does not exist or is empty,
 	 * a dummy string is returned.
 	 * 
-	 * @param infofile 	file where to find the tag information
-	 *                  (for MiToBo this is usually './revision-mitobo.txt'
+	 * @param infofile 	file where to find the tag information,
+	 *                  for MiToBo this is usually './revision-mitobo.txt'
 	 * @return 			Tag of version or dummy string if tag not available.
 	 */
 	private static String getRepositoryTag(String infofile) {
@@ -87,17 +87,33 @@ public class MTBVersionProviderReleaseFile extends ALDVersionProvider {
 
 			// initialize file reader 
 		try { 
-			is= 
-				MTBVersionProviderReleaseFile.class.getResourceAsStream("/" + infofile);
+			is= MTBVersionProviderReleaseFile.class.getResourceAsStream(
+						"/" + infofile);
 			br= new BufferedReader(new InputStreamReader(is));
 			vLine= br.readLine();
 			if (vLine == null) {
 				System.err.println("getRepositoryTag: file is empty...!?");
+				br.close();
+				MTBVersionProviderReleaseFile.localVersion = dummy;
 				return dummy;
 			}	
+			br.close();
+			MTBVersionProviderReleaseFile.localVersion = vLine;
 			return vLine;
 		}
 		catch (Exception e) {
+			try {
+				if (br != null)
+					br.close();
+				if (is != null)
+					is.close();
+			} catch (IOException ee) {
+				System.err.println(
+					"[MTBVersionProviderReleaseJar::getReleaseVersion] "
+						+ "problems on closing the file handles...");
+				ee.printStackTrace();
+			}
+			MTBVersionProviderReleaseFile.localVersion = dummy;
 			return dummy;
 		}
 	}
@@ -106,12 +122,11 @@ public class MTBVersionProviderReleaseFile extends ALDVersionProvider {
 	 * Returns the tag/release of the current checkout, as specified 
 	 * in a given info file.
 	 * 
-	 * @param infofile 	file where to find the tag information
-	 *                  (for MiToBo this is usually './revision-mitobo.txt'
-	 * @return 			tag/release of checked out version or null if not available
+	 * @return tag/release of checked out version or null if not available
 	 */
 	private static String getRepositoryTag() {
-		return 
+		MTBVersionProviderReleaseFile.localVersion = 
 			MTBVersionProviderReleaseFile.getRepositoryTag(revisionFile);
+		return MTBVersionProviderReleaseFile.localVersion;
 	}
 }
