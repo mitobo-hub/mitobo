@@ -371,8 +371,8 @@
 	    <argument>-Xms2048m</argument>
 	    <argument>-Xmx2048m</argument>
 	    <argument>-Djava.library.path=target/natives/${native.libdir}</argument>
-	    <argument>-Dalida.versionprovider_class=de.unihalle.informatik.Alida.version.ALDVersionProviderGit</argument>
 	    <argument>-Dalida.oprunner.level=standard</argument>
+	    <argument>-Dalida.versionprovider_class=de.unihalle.informatik.MiToBo.core.operator.MTBVersionProviderReleaseFile</argument>
             <argument>de.unihalle.informatik.Alida.tools.ALDGrappaRunner</argument>
           </arguments>
         </configuration>

@@ -53,10 +53,18 @@ public class MTBVersionProviderReleaseFile extends ALDVersionProvider {
 	 * Set the name of the revision file.
 	 * @param revFile		Name of file to be used.
 	 */
-	public void setRevisionFile(String revFile) {
+	public static void setRevisionFile(String revFile) {
 		revisionFile = revFile;
 	}
 	
+	/**
+	 * Request name of the revision file.
+	 * @return revFile		Name of file.
+	 */
+	public static String getRevisionFile() {
+		return revisionFile;
+	}
+
 	@Override
   public String getVersion() {
 	  return getRepositoryTag();
