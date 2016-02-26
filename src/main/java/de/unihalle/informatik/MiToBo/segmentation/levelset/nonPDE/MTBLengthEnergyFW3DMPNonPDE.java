@@ -41,7 +41,6 @@ import de.unihalle.informatik.Alida.annotations.ALDParametrizedClass;
  */
 
 @ALDParametrizedClass
-@ALDDerivedClass
 public class MTBLengthEnergyFW3DMPNonPDE extends MTBLengthEnergyFW3DNonPDE {
 
 	/**

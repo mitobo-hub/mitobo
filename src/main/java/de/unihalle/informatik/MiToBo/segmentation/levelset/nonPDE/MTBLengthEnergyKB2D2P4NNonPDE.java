@@ -42,7 +42,6 @@ import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
  */
 
 @ALDParametrizedClass
-@ALDDerivedClass
 public class MTBLengthEnergyKB2D2P4NNonPDE extends MTBLengthEnergyKB2D2PNonPDE {
 
 	/**
