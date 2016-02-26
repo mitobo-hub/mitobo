@@ -70,7 +70,7 @@ public abstract class MTBTopologicalNumber {
       * <p>
       * The order of neighbors within the array are the same as for <code>coordinatesNeighbors</code>.
 	  */
-	protected Point3D offsetsNeighbors[];
+	public Point3D offsetsNeighbors[];
 
 	/** For each neighbor in the neighborhood 
 	 * this vector holds coordinates of all other pixels in the neighborhood
