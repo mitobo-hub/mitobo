@@ -31,7 +31,7 @@
 
 package de.unihalle.informatik.MiToBo.topology;
 
-import java.util.Vector;
+import java.util.ArrayList;
 
 /** An abstract class to compute topological numbers for the 2D case.
  *
@@ -64,11 +64,12 @@ abstract public class MTBTopologicalNumber2D extends MTBTopologicalNumber {
       *             with euclidean distance not larger then <code>dist</code> are considered neighbors of 
       *             the current pixel.
 	  */
+	@SuppressWarnings("unchecked")
 	protected void initNeighbors() {
 		offsetsNeighbors = new Point3D[8];
-		coordinatesNeighborNeighbors = new Vector[8];
-		offsetsNeighborNeighbors = new Vector[8];
-		coordinatesNeighborNeighborsByCoord = new Vector[3][3][3];
+		coordinatesNeighborNeighbors = new ArrayList[8];
+		offsetsNeighborNeighbors = new ArrayList[8];
+		coordinatesNeighborNeighborsByCoord = new ArrayList[3][3][3];
 
 		for ( int n=0 ; n < coordinatesNeighbors.length ; n++ ) {
 			int z = coordinatesNeighbors[n].getZ();
@@ -76,10 +77,10 @@ abstract public class MTBTopologicalNumber2D extends MTBTopologicalNumber {
 			int x = coordinatesNeighbors[n].getX();
 
 			offsetsNeighbors[n] = new Point3D( 0, y-1,x-1);
-			coordinatesNeighborNeighbors[n] = new Vector<Point3D>();
-			offsetsNeighborNeighbors[n] = new Vector<Point3D>();
+			coordinatesNeighborNeighbors[n] = new ArrayList<Point3D>();
+			offsetsNeighborNeighbors[n] = new ArrayList<Point3D>();
 
-			coordinatesNeighborNeighborsByCoord[z][y][x] = new Vector<Point3D>();
+			coordinatesNeighborNeighborsByCoord[z][y][x] = new ArrayList<Point3D>();
 
 			for ( int deltaY = -1 ; deltaY <= 1 ; deltaY++ ) {
 				for ( int deltaX = -1 ; deltaX <= 1 ; deltaX++ ) {

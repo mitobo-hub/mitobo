@@ -58,9 +58,9 @@ public class MTBTopologicalNumber2DN4 extends MTBTopologicalNumber2D {
 				// that is also true - otherwise this pixel is not element of X
 				boolean found = false;
 				for ( int n = 0; n < coordinatesNeighborNeighbors[i].size() ; n++ ) {
-					if ( X[(coordinatesNeighborNeighbors[i].elementAt(n)).getZ()]
-                          [(coordinatesNeighborNeighbors[i].elementAt(n)).getY()] 
-                          [(coordinatesNeighborNeighbors[i].elementAt(n)).getX()] ) {
+					if ( X[(coordinatesNeighborNeighbors[i].get(n)).getZ()]
+                          [(coordinatesNeighborNeighbors[i].get(n)).getY()] 
+                          [(coordinatesNeighborNeighbors[i].get(n)).getX()] ) {
 
 						found = true;
 						break;

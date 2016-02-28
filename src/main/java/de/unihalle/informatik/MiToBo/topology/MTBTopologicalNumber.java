@@ -89,32 +89,32 @@ public abstract class MTBTopologicalNumber {
 	protected Point3D offsetsNeighbors[];
 
 	/** For each neighbor in the neighborhood 
-	 * this vector holds coordinates of all other pixels in the neighborhood
+	 * this collection holds coordinates of all other pixels in the neighborhood
 	 * which are connected to the neighbor under consideration with regard the
 	 * the neighborhood definition. (These are called neighborneighbors subsequently.)
 	 * Coordinates are as for neighbors in a a 3x3x3 array center around the
 	 * current pixel 
 	 * The order of neighbors within the array are the same as for {@link coordinatesNeighbors}
-	 * while the order of neighborneighbors in the vector is arbitrary.
+	 * while the order of neighborneighbors in the collection is arbitrary.
 	 *
 	 */
-	protected Vector<Point3D>  coordinatesNeighborNeighbors[];
+	protected ArrayList<Point3D>  coordinatesNeighborNeighbors[];
 
 	/** As {@ coordinatesNeighborNeighbors} this array gives
 	 * for each neighbor in the neighborhood coordinates of its neighbors
 	 * (i.e. neighborneighbors).
 	 * Coordinates are as for neighbors in a a 3x3x3 array center around the
 	 * current pixel 
-	 * However the vectors of neighborneighbors are not indexed by the order of
+	 * However the collections of neighborneighbors are not indexed by the order of
 	 * the neighbors but by the coordinate of each neighbor
 	 * within an  3x3x3 array, {@link coordinatesNeighbors}.
 	 */
-	protected Vector<Point3D>  coordinatesNeighborNeighborsByCoord[][][];
+	protected ArrayList<Point3D>  coordinatesNeighborNeighborsByCoord[][][];
 
-	/** As for the neighbors this vector is in analogy to <code>coordinatesNeighborNeighbors</code>
+	/** As for the neighbors this collection is in analogy to <code>coordinatesNeighborNeighbors</code>
 	 * and gives for each neighborneighbor the offset instead of coordinates.
 	  */
-	protected Vector<Point3D>  offsetsNeighborNeighbors[];
+	protected ArrayList<Point3D>  offsetsNeighborNeighbors[];
 
     /** 8- or 26 neighbors of the current pixel
      * used to determine topological numbers represented as an 3x3x3 array center around
@@ -260,14 +260,14 @@ public abstract class MTBTopologicalNumber {
 								" offset:  @(" + offsetsNeighbors[i].z + "," +
                                 offsetsNeighbors[i].y + "," + offsetsNeighbors[i].x + ")" );
             for ( int n = 0; n < coordinatesNeighborNeighbors[i].size() ; n++ ) {
-				Point3D indices = coordinatesNeighborNeighbors[i].elementAt(n);
+				Point3D indices = coordinatesNeighborNeighbors[i].get(n);
                 System.out.print( " neighbor: " + n + " @(" + 
                     indices.z + "," + indices.y +  "," + indices.x + ")");
             }
             System.out.println();
 
             for ( int n = 0; n < offsetsNeighborNeighbors[i].size() ; n++ ) {
-            	Point3D indices = offsetsNeighborNeighbors[i].elementAt(n);
+            	Point3D indices = offsetsNeighborNeighbors[i].get(n);
                 System.out.print( " offset: " + n + " @(" + 
                     indices.z + "," + indices.y  + "," + indices.x + ")");
             }
@@ -305,7 +305,7 @@ public abstract class MTBTopologicalNumber {
 	/**
 	 * @return the coordinatesNeighborNeighbors
 	 */
-	public Vector<Point3D> getCoordinatesNeighborNeighbors( int z, int y, int x) {
+	public ArrayList<Point3D> getCoordinatesNeighborNeighbors( int z, int y, int x) {
 		if ( z < 0 || z > 2 || y < 0 || y > 2 || x < 0 || x > 2 ) 
 			throw new ArrayIndexOutOfBoundsException( this.getClass().getCanonicalName() + 
 					"::getCoordinatesNeighborNeighbors indices out of bound (" + z + "," + y + "," + x+  ")");
