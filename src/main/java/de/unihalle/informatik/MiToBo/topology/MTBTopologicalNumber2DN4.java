@@ -38,25 +38,29 @@ package de.unihalle.informatik.MiToBo.topology;
  */
 
 public class MTBTopologicalNumber2DN4 extends MTBTopologicalNumber2D {
+	
 	/** Construct a class for this neighborhood definitions
 	 */
 	public MTBTopologicalNumber2DN4() {
+		dimension = 2;
+		sizeNeighborhood = 4;
 		// dist == 1 gives 4-neighborhood
-		initNeighbors( 1.0f);
+		maxDist = 1.0f;
+		initNeighbors();
 	}
 
 	@Override
 	protected void computeN() {
 		// visit each diagonal pixels in this neighborhood
 		for ( int i = 4 ; i < 8 ; i ++ ) {
-			if ( X[coordinatesNeighbors[i].z][coordinatesNeighbors[i].y][coordinatesNeighbors[i].x] ) {
+			if ( X[coordinatesNeighbors[i].getZ()][coordinatesNeighbors[i].getY()][coordinatesNeighbors[i].getX()] ) {
 				// if this diagonal pixel is true try to find a 4-neighbor
 				// that is also true - otherwise this pixel is not element of X
 				boolean found = false;
 				for ( int n = 0; n < coordinatesNeighborNeighbors[i].size() ; n++ ) {
-					if ( X[(coordinatesNeighborNeighbors[i].elementAt(n)).z]
-                          [(coordinatesNeighborNeighbors[i].elementAt(n)).y] 
-                          [(coordinatesNeighborNeighbors[i].elementAt(n)).x] ) {
+					if ( X[(coordinatesNeighborNeighbors[i].elementAt(n)).getZ()]
+                          [(coordinatesNeighborNeighbors[i].elementAt(n)).getY()] 
+                          [(coordinatesNeighborNeighbors[i].elementAt(n)).getX()] ) {
 
 						found = true;
 						break;
@@ -64,7 +68,7 @@ public class MTBTopologicalNumber2DN4 extends MTBTopologicalNumber2D {
 				}
 
 				if ( ! found ) 
-					X[coordinatesNeighbors[i].z][coordinatesNeighbors[i].y][coordinatesNeighbors[i].x] = false;
+					X[coordinatesNeighbors[i].getZ()][coordinatesNeighbors[i].getY()][coordinatesNeighbors[i].getX()] = false;
 			}
 		}
 	}

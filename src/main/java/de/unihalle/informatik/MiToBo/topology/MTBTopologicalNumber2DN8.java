@@ -40,8 +40,11 @@ public class MTBTopologicalNumber2DN8 extends MTBTopologicalNumber2D {
 	/** Construct a class for this neighborhood definition
 	  */
 	public MTBTopologicalNumber2DN8() {
+		dimension = 2;
+		sizeNeighborhood = 8;
 		// dist == 1.5 gives 8-neighborhood
-		initNeighbors( 1.5f);
+		maxDist = 1.5f;
+		initNeighbors();
 	}
 
 	@Override

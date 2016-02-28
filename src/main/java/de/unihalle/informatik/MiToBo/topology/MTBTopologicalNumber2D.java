@@ -56,30 +56,26 @@ abstract public class MTBTopologicalNumber2D extends MTBTopologicalNumber {
 	}
 
 	/** This initializes all relevant arrays containing information on neighbors
-      * where <code>dist</code> defines the neighborhood, e.g. <code>dist</code> == 1 defines 4-neighbors.
-	  * Theses arrays are <code>indicesNeighbors</code>, <code>offsetsNeighbors</code>,
-	  * and <code>indicesNeighborsByCoord</code>.
+      * where <code>maxDist</code> defines the neighborhood, e.g. <code>maxDist</code> == 1 defines 4-neighbors.
+	  * Theses arrays are <code>coordinatesNeighbors</code>, <code>offsetsNeighbors</code>,
+	  * and <code>coordinatesNeighborNeighbors</code>.
       *
       * @param dist All pixels within the 3x3 window around the current pixel
-      *             with euclidean distance not l then <code>dist</code> are considered neighbors of 
+      *             with euclidean distance not larger then <code>dist</code> are considered neighbors of 
       *             the current pixel.
 	  */
-	protected void initNeighbors( float dist) {
+	protected void initNeighbors() {
 		offsetsNeighbors = new Point3D[8];
 		coordinatesNeighborNeighbors = new Vector[8];
 		offsetsNeighborNeighbors = new Vector[8];
 		coordinatesNeighborNeighborsByCoord = new Vector[3][3][3];
 
 		for ( int n=0 ; n < coordinatesNeighbors.length ; n++ ) {
-			int z = coordinatesNeighbors[n].z;
-			int y = coordinatesNeighbors[n].y;
-			int x = coordinatesNeighbors[n].x;
+			int z = coordinatesNeighbors[n].getZ();
+			int y = coordinatesNeighbors[n].getY();
+			int x = coordinatesNeighbors[n].getX();
 
-			offsetsNeighbors[n] = new Point3D();
-			offsetsNeighbors[n].z = 0;   //z coordinate not used for 2D
-			offsetsNeighbors[n].y = y-1;
-			offsetsNeighbors[n].x = x-1;
-
+			offsetsNeighbors[n] = new Point3D( 0, y-1,x-1);
 			coordinatesNeighborNeighbors[n] = new Vector<Point3D>();
 			offsetsNeighborNeighbors[n] = new Vector<Point3D>();
 
@@ -94,16 +90,16 @@ abstract public class MTBTopologicalNumber2D extends MTBTopologicalNumber {
 						! ( deltaX == 0 && deltaY == 0 ) &&
 
 						// neighbors outside a 3x3 window around the current pixel
-						(deltaX+coordinatesNeighbors[n].x >= 0) && (deltaX+coordinatesNeighbors[n].x <= 2 ) &&
-						(deltaY+coordinatesNeighbors[n].y >= 0) && (deltaY+coordinatesNeighbors[n].y <= 2 ) &&
+						(deltaX+coordinatesNeighbors[n].getX() >= 0) && (deltaX+coordinatesNeighbors[n].getX() <= 2 ) &&
+						(deltaY+coordinatesNeighbors[n].getY() >= 0) && (deltaY+coordinatesNeighbors[n].getY() <= 2 ) &&
 
 						// the current pixel located in the center of the 3x3 window at (1,1)
-						! ( (deltaX+coordinatesNeighbors[n].x == 1) && (deltaY+coordinatesNeighbors[n].y == 1 ) ) &&
+						! ( (deltaX+coordinatesNeighbors[n].getX() == 1) && (deltaY+coordinatesNeighbors[n].getY() == 1 ) ) &&
 
 						// neighbors with euclidean distance greater dist
-						(Math.sqrt( deltaX*deltaX + deltaY*deltaY) <= dist) ) {
+						(Math.sqrt( deltaX*deltaX + deltaY*deltaY) <= this.maxDist) ) {
 
-						Point3D tmp = new Point3D (0, deltaY+coordinatesNeighbors[n].y, deltaX+coordinatesNeighbors[n].x);
+						Point3D tmp = new Point3D (0, deltaY+coordinatesNeighbors[n].getY(), deltaX+coordinatesNeighbors[n].getX());
 						coordinatesNeighborNeighbors[n].add( tmp);
 						coordinatesNeighborNeighborsByCoord[z][y][x].add( tmp);
 						offsetsNeighborNeighbors[n].add( new Point3D (0, deltaY, deltaX));
