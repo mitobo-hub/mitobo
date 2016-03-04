@@ -235,7 +235,8 @@
 	<!-- run annotation processing -->
 	<groupId>org.bsc.maven</groupId>
 	<artifactId>maven-processor-plugin</artifactId>
-	<version>3.1.0</version>
+<!--	<version>3.1.0</version> requires Maven 3.1 -->
+	<version>2.2.4</version>
 	<executions>
 	  <execution>
 	    <id>process</id>
@@ -579,7 +580,7 @@
     <dependency>
       <groupId>de</groupId>
       <artifactId>jstacs</artifactId>
-      <version>2.1</version>
+      <version>2.2</version>
     </dependency>
     <dependency>
       <groupId>de.unihalle.informatik.MiToBo</groupId>
