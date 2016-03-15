@@ -18,7 +18,7 @@
     <!-- define a default native directory, does not work in all cases,
 	 but avoids that Maven fails completely -->
     <native.libdir>lib64</native.libdir>
-    <alida.version>2.6.3-SNAPSHOT</alida.version>
+    <alida.version>2.7.1-SNAPSHOT</alida.version>
     <alida.mitobo.help.version>1.7-SNAPSHOT</alida.mitobo.help.version>
   </properties>
 
@@ -444,12 +444,6 @@
       <layout>default</layout>
     </repository>
     <repository>
-      <id>internal</id>
-      <name>Archiva Internal Repository on 'moon'</name>
-      <url>https://moon.informatik.uni-halle.de/archiva/repository/internal/</url>
-      <layout>default</layout>
-    </repository>
-    <repository>
       <id>releases</id>
       <name>Archiva Release Repository on 'moon'</name>
       <url>https://moon.informatik.uni-halle.de/archiva/repository/releases/</url>
@@ -467,12 +461,6 @@
       <id>snapshots</id>
       <name>Archiva Public Snapshot Repository on 'moon'</name>
       <url>https://moon.informatik.uni-halle.de/archiva/repository/snapshots-pub/</url>
-      <layout>default</layout>
-    </pluginRepository>
-    <pluginRepository>
-      <id>internal</id>
-      <name>Archiva Internal Repository on 'moon'</name>
-      <url>https://moon.informatik.uni-halle.de/archiva/repository/internal/</url>
       <layout>default</layout>
     </pluginRepository>
     <pluginRepository>
@@ -632,31 +620,13 @@
 
   <profiles>
     <profile>
-      <id>deploy-internal</id>
+      <id>deploy-profile</id>
       <activation>
 	<activeByDefault>true</activeByDefault>
       </activation>
       <distributionManagement>
 	<snapshotRepository>
-	  <id>snapshots</id>
-	  <name>Archiva Public Snapshot Repository on 'moon'</name>
-	  <url>https://moon.informatik.uni-halle.de/archiva/repository/snapshots-pub/</url>
-	</snapshotRepository>
-	<repository>
-	  <id>internal</id>
-	  <name>Archiva Internal Repository on 'moon'</name>
-	  <url>https://moon.informatik.uni-halle.de/archiva/repository/internal/</url>
-	</repository>
-      </distributionManagement>
-    </profile>
-    <profile>
-      <id>deploy-release</id>
-      <activation>
-	<activeByDefault>false</activeByDefault>
-      </activation>
-      <distributionManagement>
-	<snapshotRepository>
-	  <id>snapshots</id>
+	  <id>snapshots-pub</id>
 	  <name>Archiva Public Snapshot Repository on 'moon'</name>
 	  <url>https://moon.informatik.uni-halle.de/archiva/repository/snapshots-pub/</url>
 	</snapshotRepository>
