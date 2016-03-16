@@ -169,6 +169,19 @@ public class MTBImageDataIOSwing implements ALDDataIOSwing {
 			int[] winIDs = ij.WindowManager.getIDList();
 			if (winIDs != null && winIDs.length > 0) {
 				defaultImg = MTBImage.createMTBImage(IJ.getImage());
+			
+				// check if image object is of correct class, if not, try to convert
+				if (   !defaultImg.getClass().equals(cl)
+						&& !cl.isAssignableFrom(defaultImg.getClass())) {
+					try {
+						MTBImageConverter converter = new MTBImageConverter();
+						return converter.convert(defaultImg, null, cl, null);
+					} catch (ALDException e) {
+						// if something goes wrong, just return null
+						return null;
+					}
+				}
+			
 			}
 			return defaultImg;
 		}

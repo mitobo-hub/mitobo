@@ -31,7 +31,6 @@ import de.unihalle.informatik.Alida.annotations.Parameter.ExpertMode;
 import de.unihalle.informatik.Alida.annotations.Parameter.ParameterModificationMode;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
-import de.unihalle.informatik.Alida.exceptions.ALDWorkflowException;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
 
@@ -140,6 +139,15 @@ public class CellMigrationAnalyzer extends MTBOperator
 	@Parameter(label = "label result", required = true, direction = Parameter.Direction.OUT, supplemental = false, description = "resulting label image")
 	private transient MTBImage labelResult = null;
 	
+	@Parameter(label = "track report", required = true, direction = Parameter.Direction.OUT, supplemental = false, description = "track report")
+	private String trackReport = "";
+	
+	@Parameter(label = "shape report", required = true, direction = Parameter.Direction.OUT, supplemental = false, description = "shape report")
+	private String shapeReport = "";
+	
+	@Parameter(label = "intensity report", required = true, direction = Parameter.Direction.OUT, supplemental = false, description = "intensity report")
+	private String intReport = "";
+	
 
 	public CellMigrationAnalyzer() throws ALDOperatorException
 	{
@@ -236,6 +244,10 @@ public class CellMigrationAnalyzer extends MTBOperator
 		
 		labelResult = analyzer.getLabelImage();
 		labelResult.setTitle(title + "_tracking");
+		
+		trackReport = analyzer.getTrackReport();
+		shapeReport = analyzer.getShapeReport();
+		intReport = analyzer.getIntensityReport();
 		
 		if(verbose)
 		{

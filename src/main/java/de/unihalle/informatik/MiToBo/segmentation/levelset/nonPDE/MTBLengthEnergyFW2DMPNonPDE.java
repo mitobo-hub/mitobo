@@ -46,7 +46,6 @@ import de.unihalle.informatik.Alida.annotations.ALDParametrizedClass;
 
 
 @ALDParametrizedClass
-@ALDDerivedClass
 public class MTBLengthEnergyFW2DMPNonPDE extends MTBLengthEnergyFW2DNonPDE {
 	private final double SQRT_2 = Math.sqrt(2.0);
 

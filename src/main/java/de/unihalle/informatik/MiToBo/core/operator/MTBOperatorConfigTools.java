@@ -22,20 +22,9 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev$
- * $Date$
- * $Author$
- * 
- */
-//TODO: do we need unset..... if we  wompletely switch to annotations??
-
 package de.unihalle.informatik.MiToBo.core.operator;
 
 import de.unihalle.informatik.Alida.version.ALDVersionProvider;
-import de.unihalle.informatik.Alida.version.ALDVersionProviderDummy;
 import de.unihalle.informatik.Alida.version.ALDVersionProviderFactory;
 
 import java.io.*;
@@ -53,7 +42,8 @@ class MTBOperatorConfigTools {
 	/**
 	 * The object instance.
 	 */
-	private static MTBOperatorConfigTools confObj = new MTBOperatorConfigTools();
+	private static MTBOperatorConfigTools confObj = 
+			new MTBOperatorConfigTools();
 	
 	/**
 	 * Version provider class to be used in the current session.
@@ -72,18 +62,21 @@ class MTBOperatorConfigTools {
 		this.portHashAccess = new MTBPortHashAccess();		
 		// test if release file exists, if so, set version provider to file
 		try { 
+			String revFile = MTBVersionProviderReleaseFile.getRevisionFile();
 			InputStream is= 
-				MTBOperatorConfigTools.class.getResourceAsStream("/revision.txt");
+				MTBOperatorConfigTools.class.getResourceAsStream("/" + revFile);
 			BufferedReader br= new BufferedReader(new InputStreamReader(is));
 			String vLine= br.readLine();
 			if (vLine == null) {
+				br.close();
 				throw new Exception();
 			}
-			this.providerClass = 
-				"de.unihalle.informatik.MiToBo.core.operator.MTBVersionProviderReleaseFile";
+			this.providerClass = "de.unihalle.informatik.MiToBo.core." 
+					+ "operator.MTBVersionProviderReleaseFile";
+			br.close();
 		} catch (Exception e) {
 			this.providerClass =
-				"de.unihalle.informatik.Alida.version.ALDVersionProviderGit";
+				"de.unihalle.informatik.Alida.version.ALDVersionProviderDummy";
 		}
 	}
 	
@@ -109,8 +102,9 @@ class MTBOperatorConfigTools {
 	 */
 	protected ALDVersionProvider getVersionProvider() {
 	  if (!ALDVersionProviderFactory.isClassNameSpecified())
-	  	return ALDVersionProviderFactory.getProviderInstance(this.providerClass);
-	  return new ALDVersionProviderDummy();
+	  	return ALDVersionProviderFactory.getProviderInstance(
+	  			this.providerClass);
+	  return ALDVersionProviderFactory.getProviderInstance();
   }
 }
 

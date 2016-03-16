@@ -148,9 +148,7 @@ public class MTBChanVeseEnergyNonPDE extends MTBGenericEnergyNonPDE
 	 */
 	@Override
 	public MTBGenericEnergyNonPDE init( MTBImage img, MTBLevelsetMembership phi) {
-		if ( this.img == null ) {
-			this.img = img;
-		}
+		this.img = img;
 
 		this.fittingEnergy = new MTBCVFittingEnergyNonPDE( lambdaBg, lambdaFg);
 		this.fittingEnergy = (MTBCVFittingEnergyNonPDE) this.fittingEnergy.init( this.img, phi);

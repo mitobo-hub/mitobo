@@ -137,8 +137,6 @@ public class GammaCorrection2D extends MTBOperator {
 				// set valid = false if image type is different from MTB_BYTE and MTB_SHORT
 				boolean valid = (this.getInputImage().getType().ordinal() <= 1);
 
-				System.out.println(this.inputImage.getSizeC());
-				
 				if (!valid)
 						throw new ALDOperatorException(OperatorExceptionType.VALIDATION_FAILED,
 						    "GammaCorrection2D.validateCustom(): "

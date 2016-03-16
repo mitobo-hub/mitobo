@@ -70,9 +70,7 @@ public class MTBMeijeringFittingEnergyNonPDE extends MTBGenericEnergyNonPDE
 	 */
 	@Override
 	public MTBGenericEnergyNonPDE init( MTBImage img, MTBLevelsetMembership phi) {
-		if ( this.img == null ) {
-			this.img = img;
-		}
+		this.img = img;
 
 		this.sizeX = img.getSizeX();
 		this.sizeY = img.getSizeY();

@@ -559,7 +559,7 @@ public class MTBRegion2D implements MTBRegionInterface {
 		/**
 		 * Calculate moment of the region of order p,q.
 		 * <p>
-		 * {@latex.ilb %preamble{\\usepackage{amssymb}}
+		 * {@latex.ilb %preamble{\\usepackage{amssymb,amsmath}}
 		 * \\begin{equation*} 	
 		 *    m_{p,q}(R) = \\sum_{(x,y) \\in R} x^p \\cdot y^q
 		 * \\end{equation*}}
@@ -583,7 +583,7 @@ public class MTBRegion2D implements MTBRegionInterface {
 		/**
 		 * Calculate central moment of the region of order p,q.
 		 * <p>
-		 * {@latex.ilb %preamble{\\usepackage{amssymb}}
+		 * {@latex.ilb %preamble{\\usepackage{amssymb,amsmath}}
 		 * \\begin{eqnarray*} 	
 		 * \\mu_{p,q}(R)&=&\\sum_{(x,y)\\in R} (x-\\mu_x)^p\\cdot (y-\\mu_y)^q \\\\
 		 * \\mu_x &=& \\frac{1}{|R|} \\sum_{(x,y) \\in R} x \\\\
@@ -612,7 +612,7 @@ public class MTBRegion2D implements MTBRegionInterface {
 		/**
 		 * Calculate normalized central moment of the region of order p,q.
 		 * <p>
-		 * {@latex.ilb %preamble{\\usepackage{amssymb}}
+		 * {@latex.ilb %preamble{\\usepackage{amssymb,amsmath}}
 		 * \\begin{eqnarray*} 	
 		 * \\mu_{p,q}(R)&=& 
 		 * 		\\frac{1}{m_{0,0}(R)^{\\frac{p+q+2}{2}}} \\cdot \\mu_{p,q}(R)
@@ -635,7 +635,7 @@ public class MTBRegion2D implements MTBRegionInterface {
 		 * Calculate orientation of principal axis of the MTBRegion2D, using the atan2
 		 * function. The orientation (angle) is given in radian in a range [-pi, +pi]
 		 * <p>
-		 * {@latex.ilb %preamble{\\usepackage{amssymb}}
+		 * {@latex.ilb %preamble{\\usepackage{amssymb,amsmath}}
 		 * \\begin{eqnarray*} 	
 		 * \\theta(R)&=& \\frac{1}{2} \\cdot 
 		 * 		atan2(2.0 \\cdot \\mu_{1,1}, \\mu_{2,0} - \\mu_{0,2} )  
@@ -658,7 +658,7 @@ public class MTBRegion2D implements MTBRegionInterface {
 		 * Calculates eccentricity of the region in the range of [0,1].
 		 * <p>
 		 * The eccentricity is calculated according to the following equation:
-		 * {@latex.ilb %preamble{\\usepackage{amssymb}}
+		 * {@latex.ilb %preamble{\\usepackage{amssymb,amsmath}}
 		 * \\begin{eqnarray*} 	
 		 * e(R) &=& \\frac{(\\mu_{2,0} - \\mu_{0,2})^2 + 4 \\cdot \\mu_{1,1}^2}
 		 *                {(\\mu_{2,0} + \\mu_{0,2})^2}
@@ -791,7 +791,7 @@ public class MTBRegion2D implements MTBRegionInterface {
 		 * Calculates length of the major axis of the ellipse best fitting.
 		 * <p>
 		 * The method is based on using moments of the region:
-		 * {@latex.ilb %preamble{\\usepackage{amssymb}}
+		 * {@latex.ilb %preamble{\\usepackage{amssymb,amsmath}}
 		 * \\begin{eqnarray*} 	
 		 * a(R) &=& 2 \\cdot \\sqrt{
 		 * 	\\frac{2 \\cdot (\\mu_{2,0} + \\mu_{0,2} + 
@@ -821,7 +821,7 @@ public class MTBRegion2D implements MTBRegionInterface {
 		 * Calculates length of the minor axis of the ellipse best fitting.
 		 * <p>
 		 * The method is based on using moments of the region:
-		 * {@latex.ilb %preamble{\\usepackage{amssymb}}
+		 * {@latex.ilb %preamble{\\usepackage{amssymb,amsmath}}
 		 * \\begin{eqnarray*} 	
 		 * b(R) &=& 2 \\cdot \\sqrt{
 		 * 	\\frac{2 \\cdot (\\mu_{2,0} + \\mu_{0,2} - 

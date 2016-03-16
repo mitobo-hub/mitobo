@@ -63,7 +63,7 @@ public class CalcSegmentationStatistics extends MTBOperator {
 		 * Average intensity values of all regions.
 		 * <p>
 		 * For a single region R the average intensity is calculated as follows:
-		 * {@latex.ilb %preamble{\\usepackage{amssymb}}
+		 * {@latex.ilb %preamble{\\usepackage{amssymb,amsmath}}
 		 *      \\begin{equation*}
 		 *      \\mu(R) = \\frac{1}{\\sum_{(x,y,z) \\in R} w(x,y,z)}
 		 *      					\\sum_{(x,y,z) \\in R} w(x,y,z) \\cdot I(x,y,z) 
@@ -75,7 +75,7 @@ public class CalcSegmentationStatistics extends MTBOperator {
 		 * Intensity variance within each region.
 		 * <p>
 		 * A region's intensity variance is calculated as follows:
-		 * {@latex.ilb %preamble{\\usepackage{amssymb}}
+		 * {@latex.ilb %preamble{\\usepackage{amssymb,amsmath}}
 		 *      \\begin{equation*}
 		 *      \\sigma(R) = \\frac{1}{\\sum_{(x,y,z) \\in R} w(x,y,z)}
 		 *   					\\sum_{(x,y,z) \\in R} w(x,y,z) \\cdot (I(x,y,z)-\\mu(R))^2  

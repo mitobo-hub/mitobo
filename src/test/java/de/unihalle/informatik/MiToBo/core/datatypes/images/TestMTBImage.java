@@ -30,6 +30,7 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
+import de.unihalle.informatik.Alida.dataio.provider.swing.ALDParametrizedClassDataIOSwing;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType;
 
@@ -54,6 +55,53 @@ public class TestMTBImage {
 	}
 	
 	/**
+	 * Test if the validation of image dimension works correctly.
+	 */
+	@Test
+	public void testImageDimensionChecksOnCreation() {
+		boolean exceptionThrown = false;
+		try {
+			this.dummyImage = 
+				MTBImage.createMTBImage(10, 10, 10, 1, 1, MTBImageType.MTB_BYTE);
+		} catch (IllegalArgumentException e) {
+			exceptionThrown = true;
+		}
+		assertFalse("No exception expected, but caught one...", 
+				exceptionThrown);
+		
+		exceptionThrown = false;
+		try {
+			this.dummyImage = 
+				MTBImage.createMTBImage(0, 0, 1, 1, 1, MTBImageType.MTB_BYTE);
+		} catch (IllegalArgumentException e) {
+			exceptionThrown = true;
+		}
+		assertTrue("Expecting exception since x and y sizes are zero, "
+			+ "but did not cautch one...", exceptionThrown);
+		
+		exceptionThrown = false;
+		try {
+			this.dummyImage = 
+				MTBImage.createMTBImage(10, 10, 0, 0, 0, MTBImageType.MTB_BYTE);
+		} catch (IllegalArgumentException e) {
+			exceptionThrown = true;
+		}
+		assertTrue("Expecting exception since c, t and z sizes are zero, "
+				+ "but did not cautch one...", exceptionThrown);
+		
+		exceptionThrown = false;
+		try {
+			this.dummyImage = 
+				MTBImage.createMTBImage(10, 10, 0, 1, 0, MTBImageType.MTB_BYTE);
+			this.dummyImage.getValueInt(0, 0);
+		} catch (IllegalArgumentException e) {
+			exceptionThrown = true;
+		}
+		assertTrue("Expecting exception since c and t sizes are zero, "
+				+ "but did not cautch one...", exceptionThrown);
+	}
+	
+	/**
 	 * Test if new images always get a non-empty and non-null title string.
 	 */
 	@Test
@@ -61,11 +109,11 @@ public class TestMTBImage {
 
 		// create an image without title
 		this.dummyImage = 
-				MTBImage.createMTBImage(10, 10, 10, 1, 1, MTBImageType.MTB_BYTE);
+			MTBImage.createMTBImage(10, 10, 10, 1, 1, MTBImageType.MTB_BYTE);
 		assertTrue("Dummy image should have a proper title, but it's null!", 
-				this.dummyImage.getTitle() != null);
+			this.dummyImage.getTitle() != null);
 		assertTrue("Dummy image should have a proper title, but it's empty!", 
-				!this.dummyImage.getTitle().isEmpty());
+			!this.dummyImage.getTitle().isEmpty());
 		
 	}
 	
@@ -77,22 +125,22 @@ public class TestMTBImage {
 		
 		// create various images without title and test them
 		this.dummyImage = 
-				MTBImage.createMTBImage(10, 10, 10, 1, 1, MTBImageType.MTB_BYTE);
+			MTBImage.createMTBImage(10, 10, 10, 1, 1, MTBImageType.MTB_BYTE);
 		this.testSettingTitle(this.dummyImage);
 		this.dummyImage = 
-				MTBImage.createMTBImage(10, 10, 10, 1, 1, MTBImageType.MTB_DOUBLE);
+			MTBImage.createMTBImage(10, 10, 10, 1, 1, MTBImageType.MTB_DOUBLE);
 		this.testSettingTitle(this.dummyImage);
 		this.dummyImage = 
-				MTBImage.createMTBImage(10, 10, 10, 1, 1, MTBImageType.MTB_FLOAT);
+			MTBImage.createMTBImage(10, 10, 10, 1, 1, MTBImageType.MTB_FLOAT);
 		this.testSettingTitle(this.dummyImage);
 		this.dummyImage = 
-				MTBImage.createMTBImage(10, 10, 10, 1, 1, MTBImageType.MTB_INT);
+			MTBImage.createMTBImage(10, 10, 10, 1, 1, MTBImageType.MTB_INT);
 		this.testSettingTitle(this.dummyImage);
 		this.dummyImage = 
-				MTBImage.createMTBImage(10, 10, 10, 1, 1, MTBImageType.MTB_RGB);
+			MTBImage.createMTBImage(10, 10, 10, 1, 1, MTBImageType.MTB_RGB);
 		this.testSettingTitle(this.dummyImage);
 		this.dummyImage = 
-				MTBImage.createMTBImage(10, 10, 10, 1, 1, MTBImageType.MTB_SHORT);
+			MTBImage.createMTBImage(10, 10, 10, 1, 1, MTBImageType.MTB_SHORT);
 		this.testSettingTitle(this.dummyImage);
 	}
 	
@@ -105,7 +153,8 @@ public class TestMTBImage {
 		assertTrue("Underlying ImagePlus has different title!", 
 				img.getTitle().equals(img.getImagePlus().getTitle()));
 		
-		// set image title explicitly to null string, should not change anything
+		// set image title explicitly to null string, 
+		// should not change anything
 		String oldTitle = img.getTitle();
 		img.setTitle(null);
 		String newTitle = img.getTitle();

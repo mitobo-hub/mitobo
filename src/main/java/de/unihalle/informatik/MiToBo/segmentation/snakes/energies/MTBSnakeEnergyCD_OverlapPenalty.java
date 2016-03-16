@@ -43,7 +43,7 @@ import de.unihalle.informatik.MiToBo.segmentation.snakes.optimize.SnakeOptimizer
  * Energy to avoid overlaps of snakes in joint optimization of multiple snakes.
  * <p>
  * This energy is defined as follows for a set of N snakes:
- * {@latex.ilb %preamble{\\usepackage{amssymb}}
+ * {@latex.ilb %preamble{\\usepackage{amssymb,amsmath}}
  *      \\begin{equation*}
  *      E(s_1,\\ldots,s_N) = \\rho \\cdot 
  *         \\sum_{i=1}^N \\sum_{j=i+1}^N 
@@ -108,7 +108,7 @@ public class MTBSnakeEnergyCD_OverlapPenalty
 	 * Pre-computed factorial values.
 	 * <p>
 	 * At position n in this array the following value is stored:
-	 * {@latex.ilb %preamble{\\usepackage{amssymb}}
+	 * {@latex.ilb %preamble{\\usepackage{amssymb,amsmath}}
 	 *      \\begin{equation*} 
 	 *         \\left( \\begin{array}{c}
 	 *         		n \\\\ 2 

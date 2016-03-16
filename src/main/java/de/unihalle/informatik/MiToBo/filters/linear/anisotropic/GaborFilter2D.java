@@ -42,7 +42,7 @@ import de.unihalle.informatik.MiToBo.filters.linear.LinearFilter;
  * 2D Gabor filter.
  * <p>
  * The implementation is based on the following definition of the Gabor family:
- * {@latex.ilb %preamble{\\usepackage{amssymb}}
+ * {@latex.ilb %preamble{\\usepackage{amssymb,amsmath}}
  *      \\begin{eqnarray*} 
  *         g(x,y) &=& g_{\\sigma_x\\sigma_y}(x,y) \\cdot 
  *                e^{2\\pi \\cdot \\imath \\cdot \\phi \\cdot x} \\\\
@@ -64,7 +64,7 @@ import de.unihalle.informatik.MiToBo.filters.linear.LinearFilter;
  * omitted.
  * <p>
  * The filter mask is rotated by transforming the x and y coordinates as follows:
- * {@latex.ilb %preamble{\\usepackage{amssymb}}
+ * {@latex.ilb %preamble{\\usepackage{amssymb,amsmath}}
  *      \\begin{equation*} 
  *         \\left( \\begin{array}{c}
  *                   x \\\\ y
