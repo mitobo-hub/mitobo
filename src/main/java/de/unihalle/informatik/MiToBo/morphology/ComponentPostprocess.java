@@ -107,7 +107,11 @@ public class ComponentPostprocess extends MTBOperator {
 		 * <p>
 		 * Set the dilation mask size to apply with
 		 * method {@link #setMaximalVoronoiExpansionDistance(int)}.
+		 * 
+		 * @deprecated This process mode is very inefficient and slow, 
+		 * 		use {@link #DILATE_TOPOLOGY_PRESERVING} instead.
 		 */
+		@Deprecated
 		VORONOI_EXPAND,
 		/**
 		 * Delete components with a rounded shape instead of an sustained shape.
@@ -968,13 +972,25 @@ public class ComponentPostprocess extends MTBOperator {
      * Each component is dilated up to the maximum given pixel distance.
      * However, the dilation is stopped immediately if its continuation
      * would cause the component to merge with one of its neighbors.
+     * <p>
+     * Note that this method is not tuned for efficiency and
+     * it is really, really slow. As an alternative you can use the 
+     * processing mode {@link ProcessMode#DILATE_TOPOLOGY_PRESERVING} 
+     * or the method 
+     * {@link #dilateComponentsTopologyPreserving(MTBImage, int)},
+     * respectively, based on a Chamfer distance transformation and 
+     * being much faster.
      * 
      * @param labelImg		Input image.
      * @param maxDist		Size of dilation mask to apply.
      * @return Resulting binary image.
-     * @throws ALDOperatorException
-     * @throws ALDProcessingDAGException
+     * @throws ALDOperatorException Thrown in case of failure.
+     * @throws ALDProcessingDAGException Thrown in case of failure.
+     * 
+     * @deprecated Implementation is quite slow, use method 
+     * 		{@link #dilateComponentsTopologyPreserving(MTBImage, int)}.
      */
+    @Deprecated
     protected MTBImage VoronoiExpandComponents( MTBImage labelImg, 
     		int maxDist ) 
     	throws ALDOperatorException, ALDProcessingDAGException {
