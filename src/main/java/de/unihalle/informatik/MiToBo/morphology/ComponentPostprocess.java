@@ -310,6 +310,22 @@ public class ComponentPostprocess extends MTBOperator {
     }
 
     /**
+     * Specify input image.
+     * @param img	Image to process.
+     */
+    public void setInputImage(MTBImage img) {
+    	this.inImg = img;
+    }
+    
+    /**
+     * Specify process mode.
+     * @param pm	Process mode of operator.
+     */
+    public void setProcessMode(ProcessMode pm) {
+    	this.processMode = pm;
+    }
+    
+    /**
      * Set minimal component size for erasing small components.
      * <p>
      * Only used in mode 'ERASE_SMALL_COMPS'.
