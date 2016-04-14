@@ -38,6 +38,8 @@ import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageByte;
 import de.unihalle.informatik.MiToBo.core.operator.*;
+import de.unihalle.informatik.MiToBo.morphology.DistanceTransform.DistanceMetric;
+import de.unihalle.informatik.MiToBo.morphology.DistanceTransform.ForegroundColor;
 import de.unihalle.informatik.MiToBo.segmentation.contours.extraction.BordersOnLabeledComponents;
 import de.unihalle.informatik.MiToBo.segmentation.contours.extraction.BordersOnLabeledComponents.BorderType;
 import de.unihalle.informatik.MiToBo.segmentation.regions.labeling.*;
@@ -75,25 +77,25 @@ public class ComponentPostprocess extends MTBOperator {
 		/**
 		 * Delete components below a size threshold from the image.
 		 * <p>
-		 * Set threshold with method {@link setMinimalComponentSize}.
+		 * Set threshold with method {@link #setMinimalComponentSize(int)}.
 		 */
 		ERASE_SMALL_COMPS,
 		/**
 		 * Delete components above a size threshold from the image.
 		 * <p>
-		 * Set threshold with method {@link setMaximalComponentSize}.
+		 * Set threshold with method {@link #setMaximalComponentSize(int)}.
 		 */
 		ERASE_LARGE_COMPS,
 		/**
 		 * Link adjacent components with a line if distance below threshold.
 		 * <p>
-		 * Set distance with method {@link setMaximalComponentDistance}.
+		 * Set distance with method {@link #setMaximalComponentDistance(int)}.
 		 */
 		LINK_ADJ_COMPS,
 		/**
 		 * Link adjacent pixels if distance below threshold.
 		 * <p>
-		 * Set distance with method {@link setMaximalComponentDistance}.
+		 * Set distance with method {@link #setMaximalComponentDistance(int)}.
 		 */
 		LINK_ADJ_PIXELS,
 		/**
@@ -104,7 +106,7 @@ public class ComponentPostprocess extends MTBOperator {
 		 * image which is processed.
 		 * <p>
 		 * Set the dilation mask size to apply with
-		 * method {@link setMaximalVoronoiExpansionDistance}.
+		 * method {@link #setMaximalVoronoiExpansionDistance(int)}.
 		 */
 		VORONOI_EXPAND,
 		/**
@@ -112,7 +114,7 @@ public class ComponentPostprocess extends MTBOperator {
 		 * The roundness threshold is given by the user and is in range [0,1],
 		 * 1 means a sustained region.
 		 * <p>
-		 * Set threshold with method {@link setRoundnessThreshold}.
+		 * Set threshold with method {@link #setRoundnessThreshold(double)}.
 		 */
 		ERASE_ROUND_COMPS,
 		/**
@@ -123,79 +125,100 @@ public class ComponentPostprocess extends MTBOperator {
 		 * {@link MTBRegion2D#getCircularity()}.
 		 * <p/>
 		 */
-		EREASE_NON_COMPACT_COMPS;
+		EREASE_NON_COMPACT_COMPS,
+		/**
+		 * Dilates components with a given mask size while preserving 
+		 * topology in the sense that the number of components does not
+		 * change. The mode expects a label image where each component 
+		 * carries a unique label. In case that a binary image is provided
+		 * only, topology preservation is not guaranteed.
+		 * <p>
+		 * Note that components are allowed to touch each other in the 
+		 * result label image.
+		 * <p>
+		 * Specify the mask size using {@link #setDilateMaskSize(int)}
+		 */
+		DILATE_TOPOLOGY_PRESERVING
 	}
     /**
-     * Binary input image.
+     * (Binary) Input image.
      */
-    @Parameter( label = "Binary Input Image", required = true, dataIOOrder = -10,
-                direction = Direction.IN, description = "Binary input image" )
+    @Parameter( label = "Input Image", required = true, 
+    		dataIOOrder = -10, direction = Direction.IN, 
+    		description = "(Binary) input image." )
     private transient MTBImage inImg = null;
     /**
-     * Binary result image.
+     * Processing mode.
      */
-    @Parameter( label = "Result Image", required = true,
-                direction = Direction.OUT, description = "Result image" )
-    private transient MTBImage resultImg = null;
+    @Parameter( label = "Process Mode", required = true,
+    		dataIOOrder = -9, direction = Direction.IN,
+    		description = "Process mode." )
+    private ProcessMode processMode = null;
     /**
      * Minimal size of components in mode ERASE_SMALL_COMPS.
      */
     @Parameter( label = "Min. Component Size", required = false,
-                direction = Direction.IN, dataIOOrder = -8,
-                description = "Minimal component size, smaller ones are deleted." )
+    		direction = Direction.IN, dataIOOrder = -8,
+    		description = "Minimal component size, smaller ones are deleted." )
     private int minCompSize = 0;
     /**
      * Minimal size of components in mode ERASE_SMALL_COMPS.
      */
     @Parameter( label = "Max. Component Size", required = false,
-                direction = Direction.IN, dataIOOrder = -8,
-                description = "Maximal component size, larger ones are deleted." )
+    		direction = Direction.IN, dataIOOrder = -8,
+    		description = "Maximal component size, larger ones are deleted." )
     private int maxCompSize = 0;
     /**
      * Maximal distance of adjacent components.
      */
     @Parameter( label = "Max. Distance of Componens", required = false,
-                direction = Direction.IN, dataIOOrder = -6,
-                description = "Maximum allowed distance of components to be linked." )
+    		direction = Direction.IN, dataIOOrder = -6,
+    		description = "Maximum allowed distance of components to be linked." )
     private int maxCompDist = 0;
     /**
      * Voronoi expansion distance.
      */
     @Parameter( label = "Max. Voronoi Expansion Distance", required = false,
-                direction = Direction.IN, dataIOOrder = -4,
-                description = "Distance to which components are expanded in "
-            + "Voronoi expansion mode." )
+    		direction = Direction.IN, dataIOOrder = -4,
+    		description = "Distance to which components are expanded in "
+    				+ "Voronoi expansion mode." )
     private int maxVoronoiExpDist = 0;
     /**
      * Flag for using 8-neighborhood.
      */
     @Parameter( label = "Use Diagonal Neighbors?   ", required = false,
-                direction = Direction.IN, dataIOOrder = -10,
-                description = "Flag for considering 8-neighborhood instead of 4-NB" )
+    		direction = Direction.IN, dataIOOrder = -10,
+    		description = "Flag for considering 8-neighborhood instead of 4-NB" )
     private boolean diagonalNeighbors = false;
     /**
      * Roundness threshold for components.
      */
     @Parameter( label = "Roundness Threshold", required = false,
-                direction = Direction.IN, dataIOOrder = -2,
-                description = "Threshold for removing round components, "
-            + " larger values enforce greater eccentricity of surviving components." )
+    		direction = Direction.IN, dataIOOrder = -2,
+    		description = "Threshold for removing round components, "
+    				+ " larger values enforce greater eccentricity of surviving components." )
     private double roundnessThreshold = 0.0;
     /**
      * Compactness threshold for components.
      */
     @Parameter( label = "Compactness Threshold", required = false,
-                direction = Direction.IN, dataIOOrder = -7,
-                description = "The theshold for removing non"
-            + "compact components, larger values enforce more compact regions" )
+    		direction = Direction.IN, dataIOOrder = -7,
+    		description = "The theshold for removing non"
+    				+ "compact components, larger values enforce more compact regions" )
     private double compactnessTreshold = 0.5D;
     /**
-     * Processing mode.
+     * Mask size for topology-preserving dilation.
      */
-    @Parameter( label = "Process Mode", required = true,
-                direction = Direction.IN,
-                description = "Process Modus", dataIOOrder = -8 )
-    private ProcessMode processMode = null;
+    @Parameter( label = "Dilate Mask Size", required = false,
+        direction = Direction.IN, dataIOOrder = -7,
+        description = "Dilation mask size." )
+    private int dilateMaskSize = 3;
+    /**
+     * Result image.
+     */
+    @Parameter( label = "Result Image", required = true,
+    		direction = Direction.OUT, description = "Result image" )
+    private transient MTBImage resultImg = null;
 
     /**
      * Default constructor.
@@ -343,6 +366,14 @@ public class ComponentPostprocess extends MTBOperator {
     }
 
     /**
+     * Specify mask size for topology-preserving dilation.
+     * @param mask	Mask size to apply
+     */
+    public void setDilateMaskSize(int mask) {
+    	this.dilateMaskSize = mask;
+    }
+    
+    /**
      * If true 8-neighborhood, i.e. diagonal neighbors, will be used in
      * mode 'VORONOI_EXPAND' for Voronoi dilation.
      * <p/>
@@ -450,13 +481,16 @@ public class ComponentPostprocess extends MTBOperator {
     private transient Vector<Vector<Point2D.Double>> endPointHash;
 
     @Override
-    protected void operate() throws ALDOperatorException,
-                                    ALDProcessingDAGException {
+    protected void operate() 
+    		throws ALDOperatorException, ALDProcessingDAGException {
 
     	// all operations except Voronoi expansion require byte images
     	MTBImageByte byteImg = null;
-    	if (this.getProcessMode() != ProcessMode.VORONOI_EXPAND) {
-    		if ( this.inImg.getType().equals( MTBImage.MTBImageType.MTB_BYTE ) ) {
+    	ProcessMode pm = this.getProcessMode();
+    	if (   pm != ProcessMode.VORONOI_EXPAND
+    			&& pm != ProcessMode.DILATE_TOPOLOGY_PRESERVING) {
+    		if (this.inImg.getType().equals( 
+    					MTBImage.MTBImageType.MTB_BYTE ) ) {
     			byteImg = ( MTBImageByte ) this.inImg;
     		}
     		else {
@@ -465,42 +499,50 @@ public class ComponentPostprocess extends MTBOperator {
     		}
     	}
 
-        MTBImage result = null;
-        switch ( this.getProcessMode() ) {
-            case ERASE_SMALL_COMPS:
-                result = this.EraseSmallComponents( byteImg,
-                                                    this.getMinimalComponentSize() );
-                break;
-            case ERASE_LARGE_COMPS:
-                result = this.EraseLargeComponents( byteImg,
-                                                    this.getMaximalComponentSize() );
-                break;
-            case LINK_ADJ_COMPS:
-                result = this.LinkAdjacentComponents( byteImg );
-                break;
-            case LINK_ADJ_PIXELS:
-                result = this.LinkAdjacentPixels( byteImg, this.getMaximalComponentDist() );
-                break;
-            case VORONOI_EXPAND:
-                result = this.VoronoiExpandComponents( this.inImg,
-                                                       this.getMaxVoronoiExpandDist() );
-                break;
-            case ERASE_ROUND_COMPS:
-                result = this.EraseRoundComponents( byteImg, this.getRoundnessThreshold() );
-                break;
-            case EREASE_NON_COMPACT_COMPS:
-                result = this.eraseNonCompactComponents( byteImg,
-                                                         this.
-                        getCompactnessThreshold() );
-                break;
-        }
-        this.resultImg = result;
+    	MTBImage result = null;
+    	switch ( this.getProcessMode() ) 
+    	{
+    	case ERASE_SMALL_COMPS:
+    		result = this.EraseSmallComponents( byteImg,
+    				this.getMinimalComponentSize() );
+    		break;
+    	case ERASE_LARGE_COMPS:
+    		result = this.EraseLargeComponents( byteImg,
+    				this.getMaximalComponentSize() );
+    		break;
+    	case LINK_ADJ_COMPS:
+    		result = this.LinkAdjacentComponents( byteImg );
+    		break;
+    	case LINK_ADJ_PIXELS:
+    		result = this.LinkAdjacentPixels( byteImg, 
+    				this.getMaximalComponentDist() );
+    		break;
+    	case ERASE_ROUND_COMPS:
+    		result = this.EraseRoundComponents( byteImg, 
+    				this.getRoundnessThreshold() );
+    		break;
+    	case EREASE_NON_COMPACT_COMPS:
+    		result = this.eraseNonCompactComponents( byteImg,
+    				this.
+    				getCompactnessThreshold() );
+    		break;
+    	case VORONOI_EXPAND:
+    		result = this.VoronoiExpandComponents( this.inImg,
+    				this.getMaxVoronoiExpandDist() );
+    		break;
+    	case DILATE_TOPOLOGY_PRESERVING:
+    		result = this.dilateComponentsTopologyPreserving(
+    				this.inImg, this.dilateMaskSize);
+    		break;
+    	}
+    	this.resultImg = result;
 
-        if ( result == null ) {
-            throw new ALDOperatorException( OperatorExceptionType.OPERATE_FAILED,
-                                            "ComponentPostprocess.operate() failed: " + "Unknown process mode "
-                    + this.getProcessMode() );
-        }
+    	if ( result == null ) {
+    		throw new ALDOperatorException( 
+    			OperatorExceptionType.OPERATE_FAILED,
+    				"ComponentPostprocess.operate() failed: " 
+    					+ "Unknown process mode "	+ this.getProcessMode() );
+    	}
     }
 
     /**
@@ -1027,6 +1069,63 @@ public class ComponentPostprocess extends MTBOperator {
     	return resultImage;
     }
 
+    /**
+     * Perform a dilation of the given image with given masksize, but
+     * preserve topology.
+     * 
+     * @param lImg			Input label image.
+     * @param maskSize	Size of dilation mask.
+     * @return	Dilated label image.
+     * @throws ALDOperatorException Thrown in case of failure.
+     * @throws ALDProcessingDAGException Thrown in case of failure.
+     */
+    protected MTBImage dilateComponentsTopologyPreserving(MTBImage lImg,
+    		int maskSize) 
+    	throws ALDOperatorException, ALDProcessingDAGException {
+    	
+    	int w = lImg.getSizeX();
+    	int h = lImg.getSizeY();
+    	
+    	// convert input image to binary, components get white
+    	MTBImageByte bImg = (MTBImageByte)MTBImage.createMTBImage(
+    			w, h, 1, 1, 1, MTBImageType.MTB_BYTE);
+    	for (int y=0; y<h; ++y) {
+    		for (int x=0; x<w; ++x) {
+    			if (lImg.getValueInt(x, y) > 0)
+    				bImg.putValueInt(x, y, 255);
+    			else
+    				bImg.putValueInt(x, y, 0);
+    		}
+    	}
+    	
+    	// perform distance transform
+    	DistanceTransformPrecursorInfos dOp = 
+    			new DistanceTransformPrecursorInfos(bImg, 
+    					DistanceMetric.CITYBLOCK, ForegroundColor.FG_WHITE);
+    	dOp.runOp();
+    	
+    	// get result data
+    	MTBImage dImg = dOp.getDistanceImage();
+    	Point2D.Double[][] closeObjPixMap = dOp.getClosestObjectPixelMap();
+    	
+    	// now process the given input image, i.e. check for pixels
+    	// with distance smaller or equal to masksize and fill them with
+    	// label of closest object pixel
+    	MTBImage rImg = 
+    		MTBImage.createMTBImage(w, h, 1, 1, 1, this.inImg.getType());
+    	for (int y=0; y<h; ++y) {
+    		for (int x=0; x<w; ++x) {
+    			if (dImg.getValueInt(x, y) <= maskSize) {
+    				rImg.putValueInt(x, y, lImg.getValueInt(
+    					(int)closeObjPixMap[y][x].x, (int)closeObjPixMap[y][x].y));
+    			}
+    			else
+    				rImg.putValueInt(x, y, 0);
+    		}
+    	}
+    	return rImg;
+    }
+    
     /**
      * Set the pixel value containing in a {@code java.util.Vector}
      * of {@code java.awt.geom.Points2D} to 0.
