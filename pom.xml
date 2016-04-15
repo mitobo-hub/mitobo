@@ -476,7 +476,7 @@
       <dependency>
 	<groupId>net.imagej</groupId>
 	<artifactId>pom-imagej</artifactId>
-	<version>14.6.2</version>
+	<version>14.8.0</version>
 	<type>pom</type>
         <scope>import</scope>
       </dependency>
