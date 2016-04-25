@@ -118,8 +118,9 @@ public class MTBImageInt extends MTBImage {
 		
 		if (m_img == null) {
 			// create new ImagePlus
-			m_img = NewImage.createFloatImage(m_title, m_sizeX, m_sizeY, m_sizeStack, 
-																												NewImage.FILL_BLACK);
+			m_img = NewImage.createFloatImage(this.getTitle(), 
+					this.m_sizeX, this.m_sizeY, this.m_sizeStack,
+					NewImage.FILL_BLACK);
 			m_img.setIgnoreFlush(true);
 			m_img.setCalibration(this.calibration);
 		}

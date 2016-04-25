@@ -104,8 +104,9 @@ public class MTBImageFloat extends MTBImage {
 		m_type = MTBImageType.MTB_FLOAT;
 		
 		// create new ImagePlus
-		m_img = NewImage.createFloatImage("", m_sizeX, m_sizeY, m_sizeStack, 
-																												NewImage.FILL_BLACK);
+		this.m_img = NewImage.createFloatImage(this.getTitle(), 
+				this.m_sizeX, this.m_sizeY, this.m_sizeStack,
+				NewImage.FILL_BLACK);
 		m_img.setIgnoreFlush(true);
 		m_imgStack = m_img.getStack();
 		

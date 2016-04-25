@@ -104,8 +104,9 @@ public class MTBImageShort extends MTBImage {
 		m_type = MTBImageType.MTB_SHORT;
 		
 		// create new ImagePlus
-		m_img = NewImage.createShortImage("", m_sizeX, m_sizeY, m_sizeStack, 
-																												NewImage.FILL_BLACK);
+		this.m_img = NewImage.createShortImage(this.getTitle(), 
+				this.m_sizeX, this.m_sizeY, this.m_sizeStack, 
+				NewImage.FILL_BLACK);
 		m_img.setIgnoreFlush(true);
 		m_imgStack = m_img.getStack();
 		
