@@ -24,6 +24,7 @@
 
 package de.unihalle.informatik.MiToBo.core.datatypes.images;
 
+import ij.ImageListener;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.WindowManager;
@@ -105,8 +106,15 @@ public abstract class MTBImage extends ALDData
   /** current c-coordinate, for 3D only access functions */
   protected int m_currentC;
 
-  /** image title */
-  protected String m_title;
+  /**
+   * Image title
+   * <p>
+   * This member is private to enforce access via the corresponding 
+   * setter/getter only. They take care of properly synchronizing 
+   * the image title with the ImageJ GUI as it might have been changed
+   * by the user without MiToBo noticing that. 
+   */
+  private String m_title;
 
   /** physical voxel size (stepsize) in x-dimension */
 //  protected double m_stepX;
@@ -661,6 +669,9 @@ public abstract class MTBImage extends ALDData
    */
   @Override
   public String getTitle() {
+  	// update title from GUI (might have been changed by user...)
+  	if (this.m_img != null) 
+  		this.m_title = this.m_img.getTitle(); 
     return this.m_title;
   }
 
@@ -1355,7 +1366,7 @@ public abstract class MTBImage extends ALDData
    */
   @Override
   public String toString() {
-    return this.m_title;
+    return this.getTitle();
   }
 
   /**
@@ -2160,7 +2171,6 @@ public abstract class MTBImage extends ALDData
 		
 		return base + "-" + d + (ext.equals("") ? "" : "."+ext);
 	}
-  
   
   /**
    * A class for creating MTBImages which implements the MTBOperator.

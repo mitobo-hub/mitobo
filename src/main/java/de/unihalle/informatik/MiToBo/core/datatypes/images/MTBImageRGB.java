@@ -163,6 +163,8 @@ public class MTBImageRGB extends MTBImage {
 		this.m_imgR.setCalibration(this.calibration);
 		this.m_imgG.setCalibration(this.calibration);
 		this.m_imgB.setCalibration(this.calibration);
+		
+		this.setTitle(this.getTitle());
 	}
 
 	/**
@@ -174,7 +176,7 @@ public class MTBImageRGB extends MTBImage {
 		// null title string are not allowed as they cannot be handled by ImageJ
 		if (title == null)
 			return;
-		this.m_title = title;
+		super.setTitle(title);
 		this.m_imgR.setTitle(title + " [red]");
 		this.m_imgG.setTitle(title + " [green]");
 		this.m_imgB.setTitle(title + " [blue]");
@@ -202,8 +204,9 @@ public class MTBImageRGB extends MTBImage {
 		
 		if (this.m_img == null) {
 			// create new ImagePlus
-			this.m_img = NewImage.createRGBImage(this.m_title, this.m_sizeX, this.m_sizeY, this.m_sizeStack, 
-																												NewImage.FILL_BLACK);
+			this.m_img = NewImage.createRGBImage(this.getTitle(), 
+					this.m_sizeX, this.m_sizeY, this.m_sizeStack, 
+					NewImage.FILL_BLACK);
 			this.m_img.setCalibration(this.calibration);
 			this.m_img.setIgnoreFlush(true);
 		}
