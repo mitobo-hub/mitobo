@@ -471,6 +471,19 @@
     </pluginRepository>
   </pluginRepositories>
 
+  <distributionManagement>
+    <snapshotRepository>
+      <id>snapshots-pub</id>
+      <name>Archiva Public Snapshot Repository on 'moon'</name>
+      <url>https://moon.informatik.uni-halle.de/archiva/repository/snapshots-pub/</url>
+    </snapshotRepository>
+    <repository>
+      <id>releases</id>
+      <name>Archiva Release Repository on 'moon'</name>
+      <url>https://moon.informatik.uni-halle.de/archiva/repository/releases/</url>
+    </repository>
+  </distributionManagement>
+
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -619,24 +632,6 @@
   </scm>
 
   <profiles>
-    <profile>
-      <id>deploy-profile</id>
-      <activation>
-	<activeByDefault>true</activeByDefault>
-      </activation>
-      <distributionManagement>
-	<snapshotRepository>
-	  <id>snapshots-pub</id>
-	  <name>Archiva Public Snapshot Repository on 'moon'</name>
-	  <url>https://moon.informatik.uni-halle.de/archiva/repository/snapshots-pub/</url>
-	</snapshotRepository>
-	<repository>
-	  <id>releases</id>
-	  <name>Archiva Release Repository on 'moon'</name>
-	  <url>https://moon.informatik.uni-halle.de/archiva/repository/releases/</url>
-	</repository>
-      </distributionManagement>
-    </profile>
     <!-- architecture dependent settings -->
     <profile>
       <id>linux-x86</id>
