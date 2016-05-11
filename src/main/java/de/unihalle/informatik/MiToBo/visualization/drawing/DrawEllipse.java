@@ -73,6 +73,22 @@ public class DrawEllipse extends MTBOperator {
 	private Color color = Color.WHITE;
 
 	/**
+	 * Flag to enable/disable plotting directly into input image.
+	 */
+	@Parameter(label = "Copy Input Image?", required = false, 
+			direction = Parameter.Direction.IN, dataIOOrder = 0,
+			description = "If false, input image is directly modified.")
+	private boolean copyInputImage = true;
+	
+	/**
+	 * Optional coordinates for slices in ztc stack.
+	 */
+	@Parameter(label = "Optional z/t/c coordinates", required = false, 
+			direction = Parameter.Direction.IN, dataIOOrder = 1,
+			description = "Optional coordinates to draw into stack.")
+	private int[] ztcCoords = new int[]{0,0,0};
+
+	/**
 	 * Result image.
 	 * <p>
 	 * This image is of the same type than the input image.
@@ -120,6 +136,24 @@ public class DrawEllipse extends MTBOperator {
 	}
 	
 	/**
+	 * Enable/disable copy of input image.
+	 * @param f	If true (default), input image is copied.
+	 */
+	public void setCopyInputImage(boolean f) {
+		this.copyInputImage = f;
+	}
+	
+	/**
+	 * Specify optional coordinates if input image is a stack.
+	 * @param z	z-slice coordinate.
+	 * @param t	t-slice coordinate.
+	 * @param c	c-slice coordinate.
+	 */
+	public void setZTCCoordinates(int z, int t, int c) {
+		this.ztcCoords = new int[]{z,t,c};
+	}
+	
+	/**
 	 * Get result image.
 	 * @return	Image with drawn ellipse.
 	 */
@@ -129,7 +163,10 @@ public class DrawEllipse extends MTBOperator {
 	
 	@Override
 	public void operate() {
-		this.outImg = this.inImg.duplicate();
+		if (this.copyInputImage)
+			this.outImg = this.inImg.duplicate();
+		else
+			this.outImg = this.inImg;
 		this.drawEllipse();
 	}
 	
@@ -151,6 +188,17 @@ public class DrawEllipse extends MTBOperator {
 		int iColor = 
 				((iRed & 0xff)<<16) + ((iGreen & 0xff)<<8) + ((iBlue & 0xff));
 
+		// stack coordinates
+		int z = this.ztcCoords[0];
+		if (z >= this.outImg.getSizeZ())
+			z = 0;
+		int t = this.ztcCoords[1];
+		if (t >= this.outImg.getSizeT())
+			t = 0;
+		int c = this.ztcCoords[2];
+		if (c >= this.outImg.getSizeC())
+			c = 0;
+		
 		// convert angle from degrees to radiant
 		double trad = Math.PI/180.0*theta;
 		for (int i=0;i<360; ++i) {
@@ -162,7 +210,7 @@ public class DrawEllipse extends MTBOperator {
 			int ry = (int)(Math.sin(trad)*x + Math.cos(trad)*y + yCenter);
 			if (   rx>=0 && rx<this.outImg.getSizeX() 
 					&& ry>=0 && ry<this.outImg.getSizeY())
-			this.outImg.putValueInt(rx, ry, iColor);
+			this.outImg.putValueInt(rx, ry, z, t, c, iColor);
 		}
 	}
 }
