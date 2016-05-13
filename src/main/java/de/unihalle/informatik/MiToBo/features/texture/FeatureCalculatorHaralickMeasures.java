@@ -169,7 +169,7 @@ public class FeatureCalculatorHaralickMeasures extends FeatureCalculator
 
 	/**
 	 * Default constructor.
-	 * @throws ALDOperatorException
+	 * @throws ALDOperatorException Thrown in case of failure.
 	 */
 	public FeatureCalculatorHaralickMeasures() throws ALDOperatorException {
 		// nothing to do here
@@ -229,6 +229,7 @@ public class FeatureCalculatorHaralickMeasures extends FeatureCalculator
 
 	/**
 	 * Extracts the co-occurence matrix for the given distance and direction.
+	 * @param dir Haralick direction to consider.
 	 * @return	Resulting (normalized) matrix.
 	 */
 	protected double[][] calcMatrix(HaralickDirection dir) 	{
@@ -398,6 +399,16 @@ public class FeatureCalculatorHaralickMeasures extends FeatureCalculator
 	public void setFlagThrinkMatrix(boolean b) {
 		this.thrinkMatrix = b;
 	}
+	
+	@Override
+	protected FeatureCalculatorHaralickMeasuresResult getResultDataObjectInvalid(
+			int dim) {
+		double[] nanResult = new double[dim];
+		for (int i=0; i<dim; ++i)
+			nanResult[i] = Double.NaN;
+		return new FeatureCalculatorHaralickMeasuresResult(nanResult);
+	}
+
 }
 
 /*BEGIN_MITOBO_ONLINE_HELP

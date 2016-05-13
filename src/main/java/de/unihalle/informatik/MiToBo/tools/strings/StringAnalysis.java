@@ -37,19 +37,23 @@ import java.util.Vector;
 public class StringAnalysis {
 
 	/**
-	 * Extracts the set of all prefixes shared by at least two strings in the 
-	 * given set.
+	 * Extracts the set of all prefixes shared by at least two strings 
+	 * in the given set.
 	 * 
 	 * @param vec		Set of strings to be analyzed.
 	 * @return	Set of common prefixes.
 	 */
-	public static Vector<String> getLongestCommonPrefixes(Vector<String> vec) {
+	public static Vector<String> getLongestCommonPrefixes(
+			Vector<String> vec) {
 		// call the recursive sub-routine
 		return findPrefixes(vec);
 	}
 	
 	/**
 	 * Helper to recursively extract common prefixes.
+	 * <p>
+	 * Note that an equivalence class can also have only a single element.
+	 * 
 	 * @param vec		Set of strings to analyze.
 	 * @return	Set of common prefixes.
 	 */
@@ -59,7 +63,8 @@ public class StringAnalysis {
 		HashMap<Integer, Vector<String>> htab = 
 				new HashMap<Integer, Vector<String>>();
 
-		// identify groups, i.e., subsets of strings starting with same character
+		// identify groups, i.e., subsets of strings starting with same 
+		// character
 		char groupChar;
 		int groupID= 0;
 		for (String s : vec) {
@@ -88,6 +93,7 @@ public class StringAnalysis {
 		Iterator<Integer> kit= keys.iterator();
 		while (kit.hasNext()) {
 			Vector<String> group = htab.get(kit.next());
+
 			if (group.size() == 1) {
 				// group contains just one element, i.e., is to be ignored
 				continue;

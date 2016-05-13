@@ -58,7 +58,7 @@ public abstract class FeatureCalculator extends MTBOperator
 	
 	/**
 	 * Default constructor.
-	 * @throws ALDOperatorException
+	 * @throws ALDOperatorException Thrown in case of failure.
 	 */
 	protected FeatureCalculator() throws ALDOperatorException {
 		// nothing to do here
@@ -79,4 +79,11 @@ public abstract class FeatureCalculator extends MTBOperator
 	public FeatureCalculatorResult getResultData() {
 		return this.resultObj;
 	}
+	
+	/**
+	 * Helper method to allow for requesting invalid dummy results.
+	 * @param d	Desired dimension of output object.
+	 * @return	Invalid dummy result.
+	 */
+	protected abstract FeatureCalculatorResult getResultDataObjectInvalid(int d);
 }

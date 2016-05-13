@@ -62,7 +62,8 @@ public class TileFeatureCalculator extends MTBOperator
 	 */
 	@Parameter(label = "Tile size in x", required = true, 
 		direction = Parameter.Direction.IN, supplemental = false, 
-		description = "Size of image tiles to analyze in x.", dataIOOrder = -9)
+		description = "Size of image tiles to analyze in x.", 
+		dataIOOrder = -9)
 	private int tileSizeX = 16;
 	
 	/**
@@ -70,7 +71,8 @@ public class TileFeatureCalculator extends MTBOperator
 	 */
 	@Parameter(label = "Tile size in y", required = true, 
 		direction = Parameter.Direction.IN, supplemental = false, 
-		description = "Size of image tiles to analyze in y.", dataIOOrder = -8)
+		description = "Size of image tiles to analyze in y.", 
+		dataIOOrder = -8)
 	private int tileSizeY = 16;
 
 	/**
@@ -78,7 +80,8 @@ public class TileFeatureCalculator extends MTBOperator
 	 */
 	@Parameter(label = "Tile shift in x", required = true, 
 		direction = Parameter.Direction.IN, supplemental = false, 
-		description = "Shift of image tiles to analyze in x.", dataIOOrder = -9)
+		description = "Shift of image tiles to analyze in x.", 
+		dataIOOrder = -7)
 	private int tileShiftX = 16;
 	
 	/**
@@ -86,15 +89,17 @@ public class TileFeatureCalculator extends MTBOperator
 	 */
 	@Parameter(label = "Tile shift in y", required = true, 
 		direction = Parameter.Direction.IN, supplemental = false, 
-		description = "Shift of image tiles to analyze in y.", dataIOOrder = -8)
+		description = "Shift of image tiles to analyze in y.", 
+		dataIOOrder = -6)
 	private int tileShiftY = 16;
 
 	/**
 	 * List of feature calculators to apply.
 	 */
 	@Parameter(label = "Feature calculators", required = true, 
-			direction = Parameter.Direction.IN, supplemental = false, 
-			description = "List of feature calculators to apply.", dataIOOrder = -7)
+		direction = Parameter.Direction.IN, supplemental = false, 
+		description = "List of feature calculators to apply.", 
+		dataIOOrder = -5)
 	private Vector<FeatureCalculator> featureOps = null;
 	
 	/**
@@ -110,12 +115,14 @@ public class TileFeatureCalculator extends MTBOperator
 	/**
 	 * Result of the calculation.
 	 */
-	@Parameter(label = "Result data object", direction = Parameter.Direction.OUT, 
+	@Parameter(label = "Result data object", 
+		direction = Parameter.Direction.OUT, 
 		description = "Calculated texture measures.")
 	private transient TileFeatureCalculatorResult resultData = null;
 	
 	/**
-	 * Optional stack of result visualizations, if result data suppports that.
+	 * Optional stack of result visualizations, 
+	 * if result data suppports that.
 	 */
 	@Parameter(label = "Result image", direction = Parameter.Direction.OUT, 
 			description = "Optional result image stack.")
@@ -138,7 +145,7 @@ public class TileFeatureCalculator extends MTBOperator
 	
 	/**
 	 * Default constructor.
-	 * @throws ALDOperatorException
+	 * @throws ALDOperatorException Thrown in case of failure. 
 	 */
 	public TileFeatureCalculator() throws ALDOperatorException {
 		// nothing to do here
@@ -148,7 +155,7 @@ public class TileFeatureCalculator extends MTBOperator
 	 * Constructor with non-default tile sizes.
 	 * @param _tileSizeX	Size of one tile in x direction.
 	 * @param _tileSizeY Size of one tile in y direction.
-	 * @throws ALDOperatorException
+	 * @throws ALDOperatorException Thrown in case of failure.
 	 */
 	public TileFeatureCalculator(int _tileSizeX, int _tileSizeY) 
 			throws ALDOperatorException {
@@ -158,8 +165,10 @@ public class TileFeatureCalculator extends MTBOperator
 	/**
 	 * Constructor with non-default tile sizes.
 	 * @param _tileSizeX	Size of one tile in x direction.
-	 * @param _tileSizeY Size of one tile in y direction.
-	 * @throws ALDOperatorException
+	 * @param _tileSizeY  Size of one tile in y direction.
+	 * @param _tileShiftX Shift between successive tiles in x direction.
+	 * @param _tileShiftY Shift between successive tiles in y direction.
+	 * @throws ALDOperatorException Thrown in case of failure.
 	 */
 	public TileFeatureCalculator(int _tileSizeX, int _tileSizeY,
 			int _tileShiftX, int _tileShiftY) 
@@ -189,7 +198,7 @@ public class TileFeatureCalculator extends MTBOperator
 		MTBImageTileAdapter tileAdapterMask = null;
 		if (this.mask != null) 	
 			tileAdapterMask = new MTBImageTileAdapter(this.mask, 
-					this.tileSizeX, this.tileSizeY, this.tileShiftX, this.tileShiftY);
+				this.tileSizeX,this.tileSizeY,this.tileShiftX,this.tileShiftY);
 		
 		// iterate over all operators and tiles and collect result data
 		int featureDim = -1;
@@ -197,7 +206,8 @@ public class TileFeatureCalculator extends MTBOperator
 		for (int i=0; i<tileValid.length; ++i)
 			tileValid[i] = true;
 		for (FeatureCalculator calcOp: this.featureOps) {
-			FeatureCalculatorResult[] opData = new FeatureCalculatorResult[tileNum];
+			FeatureCalculatorResult[] opData = 
+					new FeatureCalculatorResult[tileNum];
 			int i=0;
 			int x = 0, y = 0;
 			for (MTBImage imageTile: tileAdapter) {
@@ -205,8 +215,8 @@ public class TileFeatureCalculator extends MTBOperator
 				MTBImage maskTile;
 				if (tileAdapterMask != null) {
 					maskTile = tileAdapterMask.getTile(x,y);
-					for (int yy = 0; !invalid && yy<maskTile.getSizeY(); ++yy) {
-						for (int xx = 0; !invalid && xx<maskTile.getSizeX(); ++xx) {
+					for (int yy= 0; !invalid && yy<maskTile.getSizeY(); ++yy) {
+						for (int xx= 0; !invalid && xx<maskTile.getSizeX(); ++xx) {
 							if (maskTile.getValueInt(xx, yy) == 0) {
 								invalid = true;
 							}
@@ -242,15 +252,14 @@ public class TileFeatureCalculator extends MTBOperator
 			// check which tiles were invalid and set result to NaN
 			if (featureDim == -1)
 				// no calculations took place, error!
-				throw new ALDOperatorException(OperatorExceptionType.OPERATE_FAILED,
-					"[TileFeatureCalculator] no valid tiles in image, all masked?!");
-			
-			double[] nanResult = new double[featureDim];
-			for (i=0; i<featureDim; ++i)
-				nanResult[i] = Double.NaN;
+				throw new ALDOperatorException(
+						OperatorExceptionType.OPERATE_FAILED,
+						"[TileFeatureCalculator] no valid tiles in image, " 
+								+ "all masked?!");
+
 			for (i=0; i<tileNum; ++i)
 				if (opData[i] == null)
-					opData[i] = new FeatureCalculatorHaralickMeasuresResult(nanResult);
+					opData[i] = calcOp.getResultDataObjectInvalid(featureDim);
 
 			this.resultData.addResult(opData);
 			if (opData[0].isConvertableToNumericalData())
@@ -369,9 +378,9 @@ public class TileFeatureCalculator extends MTBOperator
 This operator extracts features from the given image. The features are
 calculated tile-wise on the given image. If the specified shift between 
 subsequent tiles is smaller than the given tile size in either of the two 
-dimensions, the tiles are overlapping. Contrary, if the shift is larger than 
-the tile size gaps result between tiles. The features to be calculated are 
-specified via the set of feature calculators.
+dimensions, the tiles are overlapping. Contrary, if the shift is larger 
+than the tile size gaps result between tiles. The features to be 
+calculated are specified via the set of feature calculators.
  
 <ul>
 <li><p><b>input:</b>
@@ -387,8 +396,8 @@ specified via the set of feature calculators.
 <li><p><b>output:</b>
 <ul>
 <li><p><i>Result data object</i>: object containing result data</p></li>
-<li><p><i>Result image</i>: visualization of feature measures, if supported
-	by selected feature operators (if not, image will be null)</p></li>
+<li><p><i>Result image</i>: visualization of feature measures, if 
+	supported by selected feature operators (if not, image will be null)</p></li>
 </ul>
 </p>
 </li>

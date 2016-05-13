@@ -46,7 +46,6 @@ import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException.OperatorExceptionType;
 import de.unihalle.informatik.Alida.helpers.ALDFilePathManipulator;
-import de.unihalle.informatik.Alida.operator.ALDOperator;
 import de.unihalle.informatik.Alida.operator.events.ALDOperatorExecutionProgressEvent;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator.Level;
@@ -59,8 +58,6 @@ import de.unihalle.informatik.MiToBo.core.datatypes.images.*;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType;
 import de.unihalle.informatik.MiToBo.core.imageJ.RoiManagerAdapter;
 import de.unihalle.informatik.MiToBo.core.operator.*;
-import de.unihalle.informatik.MiToBo.features.texture.FeatureCalculatorHaralickMeasures;
-import de.unihalle.informatik.MiToBo.features.texture.FeatureCalculatorHaralickMeasures.HaralickDirection;
 import de.unihalle.informatik.MiToBo.gui.MTBTableModel;
 import de.unihalle.informatik.MiToBo.io.dirs.DirectoryTree;
 import de.unihalle.informatik.MiToBo.io.images.ImageReaderMTB;
@@ -85,16 +82,16 @@ public class ActinAnalyzer2D extends MTBOperator {
 	/**
 	 * Type of features to characterize local structure.
 	 */
-	public static enum FeatureType {
-		/**
-		 * Use Haralick features as structure measures.
-		 */
-		HARALICK_MEASURES,
-		/**
-		 * Use Eigen structures as structure measures.
-		 */
-		EIGEN_STRUCTURES
-	}
+//	public static enum FeatureType {
+//		/**
+//		 * Use Haralick features as structure measures.
+//		 */
+//		HARALICK_MEASURES,
+//		/**
+//		 * Use Eigen structures as structure measures.
+//		 */
+//		EIGEN_STRUCTURES
+//	}
 	
 	/**
 	 * Format of cell segmentation data.
@@ -113,17 +110,17 @@ public class ActinAnalyzer2D extends MTBOperator {
 	/**
 	 * Default directions for Haralick features.
 	 */
-	private static Vector<HaralickDirection> defaultDirections;
+//	private static Vector<HaralickDirection> defaultDirections;
 	
 	// this initialization block is necessary to set default directions
-	static {
-		defaultDirections = 
-			new Vector<FeatureCalculatorHaralickMeasures.HaralickDirection>();
-		defaultDirections.add(HaralickDirection.EAST);
-		defaultDirections.add(HaralickDirection.NORTH_EAST);
-		defaultDirections.add(HaralickDirection.NORTH);
-		defaultDirections.add(HaralickDirection.NORTH_WEST);		
-	}
+//	static {
+//		defaultDirections = 
+//			new Vector<FeatureCalculatorHaralickMeasures.HaralickDirection>();
+//		defaultDirections.add(HaralickDirection.EAST);
+//		defaultDirections.add(HaralickDirection.NORTH_EAST);
+//		defaultDirections.add(HaralickDirection.NORTH);
+//		defaultDirections.add(HaralickDirection.NORTH_WEST);		
+//	}
 	
 	/**
 	 * Input image directory.
@@ -175,12 +172,22 @@ public class ActinAnalyzer2D extends MTBOperator {
 	/**
 	 * Type of features to apply.
 	 */
-	@Parameter( label= "Type of features", required = true, 
+//	@Parameter( label= "Type of features", required = true, 
+//		dataIOOrder = 1, direction = Direction.IN, 
+//		description = "Select type of features to apply.", 
+//		mode = ExpertMode.STANDARD)
+//	protected FeatureType featureType = FeatureType.HARALICK_MEASURES;
+	
+	/**
+	 * Feature extractor to apply.
+	 */
+	@Parameter( label= "Feature Extractor", required = true, 
 		dataIOOrder = 1, direction = Direction.IN, 
 		description = "Select type of features to apply.", 
 		mode = ExpertMode.STANDARD)
-	protected FeatureType featureType = FeatureType.HARALICK_MEASURES;
-	
+	protected FilamentFeatureExtractor featureExtractor =
+		new ActinFeatureExtractorHaralickMeasures();
+
 	/**
 	 * Feature directory.
 	 */
@@ -224,18 +231,18 @@ public class ActinAnalyzer2D extends MTBOperator {
 	/**
 	 * Distance.
 	 */
-	@Parameter( label= "Haralick distance", required = true,
-		direction = Parameter.Direction.IN, dataIOOrder=7,  
-		mode=ExpertMode.STANDARD, description = "Desired distance.")
-	protected int distance= 4;
+//	@Parameter( label= "Haralick distance", required = true,
+//		direction = Parameter.Direction.IN, dataIOOrder=7,  
+//		mode=ExpertMode.STANDARD, description = "Desired distance.")
+//	protected int distance= 4;
 
 	/**
 	 * Set of directions.
 	 */
-	@Parameter( label= "Set of directions", required = true,
-		direction = Parameter.Direction.IN, dataIOOrder=8,  
-		mode=ExpertMode.STANDARD, description = "Desired directions.")
-	protected Vector<HaralickDirection> directions = defaultDirections;
+//	@Parameter( label= "Set of directions", required = true,
+//		direction = Parameter.Direction.IN, dataIOOrder=8,  
+//		mode=ExpertMode.STANDARD, description = "Desired directions.")
+//	protected Vector<HaralickDirection> directions = defaultDirections;
 
 	/**
 	 * Flag for isotropic calculations.
@@ -244,11 +251,11 @@ public class ActinAnalyzer2D extends MTBOperator {
 	 * NORTH_EAST, NORTH and NORTH_WEST is taken as result. But, note that this
 	 * causes the computation time to be increased by a factor of four as well.
 	 */
-	@Parameter( label= "Isotropic calculations", required = true,
-		direction = Parameter.Direction.IN, dataIOOrder=9,  
-		description = "Flag to enable isotropic calculations.",
-		mode=ExpertMode.ADVANCED)
-	protected boolean isotropicCalcs = false;
+//	@Parameter( label= "Isotropic calculations", required = true,
+//		direction = Parameter.Direction.IN, dataIOOrder=9,  
+//		description = "Flag to enable isotropic calculations.",
+//		mode=ExpertMode.ADVANCED)
+//	protected boolean isotropicCalcs = false;
 
 	/**
 	 * Number of clusters to be used in feature clustering.
@@ -287,26 +294,36 @@ public class ActinAnalyzer2D extends MTBOperator {
 	 * some helper variables
 	 */
 
-	// width of the images taking first image as reference
+	/**
+	 * Width of the images taking first image as reference.
+	 */
 	private transient int imageWidth = -1;
 	
-	// height of the images taking first image as reference
+	/**
+	 * Height of the images taking first image as reference.
+	 */
 	private transient int imageHeight = -1;
 
-	// list of group names, filled in clusterFeatures()
+	/**
+	 * List of group names, filled in {@link #clusterFeatures()}.
+	 */
 	private transient Vector<String> cellGroupNames;
 	
-	// map of cluster distributions per cell, filled in clusterFeatures()
+	/**
+	 * Map of cluster distributions per cell, filled in 
+	 * {@link #clusterFeatures()}.
+	 */
 	private transient HashMap<String, double[]> cellwiseDistros = 
 		new HashMap<String, double[]>();
 		
-  /* Group-wise cell distribution data, for each group the vector contains 
-   * a hash map with the following structure:
-   * - the keys of the map are given by the cell IDs of the different cells 
-   *   (without basename which is equal to the group name)
-   * - the values are represented again as a hash map where the keys are given 
-   *   by the cluster IDs and the values by the relative frequency of the 
-   *   corresponding cluster in the cell
+  /**
+   * Group-wise cell distribution data, for each group the vector 
+   * contains a hash map with the following structure:
+   * - the keys of the map are given by the cell IDs of the different 
+   *   cells (without basename which is equal to the group name)
+   * - the values are represented again as a hash map where the keys 
+   *   are given by the cluster IDs and the values by the relative 
+   *   frequency of the corresponding cluster in the cell
    *	 
 	 * Example:
 	 * ---------
@@ -323,14 +340,20 @@ public class ActinAnalyzer2D extends MTBOperator {
 	private transient 
 		Vector< HashMap< String, HashMap<String, Double>> > cellGroups;
 
-	// cluster distribution data, rows refer to clusters and columns to cells
+	/**
+	 * Cluster distribution data, rows refer to clusters and columns to 
+	 * cells.
+	 */
 	private transient double[][] distroData;
 	
-	// dimension-reduced cluster distribution data
+	/**
+	 * Dimension-reduced cluster distribution data.
+	 */
 	private transient double[][] subspaceData;
 
 	/**
 	 * Default constructor.
+	 * @throws ALDOperatorException Thrown in case of failure.
 	 */
 	public ActinAnalyzer2D() throws ALDOperatorException {
 		// nothing to be done here
@@ -339,45 +362,56 @@ public class ActinAnalyzer2D extends MTBOperator {
 	@Override
   protected void operate() 
   		throws ALDOperatorException, ALDProcessingDAGException {
-		
-		ALDOperator.setConstructionMode(1);
-
+	
 		// for each image calculate feature vectors (if requested)
 		if (this.doFeatureCalculation) {
-			switch(this.featureType)
-			{
-			case HARALICK_MEASURES:
-				ActinFeatureExtractorHaralickMeasures haralickOp =
-					new ActinFeatureExtractorHaralickMeasures();
-				haralickOp.setImageDir(this.imageDir);
-				haralickOp.setMaskDir(this.maskDir);
-				haralickOp.setMaskFormat(this.maskFormat);
-				haralickOp.setOutputDir(this.outDir);
-				haralickOp.setTileSizeX(this.tileSizeX);
-				haralickOp.setTileSizeY(this.tileSizeY);
-				haralickOp.setTileShiftX(this.tileShiftX);
-				haralickOp.setTileShiftY(this.tileShiftY);
-				haralickOp.setDistance(this.distance);
-				haralickOp.setHaralickDirections(this.directions);
-				haralickOp.setFlagIsotropicCalculations(this.isotropicCalcs);
-				haralickOp.setVerbose(this.verbose);
-				haralickOp.runOp();
-				break;
-			case EIGEN_STRUCTURES:
-				ActinFeatureExtractorEigenStructures eigenOp = 
-					new ActinFeatureExtractorEigenStructures();
-				eigenOp.setImageDir(this.imageDir);
-				eigenOp.setMaskDir(this.maskDir);
-				eigenOp.setMaskFormat(this.maskFormat);
-				eigenOp.setOutputDir(this.outDir);
-				eigenOp.setTileSizeX(this.tileSizeX);
-				eigenOp.setTileSizeY(this.tileSizeY);
-				eigenOp.setTileShiftX(this.tileShiftX);
-				eigenOp.setTileShiftY(this.tileShiftY);
-				eigenOp.setVerbose(this.verbose);
-				eigenOp.runOp();
-				break;
-			}
+//			switch(this.featureType)
+//			{
+//			case HARALICK_MEASURES:
+//				ActinFeatureExtractorHaralickMeasures haralickOp =
+//					new ActinFeatureExtractorHaralickMeasures();
+//				haralickOp.setImageDir(this.imageDir);
+//				haralickOp.setMaskDir(this.maskDir);
+//				haralickOp.setMaskFormat(this.maskFormat);
+//				haralickOp.setOutputDir(this.outDir);
+//				haralickOp.setTileSizeX(this.tileSizeX);
+//				haralickOp.setTileSizeY(this.tileSizeY);
+//				haralickOp.setTileShiftX(this.tileShiftX);
+//				haralickOp.setTileShiftY(this.tileShiftY);
+//				haralickOp.setDistance(this.distance);
+//				haralickOp.setHaralickDirections(this.directions);
+//				haralickOp.setFlagIsotropicCalculations(this.isotropicCalcs);
+//				haralickOp.setVerbose(this.verbose);
+//				haralickOp.runOp();
+//				break;
+//			case EIGEN_STRUCTURES:
+//				ActinFeatureExtractorEigenStructures eigenOp = 
+//					new ActinFeatureExtractorEigenStructures();
+//				eigenOp.setImageDir(this.imageDir);
+//				eigenOp.setMaskDir(this.maskDir);
+//				eigenOp.setMaskFormat(this.maskFormat);
+//				eigenOp.setOutputDir(this.outDir);
+//				eigenOp.setTileSizeX(this.tileSizeX);
+//				eigenOp.setTileSizeY(this.tileSizeY);
+//				eigenOp.setTileShiftX(this.tileShiftX);
+//				eigenOp.setTileShiftY(this.tileShiftY);
+//				eigenOp.setVerbose(this.verbose);
+//				eigenOp.runOp();
+//				break;
+//			}
+			if (this.verbose.booleanValue())
+				System.out.println("Feature extractor: " 
+						+ this.featureExtractor.getName());
+			this.featureExtractor.setImageDir(this.imageDir);
+			this.featureExtractor.setMaskDir(this.maskDir);
+			this.featureExtractor.setMaskFormat(this.maskFormat);
+			this.featureExtractor.setOutputDir(this.outDir);
+			this.featureExtractor.setTileSizeX(this.tileSizeX);
+			this.featureExtractor.setTileSizeY(this.tileSizeY);
+			this.featureExtractor.setTileShiftX(this.tileShiftX);
+			this.featureExtractor.setTileShiftY(this.tileShiftY);
+			this.featureExtractor.setVerbose(this.verbose);
+			this.featureExtractor.runOp();
 		}
 		
 		// cluster the features and analyze the distributions
@@ -413,8 +447,8 @@ public class ActinAnalyzer2D extends MTBOperator {
 	 * <li> AllImagesClusterStatistics.txt: cluster distributions for whole set
 	 * </ul>
 	 * 
-	 * @throws ALDOperatorException
-	 * @throws ALDProcessingDAGException
+	 * @throws ALDOperatorException  			Thrown in case of failure.
+	 * @throws ALDProcessingDAGException	Thrown in case of failure.
 	 */
 	private void clusterFeatures() 
 		throws ALDOperatorException, ALDProcessingDAGException {
@@ -429,6 +463,7 @@ public class ActinAnalyzer2D extends MTBOperator {
 		int tileCountX = -1, tileCountY = -1;
 		int tileCountTotal = -1, invalidTiles = -1;
 		int tileSizeXFromFile = -1, tileSizeYFromFile = -1;
+		int tileShiftXFromFile = -1, tileShiftYFromFile = -1;
 		
 		String fDir = ((this.featureDir == null) ? 
 				this.outDir : this.featureDir).getDirectoryName();
@@ -491,8 +526,12 @@ public class ActinAnalyzer2D extends MTBOperator {
 						System.err.println("[ActinAnalyzer2D] " 
 							+ "tile sizes in y of different images do not match!");
 				// skip tile shifts
-				fRead.readLine();
-				fRead.readLine();
+				line = fRead.readLine();
+				tileShiftXFromFile = 
+						Integer.valueOf(line.split(" ")[2]).intValue();
+				line = fRead.readLine();
+				tileShiftYFromFile = 
+						Integer.valueOf(line.split(" ")[2]).intValue();
 				// get count in x
 				line = fRead.readLine();
 				tileCountX = Integer.valueOf(line.split(" ")[2]).intValue();
@@ -580,16 +619,20 @@ public class ActinAnalyzer2D extends MTBOperator {
 		// first six colors are predefined
 		colorsR[0] = 255; colorsG[0] = 0; colorsB[0] = 0;
 		if (this.clusterNum > 1) {
-			colorsR[1] = 255; colorsG[1] = 255; colorsB[1] = 0;
+//			colorsR[1] = 255; colorsG[1] = 255; colorsB[1] = 0;
+			colorsR[1] = 0; colorsG[1] = 0; colorsB[1] = 255;
 		}	
 		if (this.clusterNum > 2) {
-			colorsR[2] = 255; colorsG[2] = 0; colorsB[2] = 255;
+//			colorsR[2] = 255; colorsG[2] = 0; colorsB[2] = 255;
+			colorsR[2] = 0; colorsG[2] = 255; colorsB[2] = 0;
 		}
 		if (this.clusterNum > 3) {
-			colorsR[3] = 0; colorsG[3] = 255; colorsB[3] = 0;
+//			colorsR[3] = 0; colorsG[3] = 255; colorsB[3] = 0;
+			colorsR[3] = 255; colorsG[3] = 255; colorsB[3] = 0;
 		}
 		if (this.clusterNum > 4) {
-			colorsR[4] = 0; colorsG[4] = 0; colorsB[4] = 255;
+//			colorsR[4] = 0; colorsG[4] = 0; colorsB[4] = 255;
+			colorsR[4] = 255; colorsG[4] = 0; colorsB[4] = 255;
 		}
 		if (this.clusterNum > 5) {
 			colorsR[5] = 0; colorsG[5] = 255; colorsB[5] = 255;
@@ -697,7 +740,21 @@ public class ActinAnalyzer2D extends MTBOperator {
 			basenames.add(splitName[0]);
 		}
 		// extract an unordered list of cell group names, i.e., image prefixes
-		this.cellGroupNames =	StringAnalysis.getLongestCommonPrefixes(basenames);
+		this.cellGroupNames =	
+				StringAnalysis.getLongestCommonPrefixes(basenames);
+		// check if all names belong to one equivalence group
+		for (String filename: basenames) {
+			boolean groupFound = false;
+			for (String group: this.cellGroupNames) {
+				if (filename.startsWith(group)) {
+					groupFound = true;
+					break;
+				}
+			}
+			if (!groupFound)
+				this.cellGroupNames.add(filename);
+		}
+
 		this.cellGroups =	new Vector<HashMap<String,HashMap<String,Double>>>();
 		for (int i= 0; i < this.cellGroupNames.size(); ++i)
 			this.cellGroups.add(new HashMap<String, HashMap<String,Double>>());
@@ -738,8 +795,8 @@ public class ActinAnalyzer2D extends MTBOperator {
 				int y = tileID / tileCountY;
 				int cellID = 1;
 				if (maskImage != null) {
-					cellID = 
-						maskImage.getValueInt(x*tileSizeXFromFile, y*tileSizeYFromFile);
+					cellID = maskImage.getValueInt(
+							x*tileShiftXFromFile, y*tileShiftYFromFile);
 				}
 				// usually cellID should not be 0 if mask image is ok, however, if 
 				// this nevertheless happens, just skip the tile

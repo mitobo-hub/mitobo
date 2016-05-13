@@ -57,16 +57,27 @@ public class FeatureCalculatorIntensityStats extends FeatureCalculator
 	
 	/**
 	 * Default constructor.
-	 * @throws ALDOperatorException
+	 * @throws ALDOperatorException Thrown in case of failure.
 	 */
 	public FeatureCalculatorIntensityStats() throws ALDOperatorException {
 		// nothing to do here
 	}
 	
+	/**
+	 * Specify feature measure to extract.
+	 * @param s	Measure to apply.
+	 */
 	public void setMeasure(StatValue s) {
 		this.statMeasure = s;
 	}
-	
+
+	@Override
+	protected FeatureCalculatorIntensityStatsResult getResultDataObjectInvalid(
+			int dim) {
+		return new FeatureCalculatorIntensityStatsResult(StatValue.INTENSITY_MEAN, 
+				Double.NaN);
+	}
+
 	@Override
   public void operate() 
   		throws ALDOperatorException, ALDProcessingDAGException {
