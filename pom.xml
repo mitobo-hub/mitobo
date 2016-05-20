@@ -526,10 +526,17 @@
       <version>1.0.3</version>
     </dependency>
     <dependency>
+      <groupId>com.googlecode.efficient-java-matrix-library</groupId>
+      <artifactId>ejml</artifactId>
+      <version>0.24</version>
+    </dependency>
+<!--
+    <dependency>
       <groupId>org.ejml</groupId>
       <artifactId>all</artifactId>
       <version>0.29</version>
     </dependency>
+-->
     <dependency>
       <groupId>tw.edu.ntu.csie</groupId>
       <artifactId>libsvm</artifactId>
