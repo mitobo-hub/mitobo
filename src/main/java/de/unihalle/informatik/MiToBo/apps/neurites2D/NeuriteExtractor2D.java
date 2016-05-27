@@ -281,7 +281,7 @@ public class NeuriteExtractor2D extends MTBOperator {
 		 * Set neurite mask size in pixel. This value defines the maximum average
 		 * width of a neurite.
 		 */
-		public void setNuriteMaskSize(int _neuriteMaskSize) {
+		public void setNeuriteMaskSize(int _neuriteMaskSize) {
 				neuriteMaskSize = _neuriteMaskSize;
 		}
 

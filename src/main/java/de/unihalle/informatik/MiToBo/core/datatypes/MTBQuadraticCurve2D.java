@@ -281,9 +281,14 @@ public class MTBQuadraticCurve2D {
 	 * <p>
 	 * If an implicit curve is to be initialized, the parameters in the
 	 * given array are interpreted as the parameters a, b, c, d, e and f
-	 * of an implicit equation. If a non-degenerate ellipse is to be
+	 * of an implicit equation. If an explicit ellipse is to be
 	 * initialized the parameters are interpreted as center in x and y,
 	 * half-length of major and minor axes and ellipse orientation.
+	 * <p>
+	 * Note that explicit ellipse parameters are not automatically 
+	 * transformed into implicit ones, however, if implicit parameters
+	 * are provided internally an explicit representation is also 
+	 * initialized.
 	 *
 	 * @param parameters	Set of curve parameters.
 	 * @param implicit		If true, parameters define an implicit curve.

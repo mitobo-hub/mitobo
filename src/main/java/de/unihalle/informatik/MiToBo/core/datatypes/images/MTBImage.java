@@ -24,6 +24,7 @@
 
 package de.unihalle.informatik.MiToBo.core.datatypes.images;
 
+import ij.ImageListener;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.WindowManager;
@@ -44,6 +45,7 @@ import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException.OperatorExceptionType;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.unihalle.informatik.Alida.operator.ALDData;
+import de.unihalle.informatik.Alida.operator.ALDOperator.HidingMode;
 import de.unihalle.informatik.MiToBo.core.exceptions.MTBImageException;
 import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
 
@@ -104,8 +106,15 @@ public abstract class MTBImage extends ALDData
   /** current c-coordinate, for 3D only access functions */
   protected int m_currentC;
 
-  /** image title */
-  protected String m_title;
+  /**
+   * Image title
+   * <p>
+   * This member is private to enforce access via the corresponding 
+   * setter/getter only. They take care of properly synchronizing 
+   * the image title with the ImageJ GUI as it might have been changed
+   * by the user without MiToBo noticing that. 
+   */
+  private String m_title;
 
   /** physical voxel size (stepsize) in x-dimension */
 //  protected double m_stepX;
@@ -660,6 +669,9 @@ public abstract class MTBImage extends ALDData
    */
   @Override
   public String getTitle() {
+  	// update title from GUI (might have been changed by user...)
+  	if (this.m_img != null) 
+  		this.m_title = this.m_img.getTitle(); 
     return this.m_title;
   }
 
@@ -1354,7 +1366,7 @@ public abstract class MTBImage extends ALDData
    */
   @Override
   public String toString() {
-    return this.m_title;
+    return this.getTitle();
   }
 
   /**
@@ -1826,17 +1838,52 @@ public abstract class MTBImage extends ALDData
   abstract public double[] getMinMaxDouble();
 
   /**
-   * Duplicates the object. That means also a copy of the underlying ImagePlus
-   * (or other data structure) is created. The method uses the internal MTBImageFactory, which extends MTBOperator, 
-   * thus the duplicated image will keep its history. The reference to the calling operator is set to null, use duplicate(MTBOperator)
+   * Duplicates the object. 
+   * <p>
+   * That means also a copy of the underlying ImagePlus
+   * (or other data structure) is created. The method uses the internal 
+   * MTBImageFactory, which extends MTBOperator, thus the duplicated image 
+   * will keep its history. The reference to the calling operator is set 
+   * to null, use duplicate(MTBOperator)
    * if you need to specify the calling operator.
    * 
    * @return MTBImage of the same type
    */
   public MTBImage duplicate() {
-	  return this.duplicate(null);
+  	MTBOperator op = null;
+	  return this.duplicate(op);
   }
   
+  /**
+   * Duplicates the object.
+   * <p>
+   * The parameter allows to configure how the internal operator call should
+   * be handled in the history, i.e., to directly hand over a hiding mode 
+   * to the underlying operator.
+   * 
+   * @param h Hiding mode to be used for history construction.
+   * 
+   * @return {@link MTBImage} of the same type.
+   */
+  public MTBImage duplicate(HidingMode h) {
+  	MTBImageFactory factory = null;
+  	MTBImage newImg = null;
+
+  	try {
+
+  		factory = new MTBImageFactory(this);
+  		factory.runOp(h);
+  		newImg = factory.getResultImg();
+
+  	} catch (ALDOperatorException e) {
+  		e.printStackTrace();
+  	} catch (ALDProcessingDAGException e) {
+  		e.printStackTrace();
+  	}
+
+  	return newImg; 
+  }
+
   /**
    * Duplicates the object. That means also a copy of the underlying ImagePlus
    * (or other data structure) is created. The method uses the internal MTBImageFactory, which extends MTBOperator, 
@@ -1845,6 +1892,7 @@ public abstract class MTBImage extends ALDData
    * @param callingOperator the MTBOperator, which calls this method
    * @return MTBImage of the same type
    */
+  @Deprecated
   public MTBImage duplicate(
   		@SuppressWarnings("unused") MTBOperator callingOperator) {
 	  
@@ -2014,10 +2062,18 @@ public abstract class MTBImage extends ALDData
    *          image type (one of MTB_BYTE, MTB_SHORT, MTB_INT, MTB_FLOAT,
    *          MTB_DOUBLE)
    * @return MTBImage subclass object
+   * @throws IllegalArgumentException 
+   * 					Thrown in case of invalid arguments.
    */
   public static MTBImage createMTBImage(int sizeX, int sizeY, int sizeZ,
-      int sizeT, int sizeC, MTBImageType type) throws IllegalArgumentException {
+      int sizeT, int sizeC, MTBImageType type) 
+      		throws IllegalArgumentException {
 
+  	if (sizeX<=0 || sizeY<=0 || sizeC<=0 || sizeZ<=0 || sizeT<=0)
+      throw new IllegalArgumentException(
+        "[MTBImage] createMTBImage: one of the dimensions has "
+      		+ "a size of zero... please specify sizes larger than zero!");
+  	
     if (type == MTBImageType.MTB_BYTE) {
       return new MTBImageByte(sizeX, sizeY, sizeZ, sizeT, sizeC);
     } else if (type == MTBImageType.MTB_SHORT) {
@@ -2115,7 +2171,6 @@ public abstract class MTBImage extends ALDData
 		
 		return base + "-" + d + (ext.equals("") ? "" : "."+ext);
 	}
-  
   
   /**
    * A class for creating MTBImages which implements the MTBOperator.

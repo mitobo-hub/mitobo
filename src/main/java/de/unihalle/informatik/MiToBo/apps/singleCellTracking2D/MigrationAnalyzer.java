@@ -35,7 +35,6 @@ import de.unihalle.informatik.Alida.annotations.Parameter.ExpertMode;
 import de.unihalle.informatik.Alida.annotations.Parameter.ParameterModificationMode;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
-import de.unihalle.informatik.Alida.exceptions.ALDWorkflowException;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
 
@@ -100,6 +99,15 @@ public class MigrationAnalyzer extends MTBOperator
 
 	@Parameter(label = "remove excluded objects", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "should objects that weren't analyzed be removed from the label image", dataIOOrder = 16)
 	private Boolean removeExcluded = false;
+	
+	@Parameter(label = "track report", required = true, direction = Parameter.Direction.OUT, supplemental = false, description = "track report")
+	private String trackReport = "";
+	
+	@Parameter(label = "shape report", required = true, direction = Parameter.Direction.OUT, supplemental = false, description = "shape report")
+	private String shapeReport = "";
+	
+	@Parameter(label = "intensity report", required = true, direction = Parameter.Direction.OUT, supplemental = false, description = "intensity report")
+	private String intReport = "";
 
 	public MigrationAnalyzer() throws ALDOperatorException
 	{
@@ -154,7 +162,7 @@ public class MigrationAnalyzer extends MTBOperator
 			
 			trackAnalyzer.runOp();
 			
-			String trackReport = trackAnalyzer.getReport();
+			trackReport = trackAnalyzer.getReport();
 			
 			TextWindow tw = new TextWindow(labelImg.getTitle() + "_trajectory_evaluation", trackReport, 600, 800);
 			tw.setVisible(true);
@@ -178,7 +186,7 @@ public class MigrationAnalyzer extends MTBOperator
 			
 			shapeAnalyzer.runOp();
 		
-			String shapeReport = shapeAnalyzer.getReport();
+			shapeReport = shapeAnalyzer.getReport();
 		
 			TextWindow sw = new TextWindow(labelImg.getTitle() + "_shape_evaluation", shapeReport, 600, 800);
 			sw.setVisible(true);
@@ -203,7 +211,7 @@ public class MigrationAnalyzer extends MTBOperator
 				intensityAnalyzer.setExcluded(excluded);
 				
 				intensityAnalyzer.runOp();
-				String intReport = intensityAnalyzer.getReport();
+				intReport = intensityAnalyzer.getReport();
 				
 				TextWindow iw = new TextWindow(labelImg.getTitle() + "_intensity_evaluation", intReport, 600, 800);
 				iw.setVisible(true);
@@ -401,6 +409,36 @@ public class MigrationAnalyzer extends MTBOperator
 	public MTBImage getLabelImage()
 	{
 		return this.labelImg;
+	}
+	
+	
+	/**
+	 * 
+	 * @return tracking report
+	 */
+	public String getTrackReport()
+	{
+		return this.trackReport;
+	}
+	
+	
+	/**
+	 * 
+	 * @return shape report
+	 */
+	public String getShapeReport()
+	{
+		return this.shapeReport;
+	}
+	
+	
+	/**
+	 * 
+	 * @return intensity report
+	 */
+	public String getIntensityReport()
+	{
+		return this.intReport;
 	}
 
 	

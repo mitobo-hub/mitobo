@@ -31,7 +31,6 @@ import de.unihalle.informatik.Alida.annotations.Parameter.ExpertMode;
 import de.unihalle.informatik.Alida.annotations.Parameter.ParameterModificationMode;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
-import de.unihalle.informatik.Alida.exceptions.ALDWorkflowException;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
 
@@ -55,8 +54,8 @@ public class CellMigrationAnalyzer extends MTBOperator
 	@Parameter(label = "minimum seed size", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "minimum size for seeds to be not discarded", dataIOOrder = 2, mode=ExpertMode.ADVANCED)
 	private Integer minSeedSize = 300;
 	
-	@Parameter(label = "median filter radius", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "radius of median filter mask", dataIOOrder = 3)
-	private Integer medianRadius = 1;
+	@Parameter(label = "\u03C3", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "standard deviation of Gaussian filter mask", dataIOOrder = 3)
+	private Integer sigma = 1;
 	
 	@Parameter(label = " \u03B3", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "value for \u03B3-correction for emphasizing cells", dataIOOrder = 4)
 	private Double gamma = 0.3;
@@ -140,6 +139,15 @@ public class CellMigrationAnalyzer extends MTBOperator
 	@Parameter(label = "label result", required = true, direction = Parameter.Direction.OUT, supplemental = false, description = "resulting label image")
 	private transient MTBImage labelResult = null;
 	
+	@Parameter(label = "track report", required = true, direction = Parameter.Direction.OUT, supplemental = false, description = "track report")
+	private String trackReport = "";
+	
+	@Parameter(label = "shape report", required = true, direction = Parameter.Direction.OUT, supplemental = false, description = "shape report")
+	private String shapeReport = "";
+	
+	@Parameter(label = "intensity report", required = true, direction = Parameter.Direction.OUT, supplemental = false, description = "intensity report")
+	private String intReport = "";
+	
 
 	public CellMigrationAnalyzer() throws ALDOperatorException
 	{
@@ -163,7 +171,7 @@ public class CellMigrationAnalyzer extends MTBOperator
 		// segmentation of detection channel
 		FluorescentCellSegmenter segmenter = new FluorescentCellSegmenter(inImg);
 		segmenter.setChannel(detectionChannel);
-		segmenter.setMedianMaskSize(medianRadius);
+		segmenter.setSigma(sigma);
 		segmenter.setMinSeedSize(minSeedSize);
 		segmenter.setMaxIteration(maxIter);
 		segmenter.setGamma(gamma);
@@ -236,6 +244,10 @@ public class CellMigrationAnalyzer extends MTBOperator
 		
 		labelResult = analyzer.getLabelImage();
 		labelResult.setTitle(title + "_tracking");
+		
+		trackReport = analyzer.getTrackReport();
+		shapeReport = analyzer.getShapeReport();
+		intReport = analyzer.getIntensityReport();
 		
 		if(verbose)
 		{
@@ -459,10 +471,10 @@ public class CellMigrationAnalyzer extends MTBOperator
 	</p>
 	</li>
 	<li>
-		<p><tt>median filter radius</tt>
+		<p><tt>&#963; (sigma)</tt>
 	<ul>
 		<li>
-			<p>radius (pixels) of median filter used for noise reduction</p>
+			<p>standard deviation of Gaussian filter used for noise reduction</p>
 		</li>
 	</ul>
 	</p>

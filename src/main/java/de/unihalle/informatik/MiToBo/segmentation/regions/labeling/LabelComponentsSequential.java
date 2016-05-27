@@ -22,17 +22,10 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev$
- * $Date$
- * $Author$
- * 
- */
-
 package de.unihalle.informatik.MiToBo.segmentation.regions.labeling;
 
+import java.awt.Color;
+import java.awt.geom.Point2D;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -50,76 +43,150 @@ import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2DSet;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType;
+import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageByte;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageInt;
 import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
+import de.unihalle.informatik.MiToBo.morphology.DistanceTransform;
+import de.unihalle.informatik.MiToBo.morphology.DistanceTransform.DistanceMetric;
+import de.unihalle.informatik.MiToBo.morphology.DistanceTransform.ForegroundColor;
 import de.unihalle.informatik.MiToBo.visualization.drawing.DrawRegion2DSet;
 import de.unihalle.informatik.MiToBo.visualization.drawing.DrawRegion2DSet.DrawType;
+import ij.ImagePlus;
+import ij.process.ImageProcessor;
 
 /**
- * Sequential component labeling for binarized 2D images to find connected components.
- * Foreground pixels are assumed to have a value > 0,
- * all pixels with value <= 0 are assumed to be background.
+ * Sequential component labeling for binarized 2D images to find 
+ * connected components. Foreground pixels are assumed to have a 
+ * value > 0, all pixels with value <= 0 are assumed to be background.
  * 
  * Algorithm: <br/>
- * W. Burger and M. Burge, Digital image processing: an algorithmic introduction using Java, 2008, Springer-Verlag New York Inc
+ * W. Burger and M. Burge, 
+ * Digital image processing: an algorithmic introduction using Java, 
+ * 2008, Springer-Verlag New York Inc
  * 
  * @author gress
  *
  */
-@ALDAOperator(genericExecutionMode=ExecutionMode.ALL,level=Level.STANDARD)
+@ALDAOperator(genericExecutionMode=ExecutionMode.ALL,
+	level=Level.STANDARD)
 public class LabelComponentsSequential extends MTBOperator {
 	
-	private MTBImageInt m_labelImg;
-
-	private int m_width;
-	private int m_height;
-	
-	@Parameter( label= "Diagonal neighborhood", required = true, direction = Parameter.Direction.IN, 
-            dataIOOrder=2, mode=ExpertMode.STANDARD, description = "true for 8-neighborhood, false for 4-neighborhood")
-	private boolean diagonalNeighbors = true;
-
-	@Parameter( label= "Input image", required = true, direction = Parameter.Direction.IN, 
-            dataIOOrder=1, mode=ExpertMode.STANDARD, description = "Input image")
+	/**
+	 * Input image to label.
+	 */
+	@Parameter( label= "Input image", required = true, 
+		direction = Parameter.Direction.IN, dataIOOrder=0, 
+		mode=ExpertMode.STANDARD, description = "Input image")
 	private transient MTBImage inputImage = null;
 
-	@Parameter( label= "Resulting regions", required = true, direction = Parameter.Direction.OUT, 
-            dataIOOrder=1, description = "Resulting regions")
+	/**
+	 * Flag to define 4-/8-neighborhood in components.
+	 */
+	@Parameter( label= "Diagonal neighborhood", required = true, 
+		direction = Parameter.Direction.IN, dataIOOrder=1, 
+		mode=ExpertMode.STANDARD, 
+		description = "true for 8-neighborhood, false for 4-neighborhood")
+	private boolean diagonalNeighbors = true;
+
+	/**
+	 * Flag to enable/disable creation of gray-scale label image.
+	 */
+	@Parameter( label= "Create label image", required = true, 
+		direction = Parameter.Direction.IN, dataIOOrder=2, 
+		mode=ExpertMode.STANDARD, description = "Create image of regions "
+			+ "with region labels as grayvalue.")
+	private Boolean createLabelImage = new Boolean(true);
+
+	/**
+	 * Flag to enable/disable creation of gray-scale image with region IDs.
+	 */
+	@Parameter( label= "Create image with ID strings", required = true, 
+		direction = Parameter.Direction.IN, dataIOOrder=3, 
+		mode=ExpertMode.STANDARD, description = "Create image of regions "
+			+ "with numerical IDs written to regions.")
+	private Boolean createIDImage = new Boolean(false);
+
+	/**
+	 * Flag to enable/disable creation of region image in random colors.
+	 */
+	@Parameter( label= "Create color image", required = true, 
+		direction = Parameter.Direction.IN,	dataIOOrder=4, 
+		mode=ExpertMode.STANDARD, 
+		description = "Create image of regions with random colors")
+	private Boolean createColorImage = new Boolean(false);
+
+	/**
+	 * Resulting set of labeled regions.
+	 */
+	@Parameter( label= "Resulting regions", required = true, 
+		direction = Parameter.Direction.OUT, dataIOOrder=0, 
+		description = "Resulting regions")
 	private MTBRegion2DSet resultingRegions = null;
 
-	@Parameter( label= "Label image", required = false, direction = Parameter.Direction.OUT, 
-	            dataIOOrder=2, description = "Image of regions with labels (MTBImageType.MTB_INT)")
+	/**
+	 * Grayscale image of regions, gray values are identical to IDs.
+	 */
+	@Parameter( label= "Label image", required = false, 
+		direction = Parameter.Direction.OUT, dataIOOrder=1, 
+		description = "Image of regions with labels (MTBImageType.MTB_INT)")
 	private transient MTBImage labelImage = null;
 
-	@Parameter( label= "Color image", required = false, direction = Parameter.Direction.OUT, 
-            dataIOOrder=3, description = "Image of regions with random colors")
+	/**
+	 * Gray-scale image with IDs printed to regions.
+	 * <p>
+	 * Note that the gray values are scaled for better visibility and
+	 * to not coincide with the region labels.
+	 */
+	@Parameter( label= "ID image", required = false, 
+		direction = Parameter.Direction.OUT, dataIOOrder=2, 
+		description = "Image of region IDs")
+	private transient MTBImage idImage = null;
+
+	/**
+	 * Image of regions in random colors.
+	 */
+	@Parameter( label= "Color image", required = false, 
+		direction = Parameter.Direction.OUT, dataIOOrder=3, 
+		description = "Image of regions with random colors")
 	private transient MTBImage colorImage = null;
 	
-	@Parameter( label= "Create label image", required = true, direction = Parameter.Direction.IN, 
-            dataIOOrder=3, mode=ExpertMode.STANDARD, description = "Create image of regions with region labels")
-	private Boolean createLabelImage = true;
-	
-	@Parameter( label= "Create color image", required = true, direction = Parameter.Direction.IN, 
-            dataIOOrder=4, mode=ExpertMode.STANDARD, description = "Create image of regions with random colors")
-	private Boolean createColorImage = false;
-	
-	
+	/* some local variables */
 	
 	/**
-	 * Constructor
+	 * Temporary label image.
+	 */
+	private MTBImageInt m_labelImg;
+
+	/**
+	 * Width of input image.
+	 */
+	private int m_width;
+	/**
+	 * Height of input image.
+	 */
+	private int m_height;
+	
+	/**
+	 * Constructor.
+	 * 
+	 * @throws ALDOperatorException Thrown in case of failure.
 	 */
 	public LabelComponentsSequential() throws ALDOperatorException {
 	}
 
 	
 	/**
-	 * Constructor
-	 * @param img input image
-	 * @param diagonalNeighbors set true for 8-neighborhood or false for 4-neighborhood
+	 * Constructor.
+	 * 
+	 * @param img 	Input image.
+	 * @param dn 		Set true for 8-NB or false for 4-NB.
+	 * @throws ALDOperatorException Thrown in case of failure.
 	 */
-	public LabelComponentsSequential(MTBImage img, boolean diagonalNeighbors) throws ALDOperatorException {
+	public LabelComponentsSequential(MTBImage img, boolean dn) 
+			throws ALDOperatorException {
 		this.inputImage = img;
-		this.diagonalNeighbors = diagonalNeighbors;
-    }
+		this.diagonalNeighbors = dn;
+	}
 
 
 	/**
@@ -133,9 +200,10 @@ public class LabelComponentsSequential extends MTBOperator {
 	
 	/**
 	 * Set a new input image.
+	 * @param iImage Input image to label.
 	 */
-	public void setInputImage(MTBImage inputImage) {
-		this.inputImage = inputImage;
+	public void setInputImage(MTBImage iImage) {
+		this.inputImage = iImage;
 	}
 
 	/**
@@ -169,6 +237,14 @@ public class LabelComponentsSequential extends MTBOperator {
 		this.createLabelImage = createLabelImage;
 	}
 	
+	/**
+	 * Enable/disable creation of ID image.
+	 * @param b If true, ID image is created.
+	 */
+	public void setCreateIDImageFlag(boolean b) {
+		this.createIDImage = new Boolean(b);
+	}
+
 	/**
 	 * Get the flag that determines the creation of an image with randomly colored regions.
 	 */
@@ -205,12 +281,27 @@ public class LabelComponentsSequential extends MTBOperator {
 	}
 
 	/**
-	 * Get image of region labels (of type MTB_INT), if the create-label-image-flag was set to true. Otherwise returns null.
+	 * Get image of region labels (of type MTB_INT).
+	 * <p>
+	 * Only available if the create-label-image-flag was set to true,
+	 * otherwise returns null.
+	 * @return Label image.
 	 */
 	public MTBImage getLabelImage() {
 		return this.labelImage;
 	}
 	
+	/**
+	 * Get image of region ID (of type MTB_BYTE).
+	 * <p>
+	 * Only available if the corresponding flag was set to true,
+	 * otherwise returns null.
+	 * @return ID image.
+	 */
+	public MTBImage getIDImage() {
+		return this.labelImage;
+	}
+
 	/**
 	 * Add the label image to the parameter object
 	 */
@@ -226,18 +317,100 @@ public class LabelComponentsSequential extends MTBOperator {
 	}
 
 	@Override
-	protected void operate() throws ALDOperatorException, ALDProcessingDAGException {
+	protected void operate() 
+			throws ALDOperatorException, ALDProcessingDAGException {
 		
-		this.setResultingRegions(this.labelComponents(this.inputImage, this.diagonalNeighbors));
+		this.setResultingRegions(
+				this.labelComponents(this.inputImage, this.diagonalNeighbors));
 		
 		this.labelImage = null;
+		this.idImage = null;
 		this.colorImage = null;
 		
-		if (this.createLabelImage) {
-			DrawRegion2DSet drawer = new DrawRegion2DSet(DrawType.ID_IMAGE, this.getResultingRegions());
+		if (   this.createLabelImage.booleanValue()
+				|| this.createIDImage.booleanValue()) {
+			
+			// create label image, required in any case
+			DrawRegion2DSet drawer = new DrawRegion2DSet(
+					DrawType.ID_IMAGE, this.getResultingRegions());
 			drawer.runOp(null);
-			this.labelImage = drawer.getResultImage();
-			this.labelImage.setTitle(MTBImage.getTitleRunning(this.inputImage.getTitle()));
+			MTBImage lImg = drawer.getResultImage();
+			lImg.setTitle(
+					MTBImage.getTitleRunning(this.inputImage.getTitle()));
+
+			// copy to output parameter if requested
+			if (this.createLabelImage.booleanValue())
+				this.labelImage = lImg;
+			
+			// draw region IDs to label ID image
+			if (this.createIDImage.booleanValue()) {
+				
+				// do a distance transformation of the label image to determine
+				// nice positions for the labels, first binarize label image...
+				MTBImageByte dImg = (MTBImageByte)MTBImage.createMTBImage(
+						this.inputImage.getSizeX(), this.inputImage.getSizeY(), 
+						this.inputImage.getSizeZ(), this.inputImage.getSizeT(), 
+						this.inputImage.getSizeC(), MTBImageType.MTB_BYTE);
+				for (int y=0;y<lImg.getSizeY();++y)
+					for (int x=0;x<lImg.getSizeX();++x)
+						if (lImg.getValueInt(x, y) > 0)
+							dImg.putValueInt(x, y, 255);
+						else
+							dImg.putValueInt(x, y, 0);
+				// ... then calculate distances
+				DistanceTransform dt = new DistanceTransform(dImg, 
+						DistanceMetric.CITYBLOCK, ForegroundColor.FG_BLACK);
+				dt.runOp();
+				MTBImage distances = dt.getDistanceImage();
+				
+				// search for pixel with largest distance in each region
+				HashMap<Integer, Point2D.Double> maxPoints = 
+						new HashMap<Integer, Point2D.Double>();
+				HashMap<Integer, Double> maxValues = 
+						new HashMap<Integer, Double>();				
+				int label;
+				for (int y=0;y<lImg.getSizeY();++y) {
+					for (int x=0;x<lImg.getSizeX();++x) {
+						label = lImg.getValueInt(x, y);
+						
+						// only pixels with a label larger than zero are interesting
+						if (label == 0)
+							continue;
+						
+						// if we did not see a pixel of this region before
+						if (maxPoints.get(new Integer(label)) == null) {
+							maxPoints.put(new Integer(label), 
+									new Point2D.Double(x, y));
+							maxValues.put(new Integer(label), 
+									new Double(distances.getValueDouble(x, y)));
+						}
+						// if we found a pixel already, compare distances
+						else {
+							if (  distances.getValueDouble(x, y) 
+									> maxValues.get(new Integer(label)).doubleValue()) {
+								maxPoints.put(new Integer(label), 
+										new Point2D.Double(x, y));
+								maxValues.put(new Integer(label), 
+										new Double(distances.getValueDouble(x, y)));
+							}
+						}
+					}
+				}
+				
+				// draw IDs to label image
+				this.idImage = this.labelImage.duplicate();
+				for (MTBRegion2D r: this.getResultingRegions()) {
+					// mark distance maximum of region by index
+					Point2D.Double p = maxPoints.get(new Integer(r.getID()));
+					int comX = (int)p.x;
+					int comY = (int)p.y;
+					this.idImage = drawStringToImage(this.idImage, 
+							Integer.toString(r.getID()), comX-5, comY);
+				}
+				// make sure that the ID image is of a common type
+				this.idImage = this.idImage.convertType(
+						MTBImageType.MTB_BYTE, true);
+			}
 		}
 		
 		if (this.createColorImage) {
@@ -562,5 +735,24 @@ public class LabelComponentsSequential extends MTBOperator {
 		else {
 			return 0;
 		}
+	}
+	
+	/**
+	 * Draws string at given position into image. 
+	 * 
+	 * @param labelImage2		Image where to draw the string into.
+	 * @param s			String to draw.
+	 * @param xPos	Position of string in x.
+	 * @param yPos	Position of string in y.
+	 * @return Result image.
+	 */
+	protected static MTBImage drawStringToImage(MTBImage labelImage2, 
+			String s, int xPos, int yPos) {	
+		ImageProcessor ip= labelImage2.getImagePlus().getProcessor();
+		ip.moveTo(xPos, yPos);
+		ip.setColor(Color.white);
+		ip.drawString(s);
+		ImagePlus newLabelImg = new ImagePlus("Label image", ip);
+		return MTBImage.createMTBImage(newLabelImg);
 	}
 }

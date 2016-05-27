@@ -374,7 +374,7 @@ public class DistanceTransform extends MTBOperator {
 										double d4 = Double.MAX_VALUE;
 										if (x > 0)
 												d1 = a + this.distanceMap[y][x - 1];
-										if (x > 0 && y > 1)
+										if (x > 0 && y > 0)
 												d2 = b + this.distanceMap[y - 1][x - 1];
 										if (y > 0)
 												d3 = a + this.distanceMap[y - 1][x];

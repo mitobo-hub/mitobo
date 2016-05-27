@@ -114,8 +114,9 @@ public class MTBImageByte extends MTBImage {
 		m_type = MTBImageType.MTB_BYTE;
 		
 		// create new ImagePlus
-		m_img = NewImage.createByteImage("", m_sizeX, m_sizeY, m_sizeStack, 
-																												NewImage.FILL_BLACK);
+		this.m_img = NewImage.createByteImage(this.getTitle(), 
+				this.m_sizeX, this.m_sizeY, this.m_sizeStack, 
+				NewImage.FILL_BLACK);
 		m_img.setIgnoreFlush(true);
 		m_imgStack = m_img.getStack();
 		
@@ -162,8 +163,9 @@ public class MTBImageByte extends MTBImage {
 		m_type = MTBImageType.MTB_BYTE;
 		
 		// create new ImagePlus
-		m_img = NewImage.createByteImage("", m_sizeX, m_sizeY, m_sizeStack, 
-																												NewImage.FILL_BLACK);
+		this.m_img = NewImage.createByteImage(this.getTitle(), 
+				this.m_sizeX, this.m_sizeY, this.m_sizeStack, 	
+				NewImage.FILL_BLACK);
 		m_img.setIgnoreFlush(true);
 		m_imgStack = m_img.getStack();
 		

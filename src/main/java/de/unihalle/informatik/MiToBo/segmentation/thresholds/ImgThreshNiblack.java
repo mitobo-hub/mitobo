@@ -47,52 +47,55 @@ import ij.gui.*;
  * W. Niblack, <i>An Introduction to Digital Image Processing</i>, 
  * pp. 115-116, Prentice Hall, 1986.</li>
  * <li>
- * G. Leedham, C. Yan, et al., <i>Comparison of some thresholding algorithms for 
- * text/background segmentation in difficult document images</i>,<br>
- * Proc. of the Seventh International Conference on Document Analysis and 
- * Recognition. Vol. 2. 2003</li>
+ * G. Leedham, C. Yan, et al., <i>Comparison of some thresholding 
+ * algorithms for text/background segmentation in difficult document 
+ * images</i>,<br> Proc. of the Seventh International Conference on 
+ * Document Analysis and Recognition. Vol. 2. 2003</li>
  * <li>
- * Z. Zhang, C.L. Tan, <i>Recovery of Distorted Document Images from Bound
- * Values</i>, Proc. of 6th International Conference on Document Analysis and 
- * Recognition, pp. 429-433, 2001.</li>
+ * Z. Zhang, C.L. Tan, <i>Recovery of Distorted Document Images from 
+ * Bound Values</i>, Proc. of 6th International Conference on Document 
+ * Analysis and Recognition, pp. 429-433, 2001.</li>
  * 
  * <p>
- * This class implements various versions of the Niblack thresholding approach.
- * It calculates local thresholds according to the given input parameters and
- * applies them to the given image. As result a binary image is returned.
+ * This class implements various versions of the Niblack thresholding 
+ * approach. It calculates local thresholds according to the given input 
+ * parameters and applies them to the given image. As result a binary 
+ * image is returned.
  * <p>
- * Provided methods include conventional and enhanced Niblack thresholding, 
- * either applied in a sliding window manner or maskwise. In the latter case 
- * the windows are not overlapping. The maskwise application has particularly 
- * profen suitable for granule detection. <br>
- * The operator allows for activation of an additional local variance check. 
- * If activated, only windows are thresholded where the 
- * variance exceeds a certain threshold. All other windows are assumed to
- * contain more or less homogeneous intensities and are classified as 
+ * Provided methods include conventional and enhanced Niblack 
+ * thresholding, either applied in a sliding window manner or maskwise. 
+ * In the latter case the windows are not overlapping. The maskwise 
+ * application has particularly profen suitable for granule 
+ * detection.<br>
+ * The operator allows for activation of an additional local variance 
+ * check. If activated, only windows are thresholded where the 
+ * variance exceeds a certain threshold. All other windows are assumed 
+ * to contain more or less homogeneous intensities and are classified as 
  * background.
  * <p>
- * In standard mode, as proposed by Niblack, the operator calculates a local 
- * threshold T based on the local mean m and standard deviation s in a local 
- * sliding window around pixel (x,y):
- * {@latex.ilb %preamble{\\usepackage{amssymb}}
+ * In standard mode, as proposed by Niblack, the operator calculates a 
+ * local threshold T based on the local mean m and standard deviation s 
+ * in a local sliding window around pixel (x,y):
+ * {@latex.ilb %preamble{\\usepackage{amssymb,amsmath}}
  * 	\\begin{equation*}
- *  		T(x,y) &=& m(x,y) + k \\cdot s(x,y)
+ *  		T(x,y) = m(x,y) + k \\cdot s(x,y)
  *  \\end{equation*}}
- * k is a scaling constant which has to be chosen depending on the application
- * at hand. As stated above, this mode can be combined with additional
- * variance checks. 
+ * k is a scaling constant which has to be chosen depending on the 
+ * application at hand. As stated above, this mode can be combined with 
+ * additional variance checks. 
  * <p>
- * In additon to the standard version of the Niblack approach the operator also 
- * implements an enhanced version as proposed by Zhang et al: 
- * {@latex.ilb %preamble{\\usepackage{amssymb}}
+ * In additon to the standard version of the Niblack approach the 
+ * operator also implements an enhanced version as proposed by 
+ * Zhang et al: 
+ * {@latex.ilb %preamble{\\usepackage{amssymb,amsmath}}
  * 	\\begin{equation*}
- *  		T(x,y) &=& m(x,y) \\cdot \\left( 1 + k \\cdot \\left(
+ *  		T(x,y) = m(x,y) \\cdot \\left( 1 + k \\cdot \\left(
  *  				1 - \\frac{s(x,y)}{R} \\right) \\right)
  *  \\end{equation*}}
- * This version can be selected in standard mode by setting the parameter R to
- * a value different from -1. In the original paper default values of R = 100
- * and k = 0.1 are suggested. This mode can also be combined with local
- * variance checks. 
+ * This version can be selected in standard mode by setting the 
+ * parameter R to a value different from -1. In the original paper 
+ * default values of R = 100 and k = 0.1 are suggested. This mode can 
+ * also be combined with local variance checks. 
  * 
  * @author moeller
  */
@@ -102,15 +105,15 @@ public class ImgThreshNiblack extends MTBOperator {
 	/**
 	 * Input image.
 	 */
-	@Parameter( label= "Input image", required = true, direction = Direction.IN,
-	    description = "Input image.")
+	@Parameter( label= "Input image", required = true, 
+			direction = Direction.IN, description = "Input image.")
 	private transient MTBImage inImg = null;
 
 	/**
 	 * Binary result image.
 	 */
-	@Parameter( label= "Result image", required = true, direction= Direction.OUT,
-	    description = "Output image.")
+	@Parameter( label= "Result image", required = true, 
+			direction= Direction.OUT, description = "Output image.")
 	private transient MTBImageByte outImg = null;
 
 	/**
@@ -131,7 +134,8 @@ public class ImgThreshNiblack extends MTBOperator {
 	 * Niblack factor R.
 	 */
 	@Parameter( label= "R", direction = Direction.IN,
-	    description = "Enhancement factor R, disabled if -1.", dataIOOrder = -7)
+	    description = "Enhancement factor R, disabled if -1.", 
+	    dataIOOrder = -7)
   private double enhanceR = -1.0;
 
 	/**
@@ -146,7 +150,7 @@ public class ImgThreshNiblack extends MTBOperator {
 	 * <p>
 	 * Image areas with a variance below the threshold are classified as 
 	 * background because the Niblack criterion will most likely fail.
-	 * @see varCheckNB
+	 * @see #varCheckNB
 	 */
 	@Parameter( label= "Variance threshold", direction = Direction.IN,
 			description = "Variance check threshold", dataIOOrder = -4)
@@ -154,22 +158,23 @@ public class ImgThreshNiblack extends MTBOperator {
 
 	/**
 	 * Size of neighborhood for local variance checks.
-	 * @see varCheckThresh
+	 * @see #varCheckThresh
 	 */
-	@Parameter( label= "Variance check neighborhood", direction = Direction.IN, 
-			description = "Variance check neighborhood size.", dataIOOrder = -5)
+	@Parameter( label= "Variance check neighborhood", 
+			direction = Direction.IN, dataIOOrder = -5,
+			description = "Variance check neighborhood size.")
   private int varCheckNB = 10;
 
 	/**
 	 * Optional mask for excluding image regions from processing.
 	 */
-	@Parameter( label= "Exclude Mask", direction = Direction.IN, required= false,
-			description = "Exclude mask", dataIOOrder = -10)
+	@Parameter( label= "Exclude Mask", direction = Direction.IN, 
+			required= false, description = "Exclude mask", dataIOOrder = -10)
   private MTBImageByte mask = null;
 
   /**
    * Default constructor.
-   * @throws ALDOperatorException
+   * @throws ALDOperatorException Thrown in case of failure.
    */
   public ImgThreshNiblack() throws ALDOperatorException {
 	// nothing to do here
@@ -221,6 +226,7 @@ public class ImgThreshNiblack extends MTBOperator {
    *          Threshold for local variance check.
    * @param _mask
    *          Image mask for excluding image sections.
+   * @throws ALDOperatorException Thrown in case of failure.
    */
   public ImgThreshNiblack(MTBImage _inImg, Mode mode, double k, double R,
 	  int wSize, int vcNB, double vcThresh, MTBImageByte _mask)
@@ -272,8 +278,8 @@ public class ImgThreshNiblack extends MTBOperator {
   				this.winSize, this.scalingK, this.enhanceR);
   		break;
   	case WHOLE_IMAGE:
-  		result = this.applyNiblackThresholdWholeImage(this.inImg, this.scalingK,
-  				this.enhanceR);
+  		result = this.applyNiblackThresholdWholeImage(this.inImg, 
+  				this.scalingK, this.enhanceR);
   		break;
   	}
   	this.outImg = result;
@@ -283,89 +289,99 @@ public class ImgThreshNiblack extends MTBOperator {
    * This function implements the conventional (enhanced) Niblack binarization.
    * If R equals -1, the non-enhanced conventional variant is used.
    * 
-   * @latex.block %preamble{\\usepackage{amssymb}} Niblack binarization:
-   *              \\begin{eqnarray*} t &=& \\mu + k \\cdot ( \\mu \\cdot ( 1 -
-   *              \\sigma / R ) ). \\\\ \\end{eqnarray*}
-   * @param ip
-   *          input image processor
-   * @param w
-   *          size of sliding window
-   * @param k
-   *          Niblack factor
-   * @param R
-   *          Niblack normalization constant
+   * @latex.block %preamble{\\usepackage{amssymb,amsmath}} 
+   * 				Niblack binarization:
+   *        \\begin{eqnarray*} 
+   *           	t &=& \\mu + k \\cdot ( \\mu \\cdot ( 1 - \\sigma / R ) ). \\\\ 
+   *        \\end{eqnarray*}
+   *        
+   * @param mimg	Input image to process.
+   * @param w			Size of sliding window.
+   * @param k			Niblack factor.
+   * @param R			Niblack normalization constant.
    * @return Niblack thresholded image.
    */
-  private MTBImageByte applyNiblackThreshold(MTBImage mimg, int w, double k,
-	  double R) {
+  private MTBImageByte applyNiblackThreshold(MTBImage mimg, int w, 
+  		double k, double R) {
 
-	int width = mimg.getSizeX();
-	int height = mimg.getSizeY();
+  	int width = mimg.getSizeX();
+  	int height = mimg.getSizeY();
 
-	// allocate result image
-	MTBImageByte result = (MTBImageByte) MTBImage.createMTBImage(width, height,
-	    1, 1, 1, MTBImageType.MTB_BYTE);
+  	// allocate result image
+  	MTBImageByte result = (MTBImageByte) MTBImage.createMTBImage(
+  			width, height, 1, 1, 1, MTBImageType.MTB_BYTE);
 
-	int wSize_2 = (int) (w / 2.0);
+  	int wSize_2 = (int) (w / 2.0);
 
-	for (int y = 0; y < height; ++y) {
-	  for (int x = 0; x < width; ++x) {
+  	for (int y = 0; y < height; ++y) {
+  		for (int x = 0; x < width; ++x) {
 
-		if (this.mask == null || this.mask.getValueInt(x, y) > 0) {
+  			if (this.mask == null || this.mask.getValueInt(x, y) > 0) {
 
-		  // global analysis
-		  int minX = (x - wSize_2 < 1) ? 1 : x - wSize_2;
-		  int maxX = (x + wSize_2 > width - 1) ? width - 1 : x + wSize_2;
-		  int minY = (y - wSize_2 < 1) ? 1 : y - wSize_2;
-		  int maxY = (y + wSize_2 > height - 1) ? height - 1 : y + wSize_2;
+  				// global analysis
+  				int minX = (x - wSize_2 < 1) ? 1 : x - wSize_2;
+  				int maxX = 
+  						(x + wSize_2 > width - 1) ? width - 1 : x + wSize_2;
+  				int minY = (y - wSize_2 < 1) ? 1 : y - wSize_2;
+  				int maxY = 
+  						(y + wSize_2 > height - 1) ? height - 1 : y + wSize_2;
 
-		  // calc mean and variance
-		  double mean = 0;
-		  double var = 0;
-		  int counter = 0;
-		  for (int yy = minY; yy < maxY; ++yy) {
-			for (int xx = minX; xx < maxX; ++xx) {
-			  mean = mean + mimg.getValueInt(xx, yy);
-			  counter++;
-			}
-		  }
-		  mean = mean / counter;
-		  for (int yy = minY; yy < maxY; ++yy) {
-			for (int xx = minX; xx < maxX; ++xx) {
-			  var = var + (mimg.getValueInt(xx, yy) - mean)
-				  * (mimg.getValueInt(xx, yy) - mean);
-			}
-		  }
-		  var = var / counter;
+  				// calc mean and variance
+  				double mean = 0;
+  				double var = 0;
+  				int counter = 0;
+  				for (int yy = minY; yy < maxY; ++yy) {
+  					for (int xx = minX; xx < maxX; ++xx) {
+  						mean = mean + mimg.getValueDouble(xx, yy);
+  						counter++;
+  					}
+  				}
+  				mean = mean / counter;
+  				for (int yy = minY; yy < maxY; ++yy) {
+  					for (int xx = minX; xx < maxX; ++xx) {
+  						var = var + (mimg.getValueDouble(xx, yy) - mean)
+  								* (mimg.getValueDouble(xx, yy) - mean);
+  					}
+  				}
+  				var = var / counter;
 
-		  int t = -1;
-		  if (R != -1) {
-			t = (int) (mean + k * mean * (1 - Math.sqrt(var) / R));
-		  } else {
-			t = (int) (mean + k * Math.sqrt(var));
-		  }
-		  if (mimg.getValueInt(x, y) < t) {
-			result.putValueInt(x, y, 0);
-		  } else {
-			result.putValueInt(x, y, 255);
-		  }
-		} else {
-		  result.putValueInt(x, y, 0);
-		}
-	  }
-	}
-	return result;
+  				double t = -1;
+  				if (R != -1) {
+  					t = (mean + k * mean * (1 - Math.sqrt(var) / R));
+  				} else {
+  					t = (mean + k * Math.sqrt(var));
+  				}
+  				if (mimg.getValueInt(x, y) < t) {
+  					result.putValueInt(x, y, 0);
+  				} else {
+  					result.putValueInt(x, y, 255);
+  				}
+  			} else {
+  				result.putValueInt(x, y, 0);
+  			}
+  		}
+  	}
+  	return result;
   }
 
   /**
    * Enhanced Niblack binarization applied maskwise to the image, i.e. all
    * pixels inside the mask get the same threshold.
    * 
-   * The threshold is calculated as {@latex.ilb %preamble
-   * \\usepackage{amsmath}}\\begin{equation*} t = \\mu + k * ( \\mu \\cdot ( 1 -
-   * \\sigma / R ) ), \\end{equation*}} if R does not equal -1. Otherwise, the
-   * conventional variant {@latex.ilb %preamble \\usepackage{amsmath}}
-   * \\begin{equation*} t = \\mu + k \\cdot \\sigma \\end{equation*}} is used.
+   * The threshold is calculated as 
+   * {@latex.ilb %preamble{\\usepackage{amsmath}}
+   * 		\\begin{equation*} 
+   * 				t = \\mu + k * ( \\mu \\cdot ( 1 - \\sigma / R ) ), 
+   * 		\\end{equation*}
+   * } 
+   * if R does not equal -1. Otherwise, the
+   * conventional variant 
+   * {@latex.ilb %preamble{\\usepackage{amsmath}}
+   * 		\\begin{equation*} 
+   * 				t = \\mu + k \\cdot \\sigma 
+   * 		\\end{equation*}
+   * } 
+   * is used.
    * 
    * The main difference is here, that compared to the original approach,
    * thresholds are not calculated pixelwise, but just maskwise. In detail, the
@@ -384,8 +400,8 @@ public class ImgThreshNiblack extends MTBOperator {
 	int height = mimg.getSizeY();
 
 	// allocate result image
-	MTBImageByte result = (MTBImageByte) MTBImage.createMTBImage(width, height,
-	    1, 1, 1, MTBImageType.MTB_BYTE);
+	MTBImageByte result = (MTBImageByte) MTBImage.createMTBImage(
+			width, height, 1, 1, 1, MTBImageType.MTB_BYTE);
 
 	// here it is easier to use ImagePlus
 	// ==> due to ROI handling!
@@ -450,107 +466,115 @@ public class ImgThreshNiblack extends MTBOperator {
   }
 
   /**
-   * This function implements the conventional Niblack binarization, enhanced
-   * with a local variance check.
+   * This function implements the conventional Niblack binarization, 
+   * enhanced with a local variance check.
    * 
    * If parameter R does not equal -1 the method applies the threshold
-   * {@latex.inline %preamble \\usepackage{amsmath}} \\begin{equation*} t =
-   * \\mu + k * ( \\mu \\cdot ( 1 - \\sigma / R ) )\\end{equation*}}. If R
-   * equals -1, the conventional variant is used, i.e., {@latex.inline
-   * %preamble \\usepackage{amsmath}}\\begin{equation*} t = \\mu + k \\cdot
-   * \\sigma \\end{equation*}}.
+   * {@latex.inline %preamble{\\usepackage{amsmath}} 
+   * \\begin{equation*} 
+   * 		t = \\mu + k * ( \\mu \\cdot ( 1 - \\sigma / R ) )
+   * \\end{equation*}}. 
+   * If R equals -1, the conventional variant is used, i.e., 
+   * {@latex.inline %preamble{\\usepackage{amsmath}}
+   * \\begin{equation*} 
+   * 		t = \\mu + k \\cdot \\sigma 
+   * \\end{equation*}}.
+   * In addition, a local variance check in a 7x7-windows around each 
+   * pixel takes place. Only if the local variance exceeds a certain 
+   * threshold the Niblack threshold is considered, otherwise the pixel 
+   * is set to zero, i.e. background.
    * 
-   * In addition, a local variance check in a 7x7-windows around each pixel
-   * takes place. Only if the local variance exceeds a certain threshold the
-   * Niblack threshold is considered, otherwise the pixel is set to zero, i.e.
-   * background.
-   * 
-   * This function is specifically dedicated to our granule detection approach
-   * where Niblack thresholding in homogeneous image regions leads to errorneous
-   * detection results.
+   * This function is specifically dedicated to image with large 
+   * homogeneous regions where standard Niblack thresholding results in 
+   * errorneous detection results.
    */
-  private MTBImageByte applyNiblackThreshold_withLocalVarCheck(MTBImage mimg,
-	  int w, double k, double R, int varCheckNeighborhood,
-	  double localVarThresh) {
+  private MTBImageByte applyNiblackThreshold_withLocalVarCheck(
+  		MTBImage mimg, int w, double k, double R, int varCheckNeighborhood,
+  		double localVarThresh) {
 
-	int width = mimg.getSizeX();
-	int height = mimg.getSizeY();
+  	int width = mimg.getSizeX();
+  	int height = mimg.getSizeY();
 
-	// allocate result image
-	MTBImageByte result = (MTBImageByte) MTBImage.createMTBImage(width, height,
-	    1, 1, 1, MTBImageType.MTB_BYTE);
+  	// allocate result image
+  	MTBImageByte result = (MTBImageByte) MTBImage.createMTBImage(
+  			width, height, 1, 1, 1, MTBImageType.MTB_BYTE);
 
-	// calculate half of window size
-	int wSize_2 = (int) (w / 2.0);
+  	// calculate half of window size
+  	int wSize_2 = (int) (w / 2.0);
 
-	for (int y = 0; y < height; ++y) {
-	  for (int x = 0; x < width; ++x) {
-		if (this.mask == null || this.mask.getValueInt(x, y) > 0) {
+  	for (int y = 0; y < height; ++y) {
+  		for (int x = 0; x < width; ++x) {
+  			if (this.mask == null || this.mask.getValueInt(x, y) > 0) {
 
-		  // global analysis
-		  int minX = (x - wSize_2 < 1) ? 1 : x - wSize_2;
-		  int maxX = (x + wSize_2 > width - 1) ? width - 1 : x + wSize_2;
-		  int minY = (y - wSize_2 < 1) ? 1 : y - wSize_2;
-		  int maxY = (y + wSize_2 > height - 1) ? height - 1 : y + wSize_2;
+  				// global analysis
+  				int minX = (x - wSize_2 < 1) ? 1 : x - wSize_2;
+  				int maxX = 
+  					(x + wSize_2 > width - 1) ? width - 1 : x + wSize_2;
+  				int minY = (y - wSize_2 < 1) ? 1 : y - wSize_2;
+  				int maxY = 
+  					(y + wSize_2 > height - 1) ? height - 1 : y + wSize_2;
 
-		  // calc mean and variance
-		  double mean = 0;
-		  double var = 0;
-		  int counter = 0;
-		  for (int yy = minY; yy < maxY; ++yy) {
-			for (int xx = minX; xx < maxX; ++xx) {
-			  mean = mean + (mimg.getValueInt(xx, yy));
-			  counter++;
-			}
-		  }
-		  mean = mean / counter;
-		  for (int yy = minY; yy < maxY; ++yy) {
-			for (int xx = minX; xx < maxX; ++xx) {
-			  var = var + ((mimg.getValueInt(xx, yy)) - mean)
-				  * ((mimg.getValueInt(xx, yy)) - mean);
-			}
-		  }
-		  var = var / counter;
+  				// calc mean and variance
+  				double mean = 0;
+  				double var = 0;
+  				int counter = 0;
+  				for (int yy = minY; yy < maxY; ++yy) {
+  					for (int xx = minX; xx < maxX; ++xx) {
+  						mean = mean + (mimg.getValueDouble(xx, yy));
+  						counter++;
+  					}
+  				}
+  				mean = mean / counter;
+  				for (int yy = minY; yy < maxY; ++yy) {
+  					for (int xx = minX; xx < maxX; ++xx) {
+  						var = var + ((mimg.getValueDouble(xx, yy)) - mean)
+  								* ((mimg.getValueDouble(xx, yy)) - mean);
+  					}
+  				}
+  				var = var / counter;
 
-		  // local variance check - self-made
-		  int maskSize_2 = varCheckNeighborhood / 2;
-		  minX = (x - maskSize_2 < 1) ? 1 : x - maskSize_2;
-		  maxX = (x + maskSize_2 > width - 1) ? width - 1 : x + maskSize_2;
-		  minY = (y - maskSize_2 < 1) ? 1 : y - maskSize_2;
-		  maxY = (y + maskSize_2 > height - 1) ? height - 1 : y + maskSize_2;
+  				// local variance check - self-made
+  				int maskSize_2 = varCheckNeighborhood / 2;
+  				minX = (x - maskSize_2 < 1) ? 1 : x - maskSize_2;
+  				maxX = 
+  					(x + maskSize_2 > width - 1) ? width - 1 : x + maskSize_2;
+  				minY = (y - maskSize_2 < 1) ? 1 : y - maskSize_2;
+  				maxY = 
+  					(y + maskSize_2 > height - 1) ? height - 1 : y + maskSize_2;
 
-		  // calc mean and variance
-		  double meanLocal = 0;
-		  counter = 0;
-		  for (int xx = minX; xx < maxX; ++xx) {
-			for (int yy = minY; yy < maxY; ++yy) {
-			  meanLocal = meanLocal + (mimg.getValueInt(xx, yy));
-			  counter++;
-			}
-		  }
-		  meanLocal = meanLocal / counter;
+  				// calc mean and variance
+  				double meanLocal = 0;
+  				counter = 0;
+  				for (int xx = minX; xx < maxX; ++xx) {
+  					for (int yy = minY; yy < maxY; ++yy) {
+  						meanLocal = meanLocal + (mimg.getValueDouble(xx, yy));
+  						counter++;
+  					}
+  				}
+  				meanLocal = meanLocal / counter;
 
-		  if (Math.abs(((mimg.getValueInt(x, y)) - meanLocal)) > localVarThresh) {
-			int t = -1;
-			if (R != -1)
-			  t = (int) (mean + k * mean * (1 - Math.sqrt(var) / R));
-			else
-			  t = (int) (mean + k * Math.sqrt(var));
+  				if (  Math.abs(((mimg.getValueDouble(x, y)) - meanLocal)) 
+  						> localVarThresh) {
+  					double t = -1;
+  					if (R != -1)
+  						t = (mean + k * mean * (1 - Math.sqrt(var) / R));
+  					else
+  						t = (mean + k * Math.sqrt(var));
 
-			if (mimg.getValueInt(x, y) < t) {
-			  result.putValueInt(x, y, 0);
-			} else {
-			  result.putValueInt(x, y, 255);
-			}
-		  } else {
-			result.putValueInt(x, y, 0);
-		  }
-		} else {
-		  result.putValueInt(x, y, 0);
-		}
-	  }
-	}
-	return result;
+  					if (mimg.getValueDouble(x, y) < t) {
+  						result.putValueInt(x, y, 0);
+  					} else {
+  						result.putValueInt(x, y, 255);
+  					}
+  				} else {
+  					result.putValueInt(x, y, 0);
+  				}
+  			} else {
+  				result.putValueInt(x, y, 0);
+  			}
+  		}
+  	}
+  	return result;
   }
 
   @Deprecated
@@ -578,9 +602,12 @@ public class ImgThreshNiblack extends MTBOperator {
    * image region. Consequently this method does a global binarization applying
    * a single threshold on each image pixel.
    * 
-   * @latex.block %preamble{\\usepackage{amssymb}} Niblack binarization:
-   *              \\begin{eqnarray*} t &=& \\mu + k \\cdot ( \\mu \\cdot ( 1 -
-   *              \\sigma / R ) ). \\\\ \\end{eqnarray*}
+   * @latex.block %preamble{\\usepackage{amssymb,amsmath}} 
+   * 		Niblack binarization:
+   *    \\begin{eqnarray*} 
+   *    	t &=& \\mu + k \\cdot ( \\mu \\cdot ( 1 - \\sigma / R ) ). \\\\ 
+   *    \\end{eqnarray*}
+   *    
    * @param ip
    *          input image processor
    * @param k
@@ -589,66 +616,66 @@ public class ImgThreshNiblack extends MTBOperator {
    *          Niblack normalization constant
    * @return Niblack thresholded image.
    */
-  private MTBImageByte applyNiblackThresholdWholeImage(MTBImage mimg, double k,
-	  double R) {
+  private MTBImageByte applyNiblackThresholdWholeImage(MTBImage mimg, 
+  		double k, double R) {
 
-	int width = mimg.getSizeX();
-	int height = mimg.getSizeY();
+  	int width = mimg.getSizeX();
+  	int height = mimg.getSizeY();
 
-	// allocate result image
-	MTBImageByte result = (MTBImageByte) MTBImage.createMTBImage(width, height,
-	    1, 1, 1, MTBImageType.MTB_BYTE);
+  	// allocate result image
+  	MTBImageByte result = (MTBImageByte) MTBImage.createMTBImage(
+  			width, height, 1, 1, 1, MTBImageType.MTB_BYTE);
 
-	// calculate the global threshold from mean and variance
-	double mean = 0;
-	double var = 0;
-	int counter = 0;
+  	// calculate the global threshold from mean and variance
+  	double mean = 0;
+  	double var = 0;
+  	int counter = 0;
 
-	for (int yy = 0; yy < height; ++yy) {
-	  for (int xx = 0; xx < width; ++xx) {
+  	for (int yy = 0; yy < height; ++yy) {
+  		for (int xx = 0; xx < width; ++xx) {
 
-		// check if pixel is valid
-		if (this.mask == null || this.mask.getValueInt(xx, yy) > 0) {
-		  mean = mean + (mimg.getValueInt(xx, yy));
-		  counter++;
-		}
-	  }
-	}
-	mean = mean / counter;
-	for (int yy = 0; yy < height; ++yy) {
-	  for (int xx = 0; xx < width; ++xx) {
+  			// check if pixel is valid
+  			if (this.mask == null || this.mask.getValueInt(xx, yy) > 0) {
+  				mean = mean + (mimg.getValueDouble(xx, yy));
+  				counter++;
+  			}
+  		}
+  	}
+  	mean = mean / counter;
+  	for (int yy = 0; yy < height; ++yy) {
+  		for (int xx = 0; xx < width; ++xx) {
 
-		// check if pixel is valid
-		if (this.mask == null || this.mask.getValueInt(xx, yy) > 0) {
-		  var = var + (mimg.getValueInt(xx, yy) - mean)
-			  * (mimg.getValueInt(xx, yy) - mean);
-		}
-	  }
-	}
-	var = var / counter;
+  			// check if pixel is valid
+  			if (this.mask == null || this.mask.getValueInt(xx, yy) > 0) {
+  				var = var + (mimg.getValueDouble(xx, yy) - mean)
+  						* (mimg.getValueDouble(xx, yy) - mean);
+  			}
+  		}
+  	}
+  	var = var / counter;
 
-	// get threshold
-	int t = -1;
-	if (R != -1) {
-	  t = (int) (mean + k * mean * (1 - Math.sqrt(var) / R));
-	} else {
-	  t = (int) (mean + k * Math.sqrt(var));
-	}
-	for (int y = 0; y < height; ++y) {
-	  for (int x = 0; x < width; ++x) {
+  	// get threshold
+  	double t = -1;
+  	if (R != -1) {
+  		t = (mean + k * mean * (1 - Math.sqrt(var) / R));
+  	} else {
+  		t = (mean + k * Math.sqrt(var));
+  	}
+  	for (int y = 0; y < height; ++y) {
+  		for (int x = 0; x < width; ++x) {
 
-		if (this.mask == null || this.mask.getValueInt(x, y) > 0) {
+  			if (this.mask == null || this.mask.getValueInt(x, y) > 0) {
 
-		  if (mimg.getValueInt(x, y) < t) {
-			result.putValueInt(x, y, 0);
-		  } else {
-			result.putValueInt(x, y, 255);
-		  }
-		} else {
-		  result.putValueInt(x, y, 0);
-		}
-	  }
-	}
-	return result;
+  				if (mimg.getValueInt(x, y) < t) {
+  					result.putValueInt(x, y, 0);
+  				} else {
+  					result.putValueInt(x, y, 255);
+  				}
+  			} else {
+  				result.putValueInt(x, y, 0);
+  			}
+  		}
+  	}
+  	return result;
   }
 }

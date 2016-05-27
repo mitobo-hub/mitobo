@@ -28,12 +28,13 @@ package de.unihalle.informatik.MiToBo.features;
  * Interface for result data returned from classes extending 
  * {@link FeatureCalculator}.
  * <p>
- * In principal any kind of object could be used as result object. For easier
- * handling of the result object, in particular in a generic fashion, it is 
- * only mandatory to implement the method {@literal toString()} which should
- * return a proper textual representation of the result. This textual value is
- * for example used within the result table shown in the GUI or on writing the
- * results to file.
+ * In principal any kind of object could be used as result object. 
+ * For easier handling of the result object, in particular in a generic 
+ * fashion, it is only mandatory to implement the method 
+ * {@literal toString()} which should return a proper textual 
+ * representation of the result. This textual value is for example used 
+ * within the result table shown in the GUI or on writing the results 
+ * to file.
  * 
  * @author moeller
  */
@@ -48,19 +49,19 @@ public interface FeatureCalculatorResult
 	/**
 	 * Returns the dimension of the result object.
 	 * <p>
-	 * If a single object or value is calculated the dimension should be one.
-	 * In case of, e.g., arrays containing multiple values the length of the 
-	 * array should be returned. 
+	 * If a single object or value is calculated the dimension should be 
+	 * one. In case of, e.g., arrays containing multiple values the length 
+	 * of the array should be returned. 
 	 * @return Dimensionality of the result data.
 	 */
 	public abstract int getDimensionality();
 	
 	/**
-	 * Indicates if result data can be 'condensed' to numerical values, e.g., 
-	 * for visualization purposes.
+	 * Indicates if result data can be 'condensed' to numerical values, 
+	 * e.g., for visualization purposes.
 	 * <p>
-	 * If this method returns true it is expected that for each component of
-	 * the result the method {@link #getNumericalValue(int)} returns a 
+	 * If this method returns true it is expected that for each component 
+	 * of the result the method {@link #getNumericalValue(int)} returns a 
 	 * proper numerical value.
 	 * 
 	 * @return	True, if result data can be represented numerically.
@@ -68,10 +69,12 @@ public interface FeatureCalculatorResult
 	public abstract boolean isConvertableToNumericalData();
 	
 	/**
-	 * Returns a numerical value representing the requested result component.
+	 * Returns a numerical value representing the requested result 
+	 * component.
 	 * <p>
-	 * This method is linked to {@link #isConvertableToNumericalData()}, i.e.
-	 * is only expected to return proper results if that function returns true.
+	 * This method is linked to {@link #isConvertableToNumericalData()}, 
+	 * i.e. is only expected to return proper results if that function 
+	 * returns true.
 	 * 
 	 * @param  dim	Index of the desired component of the result.
 	 * @return	Numerical result value.
@@ -95,8 +98,9 @@ public interface FeatureCalculatorResult
 	public abstract String getOpIdentifier(); 
 	
 	/**
-	 * Method returns an identifier characterizing the related component of 
-	 * the result.
+	 * Method returns an identifier characterizing the related component 
+	 * of the result.
+	 * @param dim Dimension identifier is requested for.
 	 * @return	Identifier string.
 	 */
 	public abstract String getResultIdentifier(int dim);

@@ -198,6 +198,36 @@ public class MTBImageTileAdapter implements Iterable<MTBImage> {
 	}
 
 	/**
+	 * Returns x-coordinate of tile center.
+	 * @param idX		Column index.
+	 * @return	x-coordinate of center.
+	 */
+	public double getTileCenterX(int idX) {
+		// calculate coordinates of first pixel column
+		int startCol = idX * this.shiftY;
+		// calculate last col considering image border
+		int endCol = startCol + this.tileSizeX - 1;
+		if (endCol >= this.inImg.getSizeX() - 1)
+			endCol = this.inImg.getSizeX() - 1;
+		return (startCol + endCol)/2.0;
+	}
+	
+	/**
+	 * Returns x-coordinate of tile center.
+	 * @param idY		Row index.
+	 * @return	x-coordinate of center.
+	 */
+	public double getTileCenterY(int idY) {
+		// calculate coordinates of first pixel row
+		int startRow = idY * this.shiftX;
+		// calculate last row and col considering image border
+		int endRow = startRow + this.tileSizeY - 1;
+		if (endRow >= this.inImg.getSizeY() - 1)
+			endRow = this.inImg.getSizeY() - 1;
+		return (startRow + endRow)/2.0;
+	}
+	
+	/**
 	 * Saves all tiles to the given path.
 	 * <p>
 	 * The tiles are saved in .tiff format. The file names are formed by the

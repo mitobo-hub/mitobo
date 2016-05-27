@@ -52,6 +52,22 @@ public abstract class MTBTopologicalNumber {
 	/** debug flag
 	 */
 	protected static boolean debug = false;
+	
+	/**
+	 * The size of the neighborhood, i.e. numbers of pixels in the neighborhood
+	 */
+	protected int sizeNeighborhood;
+
+	/**
+	 * Maximal distance of points within the neighborhood to current pixel,
+	 * i.e. the pixel which neighborhood we are considering
+	 */
+	protected float maxDist;
+	
+	/**
+	 * Dimension of image
+	 */
+	protected int dimension;
 
 	/** 
 	  * For each neighbor in the neighborhood 
@@ -65,38 +81,40 @@ public abstract class MTBTopologicalNumber {
 	/** In analogy to <code>coordinatesNeighbors</code> this array hold the offsets of the neighbors.
 	  * Each offset may also be considered as the coordinates of a neighbor in a
 	  * a 3x3x3 array center around the
-      * current pixel where 
-      * the coordinates of this current pixel are (0,0,0).
-      * <p>
-      * The order of neighbors within the array are the same as for <code>coordinatesNeighbors</code>.
+	  * current pixel where 
+	  * the coordinates of this current pixel are (0,0,0).
+	  * <p>
+	  * The order of neighbors within the array are the same as for {@link coordinatesNeighbors}.
 	  */
 	protected Point3D offsetsNeighbors[];
 
 	/** For each neighbor in the neighborhood 
-	 * this vector holds coordinates of all other pixels in the neighborhood
+	 * this collection holds coordinates of all other pixels in the neighborhood
 	 * which are connected to the neighbor under consideration with regard the
 	 * the neighborhood definition. (These are called neighborneighbors subsequently.)
-      * The order of neighbors within the array are the same as for <code>coordinatesNeighbors</code> 
-      * while the order of neighborneighbors in the vector is arbitrary.
-	  *
-	  */
-	protected Vector<Point3D>  coordinatesNeighborNeighbors[];
+	 * Coordinates are as for neighbors in a a 3x3x3 array center around the
+	 * current pixel 
+	 * The order of neighbors within the array are the same as for {@link coordinatesNeighbors}
+	 * while the order of neighborneighbors in the collection is arbitrary.
+	 *
+	 */
+	protected ArrayList<Point3D>  coordinatesNeighborNeighbors[];
 
-	/** As <code>coordinatesNeighborNeighbors</code> this array give
+	/** As {@ coordinatesNeighborNeighbors} this array gives
 	 * for each neighbor in the neighborhood coordinates of its neighbors
 	 * (i.e. neighborneighbors).
-	 * However the vectors of neighborneighbors are not indexed by the order of
+	 * Coordinates are as for neighbors in a a 3x3x3 array center around the
+	 * current pixel 
+	 * However the collections of neighborneighbors are not indexed by the order of
 	 * the neighbors but by the coordinate of each neighbor
-     * within an  3x3x3 array, {@link coordinatesNeighbors}.
-	  *
-      *  The vector are define in analogy as in @see indicesNeighbors.
-	  */
-	protected Vector<Point3D>  coordinatesNeighborNeighborsByCoord[][][];
+	 * within an  3x3x3 array, {@link coordinatesNeighbors}.
+	 */
+	protected ArrayList<Point3D>  coordinatesNeighborNeighborsByCoord[][][];
 
-	/** As for the neighbors this vector is in analogy to <code>coordinatesNeighborNeighbors</code>
+	/** As for the neighbors this collection is in analogy to <code>coordinatesNeighborNeighbors</code>
 	 * and gives for each neighborneighbor the offset instead of coordinates.
 	  */
-	protected Vector<Point3D>  offsetsNeighborNeighbors[];
+	protected ArrayList<Point3D>  offsetsNeighborNeighbors[];
 
     /** 8- or 26 neighbors of the current pixel
      * used to determine topological numbers represented as an 3x3x3 array center around
@@ -236,20 +254,20 @@ public abstract class MTBTopologicalNumber {
 	public void print() {
 		System.out.println( "Details of " + this.getClass().getName() +
 			" (" + this.hashCode() + ")");
-        for ( int i = 0 ; i < coordinatesNeighborNeighbors.length ; i++ ) {
+        for ( int i = 0 ; i < sizeNeighborhood ; i++ ) {
             System.out.println( "pixel " + i + " @(" + coordinatesNeighbors[i].z + "," + 
                                 coordinatesNeighbors[i].y + "," + coordinatesNeighbors[i].x + ")" +
 								" offset:  @(" + offsetsNeighbors[i].z + "," +
                                 offsetsNeighbors[i].y + "," + offsetsNeighbors[i].x + ")" );
             for ( int n = 0; n < coordinatesNeighborNeighbors[i].size() ; n++ ) {
-				Point3D indices = coordinatesNeighborNeighbors[i].elementAt(n);
+				Point3D indices = coordinatesNeighborNeighbors[i].get(n);
                 System.out.print( " neighbor: " + n + " @(" + 
                     indices.z + "," + indices.y +  "," + indices.x + ")");
             }
             System.out.println();
 
             for ( int n = 0; n < offsetsNeighborNeighbors[i].size() ; n++ ) {
-            	Point3D indices = offsetsNeighborNeighbors[i].elementAt(n);
+            	Point3D indices = offsetsNeighborNeighbors[i].get(n);
                 System.out.print( " offset: " + n + " @(" + 
                     indices.z + "," + indices.y  + "," + indices.x + ")");
             }
@@ -270,14 +288,38 @@ public abstract class MTBTopologicalNumber {
 		return new PixelOffsetIterator();
 	}
 
+	/**
+	 * @return the sizeNeighborhood
+	 */
+	public int getSizeNeighborhood() {
+		return sizeNeighborhood;
+	}
+
+	/**
+	 * @return the maxDist
+	 */
+	public float getMaxDist() {
+		return maxDist;
+	}
+
+	/**
+	 * @return the coordinatesNeighborNeighbors
+	 */
+	public ArrayList<Point3D> getCoordinatesNeighborNeighbors( int z, int y, int x) {
+		if ( z < 0 || z > 2 || y < 0 || y > 2 || x < 0 || x > 2 ) 
+			throw new ArrayIndexOutOfBoundsException( this.getClass().getCanonicalName() + 
+					"::getCoordinatesNeighborNeighbors indices out of bound (" + z + "," + y + "," + x+  ")");
+		return coordinatesNeighborNeighborsByCoord[z][y][x];
+	}
+
 	private class PixelIndexIterator implements Iterator<Point3D> {
 		int n;
 
 		@Override
         public void remove() {
-            System.err.println( "PixelIndexIterator: cannot remove elements");
-			//TODO throw exception
-        }
+			throw new ArrayIndexOutOfBoundsException( this.getClass().getCanonicalName() + 
+					".PixelIndexIterator: cannot remove elements ");
+       }
 
 		public PixelIndexIterator() {
 			n = 0;
@@ -285,7 +327,7 @@ public abstract class MTBTopologicalNumber {
 
 		@Override
 		public boolean hasNext() {
-			return n < coordinatesNeighbors.length;
+			return n < sizeNeighborhood;
 		}
 
 		@Override
@@ -300,8 +342,8 @@ public abstract class MTBTopologicalNumber {
 
 		@Override
         public void remove() {
-            System.err.println( "PixelOffsetIterator: cannot remove elements");
-			//TODO throw exception
+			throw new ArrayIndexOutOfBoundsException( this.getClass().getCanonicalName() + 
+					".PixelIndexIterator: cannot remove elements ");
         }
 
 		public PixelOffsetIterator() {
@@ -310,7 +352,7 @@ public abstract class MTBTopologicalNumber {
 
 		@Override
 		public boolean hasNext() {
-			return n < offsetsNeighbors.length;
+			return n < sizeNeighborhood;
 		}
 
 		@Override
@@ -326,10 +368,10 @@ public abstract class MTBTopologicalNumber {
 	 * @author posch
 	 *
 	 */
-	public class Point3D {
-		int x;
-		int y;
-		int z;
+	public static class Point3D {
+		private int x;
+		private int y;
+		private int z;
 		
 		public Point3D( int z, int y, int x) {
 			this.z = z;
@@ -337,7 +379,23 @@ public abstract class MTBTopologicalNumber {
 			this.x = x;
 		}
 		
-		public Point3D() {
+//		public Point3D() {
+//		}
+
+		/** Euclidean distance to <code>pt</code>
+		 * @param pt
+		 * @return
+		 */
+		public float dist( Point3D pt) {
+			int deltaX = this.x - pt.getX();
+			int deltaY = this.y - pt.getY();
+			int deltaZ = this.z - pt.getZ();
+
+			return (float) Math.sqrt( deltaX*deltaX + deltaY*deltaY + deltaZ*deltaZ);
+		}
+		
+		public String toString() {
+			return "(" + z + "," + y + "," + x + ")";
 		}
 
 		/**
@@ -348,26 +406,12 @@ public abstract class MTBTopologicalNumber {
 		}
 
 		/**
-		 * @param x the x to set
-		 */
-		public void setX(int x) {
-			this.x = x;
-		}
-
-		/**
 		 * @return the y
 		 */
 		public int getY() {
 			return y;
 		}
-
-		/**
-		 * @param y the y to set
-		 */
-		public void setY(int y) {
-			this.y = y;
-		}
-
+		
 		/**
 		 * @return the z
 		 */
@@ -375,12 +419,28 @@ public abstract class MTBTopologicalNumber {
 			return z;
 		}
 
-		/**
-		 * @param z the z to set
-		 */
-		public void setZ(int z) {
-			this.z = z;
-		}
-		
+
+//		/**
+//		 * @param x the x to set
+//		 */
+//		public void setX(int x) {
+//			this.x = x;
+//		}
+//
+//
+//		/**
+//		 * @param y the y to set
+//		 */
+//		public void setY(int y) {
+//			this.y = y;
+//		}
+//
+//		/**
+//		 * @param z the z to set
+//		 */
+//		public void setZ(int z) {
+//			this.z = z;
+//		}
+
 	}
 }

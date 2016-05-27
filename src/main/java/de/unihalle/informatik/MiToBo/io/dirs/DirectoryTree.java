@@ -54,7 +54,7 @@ public class DirectoryTree extends MTBTree {
 	
 	/**
 	 * Standard constructor.
-	 * @param dir 						Root directory where to begin the parsing.
+	 * @param dir Root directory where to begin the parsing.
 	 */
 	public DirectoryTree(String dir) {
 		super(new DirectoryTreeNodeData(dir));
@@ -68,7 +68,7 @@ public class DirectoryTree extends MTBTree {
 	/**
 	 * Constructor.
 	 * @param dir 						Root directory where to begin the parsing.
-	 * @param recursiveFlag		Flag for recursive processing of sub-directories.
+	 * @param recursiveFlag		Recursive processing of sub-directories.
 	 * 
 	 */
 	public DirectoryTree(String dir, boolean recursiveFlag) {
@@ -89,7 +89,8 @@ public class DirectoryTree extends MTBTree {
 	public Vector<String> getFileList() {
 
 		// get root node data for easier access
-		DirectoryTreeNodeData rootData=(DirectoryTreeNodeData)(this.root.getData());
+		DirectoryTreeNodeData rootData = 
+				(DirectoryTreeNodeData)(this.root.getData());
 		
 		// allocate memory for result
 		Vector<String> fileList= new Vector<String>();
@@ -106,17 +107,19 @@ public class DirectoryTree extends MTBTree {
 			Vector<String> childlist= childdata.getSubtreeFileList();
 			
 			for (int j=0;j<childlist.size();++j)
-				fileList.add(this.mainpath + "/" + childlist.get(j));
+				fileList.add(this.mainpath + File.separator + childlist.get(j));
 		}
 		return fileList;
 	}
 	
 	/**
-	 * Builds the directory tree by initiating the (recursive) parse procedure.
+	 * Builds the directory tree by initiating the (recursive) parse 
+	 * procedure.
 	 */
 	private void initFromDirectory() {
 		
-		DirectoryTreeNodeData thisRoot= (DirectoryTreeNodeData)this.root.getData();
+		DirectoryTreeNodeData thisRoot = 
+				(DirectoryTreeNodeData)this.root.getData();
 		
 		// first check if you really work on a directory
 		File f = new File(this.mainpath);
@@ -137,14 +140,15 @@ public class DirectoryTree extends MTBTree {
 			String name = list[i];
 			
 			// insert all non-directories into the list
-			File g = new File(this.mainpath + "/" + name);
+			File g = new File(this.mainpath + File.separator + name);
 			if (!g.isDirectory()) {
-				thisRoot.addFile(this.mainpath + "/" + name);
+				thisRoot.addFile(this.mainpath + File.separator + name);
 			}
 			// check if we have a directory
 			else if (g.isDirectory() && this.recursiveProcessing) {
 				// recursively examine directories
-				MTBTreeNode subNode= DirectoryTree.traverseSubdir(this.mainpath, name);
+				MTBTreeNode subNode = 
+						DirectoryTree.traverseSubdir(this.mainpath, name);
 				this.root.addChild(subNode);
 			}
 		}
@@ -163,7 +167,7 @@ public class DirectoryTree extends MTBTree {
 		DirectoryTreeNodeData ndir= new DirectoryTreeNodeData(subdir);
 		
 		// check if we really have a directory here
-		String fullpath= path + "/" + subdir;
+		String fullpath= path + File.separator + subdir;
 		File f = new File(fullpath);
 		if (!f.isDirectory()) {
 			return null;
@@ -182,19 +186,21 @@ public class DirectoryTree extends MTBTree {
 		MTBTreeNode node= new MTBTreeNode(ndir);
 		for (int i=0; i<list.length; i++) {
 			String name = list[i];
-			boolean isImageFile = name.endsWith(".tif");
-			if (isImageFile) {
+//			boolean isImageFile = name.endsWith(".tif");
+			boolean isFile = new File(name).isFile();
+			if (isFile) {
 				ndir.addFile(name);
 			}
 			// check if we have a directory
 			else {
-				File g = new File(fullpath + "/" + name);
+				File g = new File(fullpath + File.separator + name);
 				if (!g.isDirectory()) {
-					// found some unknown file format, ignored
+					// found something unknown, neither file nor directory... 
 				}
 				else {
 					// recursive traversal
-					MTBTreeNode subNode= DirectoryTree.traverseSubdir(fullpath, name);
+					MTBTreeNode subNode = 
+							DirectoryTree.traverseSubdir(fullpath, name);
 					node.addChild(subNode);
 				}	
 			}

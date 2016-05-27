@@ -43,7 +43,7 @@ import de.unihalle.informatik.MiToBo.segmentation.snakes.optimize.SnakeOptimizer
  * External snake energy based on local intensity gradients.  
  * <p>
  * The energy for a snake C is defined as follows:
- * {@latex.ilb %preamble{\\usepackage{amssymb}}
+ * {@latex.ilb %preamble{\\usepackage{amssymb,amsmath}}
  *      \\begin{equation*}
  *      	E(C) = \\int_0^1 - | \\nabla I(C(s)) |^2 ds 
  *      \\end{equation*}}

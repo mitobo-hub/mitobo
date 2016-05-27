@@ -51,6 +51,9 @@ public class TestStringAnalysis {
 		// nothing to do here
 	}
 	
+	/**
+	 * Test routine for longest common prefix extraction.
+	 */
 	@Test
 	public void testGetLongestCommonPrefixes() {
 
@@ -67,8 +70,8 @@ public class TestStringAnalysis {
 		Vector<String> result = 
 			StringAnalysis.getLongestCommonPrefixes(this.testSet);
 		// check if all expected prefixes have been found
-		assertTrue("Expected to get 2 prefixes, but received " + result.size(), 
-			result.size() == 2);
+		assertTrue("Expected to get 2 prefixes, but received " 
+				+ result.size(), result.size() == 2);
 		assertTrue(result.contains("aabb"));
 		assertTrue(result.contains("bbbaaa"));
 		
@@ -84,8 +87,8 @@ public class TestStringAnalysis {
 		this.testSet.add("HT384-04");
 
 		result = StringAnalysis.getLongestCommonPrefixes(this.testSet);
-		assertTrue("Expected to get 2 prefixes, but received " + result.size(), 
-			result.size() == 2);
+		assertTrue("Expected to get 2 prefixes, but received " 
+				+ result.size(), result.size() == 2);
 		assertTrue(result.contains("HTshC-0"));
 		assertTrue(result.contains("HT384-0"));
 	}

@@ -4,13 +4,23 @@
 
   <groupId>de.unihalle.informatik.MiToBo</groupId>
   <artifactId>mitobo</artifactId>
-  <version>1.6.1-SNAPSHOT</version>
+  <version>1.8.3-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>mitobo</name>
   <description>MiToBo - A Microscope Image Analysis TOolBox</description> 
   <url>http://www.informatik.uni-halle.de/mitobo</url>
   <inceptionYear>2010</inceptionYear>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <YEAR>2016</YEAR>
+    <!-- define a default native directory, does not work in all cases,
+	 but avoids that Maven fails completely -->
+    <native.libdir>lib64</native.libdir>
+    <alida.version>2.7.3-SNAPSHOT</alida.version>
+    <alida.mitobo.help.version>1.7-SNAPSHOT</alida.mitobo.help.version>
+  </properties>
 
   <licenses>
     <license>
@@ -48,16 +58,6 @@
       <timezone>+1</timezone>
     </developer>
     <developer>
-      <id>gress</id>
-      <email>oliver.gress@informatik.uni-halle.de</email>
-      <name>Oliver Gress</name>
-      <organization>Martin Luther University Halle-Wittenberg</organization>
-      <roles>
-	<role>Developer</role>
-      </roles>
-      <timezone>+1</timezone>
-    </developer>
-    <developer>
       <id>glass</id>
       <email>markus.glass@medizin.uni-halle.de</email>
       <name>Markus Glass</name>
@@ -79,20 +79,19 @@
     </developer>
   </developers>
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <YEAR>2015</YEAR>
-    <!-- define a default native directory, does not work in all cases,
-	 but avoids that Maven fails completely -->
-    <native.libdir>lib64</native.libdir>
-  </properties>
-
   <build>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-resources-plugin</artifactId>
-        <version>2.6</version>
+        <version>2.7</version>
+	<dependencies>
+	  <dependency>
+	    <groupId>org.apache.maven.shared</groupId>
+	    <artifactId>maven-filtering</artifactId>
+	    <version>1.3</version>
+	  </dependency>
+	</dependencies>
         <executions>
           <!-- files needed for execution -->
           <execution>
@@ -223,10 +222,10 @@
       <plugin>
 	<groupId>org.apache.maven.plugins</groupId>
 	<artifactId>maven-compiler-plugin</artifactId>
-	<version>3.3</version>
+	<version>3.5.1</version>
 	<configuration>
-	  <source>1.6</source>
-	  <target>1.6</target>
+	  <source>1.8</source>
+	  <target>1.8</target>
 	  <encoding>${project.build.sourceEncoding}</encoding>
 	  <!-- Disable annotation processors during normal compilation! -->
 	  <compilerArgument>-proc:none</compilerArgument>
@@ -236,6 +235,7 @@
 	<!-- run annotation processing -->
 	<groupId>org.bsc.maven</groupId>
 	<artifactId>maven-processor-plugin</artifactId>
+<!--	<version>3.1.0</version> requires Maven 3.1 -->
 	<version>2.2.4</version>
 	<executions>
 	  <execution>
@@ -264,8 +264,11 @@
       <plugin>
 	<groupId>org.apache.maven.plugins</groupId>
 	<artifactId>maven-surefire-plugin</artifactId>
-	<version>2.18.1</version>
+	<version>2.19.1</version>
 	<configuration>
+         <excludes>
+            <exclude>**/TestMTBLevelsetFunctionPDE.java</exclude>
+          </excludes>
 	  <forkMode>once</forkMode>
 	  <argLine>-Djava.library.path=./target/natives/${native.libdir}</argLine>
 	</configuration>
@@ -279,13 +282,13 @@
       <plugin>
 	<groupId>org.apache.maven.plugins</groupId>
 	<artifactId>maven-site-plugin</artifactId>
-	<version>3.4</version>
+	<version>3.5</version>
       </plugin>
       <plugin>
 	<!-- package binaries and sources into zip files;
 	     Attention: here we use our own assembly descriptors! -->
 	<artifactId>maven-assembly-plugin</artifactId>
-	<version>2.5.4</version>
+	<version>2.6</version>
 	<configuration>
 	  <descriptors>
 	    <descriptor>src/main/assembly/mitobo-bin.xml</descriptor>
@@ -308,16 +311,17 @@
 	<artifactId>maven-javadoc-plugin</artifactId>
 	<version>2.10.3</version>
 	<configuration>
-	  <javadocVersion>1.6</javadocVersion>
+	  <javadocVersion>1.8</javadocVersion>
 	  <stylesheet>java</stylesheet>
           <show>private</show>
+	  <additionalparam>-Xdoclint:none</additionalparam>
 	  <taglets>
 	    <taglet>
 	      <tagletClass>latexlet.InlineLaTeXlet</tagletClass>
 	      <tagletArtifact>
 		<groupId>latexlet</groupId>
 		<artifactId>latexlet</artifactId>
-		<version>1.2f7</version>
+		<version>1.2f8-SNAPSHOT</version>
 	      </tagletArtifact>
 	    </taglet>
 	    <taglet>
@@ -325,7 +329,7 @@
 	      <tagletArtifact>
 		<groupId>latexlet</groupId>
 		<artifactId>latexlet</artifactId>
-		<version>1.2f7</version>
+		<version>1.2f8-SNAPSHOT</version>
 	      </tagletArtifact>
 	    </taglet>
 	    <taglet>
@@ -333,7 +337,7 @@
 	      <tagletArtifact>
 		<groupId>latexlet</groupId>
 		<artifactId>latexlet</artifactId>
-		<version>1.2f7</version>
+		<version>1.2f8-SNAPSHOT</version>
 	      </tagletArtifact>
 	    </taglet>
 	  </taglets>
@@ -369,8 +373,8 @@
 	    <argument>-Xms2048m</argument>
 	    <argument>-Xmx2048m</argument>
 	    <argument>-Djava.library.path=target/natives/${native.libdir}</argument>
-	    <argument>-Dalida.versionprovider_class=de.unihalle.informatik.Alida.version.ALDVersionProviderGit</argument>
 	    <argument>-Dalida.oprunner.level=standard</argument>
+	    <argument>-Dalida.versionprovider_class=de.unihalle.informatik.MiToBo.core.operator.MTBVersionProviderReleaseFile</argument>
             <argument>de.unihalle.informatik.Alida.tools.ALDGrappaRunner</argument>
           </arguments>
         </configuration>
@@ -440,12 +444,6 @@
       <layout>default</layout>
     </repository>
     <repository>
-      <id>internal</id>
-      <name>Archiva Internal Repository on 'moon'</name>
-      <url>https://moon.informatik.uni-halle.de/archiva/repository/internal/</url>
-      <layout>default</layout>
-    </repository>
-    <repository>
       <id>releases</id>
       <name>Archiva Release Repository on 'moon'</name>
       <url>https://moon.informatik.uni-halle.de/archiva/repository/releases/</url>
@@ -466,12 +464,6 @@
       <layout>default</layout>
     </pluginRepository>
     <pluginRepository>
-      <id>internal</id>
-      <name>Archiva Internal Repository on 'moon'</name>
-      <url>https://moon.informatik.uni-halle.de/archiva/repository/internal/</url>
-      <layout>default</layout>
-    </pluginRepository>
-    <pluginRepository>
       <id>releases</id>
       <name>Archiva Release Repository on 'moon'</name>
       <url>https://moon.informatik.uni-halle.de/archiva/repository/releases/</url>
@@ -479,12 +471,25 @@
     </pluginRepository>
   </pluginRepositories>
 
+  <distributionManagement>
+    <snapshotRepository>
+      <id>snapshots-pub</id>
+      <name>Archiva Public Snapshot Repository on 'moon'</name>
+      <url>https://moon.informatik.uni-halle.de/archiva/repository/snapshots-pub/</url>
+    </snapshotRepository>
+    <repository>
+      <id>releases</id>
+      <name>Archiva Release Repository on 'moon'</name>
+      <url>https://moon.informatik.uni-halle.de/archiva/repository/releases/</url>
+    </repository>
+  </distributionManagement>
+
   <dependencyManagement>
     <dependencies>
       <dependency>
 	<groupId>net.imagej</groupId>
 	<artifactId>pom-imagej</artifactId>
-	<version>8.0.1</version>
+	<version>15.6.0</version>
 	<type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -520,12 +525,19 @@
       <artifactId>jama</artifactId>
       <version>1.0.3</version>
     </dependency>
-		<dependency>
-			<groupId>org.ejml</groupId>
-			<artifactId>all</artifactId>
-			<version>0.27</version>
-		</dependency>
-		<dependency>
+    <dependency>
+      <groupId>com.googlecode.efficient-java-matrix-library</groupId>
+      <artifactId>ejml</artifactId>
+      <version>0.24</version>
+    </dependency>
+<!--
+    <dependency>
+      <groupId>org.ejml</groupId>
+      <artifactId>all</artifactId>
+      <version>0.29</version>
+    </dependency>
+-->
+    <dependency>
       <groupId>tw.edu.ntu.csie</groupId>
       <artifactId>libsvm</artifactId>
       <version>3.1</version>
@@ -536,22 +548,16 @@
       <version>0.9-6</version>
     </dependency>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.11</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
       <!-- used for numerical calculations, e.g., in vesselness package -->
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-math3</artifactId>
-      <version>3.4.1</version>
+      <version>3.6</version>
     </dependency>
     <dependency>
       <!-- used for clustering, e.g., in actin analysis -->
       <groupId>nz.ac.waikato.cms.weka</groupId>
       <artifactId>weka-dev</artifactId>
-      <version>3.7.11</version>
+      <version>3.7.13</version>
     </dependency>
     <dependency>
       <!-- used for data visualization, e.g., in actin analysis -->
@@ -574,11 +580,15 @@
       <groupId>net.imglib2</groupId>
       <artifactId>imglib2-algorithm</artifactId>
     </dependency>
+    <dependency>
+      <groupId>net.imglib2</groupId>
+      <artifactId>imglib2-algorithm-gpl</artifactId>
+    </dependency>
     <!-- MLU stuff -->
     <dependency>
       <groupId>de</groupId>
       <artifactId>jstacs</artifactId>
-      <version>2.1</version>
+      <version>2.2</version>
     </dependency>
     <dependency>
       <groupId>de.unihalle.informatik.MiToBo</groupId>
@@ -588,7 +598,7 @@
     <dependency>
       <groupId>de.unihalle.informatik.Alida</groupId>
       <artifactId>alida</artifactId>
-      <version>2.6.1-SNAPSHOT</version>
+      <version>${alida.version}</version>
       <scope>compile</scope>
       <exclusions>
 	<exclusion>
@@ -600,7 +610,7 @@
     <dependency>
       <groupId>de.unihalle.informatik.AlidaMiToBo</groupId>
       <artifactId>help-resources</artifactId>
-      <version>1.6</version>
+      <version>${alida.mitobo.help.version}</version>
     </dependency>
     <!-- Runtime dependencies -->
     <dependency>
@@ -614,6 +624,13 @@
       <artifactId>mitobo-native-${native.libdir}</artifactId>
       <version>1.2</version>
     </dependency>
+    <!-- Testing -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <scm>
@@ -622,42 +639,6 @@
   </scm>
 
   <profiles>
-    <profile>
-      <id>deploy-internal</id>
-      <activation>
-	<activeByDefault>true</activeByDefault>
-      </activation>
-      <distributionManagement>
-	<snapshotRepository>
-	  <id>snapshots</id>
-	  <name>Archiva Public Snapshot Repository on 'moon'</name>
-	  <url>https://moon.informatik.uni-halle.de/archiva/repository/snapshots-pub/</url>
-	</snapshotRepository>
-	<repository>
-	  <id>internal</id>
-	  <name>Archiva Internal Repository on 'moon'</name>
-	  <url>https://moon.informatik.uni-halle.de/archiva/repository/internal/</url>
-	</repository>
-      </distributionManagement>
-    </profile>
-    <profile>
-      <id>deploy-release</id>
-      <activation>
-	<activeByDefault>false</activeByDefault>
-      </activation>
-      <distributionManagement>
-	<snapshotRepository>
-	  <id>snapshots</id>
-	  <name>Archiva Public Snapshot Repository on 'moon'</name>
-	  <url>https://moon.informatik.uni-halle.de/archiva/repository/snapshots-pub/</url>
-	</snapshotRepository>
-	<repository>
-	  <id>releases</id>
-	  <name>Archiva Release Repository on 'moon'</name>
-	  <url>https://moon.informatik.uni-halle.de/archiva/repository/releases/</url>
-	</repository>
-      </distributionManagement>
-    </profile>
     <!-- architecture dependent settings -->
     <profile>
       <id>linux-x86</id>
