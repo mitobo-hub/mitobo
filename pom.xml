@@ -85,6 +85,9 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-resources-plugin</artifactId>
         <version>2.7</version>
+      	<configuration>
+	  <includeEmptyDirs>true</includeEmptyDirs>
+	</configuration>
 	<dependencies>
 	  <dependency>
 	    <groupId>org.apache.maven.shared</groupId>
@@ -106,6 +109,7 @@
 	        <delimiter>@*@</delimiter>  <!-- to add Ant-like tokens style --> 
 	      </delimiters>
               <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+	      <includeEmptyDirs>true</includeEmptyDirs>
               <resources>
                 <resource>
 	          <directory>src/main/resources</directory>
@@ -136,6 +140,7 @@
 	        <delimiter>${*}</delimiter> <!-- to keep the default behavior --> 
 	        <delimiter>@*@</delimiter>  <!-- to add Ant-like tokens style --> 
 	      </delimiters>
+	      <includeEmptyDirs>true</includeEmptyDirs>
               <outputDirectory>${project.build.outputDirectory}</outputDirectory>
               <resources>
                 <resource>
