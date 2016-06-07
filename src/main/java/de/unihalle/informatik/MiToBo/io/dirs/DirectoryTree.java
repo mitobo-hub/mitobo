@@ -112,6 +112,36 @@ public class DirectoryTree extends MTBTree {
 		return fileList;
 	}
 	
+//	public Vector<String> getSubdirectoryList() {
+//		
+//		// get root node data for easier access
+//		DirectoryTreeNodeData rootData = 
+//				(DirectoryTreeNodeData)(this.root.getData());
+//		
+//		// allocate memory for result
+//		Vector<String> subDirList= new Vector<String>();
+//		
+//		// add the directory itself
+//		subDirList.add(this.mainpath);
+//		
+//		// get children recursively and add each child to list
+//		Vector<MTBTreeNode> childs= this.root.getChilds();
+//		for (int i=0;i<childs.size();++i) {
+//			
+//			DirectoryTreeNodeData childdata= 
+//					(DirectoryTreeNodeData)(childs.get(i).getData());
+//
+//			System.out.println("Found " + this.mainpath + File.separator + childdata.getPath());
+//
+//			subDirList.add(this.mainpath + File.separator + childdata.getPath());
+//			Vector<String> childSubDirs = childdata.getSubtreeDirList();			
+//
+//			for (int j=0;j<childSubDirs.size();++j)
+//				subDirList.add(this.mainpath + File.separator + childSubDirs.get(j));
+//		}
+//		return subDirList;
+//	}
+	
 	/**
 	 * Builds the directory tree by initiating the (recursive) parse 
 	 * procedure.
@@ -134,7 +164,7 @@ public class DirectoryTree extends MTBTree {
 		
 		// sort list of files alphabetically
 		Arrays.sort(list);
-		
+
 		// iterate over the list
 		for (int i=0; i<list.length; i++) {
 			String name = list[i];
@@ -142,7 +172,7 @@ public class DirectoryTree extends MTBTree {
 			// insert all non-directories into the list
 			File g = new File(this.mainpath + File.separator + name);
 			if (!g.isDirectory()) {
-				thisRoot.addFile(this.mainpath + File.separator + name);
+				thisRoot.addFile(name);
 			}
 			// check if we have a directory
 			else if (g.isDirectory() && this.recursiveProcessing) {
@@ -181,26 +211,26 @@ public class DirectoryTree extends MTBTree {
 
 		// sort list of files alphabetically
 		Arrays.sort(list);
-
+		
 		// if so, first add .tif files to the list
 		MTBTreeNode node= new MTBTreeNode(ndir);
 		for (int i=0; i<list.length; i++) {
-			String name = list[i];
-//			boolean isImageFile = name.endsWith(".tif");
-			boolean isFile = new File(name).isFile();
+			String entryName = list[i];
+			String fullName = fullpath + File.separator + entryName;
+			boolean isFile = new File(fullName).isFile();
 			if (isFile) {
-				ndir.addFile(name);
+				ndir.addFile(entryName);
 			}
 			// check if we have a directory
 			else {
-				File g = new File(fullpath + File.separator + name);
+				File g = new File(fullName);
 				if (!g.isDirectory()) {
 					// found something unknown, neither file nor directory... 
 				}
 				else {
 					// recursive traversal
 					MTBTreeNode subNode = 
-							DirectoryTree.traverseSubdir(fullpath, name);
+							DirectoryTree.traverseSubdir(fullpath, entryName);
 					node.addChild(subNode);
 				}	
 			}
