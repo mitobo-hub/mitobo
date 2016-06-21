@@ -84,7 +84,7 @@ public class TestDirectoyTree {
 			files = testTree.getFileList();
 			
 			assertTrue("Expected to find four files, but found " 
-					+ files.size(),	files.size() == 4);
+					+ files.size(),	files.size() == 5);
 			file = files.get(0);
 			// throw away any absolute path above test folder
 			file = file.substring(file.indexOf("//")+2);
@@ -105,28 +105,56 @@ public class TestDirectoyTree {
 			file = files.get(3);
 			// throw away any absolute path above test folder
 			file = file.substring(file.indexOf("//")+2);
+			targetFile = 
+				"io/dirA/subDirAA/subSubDirAAB/subSubSubDirAABB/testFileAABB.txt";
+			assertTrue("Second file should be " + targetFile + ", but is " 
+					+ file,	file.equals(targetFile));
+			file = files.get(4);
+			// throw away any absolute path above test folder
+			file = file.substring(file.indexOf("//")+2);
 			targetFile = "io/dirA/subDirAB/testFileAB.txt";
 			assertTrue("Second file should be " + targetFile + ", but is " 
 					+ file,	file.equals(targetFile));
 
-			//			for (int i=0;i<subDirs.size();++i)
-//				System.out.println("i = " + i + ": " + subDirs.get(i));
-//			
-//			assertTrue("Expected to find five sub-directories, but found " 
-//					+ subDirs.size(), subDirs.size() == 5);
-//			String dir = subDirs.get(0);
-//			dir = ALDFilePathManipulator.removeLeadingDirectories(dir);
-//			assertTrue("First directory should be subDirAA, but is " + dir,
-//					dir.equals("subDirAA"));
-////			file = files.get(1);
-////			file = ALDFilePathManipulator.removeLeadingDirectories(file);
-////			assertTrue("Second file should be testFileA2.txt, but is " + file,
-////					file.equals("testFileA2.txt"));
+			// test getting list of sub-directories...
+			testTree = new DirectoryTree(testDir);
+			Vector<String> subDirs = testTree.getSubdirectoryList();
+			
+			assertTrue("Expected to find four sub-directories, but found " 
+					+ subDirs.size(), subDirs.size() == 4);
+			String dir = subDirs.get(0);
+			// throw away any absolute path above test folder
+			dir = dir.substring(dir.indexOf("//")+2);
+			String targetDir = "io/dirA/subDirAA";
+			assertTrue("First directory should be " + targetDir + ", but is " 
+					+ dir, dir.equals(targetDir));
+			
+			dir = subDirs.get(1);
+			// throw away any absolute path above test folder
+			dir = dir.substring(dir.indexOf("//")+2);
+			targetDir = "io/dirA/subDirAA/subSubDirAAB";
+			assertTrue("First directory should be " + targetDir + ", but is " 
+					+ dir, dir.equals(targetDir));
+			
+			dir = subDirs.get(2);
+			// throw away any absolute path above test folder
+			dir = dir.substring(dir.indexOf("//")+2);
+			targetDir = "io/dirA/subDirAA/subSubDirAAB/subSubSubDirAABB";
+			assertTrue("First directory should be " + targetDir + ", but is " 
+					+ dir, dir.equals(targetDir));
+
+			dir = subDirs.get(3);
+			// throw away any absolute path above test folder
+			dir = dir.substring(dir.indexOf("//")+2);
+			targetDir = "io/dirA/subDirAB";
+			assertTrue("First directory should be " + targetDir + ", but is " 
+					+ dir, dir.equals(targetDir));
 
 		} catch (URISyntaxException e) {
 			exceptionThrown = true;
 		}
-		assertFalse("Caught an exception on execution...!?", exceptionThrown);
+		assertFalse("Caught an exception on execution...!?", 
+				exceptionThrown);
 	}
 
 }
