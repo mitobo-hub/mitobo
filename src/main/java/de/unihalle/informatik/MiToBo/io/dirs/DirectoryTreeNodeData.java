@@ -156,6 +156,11 @@ public class DirectoryTreeNodeData extends MTBTreeNodeData {
 		return datalist;
 	}
 	
+	/**
+	 * Collects the list of all sub-directories of this directory.
+	 * 
+	 * @return	Complete sub-directory list with absolute paths.
+	 */
 	public Vector<String> getSubtreeDirList() {
 		
 		// allocate result list
@@ -166,19 +171,17 @@ public class DirectoryTreeNodeData extends MTBTreeNodeData {
 		
 		// get the strings from these childs recursively
 		for (int i=0;i<childs.size();++i) {
-
+			
 			DirectoryTreeNodeData clist= 
 					(DirectoryTreeNodeData)(childs.get(i).getData());
 			
-			System.out.println("Found " + clist.getPath());
 			datalist.add(clist.getPath());
 			
 			Vector<String> subdirs = clist.getSubtreeDirList();
 			
 			// append children paths to your own
 			for (int j=0;j<subdirs.size();++j) {
-				System.out.println("Found " + subdirs.get(j));
-				datalist.add(this.path + File.separator + subdirs.get(j));
+				datalist.add(subdirs.get(j));
 			}
 		}
 		return datalist;

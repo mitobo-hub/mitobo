@@ -113,35 +113,35 @@ public class DirectoryTree extends MTBTree {
 		return fileList;
 	}
 	
-//	public Vector<String> getSubdirectoryList() {
-//		
-//		// get root node data for easier access
-//		DirectoryTreeNodeData rootData = 
-//				(DirectoryTreeNodeData)(this.root.getData());
-//		
-//		// allocate memory for result
-//		Vector<String> subDirList= new Vector<String>();
-//		
-//		// add the directory itself
-//		subDirList.add(this.mainpath);
-//		
-//		// get children recursively and add each child to list
-//		Vector<MTBTreeNode> childs= this.root.getChilds();
-//		for (int i=0;i<childs.size();++i) {
-//			
-//			DirectoryTreeNodeData childdata= 
-//					(DirectoryTreeNodeData)(childs.get(i).getData());
-//
-//			System.out.println("Found " + this.mainpath + File.separator + childdata.getPath());
-//
-//			subDirList.add(this.mainpath + File.separator + childdata.getPath());
-//			Vector<String> childSubDirs = childdata.getSubtreeDirList();			
-//
-//			for (int j=0;j<childSubDirs.size();++j)
-//				subDirList.add(this.mainpath + File.separator + childSubDirs.get(j));
-//		}
-//		return subDirList;
-//	}
+	/**
+	 * Get a list of all subdirectories in the root folder.
+	 * <p>
+	 * Note that the result list includes directory names including
+	 * their complete absolute paths. 
+	 * <p>
+	 * The root folder by itself is not element of the list. 
+	 * 
+	 * @return	Vector containing all sub-directories with absolute paths.
+	 */
+	public Vector<String> getSubdirectoryList() {
+		
+		// allocate memory for result
+		Vector<String> subDirList= new Vector<String>();
+		
+		// get children recursively and add each child to list
+		Vector<MTBTreeNode> childs= this.root.getChilds();
+		for (int i=0;i<childs.size();++i) {
+			
+			DirectoryTreeNodeData childdata= 
+					(DirectoryTreeNodeData)(childs.get(i).getData());
+			subDirList.add(childdata.getPath());
+			
+			Vector<String> childSubDirs = childdata.getSubtreeDirList();			
+			for (int j=0;j<childSubDirs.size();++j)
+				subDirList.add(childSubDirs.get(j));
+		}
+		return subDirList;
+	}
 	
 	/**
 	 * Builds the directory tree by initiating the (recursive) parse 
