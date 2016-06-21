@@ -22,34 +22,24 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev$
- * $Date$
- * $Author$
- * 
- */
-
 package de.unihalle.informatik.MiToBo.io.dirs;
 
 import java.io.File;
 import java.util.*;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.core.datatypes.*;
 
 /**
- * Implements class TreeNodeData for DirectoryTree.
- * In particular, each node of the tree is associated
- * with an absolute path and a list of files. These
- * data are stored inside objects of this class.
+ * Implements class {@link MTBTreeNodeData} for the tree sub-class
+ * {@link DirectoryTree}.
+ * <p>
+ * In particular, each node of the tree is associated with an absolute 
+ * path and a list of file names. These data are stored inside objects 
+ * of this class which are attached to nodes of the tree.
  * 
  * @author moeller
  * @see MTBTreeNodeData
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class DirectoryTreeNodeData extends MTBTreeNodeData {
 
 	/**
@@ -59,6 +49,8 @@ public class DirectoryTreeNodeData extends MTBTreeNodeData {
 
 	/**
 	 * List of files (no subdirectories!) inside the directory.
+	 * <p> 
+	 * The strings in this list do not include the full paths.
 	 */
 	Vector<String> files;
 	
@@ -131,10 +123,10 @@ public class DirectoryTreeNodeData extends MTBTreeNodeData {
 	}
 	
 	/**
-	 * Collects the list of all files inside this 
-	 * directory AND inside all subdirectories.
+	 * Collects the list of all files inside this directory and also 
+	 * inside all subdirectories.
 	 * 
-	 * @return	complete file list with absolute paths
+	 * @return	Complete file list with absolute paths.
 	 */
 	public Vector<String> getSubtreeFileList() {
 		
@@ -158,7 +150,7 @@ public class DirectoryTreeNodeData extends MTBTreeNodeData {
 			
 			// append children paths to your own
 			for (int j=0;j<cpaths.size();++j) {
-				datalist.add(this.path + File.separator + cpaths.get(j));
+				datalist.add(cpaths.get(j));
 			}
 		}
 		return datalist;

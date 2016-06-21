@@ -31,11 +31,12 @@ import de.unihalle.informatik.MiToBo.core.datatypes.*;
 
 /**
  * This class implements a data structure for representing 
- * directory trees. It is based on a conventional tree
- * data structure, but provides methods for directly parsing a 
- * directory structure into the tree. Additionally, the class
- * provides methods for getting a list of all files 
- * in all directories below the given root directory.
+ * directory trees. 
+ * <p>
+ * It is based on a conventional tree data structure, but provides 
+ * methods for directly parsing a directory structure into the tree. 
+ * Additionally, the class provides methods for getting a list of all 
+ * files in all directories below the given root directory.
  * 
  * @author moeller
  * @see MTBTree
@@ -107,7 +108,7 @@ public class DirectoryTree extends MTBTree {
 			Vector<String> childlist= childdata.getSubtreeFileList();
 			
 			for (int j=0;j<childlist.size();++j)
-				fileList.add(this.mainpath + File.separator + childlist.get(j));
+				fileList.add(childlist.get(j));
 		}
 		return fileList;
 	}
@@ -170,9 +171,11 @@ public class DirectoryTree extends MTBTree {
 			String name = list[i];
 			
 			// insert all non-directories into the list
-			File g = new File(this.mainpath + File.separator + name);
+			String fullname = this.mainpath + File.separator + name;
+			File g = new File(fullname);
 			if (!g.isDirectory()) {
-				thisRoot.addFile(name);
+				// add file including the full path
+				thisRoot.addFile(fullname);
 			}
 			// check if we have a directory
 			else if (g.isDirectory() && this.recursiveProcessing) {
@@ -188,13 +191,10 @@ public class DirectoryTree extends MTBTree {
 	 * Recursive traversal of subdirectories.
 	 * 
 	 * @param path		Absolute path to parent directory.
-	 * @param subdir	The subdirectory to be analyzed.
+	 * @param subdir	The subdirectory name to be analyzed.
 	 * @return	Tree node for the subdirectory.
 	 */
 	private static MTBTreeNode traverseSubdir(String path, String subdir) {
-		
-		// data object for the new directory
-		DirectoryTreeNodeData ndir= new DirectoryTreeNodeData(subdir);
 		
 		// check if we really have a directory here
 		String fullpath= path + File.separator + subdir;
@@ -203,16 +203,19 @@ public class DirectoryTree extends MTBTree {
 			return null;
 		}
 		
+		// data object for the new directory
+		DirectoryTreeNodeData ndir= new DirectoryTreeNodeData(fullpath);
+		
 		// check if there are any files or subdirectories
 		String[] list = f.list();
 		if (list==null) {
 			return null;
 		}
 
-		// sort list of files alphabetically
+		// if so, sort list of files alphabetically...
 		Arrays.sort(list);
 		
-		// if so, first add .tif files to the list
+		// ... and add them to the list
 		MTBTreeNode node= new MTBTreeNode(ndir);
 		for (int i=0; i<list.length; i++) {
 			String entryName = list[i];
