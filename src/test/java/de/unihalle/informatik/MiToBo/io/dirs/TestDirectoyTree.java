@@ -35,7 +35,6 @@ import java.util.Vector;
 import org.junit.Before;
 import org.junit.Test;
 
-import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.helpers.ALDFilePathManipulator;
 
 /**
@@ -53,6 +52,9 @@ public class TestDirectoyTree {
 		// nothing to do here
 	}
 	
+	/**
+	 * Test the functionality of {@link DirectoryTree}.
+	 */
 	@Test
 	public void testDirectoryTree() {		
 		
@@ -79,22 +81,47 @@ public class TestDirectoyTree {
 
 			// test recursive processing
 			testTree = new DirectoryTree(testDir);
-			testTree.printTree();
-			Vector<String> subDirs = testTree.getSubdirectoryList();
+			files = testTree.getFileList();
 			
-			for (int i=0;i<subDirs.size();++i)
-				System.out.println("i = " + i + ": " + subDirs.get(i));
-			
-			assertTrue("Expected to find five sub-directories, but found " 
-					+ subDirs.size(), subDirs.size() == 5);
-			String dir = subDirs.get(0);
-			dir = ALDFilePathManipulator.removeLeadingDirectories(dir);
-			assertTrue("First directory should be subDirAA, but is " + dir,
-					dir.equals("subDirAA"));
-//			file = files.get(1);
-//			file = ALDFilePathManipulator.removeLeadingDirectories(file);
-//			assertTrue("Second file should be testFileA2.txt, but is " + file,
-//					file.equals("testFileA2.txt"));
+			assertTrue("Expected to find four files, but found " 
+					+ files.size(),	files.size() == 4);
+			file = files.get(0);
+			// throw away any absolute path above test folder
+			file = file.substring(file.indexOf("//")+2);
+			assertTrue("First file should be io/dirA/testFileA.txt, but is " 
+					+ file,	file.equals("io/dirA/testFileA1.txt"));
+			file = files.get(1);
+			// throw away any absolute path above test folder
+			file = file.substring(file.indexOf("//")+2);
+			assertTrue("Second file should be io/dirA/testFileA2.txt, but is " 
+					+ file,	file.equals("io/dirA/testFileA2.txt"));
+			file = files.get(2);
+			// throw away any absolute path above test folder
+			file = file.substring(file.indexOf("//")+2);
+			String targetFile = 
+					"io/dirA/subDirAA/subSubDirAAB/testFileAAB.txt";
+			assertTrue("Second file should be " + targetFile + ", but is " 
+					+ file,	file.equals(targetFile));
+			file = files.get(3);
+			// throw away any absolute path above test folder
+			file = file.substring(file.indexOf("//")+2);
+			targetFile = "io/dirA/subDirAB/testFileAB.txt";
+			assertTrue("Second file should be " + targetFile + ", but is " 
+					+ file,	file.equals(targetFile));
+
+			//			for (int i=0;i<subDirs.size();++i)
+//				System.out.println("i = " + i + ": " + subDirs.get(i));
+//			
+//			assertTrue("Expected to find five sub-directories, but found " 
+//					+ subDirs.size(), subDirs.size() == 5);
+//			String dir = subDirs.get(0);
+//			dir = ALDFilePathManipulator.removeLeadingDirectories(dir);
+//			assertTrue("First directory should be subDirAA, but is " + dir,
+//					dir.equals("subDirAA"));
+////			file = files.get(1);
+////			file = ALDFilePathManipulator.removeLeadingDirectories(file);
+////			assertTrue("Second file should be testFileA2.txt, but is " + file,
+////					file.equals("testFileA2.txt"));
 
 		} catch (URISyntaxException e) {
 			exceptionThrown = true;
