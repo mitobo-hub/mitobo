@@ -25,6 +25,8 @@
 
 package de.unihalle.informatik.MiToBo.core.datatypes.interfaces;
 
+import ij.gui.Roi;
+
 /**
  * Interface for MiToBo data types which can be exported to ImageJ ROIs.
  * 
@@ -32,6 +34,9 @@ package de.unihalle.informatik.MiToBo.core.datatypes.interfaces;
  */
 public interface MTBDataExportableToImageJROI {
 	
-	// This interface exists for structuring data type hierarchies.
-	
+	/**
+	 * Function to convert object to ImageJ ROI or set of ROIs.
+	 * @return Array of ROIs.
+	 */
+	public abstract Roi[] convertToImageJRoi();
 }

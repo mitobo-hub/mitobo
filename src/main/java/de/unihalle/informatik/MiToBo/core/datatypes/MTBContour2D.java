@@ -26,6 +26,8 @@ package de.unihalle.informatik.MiToBo.core.datatypes;
 
 import ij.ImagePlus;
 import ij.gui.NewImage;
+import ij.gui.PolygonRoi;
+import ij.gui.Roi;
 import ij.process.ImageProcessor;
 
 import java.awt.Color;
@@ -389,6 +391,26 @@ public class MTBContour2D extends MTBBorder2D
 				return resultRegion.elementAt(0);
 		}
 
+		/* (non-Javadoc)
+		 * @see de.unihalle.informatik.MiToBo.core.datatypes.interfaces.MTBDataExportableToImageJROI#convertToImageJRoi()
+		 */
+		@Override
+		public PolygonRoi[] convertToImageJRoi() {
+
+			int[] xPoints = new int[this.getPointNum()];
+			int[] yPoints = new int[this.getPointNum()];
+			Vector<Point2D.Double> pts = this.getPoints();
+			int i = 0;
+			for (Point2D.Double p : pts) {
+				xPoints[i] = (int) (p.x);
+				yPoints[i] = (int) (p.y);
+				++i;
+			}
+			PolygonRoi p = 
+				new PolygonRoi(xPoints, yPoints, pts.size(), Roi.POLYGON);
+			return new PolygonRoi[]{p};
+		}
+		
 		/**
 		 * Method to save a contour with all inner contours on a binary image with
 		 * specific width and height.

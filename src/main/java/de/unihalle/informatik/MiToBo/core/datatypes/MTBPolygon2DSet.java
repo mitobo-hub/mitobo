@@ -37,6 +37,7 @@ import de.unihalle.informatik.Alida.operator.ALDData;
 import de.unihalle.informatik.Alida.operator.ALDOperator;
 import de.unihalle.informatik.MiToBo_xml.*;
 import de.unihalle.informatik.MiToBo_xml.impl.*;
+import ij.gui.PolygonRoi;
 import de.unihalle.informatik.MiToBo.core.datatypes.interfaces.MTBDataExportableToImageJROI;
 import de.unihalle.informatik.MiToBo.core.operator.*;
 import de.unihalle.informatik.MiToBo.segmentation.snakes.datatypes.MTBSnake;
@@ -528,4 +529,18 @@ public class MTBPolygon2DSet extends ALDData
 				this.xMax + "," + this.yMax + "] )");
 	}
 
+	/* (non-Javadoc)
+	 * @see de.unihalle.informatik.MiToBo.core.datatypes.interfaces.MTBDataExportableToImageJROI#convertToImageJRoi()
+	 */
+	@Override
+	public PolygonRoi[] convertToImageJRoi() {
+		
+		PolygonRoi[] rois = new PolygonRoi[this.polygonSet.size()];
+		int n = 0;
+		for (MTBPolygon2D p: this.polygonSet) {
+			rois[n] = p.convertToImageJRoi()[0];
+			++n;
+		}
+		return rois;		
+	}
 }

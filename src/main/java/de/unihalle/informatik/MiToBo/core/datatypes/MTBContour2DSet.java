@@ -37,6 +37,7 @@ import de.unihalle.informatik.Alida.operator.ALDOperator;
 import de.unihalle.informatik.MiToBo.core.datatypes.interfaces.MTBDataExportableToImageJROI;
 import de.unihalle.informatik.MiToBo.core.exceptions.MTBDatatypeException;
 import de.unihalle.informatik.MiToBo_xml.*;
+import ij.gui.PolygonRoi;
 
 /**
  * A set of 2D contours living in a common domain which is a rectangular subset
@@ -418,5 +419,20 @@ public class MTBContour2DSet extends ALDData
 						}
 				}
 				return contour;
+		}
+    
+		/* (non-Javadoc)
+		 * @see de.unihalle.informatik.MiToBo.core.datatypes.interfaces.MTBDataExportableToImageJROI#convertToImageJRoi()
+		 */
+		@Override
+		public PolygonRoi[] convertToImageJRoi() {
+			
+			PolygonRoi[] rois = new PolygonRoi[this.contourSet.size()];
+			int n = 0;
+			for (MTBContour2D c: this.contourSet) {
+				rois[n] = c.convertToImageJRoi()[0];
+				++n;
+			}
+			return rois;		
 		}
 }

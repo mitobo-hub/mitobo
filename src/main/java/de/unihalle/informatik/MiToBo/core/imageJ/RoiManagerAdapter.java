@@ -22,15 +22,6 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev$
- * $Date$
- * $Author$
- * 
- */
-
 package de.unihalle.informatik.MiToBo.core.imageJ;
 
 import ij.gui.PolygonRoi;
@@ -108,27 +99,17 @@ public class RoiManagerAdapter {
 		/**
 		 * Adds the given polygon to the ROI manager.
 		 * 
-		 * @param poly
-		 *          Polygon to be added to ROI manager.
+		 * @param poly Polygon to be added to ROI manager.
 		 */
 		public void addPolygonToRoiManager(MTBPolygon2D poly) {
-				// get the current ROI manager from ImageJ environment
-				openRoiManager();
-				int[] xPoints = new int[poly.getPointNum()];
-				int[] yPoints = new int[poly.getPointNum()];
-				Vector<Point2D.Double> pts = poly.getPoints();
-				int i = 0;
-				double scaleFactor = 1.0;
-				if (poly.getClass() == MTBSnake.class) {
-						scaleFactor = ((MTBSnake) poly).getScaleFactor();
-				}
-				for (Point2D.Double p : pts) {
-						xPoints[i] = (int) (p.x * scaleFactor);
-						yPoints[i] = (int) (p.y * scaleFactor);
-						++i;
-				}
-				PolygonRoi pr = new PolygonRoi(xPoints, yPoints, pts.size(), Roi.POLYGON);
-				this.roiManager.addRoi(pr);
+			// get the current ROI manager from ImageJ environment
+			openRoiManager();
+			
+			// get ImageJ polygon ROI
+			PolygonRoi pr = poly.convertToImageJRoi()[0];
+
+			// add to ROI manager
+			this.roiManager.addRoi(pr);
 		}
 
 		/**
@@ -145,7 +126,8 @@ public class RoiManagerAdapter {
 				// for (MTBPolygon2D poly: polys)
 				// addPolygonToRoiManager(poly);
 				openRoiManager();
-				MTBPolygon2DSetROI rois = new MTBPolygon2DSetROI(polys, "MTBPolygon2DSet");
+				MTBPolygon2DSetROI rois = 
+						new MTBPolygon2DSetROI(polys, "MTBPolygon2DSet");
 				this.roiManager.addRoi(rois);
 		}
 
@@ -157,7 +139,8 @@ public class RoiManagerAdapter {
 		 */
 		public void addRegionsToRoiManager(MTBRegion2DSet regs) {
 				openRoiManager();
-				MTBRegion2DSetROI rois = new MTBRegion2DSetROI(regs, "MTBRegion2DSet");
+				MTBRegion2DSetROI rois = 
+						new MTBRegion2DSetROI(regs, "MTBRegion2DSet");
 				this.roiManager.addRoi(rois);
 		}
 
@@ -169,7 +152,8 @@ public class RoiManagerAdapter {
 		 */
 		public void addContoursToRoiManager(MTBContour2DSet conts) {
 				openRoiManager();
-				MTBContour2DSetROI rois = new MTBContour2DSetROI(conts, "MTBContour2DSet");
+				MTBContour2DSetROI rois = 
+						new MTBContour2DSetROI(conts, "MTBContour2DSet");
 				this.roiManager.addRoi(rois);
 		}
 		
@@ -181,7 +165,8 @@ public class RoiManagerAdapter {
 		 */
 		public void addBordersToRoiManager(MTBBorder2DSet borders) {
 				openRoiManager();
-				MTBBorder2DSetROI rois = new MTBBorder2DSetROI(borders, "MTBBorder2DSet");
+				MTBBorder2DSetROI rois = 
+						new MTBBorder2DSetROI(borders, "MTBBorder2DSet");
 				this.roiManager.addRoi(rois);
 		}
 		
@@ -190,8 +175,8 @@ public class RoiManagerAdapter {
 		 * 
 		 * @param file	Input file.
 		 * @return Set of regions; always non-null, but probably empty.
-		 * @throws ALDOperatorException
-		 * @throws ALDProcessingDAGException
+		 * @throws ALDOperatorException Thrown in case of failure.
+		 * @throws ALDProcessingDAGException Thrown in case of failure.
 		 */
 		public MTBRegion2DSet getRegionSetFromRoiFile(String file) 
 				throws ALDOperatorException, ALDProcessingDAGException {
@@ -210,8 +195,8 @@ public class RoiManagerAdapter {
 		 * @param xMax	Maximal x value of user-specified domain.
 		 * @param yMax	Maximal y value of user-specified domain.
 		 * @return Set of regions; always non-null, but probably empty.
-		 * @throws ALDOperatorException
-		 * @throws ALDProcessingDAGException
+		 * @throws ALDOperatorException Thrown in case of failure.
+		 * @throws ALDProcessingDAGException Thrown in case of failure.
 		 */
 		public MTBRegion2DSet getRegionSetFromRoiFile(String file, 
 			double xMin, double yMin, double xMax, double yMax) 
@@ -234,8 +219,8 @@ public class RoiManagerAdapter {
 		 * @param asSnakes
 		 *          If true, function returns snakes, otherwise polygons.
 		 * @return Set of polygons/snakes; always non-null, but probably empty.
-		 * @throws ALDOperatorException
-		 * @throws ALDProcessingDAGException
+		 * @throws ALDOperatorException Thrown in case of failure.
+		 * @throws ALDProcessingDAGException Thrown in case of failure.
 		 */
 		public MTBPolygon2DSet getPolygonSetFromRoiFile(String file, boolean asSnakes)
 				throws ALDOperatorException, ALDProcessingDAGException {
@@ -852,9 +837,9 @@ public class RoiManagerAdapter {
 			/**
 			 * Default constructor.
 			 * 
-			 * @param infile		Input filename.
-			 * @param roi				Flag for indicating if file contains ImageJ roi's.
-			 * @throws ALDOperatorException
+			 * @param infile	Input filename.
+			 * @param tFormat	Target format to return.
+			 * @throws ALDOperatorException Thrown in case of failure.
 			 */
 			public RoiReader(String infile, TargetFormat tFormat)
 					throws ALDOperatorException {

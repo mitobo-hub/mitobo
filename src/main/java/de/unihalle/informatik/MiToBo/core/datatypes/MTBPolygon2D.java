@@ -26,6 +26,8 @@ package de.unihalle.informatik.MiToBo.core.datatypes;
 
 import ij.ImagePlus;
 import ij.gui.NewImage;
+import ij.gui.PolygonRoi;
+import ij.gui.Roi;
 import ij.process.ImageProcessor;
 
 import java.awt.Polygon;
@@ -38,6 +40,7 @@ import de.unihalle.informatik.Alida.operator.ALDData;
 import de.unihalle.informatik.MiToBo.core.datatypes.defines.MTBConstants;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.*;
 import de.unihalle.informatik.MiToBo.core.datatypes.interfaces.MTBDataExportableToImageJROI;
+import de.unihalle.informatik.MiToBo.segmentation.snakes.datatypes.MTBSnake;
 
 /**
  * Polygon datatype with double precision.
@@ -1287,6 +1290,29 @@ public class MTBPolygon2D extends ALDData
     }
   }
 
+  /* (non-Javadoc)
+   * @see de.unihalle.informatik.MiToBo.core.datatypes.interfaces.MTBDataExportableToImageJROI#convertToRoi()
+   */
+  @Override
+	public PolygonRoi[] convertToImageJRoi() {
+		int[] xPoints = new int[this.getPointNum()];
+		int[] yPoints = new int[this.getPointNum()];
+		Vector<Point2D.Double> pts = this.getPoints();
+		int i = 0;
+		double scaleFactor = 1.0;
+		if (this.getClass() == MTBSnake.class) {
+			scaleFactor = ((MTBSnake)this).getScaleFactor();
+		}
+		for (Point2D.Double p : pts) {
+			xPoints[i] = (int) (p.x * scaleFactor);
+			yPoints[i] = (int) (p.y * scaleFactor);
+			++i;
+		}
+		PolygonRoi p = 
+			new PolygonRoi(xPoints, yPoints, pts.size(), Roi.POLYGON);
+		return new PolygonRoi[]{p}; 
+	}
+  
   /**
    * Helper class for function simplify().
    * <p>
