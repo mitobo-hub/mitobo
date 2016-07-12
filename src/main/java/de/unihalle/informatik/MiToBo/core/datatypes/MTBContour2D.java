@@ -40,6 +40,7 @@ import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageByte;
+import de.unihalle.informatik.MiToBo.core.datatypes.interfaces.MTBDataExportableToImageJROI;
 import de.unihalle.informatik.MiToBo.core.exceptions.MTBDatatypeException;
 import de.unihalle.informatik.MiToBo.core.exceptions.MTBDatatypeException.DatatypeExceptionType;
 import de.unihalle.informatik.MiToBo.segmentation.regions.labeling.LabelComponentsSequential;
@@ -56,7 +57,8 @@ import de.unihalle.informatik.MiToBo.segmentation.regions.labeling.LabelComponen
  */
 @ALDDerivedClass
 @ALDParametrizedClass
-public class MTBContour2D extends MTBBorder2D {
+public class MTBContour2D extends MTBBorder2D 
+	implements MTBDataExportableToImageJROI {
 
 		/**
 		 * The contour pixels.
@@ -307,7 +309,8 @@ public class MTBContour2D extends MTBBorder2D {
 		 * @param imageSizeY
 		 *          height of image that includes the region
 		 * @return 2D region included in the 2D contour.
-		 * @throws ALDOperatorException
+		 * @throws ALDOperatorException Thrown in case of failure.
+		 * @throws ALDProcessingDAGException Thrown in case of failure.
 		 */
 		// ToDo use contains method from Polygon2D if method was tuned up
 		public MTBRegion2D getRegion(int imageSizeX, int imageSizeY)

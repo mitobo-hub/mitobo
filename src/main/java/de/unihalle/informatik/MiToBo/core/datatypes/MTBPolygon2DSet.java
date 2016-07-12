@@ -22,15 +22,6 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev$
- * $Date$
- * $Author$
- * 
- */
-
 package de.unihalle.informatik.MiToBo.core.datatypes;
 
 import java.util.*;
@@ -46,7 +37,7 @@ import de.unihalle.informatik.Alida.operator.ALDData;
 import de.unihalle.informatik.Alida.operator.ALDOperator;
 import de.unihalle.informatik.MiToBo_xml.*;
 import de.unihalle.informatik.MiToBo_xml.impl.*;
-import de.unihalle.informatik.MiToBo.core.exceptions.*;
+import de.unihalle.informatik.MiToBo.core.datatypes.interfaces.MTBDataExportableToImageJROI;
 import de.unihalle.informatik.MiToBo.core.operator.*;
 import de.unihalle.informatik.MiToBo.segmentation.snakes.datatypes.MTBSnake;
 import de.unihalle.informatik.MiToBo.segmentation.snakes.datatypes.MTBSnakePoint2D;
@@ -62,7 +53,8 @@ import de.unihalle.informatik.MiToBo.segmentation.snakes.datatypes.MTBSnakePoint
  * @author Stefan Posch
  */
 @ALDParametrizedClass
-public class MTBPolygon2DSet extends ALDData implements Cloneable {
+public class MTBPolygon2DSet extends ALDData 
+	implements Cloneable, MTBDataExportableToImageJROI {
 
 	/**
 	 * Debug flag for internal use only.

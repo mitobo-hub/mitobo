@@ -34,6 +34,7 @@ import de.unihalle.informatik.Alida.annotations.ALDParametrizedClass;
 import de.unihalle.informatik.Alida.exceptions.*;
 import de.unihalle.informatik.Alida.operator.ALDData;
 import de.unihalle.informatik.Alida.operator.ALDOperator;
+import de.unihalle.informatik.MiToBo.core.datatypes.interfaces.MTBDataExportableToImageJROI;
 import de.unihalle.informatik.MiToBo.core.exceptions.MTBDatatypeException;
 import de.unihalle.informatik.MiToBo_xml.*;
 
@@ -45,7 +46,8 @@ import de.unihalle.informatik.MiToBo_xml.*;
  * @author Stefan Posch
  */
 @ALDParametrizedClass
-public class MTBContour2DSet extends ALDData implements Cloneable {
+public class MTBContour2DSet extends ALDData 
+	implements Cloneable, MTBDataExportableToImageJROI {
 		// subset of R x R
 		/**
 		 * Minimal x coordinate of the domain of this contour set.

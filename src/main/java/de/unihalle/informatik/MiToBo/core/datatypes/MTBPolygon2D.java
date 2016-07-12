@@ -37,6 +37,7 @@ import de.unihalle.informatik.Alida.annotations.ALDParametrizedClass;
 import de.unihalle.informatik.Alida.operator.ALDData;
 import de.unihalle.informatik.MiToBo.core.datatypes.defines.MTBConstants;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.*;
+import de.unihalle.informatik.MiToBo.core.datatypes.interfaces.MTBDataExportableToImageJROI;
 
 /**
  * Polygon datatype with double precision.
@@ -65,7 +66,8 @@ import de.unihalle.informatik.MiToBo.core.datatypes.images.*;
  * @author moeller, misiak
  */
 @ALDParametrizedClass
-public class MTBPolygon2D extends ALDData implements Cloneable {
+public class MTBPolygon2D extends ALDData 
+	implements Cloneable, MTBDataExportableToImageJROI {
 
   /**
    * List of polygon points.
@@ -151,6 +153,7 @@ public class MTBPolygon2D extends ALDData implements Cloneable {
 
   /**
    * Returns true if the polygon forms a closed polygon.
+   * @return True if polygon is closed.
    */
   public boolean isClosed() {
     return this.isClosed;
@@ -250,6 +253,10 @@ public class MTBPolygon2D extends ALDData implements Cloneable {
     return area / 2.0;
   }
 
+  /**
+   * Get the length of the polygon.
+   * @return Length of polygon, i.e. sum of lengths of all segments.
+   */
   public double getLength() {
   	double length = 0;
     for (int i = 0; i <= this.points.size() - 2; ++i) {
@@ -900,6 +907,7 @@ public class MTBPolygon2D extends ALDData implements Cloneable {
    * between p and q.
    * 
    * </pre>
+   * @param segmentLength Target length of segments in resampling.
    */
   public void resample(double segmentLength) {
     // number of points in the current polygon
@@ -1216,8 +1224,8 @@ public class MTBPolygon2D extends ALDData implements Cloneable {
   /**
    * Draw a polygon into an image.
    * 
-   * @param img
-   *          Image where to draw the polygon into.
+   * @param img			Image where to draw the polygon into.
+   * @param color 	Color in which to draw the polygon.
    */
   public void drawPolygon(MTBImage img, int color) {
 
