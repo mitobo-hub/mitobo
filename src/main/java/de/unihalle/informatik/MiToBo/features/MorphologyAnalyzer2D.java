@@ -1146,6 +1146,13 @@ public class MorphologyAnalyzer2D extends MTBOperator
 		if (this.createCurvatureInfoImage) {
 			this.curvatureInfoImg = (MTBImageRGB)MTBImage.createMTBImage(
 					width, height, 1, 1, 1, MTBImageType.MTB_RGB);
+			for (int y=0;y<height;++y) {
+				for (int x=0;x<width;++x) {
+					this.curvatureInfoImg.putValueR(x, y, 200);
+					this.curvatureInfoImg.putValueG(x, y, 200);
+					this.curvatureInfoImg.putValueB(x, y, 200);                                               					
+				}
+			}
 			this.curvatureInfoImg.setTitle("Curvatures of <" +
 					this.labelImg.getTitle() + ">, threshold = " + 1.0);
 		}
@@ -1308,19 +1315,19 @@ public class MorphologyAnalyzer2D extends MTBOperator
 						}
 						++j;
 					}
-					int yellow = ((255 & 0xff)<<16)+((255 & 0xff)<<8) + (0 & 0xff);
+					int blue = ((0 & 0xff)<<16)+((0 & 0xff)<<8) + (255 & 0xff);
 					for (int k=0; k<inflections.size()-1; ++k) {
 						int sx = (int)inflections.get(k).x;
 						int sy = (int)inflections.get(k).y;
 						int ex = (int)inflections.get(k+1).x;
 						int ey = (int)inflections.get(k+1).y;
-						this.curvatureInfoImg.drawLine2D(sx, sy, ex, ey, yellow);
+						this.curvatureInfoImg.drawLine2D(sx, sy, ex, ey, blue);
 					}
 					int sx = (int)inflections.get(inflections.size()-1).x;
 					int sy = (int)inflections.get(inflections.size()-1).y;
 					int ex = (int)inflections.get(0).x;
 					int ey = (int)inflections.get(0).y;
-					this.curvatureInfoImg.drawLine2D(sx, sy, ex, ey, yellow);
+					this.curvatureInfoImg.drawLine2D(sx, sy, ex, ey, blue);
 				}
 
 	    	// create polygon defined by inflection points, parts of the 
@@ -1339,9 +1346,9 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	    				++nonLobeArea;
 	    				// mark non-lobe area in image
 	    				if (this.createCurvatureInfoImage) {
-								this.curvatureInfoImg.putValueR(x, y, 100);
-								this.curvatureInfoImg.putValueG(x, y, 100);
-								this.curvatureInfoImg.putValueB(x, y, 200);                                               
+								this.curvatureInfoImg.putValueR(x, y, 125);
+								this.curvatureInfoImg.putValueG(x, y, 125);
+								this.curvatureInfoImg.putValueB(x, y, 125);                                               
 	    				}
 	    			}
 	    		}

@@ -84,6 +84,12 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 	private static final String operatorID = "[Region2DSkeletonAnalyzer]";
 	
 	/**
+	 * Definition of red color.
+	 */
+	private static final int red = 
+			((255 & 0xff)<<16)+((0 & 0xff)<<8) + (0 & 0xff);
+
+	/**
 	 * Definition of yellow color.
 	 */
 	private static final int yellow = 
@@ -280,15 +286,26 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 			// init info image
 			this.analysisDisplayImg = (MTBImageRGB)MTBImage.createMTBImage(
 					this.width, this.height, 1, 1, 1, MTBImageType.MTB_RGB);
-			int grayVal;
+			// fill image with value = 200
+			int grayVal = 200;			
+			for (int y=0; y<this.height; ++y) {
+				for (int x=0; x<this.width; ++x) {
+					this.analysisDisplayImg.putValue(x, y,
+							grayVal, grayVal, grayVal);
+				}
+			}
+			// mark skeleton in red
 			for (int y=0; y<this.height; ++y) {
 				for (int x=0; x<this.width; ++x) {
 					grayVal = this.inImg.getValueInt(x, y);
-					this.analysisDisplayImg.putValue(x, y, 
+					if (grayVal == 0) 
+						this.analysisDisplayImg.putValue(x, y, 
 							grayVal, grayVal, grayVal);
-					// mark skeleton pixels in yellow
+					else
+						this.analysisDisplayImg.putValue(x, y, 125, 125, 125);						
+					// mark skeleton pixels in red
 					if (skelImg.getValueInt(x, y) > 0)
-						this.analysisDisplayImg.putValueInt(x, y, yellow);
+						this.analysisDisplayImg.putValueInt(x, y, red);
 				}
 			}
 		}
