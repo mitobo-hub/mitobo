@@ -154,7 +154,25 @@ public class MorphologyAnalyzer2D extends MTBOperator
 		/**
 		 * Length of longest path in skeleton.
 		 */
-		LongestPathLength
+		LongestPathLength,
+		/**
+		 * Area of convex hull in pixels.
+		 */
+		ConvexHullArea,
+		/**
+		 * Perimeter of convex hull, i.e., number of contour pixels of convex
+		 * hull given 8-neighborhood along contour.
+		 */
+		ConvexHullPerimeter,
+		/**
+		 * Ratio of convex hull perimeter and region perimeter.
+		 */
+		ConvexHullConvexity,
+		/**
+		 * Same as circularity, but with perimeter of convex hull instead of
+		 * region perimeter.
+		 */
+		ConvexHullRoundness
 	}
 
 	@Parameter(label = "label image", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "label image", dataIOOrder = 0,
@@ -166,10 +184,10 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	
 	//analysis parameters
 	@Parameter(label = "pixel length, x-direction", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "pixel length in x-direction", dataIOOrder = 2)
-	private Double deltaX = 1.0;
+	private Double deltaX = new Double(1.0);
 	
 	@Parameter(label = "pixel length, y-direction", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "pixel length in y-direction", dataIOOrder = 3)
-	private Double deltaY = 1.0;
+	private Double deltaY = new Double(1.0);
 	
 	@Parameter(label = "unit x/y", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "unit x/y", dataIOOrder = 4)
 	private String unitXY = "pixel";
@@ -273,6 +291,16 @@ public class MorphologyAnalyzer2D extends MTBOperator
 		description = "Size of local mask in concavity calculations.") 
 	private int concavityMaskSize = 11;
 
+	/**
+	 * Flag to turn on/off analysis of convex hull.
+	 */
+	@Parameter(label = "calculate convex hull measures", 
+		required = false, direction = Parameter.Direction.IN, 
+		supplemental = false, dataIOOrder = 18,
+		description = "If true some measures of the convex hull "
+			+ "are calculated.")
+	private boolean calcConvexHullMeasures = true;
+
 	@Parameter(label = "fractional digits", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "fractional digits", dataIOOrder = 17, mode=ExpertMode.ADVANCED)
 	private Integer fracDigits = 3;
 	
@@ -339,6 +367,10 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	private Vector<Double> avgNeckDepths;
 	private Vector<Double> nonLobeAreaRatios;
 	private Vector<Integer> longestPathLengths;
+	private Vector<Integer> convexHullAreas;
+	private Vector<Integer> convexHullPerimeters;
+	private Vector<Double> convexHullConvexities;
+	private Vector<Double> convexHullRoundnessValues;
 	
 	private MTBRegion2DSet regions = null;
 	private MTBImage labelImg = null;
@@ -453,6 +485,10 @@ public class MorphologyAnalyzer2D extends MTBOperator
 		this.avgNeckDepths = new Vector<Double>();
 		this.nonLobeAreaRatios = new Vector<Double>();
 		this.longestPathLengths = new Vector<Integer>();
+		this.convexHullAreas = new Vector<Integer>();
+		this.convexHullPerimeters = new Vector<Integer>();
+		this.convexHullConvexities = new Vector<Double>();
+		this.convexHullRoundnessValues = new Vector<Double>();
 
 		this.fireOperatorExecutionProgressEvent(
 				new ALDOperatorExecutionProgressEvent(this, operatorID 
@@ -467,14 +503,14 @@ public class MorphologyAnalyzer2D extends MTBOperator
 			this.labels.add(cid);
 			
 			// area
-			if(this.calcArea)
+			if(this.calcArea || this.calcSolidity || this.calcConvexHullMeasures)
 			{
 				double a = cr.getArea() * factor;
-				this.areas.add(a);
+				this.areas.add(new Double(a));
 			}
 			
 			// perimeter
-			if(this.calcPerimeter)
+			if(this.calcPerimeter || this.calcConvexHullMeasures)
 			{
 				double p = 0;
 				
@@ -552,10 +588,20 @@ public class MorphologyAnalyzer2D extends MTBOperator
 				new ALDOperatorExecutionProgressEvent(this, operatorID 
 					+ " calculating solidities..."));
 
+		// measure based on convex hull
+		if (this.calcConvexHullMeasures || this.calcSolidity) {
+			this.calculateConvexHulls();
+		}
+		
 		// solidities
 		if(this.calcSolidity)
 		{
 			this.calculateSolidityValues();
+		}
+		
+		// convex hull convexities and roundness values
+		if (this.calcConvexHullMeasures) {
+			this.calculateConvexHullMeasures();
 		}
 		
 		this.fireOperatorExecutionProgressEvent(
@@ -653,6 +699,14 @@ public class MorphologyAnalyzer2D extends MTBOperator
 			header.add(FeatureNames.AvgNeckDepth.toString());
 			header.add(FeatureNames.NonLobeAreaRatio.toString());
 		}
+		if (this.calcConvexHullMeasures) {
+			header.add(FeatureNames.ConvexHullArea.toString() 
+					+ " ("+ this.unitXY + "^2)");
+			header.add(FeatureNames.ConvexHullPerimeter.toString() 
+					+ " ("+ this.unitXY + ")");
+			header.add(FeatureNames.ConvexHullConvexity.toString());
+			header.add(FeatureNames.ConvexHullRoundness.toString());
+		}
 		
 		int n = this.regions.size();
 		
@@ -739,6 +793,20 @@ public class MorphologyAnalyzer2D extends MTBOperator
 				this.table.setValueAt(this.nf.format(
 						this.nonLobeAreaRatios.elementAt(i)), i, col);
 				col++;
+			}
+			if (this.calcConvexHullMeasures) {
+				this.table.setValueAt(this.nf.format(
+						this.convexHullAreas.elementAt(i)), i, col);
+				col++;
+				this.table.setValueAt(this.nf.format(
+						this.convexHullPerimeters.elementAt(i)), i, col);
+				col++;
+				this.table.setValueAt(this.nf.format(
+						this.convexHullConvexities.elementAt(i)), i, col);
+				col++;
+				this.table.setValueAt(this.nf.format(
+						this.convexHullRoundnessValues.elementAt(i)), i, col);
+				col++;				
 			}
 		}
 	}
@@ -1030,6 +1098,15 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	 */
 	public void setConcavityMaskSize(int m) {
 		this.concavityMaskSize = m;
+	}
+	
+	/**
+	 * Turn on/off calculation of convex hull measures. 
+	 * @param flag If true, convex hull measures are calculated.
+	 */
+	public void setCalcConvexHullMeasures(boolean flag) 
+	{
+		this.calcConvexHullMeasures = flag;
 	}
 	
 	/**
@@ -1527,12 +1604,12 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	}
 	
 	/**
-	 * Calculates solidity values.
+	 * Calculates convex hull areas and perimeters.
 	 * @throws ALDOperatorException	Thrown in case of failure.
 	 * @throws ALDProcessingDAGException
 	 * 		Thrown in case of problems with processing history.
 	 */
-	private void calculateSolidityValues() 
+	private void calculateConvexHulls() 
 			throws ALDOperatorException, ALDProcessingDAGException {
 		ConvexHullExtraction convHullOp = new ConvexHullExtraction();
 		convHullOp.setInputType(InputType.REGIONS);
@@ -1543,7 +1620,6 @@ public class MorphologyAnalyzer2D extends MTBOperator
 
 		int width = hullImage.getSizeX();
 		int height = hullImage.getSizeY();
-		int i=0;
 		ImagePlus img = NewImage.createByteImage("", width, height, 1,
 				NewImage.FILL_WHITE);
 		ImageProcessor ip = img.getProcessor();
@@ -1569,23 +1645,73 @@ public class MorphologyAnalyzer2D extends MTBOperator
 
 			// determine size of hull area
 			int hullArea = 0;
+			int hullPerimeter = 0;
 			for (int y = 0; y < height; ++y) {
 				for (int x = 0; x < width; ++x) {
-					if (ip.getPixel(x, y) == 0)
+					if (ip.getPixel(x, y) == 0) {
 						// polygon inner area
 						++hullArea;
+						// check if pixel has background pixel in 4er neighborhood,
+						// if so it belongs to the contour
+						boolean bgPixelInNeighborhood = false;
+						if (x >= 1) {
+							if (ip.getPixel(x-1, y) > 0)
+								bgPixelInNeighborhood = true;
+						}
+						if (y >= 1 && !bgPixelInNeighborhood) {
+							if (ip.getPixel(x, y-1) > 0)
+								bgPixelInNeighborhood = true;
+						}
+						if (x < width-1 && !bgPixelInNeighborhood) {
+							if (ip.getPixel(x+1, y) > 0)
+								bgPixelInNeighborhood = true;
+						}
+						if (y < height-1 && !bgPixelInNeighborhood) {
+							if (ip.getPixel(x, y+1) > 0)
+								bgPixelInNeighborhood = true;
+						}
+						if (bgPixelInNeighborhood)
+							++hullPerimeter;
+					}
 				}
 			}
-
-			double area = this.areas.elementAt(i).doubleValue();
+			this.convexHullAreas.add(new Integer(hullArea));
+			this.convexHullPerimeters.add(new Integer(hullPerimeter));
+		}
+	}
+	
+	/**
+	 * Calculates solidity values.
+	 */
+	private void calculateSolidityValues() {
+		// calculate solidity values for all regions
+		double area, hullArea;
+		for (int i=0; i<this.regions.size(); ++i) {
+			area = this.areas.elementAt(i).doubleValue();
+			hullArea = this.convexHullAreas.elementAt(i).doubleValue();
 			double solidity = area/hullArea;
 			// make sure that solidity is not larger than 1.0 (which might happen 
 			// in practice due to discritization, but is not possible in theory)
 			this.solidities.add(new Double(solidity > 1.0 ? 1.0 : solidity));
-			++i;
 		}
 	}
 	
+	/**
+	 * Calculates convex hull convexities and roundnesses.
+	 */
+	private void calculateConvexHullMeasures() {
+		// calculate convexities and roundness values
+		double hullPerimeter, perimeter, area;
+		for (int i=0; i<this.regions.size(); ++i) {
+			area = this.areas.elementAt(i).doubleValue();
+			perimeter = this.perimeters.elementAt(i).doubleValue();
+			hullPerimeter = this.convexHullPerimeters.elementAt(i).doubleValue();
+			this.convexHullConvexities.add(new Double(hullPerimeter/perimeter));
+			this.convexHullRoundnessValues.add(
+					new Double(4.0*Math.PI*area/(hullPerimeter*hullPerimeter)));
+		}
+	}
+
 	/*
 	 * Callback functions.
 	 */
