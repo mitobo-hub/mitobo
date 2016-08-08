@@ -31,7 +31,6 @@ import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.unihalle.informatik.Alida.operator.ALDOperator;
 import de.unihalle.informatik.Alida.operator.ALDOperator.HidingMode;
-import de.unihalle.informatik.MiToBo.color.visualization.ArrayToColorMapImage;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageByte;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType;
@@ -39,6 +38,7 @@ import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageRGB;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageShort;
 import de.unihalle.informatik.MiToBo.segmentation.basics.MTBSegmentationInterface;
 import de.unihalle.informatik.MiToBo.segmentation.levelset.core.MTBLevelsetFunctionDerivable;
+import de.unihalle.informatik.MiToBo.visualization.colormappings.ArrayToColorMapImage;
 
 import java.util.HashMap;
 

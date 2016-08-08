@@ -22,7 +22,7 @@
  *
  */
 
-package de.unihalle.informatik.MiToBo.color.visualization;
+package de.unihalle.informatik.MiToBo.visualization.colormappings;
 
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
