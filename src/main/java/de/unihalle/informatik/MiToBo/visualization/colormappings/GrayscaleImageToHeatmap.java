@@ -113,13 +113,23 @@ public class GrayscaleImageToHeatmap extends MTBOperator {
 	protected Color maxColor = Color.YELLOW;	
 
 	/**
-	 * Mode how to handle values out of range.
+	 * Mode how to handle values out of range and masked pixels.
 	 */
 	@Parameter( label= "How to handle values out of range?", required = true, 
 		dataIOOrder = 6, direction = Parameter.Direction.IN, 
 		description = "Mode how values out of range are treated.")
 	protected OutOfRangeValuesHandlingMode outOfRangeValueMode = 
 		OutOfRangeValuesHandlingMode.MAP_TO_MINMAX;		
+	
+	/**
+	 * Optional binary mask of additional pixels to ignore.
+	 * <p>
+	 * Pixels marked white are ignored, i.e. mapped to black or left untouched.
+	 */
+	@Parameter( label= "Ignore mask?", required = false, 
+		dataIOOrder = 1, direction = Parameter.Direction.IN, 
+		description = "Ignore mask, pixels with values > 0 are ignored.")
+	protected MTBImageByte ignoreMask = null;
 	
 	/**
 	 * Generated result image.
@@ -143,6 +153,14 @@ public class GrayscaleImageToHeatmap extends MTBOperator {
 		return this.resultImg;
 	}
 	
+	/**
+	 * Set input image.
+	 * @param inimg	Input grayscale image.
+	 */
+	public void setInputImage(MTBImage inimg) {
+		this.inputImg = inimg;
+	}
+
 	/**
 	 * Specify minimum of heat map range.
 	 * @param minval	Range minimum.
@@ -181,6 +199,14 @@ public class GrayscaleImageToHeatmap extends MTBOperator {
 	 */
 	public void setOutOfRangeValueHandlingMode(OutOfRangeValuesHandlingMode m) {
 		this.outOfRangeValueMode = m;
+	}
+	
+	/**
+	 * Specfiy additional mask of pixels to ignore.
+	 * @param bImg	Binary mask.
+	 */
+	public void setIgnoreMask(MTBImageByte bImg) {
+		this.ignoreMask = bImg;
 	}
 
 	@Override
@@ -232,7 +258,25 @@ public class GrayscaleImageToHeatmap extends MTBOperator {
 						for (int x = 0; x < width; ++x) {
 							valueD = this.inputImg.getValueDouble(x, y, z, t, c); 
 							valueI = this.inputImg.getValueInt(x, y, z, t, c); 
-							if (valueD < this.rangeMin) {
+							if (   this.ignoreMask != null
+									&& this.ignoreMask.getValueInt(x, y, z, t, c) > 0) {
+								switch(this.outOfRangeValueMode)
+								{
+								case LEAVE_UNTOUCHED:
+									newR = valueI;
+									newG = valueI;
+									newB = valueI;							
+									break;
+								case MAP_TO_MINMAX:	
+								case MAP_TO_BLACK:
+								default:
+									newR = 0;
+									newG = 0;
+									newB = 0;
+									break;
+								}								
+							}
+							else if (valueD < this.rangeMin) {
 								switch(this.outOfRangeValueMode)
 								{
 								case MAP_TO_BLACK:
@@ -251,9 +295,9 @@ public class GrayscaleImageToHeatmap extends MTBOperator {
 									newB = minB;
 									break;
 								default:	
-									newR = maxR;
-									newG = maxG;
-									newB = maxB;
+									newR = minR;
+									newG = minG;
+									newB = minB;
 									break;
 								}
 							}
@@ -284,7 +328,7 @@ public class GrayscaleImageToHeatmap extends MTBOperator {
 							}
 							else {
 								ratio = (valueD - this.rangeMin) / range;
-
+								
 								// interpolate new color
 								newR = minR + (int)(ratio*(maxR - minR) + 0.5);
 								newG = minG + (int)(ratio*(maxG - minG) + 0.5);
