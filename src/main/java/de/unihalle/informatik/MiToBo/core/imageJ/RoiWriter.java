@@ -225,7 +225,7 @@ public class RoiWriter extends MTBOperator {
 
 			for (int i=0;i<prs.length; ++i) {
 				PolygonRoi pr = prs[i];
-				zos.putNextEntry(new ZipEntry("Roi_" + i + ".roi"));
+				zos.putNextEntry(new ZipEntry("Roi_" + (i+1) + ".roi"));
 				re.write(pr);
 				out.flush();
 			}
