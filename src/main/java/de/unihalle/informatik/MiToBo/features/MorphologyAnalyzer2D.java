@@ -355,7 +355,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	 */
 	public MorphologyAnalyzer2D(MTBImage labelImg) throws ALDOperatorException
 	{
-		this.labelImg = labelImg;
+		this.inLabelImg = labelImg;
 	}
 	
 	
