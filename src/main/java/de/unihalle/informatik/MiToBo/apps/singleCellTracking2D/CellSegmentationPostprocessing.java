@@ -58,7 +58,10 @@ public class CellSegmentationPostprocessing extends MTBOperator
 	private Boolean removeBorderObjects = true;
 	
 	@Parameter(label = "minimum area (pixels)", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "minimum area (number of pixels) an object should have")
-	private Integer minArea = 500;
+	private Integer minArea = 0;
+	
+	@Parameter(label = "maximum area (pixels)", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "maximum area (number of pixels) an object should have")
+	private Integer maxArea = Integer.MAX_VALUE;
 	
 	@Parameter(label = "are objects 8-connected", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "are objects 8-connected (4-connected otherwise)")
 	private Boolean objects8Connected = false;
@@ -136,6 +139,15 @@ public class CellSegmentationPostprocessing extends MTBOperator
 					
 					// draw remaining regions to the output image
 					drawRegions(regions, z, t, c);
+					
+					// remove too small regions
+					if(maxArea < Integer.MAX_VALUE)
+					{
+						regions = excludeLargeRegions(regions);
+					}
+					
+					// draw remaining regions to the output image
+					drawRegions(regions, z, t, c);
 				}
 			}
 		}
@@ -207,6 +219,29 @@ public class CellSegmentationPostprocessing extends MTBOperator
 	
 	
 	/**
+	 * exclude regions that are larger than the predefined (Parameter maxArea) maximum
+	 * @param regions image regions
+	 * 
+	 * @return regions that are not too large
+	 */
+	private MTBRegion2DSet excludeLargeRegions(MTBRegion2DSet regions)
+	{
+		MTBRegion2DSet keepRegions = new MTBRegion2DSet(0, 0, sizeX, sizeY);
+		
+		for(int i = 0; i < regions.size(); i++)
+		{
+			MTBRegion2D reg = regions.elementAt(i);
+			
+			if(reg.getArea() <= maxArea)
+			{
+				keepRegions.add(reg);
+			}
+		}
+		
+		return keepRegions;
+	}
+	
+	/**
 	 * draw regions to the output image
 	 * @param keepRegions 2D regions to draw
 	 * @param z slice number
@@ -246,6 +281,16 @@ public class CellSegmentationPostprocessing extends MTBOperator
 	public void setMinimumObjectArea(int minArea)
 	{
 		this.minArea = minArea;
+	}
+	
+	
+	/**
+	 * set the maximum area (number of pixels) a region must have in order to be kept
+	 * @param maxArea
+	 */
+	public void setMaximumObjectArea(int maxArea)
+	{
+		this.maxArea = maxArea;
 	}
 	
 	
