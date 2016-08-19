@@ -137,10 +137,7 @@ public class CellSegmentationPostprocessing extends MTBOperator
 						regions = excludeSmallRegions(regions);
 					}
 					
-					// draw remaining regions to the output image
-					drawRegions(regions, z, t, c);
-					
-					// remove too small regions
+					// remove too large regions
 					if(maxArea < Integer.MAX_VALUE)
 					{
 						regions = excludeLargeRegions(regions);
