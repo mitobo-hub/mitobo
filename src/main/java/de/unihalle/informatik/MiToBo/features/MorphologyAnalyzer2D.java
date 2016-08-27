@@ -63,9 +63,12 @@ import de.unihalle.informatik.MiToBo.segmentation.contours.extraction.ContourOnL
 import de.unihalle.informatik.MiToBo.segmentation.regions.labeling.LabelAreasToRegions;
 
 /**
+ * Operator to extract shape and region features for given regions.
+ * <p>
+ * Note that the operator assumes squared pixels. If the pixels are not 
+ * squared several feature values will not be calculated correctly.
  * 
  * @author glass
- *
  */
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL, level=Level.STANDARD, allowBatchMode = true)
 public class MorphologyAnalyzer2D extends MTBOperator
@@ -366,9 +369,9 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	private Vector<Double> avgLobeDepths;
 	private Vector<Double> avgNeckDepths;
 	private Vector<Double> nonLobeAreaRatios;
-	private Vector<Integer> longestPathLengths;
-	private Vector<Integer> convexHullAreas;
-	private Vector<Integer> convexHullPerimeters;
+	private Vector<Double> longestPathLengths;
+	private Vector<Double> convexHullAreas;
+	private Vector<Double> convexHullPerimeters;
 	private Vector<Double> convexHullConvexities;
 	private Vector<Double> convexHullRoundnessValues;
 	
@@ -464,7 +467,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	private void getSimpleShapeFeatures() 
 			throws ALDOperatorException, ALDProcessingDAGException
 	{
-		double factor = this.deltaX * this.deltaY;
+		double factor = this.deltaX.doubleValue() * this.deltaY.doubleValue();
 		
 		this.labels = new Vector<Integer>();
 		this.areas = new Vector<Double>();
@@ -484,9 +487,9 @@ public class MorphologyAnalyzer2D extends MTBOperator
 		this.avgLobeDepths = new Vector<Double>();
 		this.avgNeckDepths = new Vector<Double>();
 		this.nonLobeAreaRatios = new Vector<Double>();
-		this.longestPathLengths = new Vector<Integer>();
-		this.convexHullAreas = new Vector<Integer>();
-		this.convexHullPerimeters = new Vector<Integer>();
+		this.longestPathLengths = new Vector<Double>();
+		this.convexHullAreas = new Vector<Double>();
+		this.convexHullPerimeters = new Vector<Double>();
 		this.convexHullConvexities = new Vector<Double>();
 		this.convexHullRoundnessValues = new Vector<Double>();
 
@@ -500,7 +503,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 			MTBRegion2D cr = this.regions.elementAt(j);
 			
 			int cid = cr.getID();
-			this.labels.add(cid);
+			this.labels.add(new Integer(cid));
 			
 			// area
 			if(this.calcArea || this.calcSolidity || this.calcConvexHullMeasures)
@@ -516,7 +519,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 				
 				try
 				{
-					p = cr.getContour().getContourLength() * this.deltaX;
+					p = cr.getContour().getContourLength() * this.deltaX.doubleValue();
 				} 
 				catch(ALDOperatorException e1)
 				{
@@ -613,6 +616,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 			Region2DSkeletonAnalyzer skeletonOp = 
 					new Region2DSkeletonAnalyzer();
 			skeletonOp.setInputLabelImage(this.labelImg);
+			skeletonOp.setPixelLength(this.deltaX.doubleValue());
 			skeletonOp.setVisualizeAnalysisResults(
 					this.createSkeletonInfoImage);
 			skeletonOp.runOp(HidingMode.HIDE_CHILDREN);
@@ -637,7 +641,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 					(String)skeletonData.getValueAt(i, branchLengthIndex)));
 				this.avgEndpointDistances.add(Double.valueOf(
 					(String)skeletonData.getValueAt(i, branchDistIndex)));
-				this.longestPathLengths.add(Integer.valueOf(
+				this.longestPathLengths.add(Double.valueOf(
 					(String)skeletonData.getValueAt(i, branchLongestLengthIndex)));
 			}
 		}
@@ -684,9 +688,12 @@ public class MorphologyAnalyzer2D extends MTBOperator
 		if (this.calcSkeletonBranchFeatures) 
 		{
 			header.add(FeatureNames.BranchCount.toString());
-			header.add(FeatureNames.AvgBranchLength.toString());
-			header.add(FeatureNames.AvgLobeRadius.toString());
-			header.add(FeatureNames.LongestPathLength.toString());
+			header.add(
+					FeatureNames.AvgBranchLength.toString() + " ("+ this.unitXY + ")");
+			header.add(
+					FeatureNames.AvgLobeRadius.toString() + " ("+ this.unitXY + ")" );
+			header.add(
+					FeatureNames.LongestPathLength.toString() + " ("+ this.unitXY + ")");
 		}
 		if (this.calcConcavityData) 
 		{
@@ -695,8 +702,10 @@ public class MorphologyAnalyzer2D extends MTBOperator
 		}
 		if (this.analyzeLobesAndNecks) {
 			header.add(FeatureNames.LobeCount.toString());
-			header.add(FeatureNames.AvgLobeDepth.toString());
-			header.add(FeatureNames.AvgNeckDepth.toString());
+			header.add(
+					FeatureNames.AvgLobeDepth.toString() + " ("+ this.unitXY + ")" );
+			header.add(
+					FeatureNames.AvgNeckDepth.toString() + " ("+ this.unitXY + ")" );
 			header.add(FeatureNames.NonLobeAreaRatio.toString());
 		}
 		if (this.calcConvexHullMeasures) {
@@ -1432,7 +1441,8 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	    	}
 	    	// calculate ratio of non-lobe area in cell
 				this.nonLobeAreaRatios.add(new Double(
-						nonLobeArea/this.areas.get(cellID).doubleValue())); 
+						nonLobeArea*this.deltaX.doubleValue()*this.deltaY.doubleValue()
+					/ this.areas.get(cellID).doubleValue())); 
 
 				// process each lobe/neck and calculate depth
 	    	int t=0;
@@ -1541,8 +1551,10 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	    		if (t >= c.getPointNum())
 	    			go = false;
 	    	}
-	    	this.avgLobeDepths.add(new Double(lobeDepthSum/lobeCount));
-	    	this.avgNeckDepths.add(new Double(neckDepthSum/lobeCount));
+	    	this.avgLobeDepths.add(
+	    			new Double( (lobeDepthSum*this.deltaX.doubleValue()) / lobeCount));
+	    	this.avgNeckDepths.add(
+	    			new Double( (neckDepthSum*this.deltaX.doubleValue()) / lobeCount));
 	    	++cellID;
 	    }
 		}
@@ -1625,6 +1637,18 @@ public class MorphologyAnalyzer2D extends MTBOperator
 		ImageProcessor ip = img.getProcessor();
 		for (Point2D.Double[] ps: hulls) {
 
+			// calculate convex hull perimeter
+			double hullPerimeter = 0;
+			double px = ps[ps.length-1].x;
+			double py = ps[ps.length-1].y;
+			for (int i=0; i<ps.length; ++i) {
+				double tx = ps[i].x;
+				double ty = ps[i].y;
+				hullPerimeter += Math.sqrt((tx-px)*(tx-px) + (ty-py)*(ty-py));
+				px = tx;
+				py = ty;
+			}
+			
 			// fill image white
 			for (int y=0;y<height; ++y)
 				for (int x=0;x<width; ++x)
@@ -1645,38 +1669,18 @@ public class MorphologyAnalyzer2D extends MTBOperator
 
 			// determine size of hull area
 			int hullArea = 0;
-			int hullPerimeter = 0;
 			for (int y = 0; y < height; ++y) {
 				for (int x = 0; x < width; ++x) {
 					if (ip.getPixel(x, y) == 0) {
 						// polygon inner area
 						++hullArea;
-						// check if pixel has background pixel in 4er neighborhood,
-						// if so it belongs to the contour
-						boolean bgPixelInNeighborhood = false;
-						if (x >= 1) {
-							if (ip.getPixel(x-1, y) > 0)
-								bgPixelInNeighborhood = true;
-						}
-						if (y >= 1 && !bgPixelInNeighborhood) {
-							if (ip.getPixel(x, y-1) > 0)
-								bgPixelInNeighborhood = true;
-						}
-						if (x < width-1 && !bgPixelInNeighborhood) {
-							if (ip.getPixel(x+1, y) > 0)
-								bgPixelInNeighborhood = true;
-						}
-						if (y < height-1 && !bgPixelInNeighborhood) {
-							if (ip.getPixel(x, y+1) > 0)
-								bgPixelInNeighborhood = true;
-						}
-						if (bgPixelInNeighborhood)
-							++hullPerimeter;
 					}
 				}
 			}
-			this.convexHullAreas.add(new Integer(hullArea));
-			this.convexHullPerimeters.add(new Integer(hullPerimeter));
+			this.convexHullAreas.add(new Double(hullArea 
+					* this.deltaX.doubleValue() * this.deltaY.doubleValue()));
+			this.convexHullPerimeters.add(
+					new Double(hullPerimeter * this.deltaX.doubleValue()));
 		}
 	}
 	
