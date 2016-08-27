@@ -147,6 +147,17 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 	private transient MTBImage inImg = null;
 
 	/**
+	 * Length of a pixel.
+	 * <p>
+	 * Note that we assume that a pixel is square, i.e. has an aspect ratio 
+	 * of 1. If this is not the case, extracted values are not correct.
+	 */
+	@Parameter(label = "Pixel length", required = false, 
+			direction = Parameter.Direction.IN, description = "Pixel length.",
+			dataIOOrder = 0)
+	private double pixelLength = 1.0;
+
+	/**
 	 * Table with region skeleton features.
 	 * <p>
 	 * Each row contains one region, each column corresponds to a feature.
@@ -204,6 +215,14 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 		this.inImg = img;
 	}
 	
+	/**
+	 * Set length of a pixel.
+	 * @param pl	Length of a pixel.
+	 */
+	public void setPixelLength(double pl) {
+		this.pixelLength = pl;
+	}
+
 	/**
 	 * Enable/disable creation of image with analysis data.
 	 * @param flag	If true, creation of image is enabled.
@@ -320,7 +339,7 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 		}
 
 		// search for endpoints and trace skeletons for each region
-		int[] longestPathLengths = new int[maxLabel+1];
+		double[] longestPathLengths = new double[maxLabel+1];
 		ArrayList<Vector<Point2D.Double>> longestPath = 
 				new ArrayList<Vector<Point2D.Double>>();
 		for (int i=0; i<maxLabel; ++i)
@@ -376,10 +395,9 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 								this.height, skelImg, 255);
 						if (done) {
 							Vector<Point2D.Double> branch = nsg.getLongestPath(true);
-							if (  branch.size() 
-									> longestPathLengths[this.inImg.getValueInt(x, y)]) {
-								longestPathLengths[this.inImg.getValueInt(x, y)] = 
-									branch.size();
+							double size = this.calcBranchLength(branch);
+							if (size > longestPathLengths[this.inImg.getValueInt(x, y)]) {
+								longestPathLengths[this.inImg.getValueInt(x, y)] = size; 
 								longestPath.set(this.inImg.getValueInt(x, y)-1,branch);
 							}
 						}
@@ -417,7 +435,7 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 		}
 		
 		// count endpoints and trace branches from endpoint to branch point
-		int length;
+		double length;
 		for (int y=0;y<this.height;++y) {
 			for (int x=0;x<this.width;++x) {
 				if (   skelImg.getValueInt(x, y) > 0 
@@ -439,7 +457,7 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 						
 						// ... and endpoint distance to background
 						branchDistances[this.inImg.getValueInt(x, y)-1] += 
-								distTransImg.getValueInt(x, y);
+								distTransImg.getValueInt(x, y) * this.pixelLength;
 						
 						// visualize if requested
 						if (this.visualizeAnalysisResults) {
@@ -504,7 +522,7 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 			this.resultFeatureTable.setValueAt(
 					Double.toString(branchDistances[i]), rowID, 3);
 			this.resultFeatureTable.setValueAt(
-					Integer.toString(longestPathLengths[i+1]), rowID, 4);
+					Double.toString(longestPathLengths[i+1]), rowID, 4);
 			++rowID;
 		}		
 	}
@@ -549,13 +567,13 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 	 * @param y		y-coordinate where to start.
 	 * @return	Length of the branch.
 	 */
-	private static int traceBranch(MTBImage img, int x, int y) {
+	private double traceBranch(MTBImage img, int x, int y) {
 		
-		int width = img.getSizeX();
-		int height = img.getSizeY();
+		int iwidth = img.getSizeX();
+		int iheight = img.getSizeY();
 		
 		boolean tracingActive = true;
-		int pointCount = 1;
+		double length = 0;
 		int nx = x, ny = y;
 
 		// init working image and mark point as processed
@@ -568,13 +586,16 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 			for (int dy=-1; !neighborFound && dy<=1; ++dy) {
 				if (dx == 0 && dy == 0)
 					continue;
-				if (   nx+dx >= 0 && nx+dx < width 
-						&& ny+dy >= 0 && ny+dy < height
+				if (   nx+dx >= 0 && nx+dx < iwidth 
+						&& ny+dy >= 0 && ny+dy < iheight
 						&& memImg.getValueInt(nx+dx, ny+dy) > 0) {
 					neighborFound = true;
 					nx = nx+dx;
 					ny = ny+dy;
-					++pointCount;
+					if (dx == 0 || dy == 0)
+						length += this.pixelLength;
+					else
+						length += Math.sqrt(2.0) * this.pixelLength;
 				}
 			}
 		}
@@ -591,13 +612,16 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 					for (int dy=-1; !neighborFound && dy<=1; ++dy)	 {
 						if (dx == 0 && dy == 0)
 							continue;
-						if (   nx+dx >= 0 && nx+dx < width 
-								&& ny+dy >= 0 && ny+dy < height
+						if (   nx+dx >= 0 && nx+dx < iwidth 
+								&& ny+dy >= 0 && ny+dy < iheight
 								&& memImg.getValueInt(nx+dx, ny+dy) > 0) {
 							neighborFound = true;
 							nx = nx+dx;
 							ny = ny+dy;
-							++pointCount;
+							if (dx == 0 || dy == 0)
+								length += this.pixelLength;
+							else
+								length += Math.sqrt(2.0) * this.pixelLength;
 						}
 					}
 				}
@@ -610,7 +634,36 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 				tracingActive = false;
 			}
 		}
-		return pointCount;
+		return length;
+	}
+	
+	/**
+	 * Calculates the lenght of the given branch.
+	 * <p>
+	 * The length is calculated by tracing the point list and summing up the 
+	 * distances between consecutive pixels. 
+	 * 
+	 * @param points	Branch in terms of an ordered list of branch points.
+	 * @return	Length of branch.
+	 */
+	private double calcBranchLength(Vector<Point2D.Double> points) {
+		double sqrtTwo = Math.sqrt(2.0);
+		double length = 0;
+		int prevX = (int)points.get(0).x;
+		int prevY = (int)points.get(0).y;
+		for (int i=1; i<points.size(); ++i) {
+			int thisX = (int)points.get(i).x;
+			int thisY = (int)points.get(i).y;
+			if (thisX == prevX || thisY == prevY) {
+				length += this.pixelLength;
+			}
+			else {
+				length += sqrtTwo * this.pixelLength;
+			}
+			prevX = thisX;
+			prevY = thisY;
+		}
+		return length;
 	}
 }
 
