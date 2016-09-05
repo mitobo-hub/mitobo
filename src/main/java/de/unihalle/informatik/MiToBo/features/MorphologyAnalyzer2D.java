@@ -186,11 +186,11 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	private MTBRegion2DSet inRegions = null;
 	
 	//analysis parameters
-	@Parameter(label = "pixel length, x-direction", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "pixel length in x-direction", dataIOOrder = 2)
-	private Double deltaX = new Double(1.0);
-	
-	@Parameter(label = "pixel length, y-direction", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "pixel length in y-direction", dataIOOrder = 3)
-	private Double deltaY = new Double(1.0);
+	@Parameter(label = "Pixel length", required = false, 
+			direction = Parameter.Direction.IN, supplemental = false, 
+			description = "Pixel length, note that we assume square pixels!", 
+			dataIOOrder = 2)
+	private Double deltaXY = new Double(1.0);
 	
 	@Parameter(label = "unit x/y", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "unit x/y", dataIOOrder = 4)
 	private String unitXY = "pixel";
@@ -467,7 +467,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	private void getSimpleShapeFeatures() 
 			throws ALDOperatorException, ALDProcessingDAGException
 	{
-		double factor = this.deltaX.doubleValue() * this.deltaY.doubleValue();
+		double factor = this.deltaXY.doubleValue() * this.deltaXY.doubleValue();
 		
 		this.labels = new Vector<Integer>();
 		this.areas = new Vector<Double>();
@@ -519,7 +519,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 				
 				try
 				{
-					p = cr.getContour().getContourLength() * this.deltaX.doubleValue();
+					p = cr.getContour().getContourLength() * this.deltaXY.doubleValue();
 				} 
 				catch(ALDOperatorException e1)
 				{
@@ -535,9 +535,9 @@ public class MorphologyAnalyzer2D extends MTBOperator
 			// length and width
 			if(this.calcLengthWidth)
 			{
-				double l = cr.getMajorAxisLength() * this.deltaX;
+				double l = cr.getMajorAxisLength() * this.deltaXY.doubleValue();
 				this.lengths.add(l);
-				l = cr.getMinorAxisLength() * this.deltaX;
+				l = cr.getMinorAxisLength() * this.deltaXY.doubleValue();
 				this.widths.add(l);			
 			}
 			
@@ -616,7 +616,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 			Region2DSkeletonAnalyzer skeletonOp = 
 					new Region2DSkeletonAnalyzer();
 			skeletonOp.setInputLabelImage(this.labelImg);
-			skeletonOp.setPixelLength(this.deltaX.doubleValue());
+			skeletonOp.setPixelLength(this.deltaXY.doubleValue());
 			skeletonOp.setVisualizeAnalysisResults(
 					this.createSkeletonInfoImage);
 			skeletonOp.runOp(HidingMode.HIDE_CHILDREN);
@@ -839,35 +839,19 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	}
 	
 	/**
-	 * @return physical pixel length in x-direction
+	 * @return Physical pixel length.
 	 */
-	public Double getDeltaX()
+	public Double getDeltaXY()
 	{
-		return this.deltaX;
+		return this.deltaXY;
 	}
 
 	/**
-	 * @param deltaX physical pixel length in x-direction
+	 * @param dXY physical pixel length in x-direction
 	 */
-	public void setDeltaX(Double deltaX)
+	public void setDeltaXY(Double dXY)
 	{
-		this.deltaX = deltaX;
-	}
-
-	/**
-	 * @return physical pixel length in y-direction
-	 */
-	public Double getDeltaY()
-	{
-		return this.deltaY;
-	}
-
-	/**
-	 * @param deltaY physical pixel length in y-direction
-	 */
-	public void setDeltaY(Double deltaY)
-	{
-		this.deltaY = deltaY;
+		this.deltaXY = dXY;
 	}
 
 	/**
@@ -1441,7 +1425,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	    	}
 	    	// calculate ratio of non-lobe area in cell
 				this.nonLobeAreaRatios.add(new Double(
-						nonLobeArea*this.deltaX.doubleValue()*this.deltaY.doubleValue()
+						nonLobeArea*this.deltaXY.doubleValue()*this.deltaXY.doubleValue()
 					/ this.areas.get(cellID).doubleValue())); 
 
 				// process each lobe/neck and calculate depth
@@ -1552,9 +1536,9 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	    			go = false;
 	    	}
 	    	this.avgLobeDepths.add(
-	    			new Double( (lobeDepthSum*this.deltaX.doubleValue()) / lobeCount));
+	    			new Double( (lobeDepthSum*this.deltaXY.doubleValue()) / lobeCount));
 	    	this.avgNeckDepths.add(
-	    			new Double( (neckDepthSum*this.deltaX.doubleValue()) / lobeCount));
+	    			new Double( (neckDepthSum*this.deltaXY.doubleValue()) / lobeCount));
 	    	++cellID;
 	    }
 		}
@@ -1678,9 +1662,9 @@ public class MorphologyAnalyzer2D extends MTBOperator
 				}
 			}
 			this.convexHullAreas.add(new Double(hullArea 
-					* this.deltaX.doubleValue() * this.deltaY.doubleValue()));
+					* this.deltaXY.doubleValue() * this.deltaXY.doubleValue()));
 			this.convexHullPerimeters.add(
-					new Double(hullPerimeter * this.deltaX.doubleValue()));
+					new Double(hullPerimeter * this.deltaXY.doubleValue()));
 		}
 	}
 	
@@ -1725,8 +1709,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	{
 		if(this.inLabelImg != null)
 		{
-			this.deltaX = this.inLabelImg.getCalibration().pixelWidth;
-			this.deltaY = this.inLabelImg.getCalibration().pixelHeight;
+			this.deltaXY = new Double(this.inLabelImg.getCalibration().pixelWidth);
 			this.unitXY = this.inLabelImg.getCalibration().getXUnit();
 		}
 	}
