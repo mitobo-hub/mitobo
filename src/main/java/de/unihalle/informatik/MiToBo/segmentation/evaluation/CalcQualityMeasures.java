@@ -42,9 +42,9 @@ public class CalcQualityMeasures {
 	 * <p>
 	 * Formular:
 	 * @latex.block %preamble{\\usepackage{amssymb}}
-             \\begin{equation}
-               recall = \\frac{TP}{TP + FN}
-             \\end{equation}
+         *    \\begin{equation}
+         *      recall = \\frac{TP}{TP + FN}
+         *    \\end{equation}
 	 * 
 	 * @param tp	True positive count.
 	 * @param fn	False negative count.
@@ -64,9 +64,9 @@ public class CalcQualityMeasures {
 	 * <p>
 	 * Formular:
 	 * @latex.block %preamble{\\usepackage{amssymb}}
-             \\begin{equation}
-               recall = \\frac{TP}{TP + FP}
-             \\end{equation}
+         *    \\begin{equation}
+         *      recall = \\frac{TP}{TP + FP}
+         *    \\end{equation}
 	 * 
 	 * @param tp	True positive count.
 	 * @param fp	False positive count.
