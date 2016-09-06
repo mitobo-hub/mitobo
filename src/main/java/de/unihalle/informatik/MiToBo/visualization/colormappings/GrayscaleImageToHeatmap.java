@@ -25,16 +25,29 @@
 package de.unihalle.informatik.MiToBo.visualization.colormappings;
 
 import java.awt.Color;
+import java.io.File;
+import java.io.IOException;
+import java.util.Vector;
 
+import de.unihalle.informatik.Alida.annotations.Parameter.ParameterModificationMode;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException.OperatorExceptionType;
+import de.unihalle.informatik.Alida.helpers.ALDFilePathManipulator;
+import de.unihalle.informatik.Alida.operator.events.ALDOperatorExecutionProgressEvent;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator.Level;
 import de.unihalle.informatik.Alida.annotations.Parameter;
+import de.unihalle.informatik.Alida.datatypes.ALDDirectoryString;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.*;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType;
 import de.unihalle.informatik.MiToBo.core.operator.*;
+import de.unihalle.informatik.MiToBo.io.dirs.DirectoryTree;
+import de.unihalle.informatik.MiToBo.io.images.ImageReaderMTB;
+import de.unihalle.informatik.MiToBo.io.images.ImageWriterMTB;
+import loci.common.services.DependencyException;
+import loci.common.services.ServiceException;
+import loci.formats.FormatException;
 
 /**
  * This operator converts a gray-scale image to a heat map image.
@@ -44,9 +57,8 @@ import de.unihalle.informatik.MiToBo.core.operator.*;
  * mapped by linear interpolation between both colors.<br> 
  * Values which are smaller than the range minimum or larger than the maximum 
  * are by default mapped to the minimal and maximal colors, respectively.
- * If {@link #ignoreOutOfRangeValues} is selected they are left untouched. 
- * If in addition {@link GrayscaleImageToHeatmap#mapIgnoredValuesToBlack} is selected
- * they are mapped to black.  
+ * If they should be handled differently this can be configured using
+ * {@link #outOfRangeValueMode}.  
  *
  * @author moeller
  */
@@ -59,6 +71,20 @@ public class GrayscaleImageToHeatmap extends MTBOperator {
 	 */
 	private static final String classID = "[GrayScaleImageToHeatmap]";
 	
+	/**
+	 * Operation mode of the operator.
+	 */
+	public static enum OperationMode {
+		/**
+		 * Process a single image provided directly.
+		 */
+		SINGLE_IMAGE,
+		/**
+		 * Process all images in the given directory.
+		 */
+		DIRECTORY
+	}
+
 	/**
 	 * Available modes how to handle values out of range.
 	 */
@@ -78,6 +104,16 @@ public class GrayscaleImageToHeatmap extends MTBOperator {
 	}
 	
 	/**
+	 * Mode of operation of the operator.
+	 */
+	@Parameter(label = "Operation Mode", required = true, 
+		direction = Parameter.Direction.IN,	dataIOOrder = -5, 
+		description = "Operation mode of the operator.",
+		callback = "switchOpModeParameters",
+		paramModificationMode = ParameterModificationMode.MODIFIES_INTERFACE)
+	public OperationMode opMode = OperationMode.DIRECTORY;
+	
+	/**
 	 * Input image.
 	 */
 	@Parameter( label= "Input Image", required = true, dataIOOrder = 1, 
@@ -85,10 +121,19 @@ public class GrayscaleImageToHeatmap extends MTBOperator {
 	protected MTBImage inputImg = null;
 
 	/**
+	 * Input directory.
+	 */
+	@Parameter(label = "Input Directory", required = true, 
+		direction = Parameter.Direction.IN, description = "Input directory.",
+		dataIOOrder = 1)
+	private ALDDirectoryString inDir = null;
+	
+	/**
 	 * Minimum value of mapping range, will be mapped to first color.
 	 */
 	@Parameter( label= "Range Minimum", required = true, dataIOOrder = 2, 
-		direction = Parameter.Direction.IN, description = "Minimum value to map.")
+		direction = Parameter.Direction.IN, 
+		description = "Minimum value to map, if NaN minimum image value is used.")
 	protected double rangeMin = 0;	
 	
 	/**
@@ -102,7 +147,8 @@ public class GrayscaleImageToHeatmap extends MTBOperator {
 	 * Maximum value of mapping range, will be mapped to second color.
 	 */
 	@Parameter( label= "Range Maximum", required = true, dataIOOrder = 4, 
-		direction = Parameter.Direction.IN, description = "Maximum value to map.")
+		direction = Parameter.Direction.IN, 
+		description = "Maximum value to map, if NaN maximum image value is used.")
 	protected double rangeMax = Double.MAX_VALUE;	
 	
 	/**
@@ -140,14 +186,46 @@ public class GrayscaleImageToHeatmap extends MTBOperator {
 
 	/**
 	 * Default constructor.
-	 *  @throws ALDOperatorException
+	 *  @throws ALDOperatorException	Thrown in case of failure.
 	 */
 	public GrayscaleImageToHeatmap() throws ALDOperatorException {
-		// nothing to do here
+		this.setParameter("opMode", OperationMode.SINGLE_IMAGE);
 	}		
 
 	/**
+	 * Callback routine to change operator mode parameters.
+	 */
+	@SuppressWarnings("unused")
+	private void switchOpModeParameters() {
+		try {
+			if (this.opMode == OperationMode.SINGLE_IMAGE) {
+					if (this.hasParameter("inDir")) {
+							this.removeParameter("inDir");
+					}
+
+					if (!this.hasParameter("inputImg")) {
+							this.addParameter("inputImg");
+					}
+			} else if (this.opMode == OperationMode.DIRECTORY) {
+					if (this.hasParameter("inputImg")) {
+							this.removeParameter("inputImg");
+					}
+
+					if (!this.hasParameter("inDir")) {
+							this.addParameter("inDir");
+					}
+			}
+		} catch (SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ALDOperatorException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
 	 * Returns the result color heat map.
+	 * @return RGB image containing heat map.
 	 */
 	public MTBImageRGB getHeatmapImage() {
 		return this.resultImg;
@@ -195,7 +273,7 @@ public class GrayscaleImageToHeatmap extends MTBOperator {
 	
 	/**
 	 * Specify how to handle values out of range.
-	 * @param mode	Handling mode.
+	 * @param m	Handling mode.
 	 */
 	public void setOutOfRangeValueHandlingMode(OutOfRangeValuesHandlingMode m) {
 		this.outOfRangeValueMode = m;
@@ -221,22 +299,143 @@ public class GrayscaleImageToHeatmap extends MTBOperator {
 	
 	/**
 	 * This method does the actual work.
-	 * @throws ALDOperatorException 
-	 * @throws ALDProcessingDAGException 
+	 * @throws ALDOperatorException 			Thrown in case of failure.
+	 * @throws ALDProcessingDAGException 	Thrown in case of failure.
 	 */
   @Override
-	@SuppressWarnings("unused")
 	protected void operate() 
 			throws ALDOperatorException, ALDProcessingDAGException {
-		
-		int height = this.inputImg.getSizeY();
-		int width = this.inputImg.getSizeX();
-		int depth = this.inputImg.getSizeZ();
-		int times = this.inputImg.getSizeT();
-		int channels = this.inputImg.getSizeC();
+  	
+  	// figure out range of image values in directory mode
+  	if (this.opMode.equals(OperationMode.DIRECTORY)) {
+  		
+			DirectoryTree rootDirTree = 
+					new DirectoryTree(this.inDir.getDirectoryName(), false);
+
+			this.fireOperatorExecutionProgressEvent(
+					new ALDOperatorExecutionProgressEvent(this, classID 
+							+ " processing directory <" 
+							+ this.inDir.getDirectoryName() + ">..."));
+			Vector<String> allFiles = rootDirTree.getFileList();
+			ImageReaderMTB imRead = new ImageReaderMTB();
+			ImageWriterMTB imWrite = new ImageWriterMTB();
+
+  		// figure out the range of values in all images in the directory
+  		double rmin = this.rangeMin;
+  		double rmax = this.rangeMax;
+			double imgMinValue = Double.MAX_VALUE;
+			double imgMaxValue = Double.MIN_VALUE;
+  		if (Double.isNaN(rmin) || Double.isNaN(rmax)) {
+
+  			// iterate over all files
+  			double[] minmax; 
+  			for (String file : allFiles) {
+  				try {
+  					imRead.setFileName(file);
+  					imRead.runOp();
+
+  					this.fireOperatorExecutionProgressEvent(
+  							new ALDOperatorExecutionProgressEvent(this, classID 
+  									+ " --> processing image <" + file + ">..."));
+
+  					MTBImage img = imRead.getResultMTBImage();
+  					minmax = img.getMinMaxDouble();
+
+  					if (minmax[0] < imgMinValue)
+  						imgMinValue = minmax[0];
+  					if (minmax[1] > imgMaxValue)
+  						imgMaxValue = minmax[1];
+
+  				} catch (FormatException e) {
+  					// TODO Auto-generated catch block
+  					e.printStackTrace();
+  				} catch (IOException e) {
+  					// TODO Auto-generated catch block
+  					e.printStackTrace();
+  				} catch (DependencyException e) {
+  					// TODO Auto-generated catch block
+  					e.printStackTrace();
+  				} catch (ServiceException e) {
+  					// TODO Auto-generated catch block
+  					e.printStackTrace();
+  				}
+  			}
+  			if (Double.isNaN(rmin))
+  				rmin = imgMinValue;
+  			if (Double.isNaN(rmax))
+  				rmax = imgMaxValue;
+  		}
+
+			// iterate again over all images and construct heatmaps
+			MTBImageRGB result;
+			for (String file : allFiles) {
+				try {
+					imRead.setFileName(file);
+					imRead.runOp();
+
+					this.fireOperatorExecutionProgressEvent(
+							new ALDOperatorExecutionProgressEvent(this, classID 
+									+ " --> processing image <" + file + ">..."));
+
+					MTBImage img = imRead.getResultMTBImage();
+					result = this.processImage(img, rmin, rmax);
+					
+					// save result to directory
+					String fileRoot = 
+							ALDFilePathManipulator.removeExtension(img.getTitle());
+
+					// save overlay image
+					imWrite.setFileName(this.inDir + File.separator 
+							+ fileRoot + "-heatmap.tif");
+					imWrite.setInputMTBImage(result);
+					imWrite.runOp();
+					
+				} catch (FormatException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (DependencyException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (ServiceException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+  	}
+  	// single image mode
+  	else {
+  		double rmin = this.rangeMin;
+  		double rmax = this.rangeMax;
+  		if (Double.isNaN(rmin))
+  			rmin = this.inputImg.getMinMaxDouble()[0];
+  		if (Double.isNaN(rmax))
+  			rmax = this.inputImg.getMinMaxDouble()[1];  
+  		this.resultImg = 
+  				this.processImage(this.inputImg, rmin, rmax);
+  	}
+	}	
+  
+  /**
+   * Convert a single image to a heatmap.
+   * 
+   * @param img		Image to convert.
+   * @param rmin	Minimum range value to map on minimum color.
+   * @param rmax	Maximum range value to map on maximum color.
+   * @return	RGB heatmap image.
+   */
+  protected MTBImageRGB processImage(MTBImage img, double rmin, double rmax) {
+  	
+		int height = img.getSizeY();
+		int width = img.getSizeX();
+		int depth = img.getSizeZ();
+		int times = img.getSizeT();
+		int channels = img.getSizeC();
 		
 		// allocate result image
-		this.resultImg = (MTBImageRGB)MTBImage.createMTBImage(
+		MTBImageRGB result = (MTBImageRGB)MTBImage.createMTBImage(
 				width, height, depth, times, channels, MTBImageType.MTB_RGB);
 
 		int minR = this.minColor.getRed();
@@ -250,14 +449,14 @@ public class GrayscaleImageToHeatmap extends MTBOperator {
 		// fill result image
 		int valueI, newR, newG, newB;
 		double ratio, valueD;
-		double range = this.rangeMax - this.rangeMin;
+		double range = rmax - rmin;
 		for (int c = 0; c < channels; ++c) {
 			for (int t = 0; t < times; ++t) {
 				for (int z = 0; z < depth; ++z) {
 					for (int y = 0; y < height; ++y) {
 						for (int x = 0; x < width; ++x) {
-							valueD = this.inputImg.getValueDouble(x, y, z, t, c); 
-							valueI = this.inputImg.getValueInt(x, y, z, t, c); 
+							valueD = img.getValueDouble(x, y, z, t, c); 
+							valueI = img.getValueInt(x, y, z, t, c); 
 							if (   this.ignoreMask != null
 									&& this.ignoreMask.getValueInt(x, y, z, t, c) > 0) {
 								switch(this.outOfRangeValueMode)
@@ -276,7 +475,7 @@ public class GrayscaleImageToHeatmap extends MTBOperator {
 									break;
 								}								
 							}
-							else if (valueD < this.rangeMin) {
+							else if (valueD < rmin) {
 								switch(this.outOfRangeValueMode)
 								{
 								case MAP_TO_BLACK:
@@ -301,7 +500,7 @@ public class GrayscaleImageToHeatmap extends MTBOperator {
 									break;
 								}
 							}
-							else if (valueD > this.rangeMax) {
+							else if (valueD > rmax) {
 								switch(this.outOfRangeValueMode)
 								{
 								case MAP_TO_BLACK:
@@ -327,16 +526,16 @@ public class GrayscaleImageToHeatmap extends MTBOperator {
 								}
 							}
 							else {
-								ratio = (valueD - this.rangeMin) / range;
+								ratio = (valueD - rmin) / range;
 								
 								// interpolate new color
 								newR = minR + (int)(ratio*(maxR - minR) + 0.5);
 								newG = minG + (int)(ratio*(maxG - minG) + 0.5);
 								newB = minB + (int)(ratio*(maxB - minB) + 0.5);
 							}
-							this.resultImg.putValueR(x, y, z, t, c, newR); 
-							this.resultImg.putValueG(x, y, z, t, c, newG); 
-							this.resultImg.putValueB(x, y, z, t, c, newB);
+							result.putValueR(x, y, z, t, c, newR); 
+							result.putValueG(x, y, z, t, c, newG); 
+							result.putValueB(x, y, z, t, c, newB);
 						}
 					}
 				}
@@ -344,7 +543,8 @@ public class GrayscaleImageToHeatmap extends MTBOperator {
 		}
 		String colorString = "[" + minR + "," + minG + "," + minB + "] -> " 
 				+ "[" + maxR + "," + maxG + "," + maxB + "]";
-		this.resultImg.setTitle("Heatmap " + colorString + " of <"
-				+ this.inputImg.getTitle() + ">");
-	}	
+		result.setTitle("Heatmap " + colorString + " of <"
+				+ img.getTitle() + ">");
+		return result;  	
+  }
 }
