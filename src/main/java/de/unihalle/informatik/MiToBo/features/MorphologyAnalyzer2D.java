@@ -1,7 +1,7 @@
 /*
  * This file is part of MiToBo, the Microscope Image Analysis Toolbox.
  *
- * Copyright (C) 2010 - 2014
+ * Copyright (C) 2010 - @YEAR@
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1341,6 +1341,12 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	    			}
 	    		}
 	    	}
+	    	
+	    	// increase robustness: 
+	    	// check pixel count of lobes/necks, if too small, 
+	    	// remove lobe/neck by inverting sign of their curvature
+	    	removeShortLobes(fixedDirs, 5);
+	    	
 	    	// count sign changes along contour
 	    	MTBContour2D c = contours.elementAt(cellID);
 	    	Vector<Point2D.Double> inflections = 
@@ -1543,6 +1549,90 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	    }
 		}
 	}	
+	
+	/**
+	 * Function to remove all sub-sequences of ones shorter than the given
+	 * minimum length by replacing them with -1.
+	 * 
+	 * @param dirArray	Array to modify.
+	 * @param minLength	Minimal required length of sequences of ones.
+	 */
+	protected static void removeShortLobes(int[] dirArray, int minLength) {
+		
+		// iterate over the array until nothing changes anymore
+  	int startPos = 0;
+  	boolean changedSomething = true;
+  	while (changedSomething) {
+  		changedSomething = false;
+  		
+  		// get sign of first entry
+  		int sign = dirArray[0];
+  		
+  		// remember start position of current sequence ...
+  		startPos = 0;
+  		
+  		// ... and its length
+  		int pixCount = 1;
+  		
+  		int j=1;
+  		for (j=1; j<dirArray.length; ++j) {
+  			// count following entries with identical sign
+  			if (dirArray[j] == sign) {
+  				++pixCount;
+  			}
+  			else {
+  				// sign changes, but was a run of '-1' -> not of interest
+  				if (sign == -1) {
+  					pixCount = 1;
+  					sign *= -1;
+  					startPos = j;
+  				}
+  				// sign changes, check if run was long enough
+  				// (if run is prefix of array, skip for now, we will test it later)
+  				else {
+  					if (    pixCount >= minLength 
+  							|| (startPos == 0 && dirArray[dirArray.length-1] == sign)) {
+  						// everything ok, just continue
+  						sign *= -1;
+  						pixCount = 1;
+  						startPos = j;
+  					}
+  					else {
+  						// lobe too small, remove it
+  						sign *= -1;
+  						for (int m=0;m<pixCount;++m) {
+  							dirArray[startPos+m] = sign; 
+  						}
+  						changedSomething = true;
+  						break;
+  					}
+  				}
+  			}
+  		}
+  		// if we are at the end and in a 1-run, check if we can continue it
+  		// at the beginning of the array, if not, remove it (if too short)
+  		if (sign == 1 && j == dirArray.length && pixCount < minLength) {
+  			int z=0;
+  			for (z=0; z<dirArray.length; ++z) {
+  				if (dirArray[z] == sign) {
+  					++pixCount;
+  				}
+  				else {
+  					break;
+  				}
+  			}
+  			if (pixCount < minLength) {
+  				sign *= -1;
+  				for (int m=startPos;m<dirArray.length;++m) {
+						dirArray[m] = sign; 
+					}
+  				for (int y=0;y<z;++y) {
+						dirArray[y] = sign; 
+					}
+  			}
+  		}
+  	}		
+	}
 	
 	/**
 	 * Extracts average concavity and standard deviation of concavities.
