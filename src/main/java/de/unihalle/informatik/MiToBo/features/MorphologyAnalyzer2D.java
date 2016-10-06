@@ -264,10 +264,19 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	private double gaussianSigma = 4.0;
 
 	/**
+	 * Minimal number of pixels a valid lobe requires.
+	 */
+	@Parameter(label = "    - Minimal length of a lobe section", 
+		required = false, direction = Parameter.Direction.IN, 
+		supplemental = false, dataIOOrder = 15,
+		description = "Minimal number of pixels a lobe requires to be valid.")
+	private int minLobeLength = 10;
+
+	/**
 	 * Flag to turn on/off calculation of skeleton branch features.
 	 */
 	@Parameter(label = "calculate skeleton branch features", 
-		required = false, dataIOOrder = 15,
+		required = false, dataIOOrder = 16,
 		direction = Parameter.Direction.IN, supplemental = false, 
 		description = "If true skeleton branches are analyzed.") 
 	private boolean calcSkeletonBranchFeatures = true;
@@ -277,7 +286,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	 */
 	@Parameter(label = "calculate concavity information", 
 		required = false, direction = Parameter.Direction.IN, 
-		supplemental = false, dataIOOrder = 16,
+		supplemental = false, dataIOOrder = 17,
 		description = "If true average concavity and standard deviation "
 			+ "are calculated.", callback = "callbackConcavity",
 		paramModificationMode = ParameterModificationMode.MODIFIES_INTERFACE)
@@ -290,7 +299,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	 */
 	@Parameter(label = "    - Concavity Masksize", 
 		required = false, direction = Parameter.Direction.IN, 
-		supplemental = false, dataIOOrder = 17,
+		supplemental = false, dataIOOrder = 18,
 		description = "Size of local mask in concavity calculations.") 
 	private int concavityMaskSize = 11;
 
@@ -299,7 +308,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	 */
 	@Parameter(label = "calculate convex hull measures", 
 		required = false, direction = Parameter.Direction.IN, 
-		supplemental = false, dataIOOrder = 18,
+		supplemental = false, dataIOOrder = 19,
 		description = "If true some measures of the convex hull "
 			+ "are calculated.")
 	private boolean calcConvexHullMeasures = true;
@@ -1053,6 +1062,17 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	}
 	
 	/**
+	 * Set minimal pixel count a lobe requires.
+	 * <p>
+	 * Lobes with fewer pixels will be eliminated.
+	 * 
+	 * @param m	Minimal pixel count to apply.
+	 */
+	public void setMinimalLobeLength(int m) {
+		this.minLobeLength = m;
+	}
+
+	/**
 	 * Turn on/off calculation of skeleton branch features.
 	 * <p>
 	 * The skeleton branch features subsume the total number of skeleton 
@@ -1345,7 +1365,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	    	// increase robustness: 
 	    	// check pixel count of lobes/necks, if too small, 
 	    	// remove lobe/neck by inverting sign of their curvature
-	    	removeShortLobes(fixedDirs, 5);
+	    	removeShortLobes(fixedDirs, this.minLobeLength);
 	    	
 	    	// count sign changes along contour
 	    	MTBContour2D c = contours.elementAt(cellID);
@@ -1367,45 +1387,6 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	    	curveDirections.add(fixedDirs);
 				inflectionPointLists.add(inflections);
 	    	
-				// plot result to image if requested
-				if (this.createCurvatureInfoImage) {
-					Vector<Point2D.Double> ps = c.getPoints();
-					int j=0;
-					for (Point2D.Double p: ps) {
-						int px = (int)p.x;
-						int py = (int)p.y;
-						if (fixedDirs[j] > 0) {
-							this.curvatureInfoImg.putValueR(px, py, 255);
-							this.curvatureInfoImg.putValueG(px, py, 0);
-							this.curvatureInfoImg.putValueB(px, py, 0);
-						}
-						else if (fixedDirs[j] < 0) {
-							this.curvatureInfoImg.putValueR(px, py, 0);
-							this.curvatureInfoImg.putValueG(px, py, 0);
-							this.curvatureInfoImg.putValueB(px, py, 255);                       
-						}
-						else {
-							this.curvatureInfoImg.putValueR(px, py, 255);
-							this.curvatureInfoImg.putValueG(px, py, 255);
-							this.curvatureInfoImg.putValueB(px, py, 255);                                               
-						}
-						++j;
-					}
-					int blue = ((0 & 0xff)<<16)+((0 & 0xff)<<8) + (255 & 0xff);
-					for (int k=0; k<inflections.size()-1; ++k) {
-						int sx = (int)inflections.get(k).x;
-						int sy = (int)inflections.get(k).y;
-						int ex = (int)inflections.get(k+1).x;
-						int ey = (int)inflections.get(k+1).y;
-						this.curvatureInfoImg.drawLine2D(sx, sy, ex, ey, blue);
-					}
-					int sx = (int)inflections.get(inflections.size()-1).x;
-					int sy = (int)inflections.get(inflections.size()-1).y;
-					int ex = (int)inflections.get(0).x;
-					int ey = (int)inflections.get(0).y;
-					this.curvatureInfoImg.drawLine2D(sx, sy, ex, ey, blue);
-				}
-
 	    	// create polygon defined by inflection points, parts of the 
 	    	// cell area referring to lobes are outside while neck areas
 	    	// are still inside
@@ -1433,6 +1414,46 @@ public class MorphologyAnalyzer2D extends MTBOperator
 				this.nonLobeAreaRatios.add(new Double(
 						nonLobeArea*this.deltaXY.doubleValue()*this.deltaXY.doubleValue()
 					/ this.areas.get(cellID).doubleValue())); 
+
+				// plot result to image if requested
+				if (this.createCurvatureInfoImage) {
+					int blue = ((0 & 0xff)<<16)+((255 & 0xff)<<8) + (0 & 0xff);
+					for (int k=0; k<inflections.size()-1; ++k) {
+						int sx = (int)inflections.get(k).x;
+						int sy = (int)inflections.get(k).y;
+						int ex = (int)inflections.get(k+1).x;
+						int ey = (int)inflections.get(k+1).y;
+						this.curvatureInfoImg.drawLine2D(sx, sy, ex, ey, blue);
+					}
+					int sx = (int)inflections.get(inflections.size()-1).x;
+					int sy = (int)inflections.get(inflections.size()-1).y;
+					int ex = (int)inflections.get(0).x;
+					int ey = (int)inflections.get(0).y;
+					this.curvatureInfoImg.drawLine2D(sx, sy, ex, ey, blue);
+
+					Vector<Point2D.Double> ps = c.getPoints();
+					int j=0;
+					for (Point2D.Double p: ps) {
+						int px = (int)p.x;
+						int py = (int)p.y;
+						if (fixedDirs[j] > 0) {
+							this.curvatureInfoImg.putValueR(px, py, 255);
+							this.curvatureInfoImg.putValueG(px, py, 0);
+							this.curvatureInfoImg.putValueB(px, py, 0);
+						}
+						else if (fixedDirs[j] < 0) {
+							this.curvatureInfoImg.putValueR(px, py, 0);
+							this.curvatureInfoImg.putValueG(px, py, 0);
+							this.curvatureInfoImg.putValueB(px, py, 255);                       
+						}
+						else {
+							this.curvatureInfoImg.putValueR(px, py, 255);
+							this.curvatureInfoImg.putValueG(px, py, 255);
+							this.curvatureInfoImg.putValueB(px, py, 255);                                               
+						}
+						++j;
+					}
+				}
 
 				// process each lobe/neck and calculate depth
 	    	int t=0;
