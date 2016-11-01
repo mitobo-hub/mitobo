@@ -24,6 +24,7 @@
 
 package de.unihalle.informatik.MiToBo.apps.particles2D;
 
+import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.util.Vector;
 
@@ -51,6 +52,7 @@ import de.unihalle.informatik.MiToBo.core.datatypes.MTBTreeNodeRegion2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageByte;
+import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageRGB;
 import de.unihalle.informatik.MiToBo.math.images.MTBImageArithmetics;
 import de.unihalle.informatik.MiToBo.morphology.ImgDilate;
 import de.unihalle.informatik.MiToBo.morphology.ImgErode;
@@ -60,6 +62,8 @@ import de.unihalle.informatik.MiToBo.segmentation.thresholds.CalcGlobalThreshOts
 import de.unihalle.informatik.MiToBo.segmentation.thresholds.ImgThresh;
 import de.unihalle.informatik.MiToBo.segmentation.thresholds.ImgThreshNiblack;
 import de.unihalle.informatik.MiToBo.transforms.UndecimatedWaveletTransform;
+import de.unihalle.informatik.MiToBo.visualization.drawing.DrawRegion2DSet;
+import de.unihalle.informatik.MiToBo.visualization.drawing.DrawRegion2DSet.DrawType;
 
 /**
  * Detector for spotlike structures (bright on dark background) in 2D 
@@ -209,13 +213,29 @@ public class ParticleDetectorUWT2D extends ParticleDetector
 	private transient MTBRegion2DSet resultingRegions = null;
 
 	/**
+	 * Detected regions plotted into input image.
+	 */
+	@Parameter( label = "Resulting particle regions", 
+		direction = Parameter.Direction.OUT, mode = ExpertMode.STANDARD, 
+		dataIOOrder = 3, description = "Overlay of regions onto input image.")
+	private transient MTBImage resultOverlay = null;
+
+	/**
+	 * Binary mask of detected regions.
+	 */
+	@Parameter( label = "Binary particle region mask", 
+		direction = Parameter.Direction.OUT, mode = ExpertMode.STANDARD, 
+		dataIOOrder = 4, description = "Binary particle region mask.")
+	private transient MTBImageByte resultMaskBinary = null;
+
+	/**
 	 * Stack of correlation images for different scale combinations.
 	 * <p>
 	 * This stack is only generated in verbose mode.
 	 */
 	@Parameter( label = "Correlation images", 
 		direction = Parameter.Direction.OUT, mode = ExpertMode.STANDARD,	
-		dataIOOrder = 3, 
+		dataIOOrder = 1, supplemental = true,
 		description = "Correlation images for different scale intervals.")
 	private transient MTBImage correlationImages = null;
 	
@@ -226,7 +246,7 @@ public class ParticleDetectorUWT2D extends ParticleDetector
 	 */
 	@Parameter( label = "Binarized correlation images", 
 		direction = Parameter.Direction.OUT, mode = ExpertMode.STANDARD,	
-		dataIOOrder = 3, 
+		dataIOOrder = 2, supplemental = true,
 		description = "Binarized correlation images.")
 	private transient MTBImageByte binaryCorrelationImages = null;
 
@@ -553,6 +573,38 @@ public class ParticleDetectorUWT2D extends ParticleDetector
 		
 		this.setResults(regionSet);
 
+		// plot regions to overlay image
+		MTBImageRGB targetImg = (MTBImageRGB)MTBImage.createMTBImage(
+				this.inputImage.getSizeX(), this.inputImage.getSizeY(), 
+				this.inputImage.getSizeZ(), 1, 1, MTBImageType.MTB_RGB);
+		for (int y=0; y<this.inputImage.getSizeY(); ++y) {
+			for (int x=0; x<this.inputImage.getSizeX(); ++x) {
+				targetImg.putValueR(x, y, this.inputImage.getValueInt(x, y));
+				targetImg.putValueG(x, y, this.inputImage.getValueInt(x, y));
+				targetImg.putValueB(x, y, this.inputImage.getValueInt(x, y));
+			}
+		}
+		DrawRegion2DSet drawOp = new DrawRegion2DSet();
+		drawOp.setInputRegions(regionSet);
+		drawOp.setTargetImage(targetImg);
+		drawOp.setCloneTargetImage(true);
+		drawOp.setDrawType(DrawType.CONTOURS);
+		drawOp.setColor(Color.orange);
+		drawOp.runOp();
+		this.resultOverlay = drawOp.getResultImage();
+		
+		// plot regions to binary mask image
+		this.resultMaskBinary = (MTBImageByte)MTBImage.createMTBImage(
+				this.inputImage.getSizeX(), this.inputImage.getSizeY(), 
+				this.inputImage.getSizeZ(), 1, 1, MTBImageType.MTB_BYTE);
+		this.resultMaskBinary.fillWhite();
+		for (MTBRegion2D reg: this.resultingRegions) {
+			for (Point2D.Double p: reg.getPoints()) {
+				this.resultMaskBinary.putValueInt((int)p.x, (int)p.y, 0);
+			}
+		}
+		
+	
 		if (this.verbose.booleanValue())
 			System.out.println(opIdentifier + "Operations finished!");
 	}
