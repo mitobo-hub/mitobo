@@ -695,7 +695,8 @@ public class ActinAnalyzer2D extends MTBOperator {
 			}	while (true); 
 
 			// save the cluster images
-			iWriter.setFileName(this.outDir + "/" + basename + "-clusters.tif");
+			iWriter.setFileName(this.outDir + File.separator 
+					+ basename + "-clusters.tif");
 			iWriter.setInputMTBImage(clusterImage);
 			iWriter.runOp();
 			clusterImage = null;
@@ -812,7 +813,8 @@ public class ActinAnalyzer2D extends MTBOperator {
 				++lineID;
 			}	while(true);
 			
-			String outfile = this.outDir + "/" + basename + "-clusterDistro.txt";
+			String outfile = this.outDir + File.separator 
+					+ basename + "-clusterDistro.txt";
 			try {
 				BufferedWriter fWriter = new BufferedWriter(new FileWriter(outfile));
 				fWriter.write("# Directory = " + this.imageDir + "\n");
