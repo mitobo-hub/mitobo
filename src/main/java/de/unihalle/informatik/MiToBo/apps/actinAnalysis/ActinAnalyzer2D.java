@@ -685,8 +685,8 @@ public class ActinAnalyzer2D extends MTBOperator {
 					break;
 				int label = ((Integer)labels.getValueAt(lineID, 
 						dataSet.getColumnCount())).intValue();
-				int x = tileID % tileCountY;
-				int y = tileID / tileCountY;
+				int x = tileID % tileCountX;
+				int y = tileID / tileCountX;
 				clusterImage.putValueR(x,y,colorsR[label-1]);
 				clusterImage.putValueG(x,y,colorsG[label-1]);
 				clusterImage.putValueB(x,y,colorsB[label-1]);
@@ -792,8 +792,8 @@ public class ActinAnalyzer2D extends MTBOperator {
 					break;
 				label = ((Integer)labels.getValueAt(lineID, 
 					dataSet.getColumnCount())).intValue();
-				int x = tileID % tileCountY;
-				int y = tileID / tileCountY;
+				int x = tileID % tileCountX;
+				int y = tileID / tileCountX;
 				int cellID = 1;
 				if (maskImage != null) {
 					cellID = maskImage.getValueInt(
