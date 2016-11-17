@@ -561,8 +561,8 @@
     <dependency>
       <!-- used for clustering, e.g., in actin analysis -->
       <groupId>nz.ac.waikato.cms.weka</groupId>
-      <artifactId>weka-stable</artifactId>
-      <version>3.8.0</version>
+      <artifactId>weka-dev</artifactId>
+      <version>3.9.0</version>
     </dependency>
     <dependency>
       <!-- used for data visualization, e.g., in actin analysis -->
