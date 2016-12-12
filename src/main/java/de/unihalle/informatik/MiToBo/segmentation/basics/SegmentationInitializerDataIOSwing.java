@@ -471,25 +471,25 @@ public class SegmentationInitializerDataIOSwing
 			JComponent shapeComponent;
 
 			this.maskIO =	ALDDataIOManagerSwing.getInstance().createGUIElement(
-					null, MTBImage.class, null, null);
+					null, MTBImage.class, null, descr);
 			this.maskIO.addValueChangeEventListener(this);
 			maskComponent = this.maskIO.getJComponent();
 			maskPanel.add(new JLabel("Binary Mask:   "));
 			maskPanel.add(maskComponent);
 			this.labelIO= ALDDataIOManagerSwing.getInstance().createGUIElement(
-					null, MTBImage.class, null, null);
+					null, MTBImage.class, null, descr);
 			this.labelIO.addValueChangeEventListener(this);
 			labelComponent = this.labelIO.getJComponent();
 			labelPanel.add(new JLabel("Label Image:   "));
 			labelPanel.add(labelComponent);
 			this.regionIO= ALDDataIOManagerSwing.getInstance().createGUIElement(
-					null, MTBRegion2DSet.class, null, null);
+					null, MTBRegion2DSet.class, null, descr);
 			this.regionIO.addValueChangeEventListener(this);
 			regionComponent = this.regionIO.getJComponent();
 			regionPanel.add(new JLabel("Region Set:   "));
 			regionPanel.add(regionComponent);
 			this.regionIObin= ALDDataIOManagerSwing.getInstance().createGUIElement(
-					null, boolean.class, null, null);
+					null, boolean.class, null, descr);
 			this.regionIObin.addValueChangeEventListener(this);
 			JLabel regionBinLabel = new JLabel("  Binary Segmentation?");
 			regionBinLabel.setToolTipText(
@@ -498,7 +498,7 @@ public class SegmentationInitializerDataIOSwing
 			regionPanel.add(this.regionIObin.getJComponent());
 			this.thresholdIOThresh= 
 					ALDDataIOManagerSwing.getInstance().createGUIElement(
-							null, Double.class, null, null);
+							null, Double.class, null, descr);
 			this.thresholdIOThresh.addValueChangeEventListener(this);
 			thresholdComponent = this.thresholdIOThresh.getJComponent();
 			thresholdPanel.add(new JLabel("Threshold:   "));
@@ -507,11 +507,11 @@ public class SegmentationInitializerDataIOSwing
 			thresholdPanel.add(new JLabel("     Image:   "));
 			this.thresholdIOImage = 
 					ALDDataIOManagerSwing.getInstance().createGUIElement(
-							null, MTBImage.class, null, null);
+							null, MTBImage.class, null, descr);
 			this.thresholdIOImage.addValueChangeEventListener(this);
 			thresholdPanel.add(this.thresholdIOImage.getJComponent());
 			this.shapeIOShape = ALDDataIOManagerSwing.getInstance().createGUIElement(
-							null, ShapeType.class, null, null);
+							null, ShapeType.class, null, descr);
 			this.shapeIOShape.addValueChangeEventListener(this);
 			shapeComponent = this.shapeIOShape.getJComponent();
 			shapePanel.add(new JLabel("Shape configuration:"));
@@ -521,21 +521,21 @@ public class SegmentationInitializerDataIOSwing
 			labelTargetSize.setToolTipText("... should fit size of input image!");
 			shapePanel.add(labelTargetSize);
 			this.shapeIOxDim =	ALDDataIOManagerSwing.getInstance().createGUIElement(
-					null, int.class, null, null);
+					null, int.class, null, descr);
 			this.shapeIOxDim.addValueChangeEventListener(this);
 			shapeComponent = this.shapeIOxDim.getJComponent();
 			((JTextField)shapeComponent).setColumns(6);
 			shapePanel.add(shapeComponent);
 			shapePanel.add(new JLabel("   y = "));
 			this.shapeIOyDim =	ALDDataIOManagerSwing.getInstance().createGUIElement(
-					null, int.class, null, null);
+					null, int.class, null, descr);
 			this.shapeIOyDim.addValueChangeEventListener(this);
 			shapeComponent = this.shapeIOyDim.getJComponent();
 			((JTextField)shapeComponent).setColumns(6);
 			shapePanel.add(shapeComponent);
 			shapePanel.add(new JLabel("   z = "));
 			this.shapeIOzDim =	ALDDataIOManagerSwing.getInstance().createGUIElement(
-					null, int.class, null, null);
+					null, int.class, null, descr);
 			this.shapeIOzDim.addValueChangeEventListener(this);
 			shapeComponent = this.shapeIOzDim.getJComponent();
 			((JTextField)shapeComponent).setColumns(6);
@@ -543,42 +543,42 @@ public class SegmentationInitializerDataIOSwing
 			JPanel shapeSpecPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
 			shapeSpecPanel.add(new JLabel("X-Pos:"));
 			this.shapeIOxPos = ALDDataIOManagerSwing.getInstance().createGUIElement(
-							null, Double.class, null, null);
+							null, Double.class, null, descr);
 			this.shapeIOxPos.addValueChangeEventListener(this);
 			JComponent doubleComp = this.shapeIOxPos.getJComponent();
 			((JTextField)doubleComp).setColumns(6);
 			shapeSpecPanel.add(doubleComp);
 			shapeSpecPanel.add(new JLabel("Y-Pos:"));
 			this.shapeIOyPos = ALDDataIOManagerSwing.getInstance().createGUIElement(
-					null, Double.class, null, null);
+					null, Double.class, null, descr);
 			this.shapeIOyPos.addValueChangeEventListener(this);
 			doubleComp = this.shapeIOyPos.getJComponent();
 			((JTextField)doubleComp).setColumns(6);
 			shapeSpecPanel.add(doubleComp);
 			shapeSpecPanel.add(new JLabel("Z-Pos:"));
 			this.shapeIOzPos = ALDDataIOManagerSwing.getInstance().createGUIElement(
-					null, Double.class, null, null);
+					null, Double.class, null, descr);
 			this.shapeIOzPos.addValueChangeEventListener(this);
 			doubleComp = this.shapeIOzPos.getJComponent();
 			((JTextField)doubleComp).setColumns(6);
 			shapeSpecPanel.add(doubleComp);
 			shapeSpecPanel.add(new JLabel("X-Size:"));
 			this.shapeIOxSize = ALDDataIOManagerSwing.getInstance().createGUIElement(
-					null, Double.class, null, null);
+					null, Double.class, null, descr);
 			this.shapeIOxSize.addValueChangeEventListener(this);
 			doubleComp = this.shapeIOxSize.getJComponent();
 			((JTextField)doubleComp).setColumns(6);
 			shapeSpecPanel.add(doubleComp);
 			shapeSpecPanel.add(new JLabel("Y-Size:"));
 			this.shapeIOySize = ALDDataIOManagerSwing.getInstance().createGUIElement(
-					null, Double.class, null, null);
+					null, Double.class, null, descr);
 			this.shapeIOySize.addValueChangeEventListener(this);
 			doubleComp = this.shapeIOySize.getJComponent();
 			((JTextField)doubleComp).setColumns(6);
 			shapeSpecPanel.add(doubleComp);
 			shapeSpecPanel.add(new JLabel("Z-Size:"));
 			this.shapeIOzSize = ALDDataIOManagerSwing.getInstance().createGUIElement(
-					null, Double.class, null, null);
+					null, Double.class, null, descr);
 			this.shapeIOzSize.addValueChangeEventListener(this);
 			doubleComp = this.shapeIOzSize.getJComponent();
 			((JTextField)doubleComp).setColumns(6);
