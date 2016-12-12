@@ -210,7 +210,7 @@ public class MTBImageDataIOSwing implements ALDDataIOSwing {
 		else {
 			// if parameter is required and there is a single image open
 			// we use the image as default
-			if (descr.isRequired()) {
+			if (descr != null && descr.isRequired()) {
 				int [] winIDs = ij.WindowManager.getIDList();
 				if (winIDs != null && winIDs.length > 0) {
 					name = IJ.getImage().getTitle();
