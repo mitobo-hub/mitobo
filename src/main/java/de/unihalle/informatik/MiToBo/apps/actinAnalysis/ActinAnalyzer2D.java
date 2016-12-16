@@ -24,6 +24,7 @@
 
 package de.unihalle.informatik.MiToBo.apps.actinAnalysis;
 
+import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -33,7 +34,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Random;
 import java.util.Set;
 import java.util.Vector;
 
@@ -54,6 +54,7 @@ import de.unihalle.informatik.Alida.annotations.Parameter.Direction;
 import de.unihalle.informatik.Alida.annotations.Parameter.ExpertMode;
 import de.unihalle.informatik.Alida.annotations.Parameter.ParameterModificationMode;
 import de.unihalle.informatik.MiToBo.clustering.KMeans;
+import de.unihalle.informatik.MiToBo.color.tools.DistinctColorListGenerator;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2DSet;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.*;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType;
@@ -585,7 +586,6 @@ public class ActinAnalyzer2D extends MTBOperator {
      	new ALDOperatorExecutionProgressEvent(this,
      		" found " + lines.size() + " feature vectors."));
 
-		@SuppressWarnings("null")
 		MTBTableModel dataSet = new MTBTableModel(lines.size(), heads.length+1);
 		dataSet.setColumnName(0, "Index");
 		for (int i=0;i<heads.length;++i) {
@@ -614,48 +614,11 @@ public class ActinAnalyzer2D extends MTBOperator {
 		clusterer.runOp();
 		MTBTableModel labels = clusterer.getDataLabels();
 
-		// initialize pseudo-colors for clusters
-		int[] colorsR = new int[this.clusterNum];
-		int[] colorsG = new int[this.clusterNum];
-		int[] colorsB = new int[this.clusterNum];
-
-		// first six colors are predefined
-		colorsR[0] = 255; colorsG[0] = 0; colorsB[0] = 0;
-		if (this.clusterNum > 1) {
-//			colorsR[1] = 255; colorsG[1] = 255; colorsB[1] = 0;
-			colorsR[1] = 0; colorsG[1] = 0; colorsB[1] = 255;
-		}
-		if (this.clusterNum > 2) {
-//			colorsR[2] = 255; colorsG[2] = 0; colorsB[2] = 255;
-			colorsR[2] = 0; colorsG[2] = 255; colorsB[2] = 0;
-		}
-		if (this.clusterNum > 3) {
-//			colorsR[3] = 0; colorsG[3] = 255; colorsB[3] = 0;
-			colorsR[3] = 255; colorsG[3] = 255; colorsB[3] = 0;
-		}
-		if (this.clusterNum > 4) {
-//			colorsR[4] = 0; colorsG[4] = 0; colorsB[4] = 255;
-			colorsR[4] = 255; colorsG[4] = 0; colorsB[4] = 255;
-		}
-		if (this.clusterNum > 5) {
-			colorsR[5] = 0; colorsG[5] = 255; colorsB[5] = 255;
-		}
-		if (this.clusterNum > 6) {
-			int red, green, blue;
-			Random rand = new Random();
-			for (int i=6; i<this.clusterNum; ++i) {
-				red = rand.nextInt(256);
-				green = rand.nextInt(256);
-				blue = rand.nextInt(256);
-				colorsR[i] = red;
-				colorsG[i] = green;
-				colorsB[i] = blue;
-			}
-		}
-
-//		int[] colorsR = new int[]{255,255,255,  0,  0,  0};
-//		int[] colorsG = new int[]{  0,255,  0,255,  0,255};
-//		int[] colorsB = new int[]{  0,  0,255,  0,255,255};
+		// initialize colors for clusters
+		DistinctColorListGenerator cGen = new DistinctColorListGenerator();
+		cGen.setColorNumber(this.clusterNum);
+		cGen.runOp();
+		Color[] clusterColors = cGen.getColorList();
 
 		if (this.verbose.booleanValue())
 			System.out.println("[ActinAnalyzer2D] Visualizing cluster assignments...");
@@ -690,9 +653,9 @@ public class ActinAnalyzer2D extends MTBOperator {
 						dataSet.getColumnCount())).intValue();
 				int x = tileID % tileCountX;
 				int y = tileID / tileCountX;
-				clusterImage.putValueR(x,y,colorsR[label-1]);
-				clusterImage.putValueG(x,y,colorsG[label-1]);
-				clusterImage.putValueB(x,y,colorsB[label-1]);
+				clusterImage.putValueR(x,y,clusterColors[label-1].getRed());
+				clusterImage.putValueG(x,y,clusterColors[label-1].getGreen());
+				clusterImage.putValueB(x,y,clusterColors[label-1].getBlue());
 				tileIDprev = tileID;
 				++lineID;
 			}	while (true);
@@ -906,6 +869,7 @@ public class ActinAnalyzer2D extends MTBOperator {
 			plot.setXAxisLabel("Cell-ID");
 			plot.setYAxisLabel("Cluster probability");
 			plot.setTickLabelSize(7);
+			plot.setCategoryColors(clusterColors);
 			plot.runOp();
 			JFreeChart stackedBarChart =
 				(JFreeChart)plot.getParameter("stackedBarChart");
@@ -972,7 +936,7 @@ public class ActinAnalyzer2D extends MTBOperator {
 		boxPlotter.setXAxisLabel("Cell population");
 		boxPlotter.setYAxisLabel("Cluster frequencies");
 		boxPlotter.setTickLabelSize(7);
-		boxPlotter.runOp();
+		boxPlotter.setCategoryColors(clusterColors);
 		boxPlotter.runOp();
 		this.boxWhiskerCharts = new Vector<JFreeChart>();
 		this.boxWhiskerCharts.add(boxPlotter.getChart());
