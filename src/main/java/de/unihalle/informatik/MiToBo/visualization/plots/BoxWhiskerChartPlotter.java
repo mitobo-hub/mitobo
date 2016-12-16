@@ -31,8 +31,10 @@ import de.unihalle.informatik.Alida.annotations.Parameter.Direction;
 import de.unihalle.informatik.Alida.annotations.Parameter.ExpertMode;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
+import de.unihalle.informatik.MiToBo.color.tools.DistinctColorListGenerator;
 import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
 
+import java.awt.Color;
 import java.awt.Font;
 import java.util.HashMap;
 
@@ -60,90 +62,98 @@ import java.util.Set;
  * <p>
  * The operator takes input data and generates a box-whisker plot of the data,
  * optionally grouping the boxes into different categories. In addition, the
- * operator provides various parameters to adjust the plot's appearance, 
- * like title of the plot, axes labels, or the font size of the tick labels on 
- * the axes. 
+ * operator provides various parameters to adjust the plot's appearance,
+ * like title of the plot, axes labels, or the font size of the tick labels on
+ * the axes.
  * <p>
- * As input data the operator takes a hash map which should contain a key for 
+ * As input data the operator takes a hash map which should contain a key for
  * each category to be displayed, i.e., each group of boxes to appear in the
  * plot, and as values the corresponding data. The data is also expected to be
- * arranged in a hash map where the key string indicates the name of the 
- * variable or indicator, and the values are given in terms of a list of 
- * doubles. 
+ * arranged in a hash map where the key string indicates the name of the
+ * variable or indicator, and the values are given in terms of a list of
+ * doubles.
  * <p>
- * For an example how the data should look like, consider the following: 
- * assume that we are given two groups of cells, i.e., two categories g1 and g2, 
- * and each group contains 30 elements. For each element two measurements (or 
+ * For an example how the data should look like, consider the following:
+ * assume that we are given two groups of cells, i.e., two categories g1 and g2,
+ * and each group contains 30 elements. For each element two measurements (or
  * 'indicators' in this context) are given, denoted m1 and m2. We would like
  * to visualize for each group the distribution of the two measurements, i.e.,
- * get a box plot with two categories and two boxes in each category. 
+ * get a box plot with two categories and two boxes in each category.
  * Consequently, we have to pass a hash map to the operator containing
  * two key-value pairs, one for each category or group, respectively:<br>
  * [g1, hash_1] , [g2, hash_2]<br>
- * In each group hash, key-value pairs are expected where the key refers to the 
- * indicator and the value, given in terms of a list, contains the 
- * measurements of the indicator for the elements of that group. 
- * In this example each hash, thus, contains two key-value pairs where the keys 
- * are given by m1 and m2, and each value is given by a list of 30 double 
+ * In each group hash, key-value pairs are expected where the key refers to the
+ * indicator and the value, given in terms of a list, contains the
+ * measurements of the indicator for the elements of that group.
+ * In this example each hash, thus, contains two key-value pairs where the keys
+ * are given by m1 and m2, and each value is given by a list of 30 double
  * entries: <br>
  * [m1, [v1, ..., v30] ] , [m2, [v1, ..., v30] ]
  * <p>
  * For more details on box-whisker plots in JFreeChart, e.g., refer to<br>
- * <a href= 
+ * <a href=
  * "http://www.jfree.org/jfreechart/api/javadoc/org/jfree/chart/renderer/category/BoxAndWhiskerRenderer.html">
  * http://www.jfree.org/jfreechart/api/javadoc/org/jfree/chart/renderer/category/BoxAndWhiskerRenderer.html
  * </a>
- * 
+ *
  * @author moeller
  */
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.NONE,
 	level=Level.STANDARD, allowBatchMode=false)
 public class BoxWhiskerChartPlotter extends MTBOperator {
-	
+
 	/**
 	 * Data to display.
 	 */
-	@Parameter( label= "Data", required = true, 
-		dataIOOrder = -1, direction = Direction.IN, 
+	@Parameter( label= "Data", required = true,
+		dataIOOrder = -1, direction = Direction.IN,
 		description = "Data.", mode = ExpertMode.STANDARD)
 	protected HashMap< String, HashMap<String, LinkedList<Double>> > data;
-	
+
 	/**
 	 * Title of the chart.
 	 */
-	@Parameter( label= "Chart title", required = false, 
-		dataIOOrder = 1, direction = Direction.IN, 
+	@Parameter( label= "Chart title", required = false,
+		dataIOOrder = 1, direction = Direction.IN,
 		description = "Chart title.", mode = ExpertMode.STANDARD)
 	protected String chartTitle = "";
-	
+
 	/**
 	 * Label of the x-axis.
 	 */
-	@Parameter( label= "X-axis label", required = false, 
-		dataIOOrder = 2, direction = Direction.IN, 
+	@Parameter( label= "X-axis label", required = false,
+		dataIOOrder = 2, direction = Direction.IN,
 		description = "Label of x-axis.", mode = ExpertMode.STANDARD)
 	protected String xLabel = "";
-	
+
 	/**
 	 * Label of the y-axis.
 	 */
-	@Parameter( label= "Y-axis label", required = false, 
-		dataIOOrder = 3, direction = Direction.IN, 
+	@Parameter( label= "Y-axis label", required = false,
+		dataIOOrder = 3, direction = Direction.IN,
 		description = "Label of y-axis.", mode = ExpertMode.STANDARD)
 	protected String yLabel = "";
 
 	/**
 	 * Size of axes' tick labels.
 	 */
-	@Parameter( label= "Tick label size", required = false, 
+	@Parameter( label= "Tick label size", required = false,
 		dataIOOrder = 4, direction = Direction.IN, mode = ExpertMode.STANDARD,
 		description = "Size of tick labels on both axes.")
 	protected int tickLabelSize = 8;
 
 	/**
+	 * Color map for category colors in plot.
+	 */
+	@Parameter( label= "Category colors", required = false,
+		dataIOOrder = 5, direction = Direction.IN, mode = ExpertMode.STANDARD,
+		description = "List of colors for categories.")
+	protected Color[] categoryColors = null;
+
+	/**
 	 * Width of whiskers.
 	 */
-//	@Parameter( label= "Width of whiskers", required = false, 
+//	@Parameter( label= "Width of whiskers", required = false,
 //		dataIOOrder = 5, direction = Direction.IN, mode = ExpertMode.STANDARD,
 //		description = "Width of whisker bars.")
 //	protected int whiskerWidth = 2;
@@ -151,19 +161,25 @@ public class BoxWhiskerChartPlotter extends MTBOperator {
 	/**
 	 * Resulting box-whisker chart.
 	 */
-	@Parameter( label= "Box-whisker chart plot",  
-		dataIOOrder = 1, direction = Direction.OUT, 
+	@Parameter( label= "Box-whisker chart plot",
+		dataIOOrder = 1, direction = Direction.OUT,
 		description = "Resulting plot.", mode = ExpertMode.STANDARD)
 	protected JFreeChart boxWhiskerChart;
-	
+
+	/**
+	 * Local variable to store number of categories.
+	 */
+	private int categoryCount;
+
 	/**
 	 * Default constructor.
 	 * @throws ALDOperatorException
 	 */
 	public BoxWhiskerChartPlotter() throws ALDOperatorException {
 	  super();
+	  this.categoryCount = 0;
   }
-	
+
 	/**
 	 * Set the data to plot.
 	 * @param d		Data to plot.
@@ -171,7 +187,7 @@ public class BoxWhiskerChartPlotter extends MTBOperator {
 	public void setData(HashMap< String,HashMap<String, LinkedList<Double>>> d) {
 		this.data = d;
 	}
-	
+
 	/**
 	 * Set title of chart plot.
 	 * @param title		Title string.
@@ -179,7 +195,7 @@ public class BoxWhiskerChartPlotter extends MTBOperator {
 	public void setTitle(String title) {
 		this.chartTitle = title;
 	}
-	
+
 	/**
 	 * Set label of x-axis.
 	 * @param xlabel	Label string.
@@ -205,13 +221,21 @@ public class BoxWhiskerChartPlotter extends MTBOperator {
 	}
 
 	/**
+	 * Specify colors for different categories.
+	 * @param colors	List of colors to use for categories.
+	 */
+	public void setCategoryColors(Color[] colors) {
+		this.categoryColors = colors;
+	}
+
+	/**
 	 * Set width of whisker bars.
 	 * @param width		Width of whiskers.
 	 */
 //	public void setWhiskerWidth(int width) {
 //		this.whiskerWidth = width;
 //	}
-	
+
 	/**
 	 * Get reference to resulting chart.
 	 * @return	Generated chart plot.
@@ -219,16 +243,15 @@ public class BoxWhiskerChartPlotter extends MTBOperator {
 	public JFreeChart getChart() {
 		return this.boxWhiskerChart;
 	}
-	
+
   @Override
-	@SuppressWarnings("unused")
-  protected void operate() throws ALDOperatorException,
+	protected void operate() throws ALDOperatorException,
       ALDProcessingDAGException {
   	final BoxAndWhiskerCategoryDataset dataset = createDataset();
   	this.boxWhiskerChart = this.createChart(dataset);
   	this.boxWhiskerChart.setTitle(this.chartTitle);
   }
-  
+
   /**
    * Create the dataset from the given input data.
    * @return Resulting dataset.
@@ -236,30 +259,34 @@ public class BoxWhiskerChartPlotter extends MTBOperator {
   private BoxAndWhiskerCategoryDataset createDataset() {
 
   	// initialize result dataset object
-    final DefaultBoxAndWhiskerCategoryDataset dataset 
+    final DefaultBoxAndWhiskerCategoryDataset dataset
     	= new DefaultBoxAndWhiskerCategoryDataset();
 
-  	// iterate over all categories in the given input data 
+  	// iterate over all categories in the given input data
   	Set<String> category = this.data.keySet();
   	// add the data of each item to the dataset
   	for (String c: category) {
   		HashMap<String,LinkedList<Double>> itemValues = this.data.get(c);
-  		LinkedList<String> sortedItemVals = 
+  		LinkedList<String> sortedItemVals =
   			this.sortStringSet(itemValues.keySet());
+    	this.categoryCount = sortedItemVals.size();
   		for (String i: sortedItemVals) {
         dataset.add(itemValues.get(i), i, c);
   		}
   	}
     return dataset;
   }
-  
+
   /**
    * Creates the chart.
-   * 
+   *
    * @param dataset  The dataset for the chart.
    * @return Resulting chart.
+   * @throws ALDOperatorException
+   * @throws ALDProcessingDAGException
    */
-  private JFreeChart createChart(final CategoryDataset dataset) {
+  private JFreeChart createChart(final CategoryDataset dataset)
+  		throws ALDOperatorException, ALDProcessingDAGException {
 
   	final CategoryAxis xAxis = new CategoryAxis(this.xLabel);
   	final NumberAxis yAxis = new NumberAxis(this.yLabel);
@@ -267,12 +294,24 @@ public class BoxWhiskerChartPlotter extends MTBOperator {
   	final BoxAndWhiskerRenderer renderer = new BoxAndWhiskerRenderer();
   	renderer.setFillBox(true);
   	renderer.setBaseToolTipGenerator(new BoxAndWhiskerToolTipGenerator());
+
+  	// configure colors of different categories
+  	if (this.categoryColors == null) {
+  		DistinctColorListGenerator cGen = new DistinctColorListGenerator();
+  		cGen.setColorNumber(categoryCount);
+  		cGen.runOp();
+  		this.categoryColors = cGen.getColorList();
+  	}
+  	System.out.println("Categories: " + categoryCount);
+  	for (int i=0; i<categoryCount; ++i) {
+  		renderer.setSeriesPaint(i, this.categoryColors[i]);
+  	}
   	final CategoryPlot plot = new CategoryPlot(dataset, xAxis, yAxis, renderer);
   	final JFreeChart chart = new JFreeChart(this.chartTitle,
  			new Font("SansSerif", Font.BOLD, 14), plot,	true);
     return chart;
   }
-  
+
   /**
    * Helper method to sort set of strings alphabetically in ascending order.
    * @param input	Set of strings to sort.
