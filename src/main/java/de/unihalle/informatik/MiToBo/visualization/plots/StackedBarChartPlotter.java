@@ -140,7 +140,7 @@ public class StackedBarChartPlotter extends MTBOperator {
 	@Parameter( label= "Category colors", required = false,
 		dataIOOrder = 5, direction = Direction.IN, mode = ExpertMode.STANDARD,
 		description = "List of colors for categories.")
-	Color[] categoryColors = null;
+	protected Color[] categoryColors = null;
 
 	/**
 	 * Resulting stacked bar chart.
