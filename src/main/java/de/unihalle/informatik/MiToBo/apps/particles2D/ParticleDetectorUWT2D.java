@@ -197,6 +197,15 @@ public class ParticleDetectorUWT2D extends ParticleDetector
 	private transient MTBImageByte excludeMask = null;
 
 	/**
+	 * Flag to activate calculation of additional result images.
+	 */
+	@Parameter( label= "Provide (binarized) correlation images", 
+		supplemental = true, direction = Parameter.Direction.IN, 
+		mode = ExpertMode.ADVANCED, dataIOOrder = 0, 
+		description = "If enabled additional intermediate results are provided.")
+	private boolean additionalResultsWanted = true;
+
+	/**
 	 * Number of detected regions.
 	 */
 	@Parameter( label = "#Regions", direction = Parameter.Direction.OUT, 
@@ -231,7 +240,7 @@ public class ParticleDetectorUWT2D extends ParticleDetector
 	/**
 	 * Stack of correlation images for different scale combinations.
 	 * <p>
-	 * This stack is only generated in verbose mode.
+	 * This stack is only generated if {@link #additionalResultsWanted} is selected.
 	 */
 	@Parameter( label = "Correlation images", 
 		direction = Parameter.Direction.OUT, mode = ExpertMode.STANDARD,	
@@ -242,7 +251,7 @@ public class ParticleDetectorUWT2D extends ParticleDetector
 	/**
 	 * Stack of binarized correlation images.
 	 * <p>
-	 * This stack is only generated in verbose mode.
+	 * This stack is only generated if {@link #additionalResultsWanted} is selected.
 	 */
 	@Parameter( label = "Binarized correlation images", 
 		direction = Parameter.Direction.OUT, mode = ExpertMode.STANDARD,	
@@ -366,7 +375,7 @@ public class ParticleDetectorUWT2D extends ParticleDetector
 		MTBImage[] corrImgs = this.getCorrelationImages();
 		
 		// fill result stack with correlation images
-		if (this.verbose.booleanValue()) {
+		if (this.additionalResultsWanted) {
 			this.correlationImages = MTBImage.createMTBImage(
 				this.inputImage.getSizeX(), this.inputImage.getSizeY(), 1, 1, 
 				corrImgs.length, MTBImageType.MTB_DOUBLE);
@@ -449,7 +458,7 @@ public class ParticleDetectorUWT2D extends ParticleDetector
 		}
 		
 		// fill result stack with binarized correlation images
-		if (this.verbose.booleanValue()) {
+		if (this.additionalResultsWanted) {
 			this.binaryCorrelationImages = 
 				(MTBImageByte)MTBImage.createMTBImage(
 					this.inputImage.getSizeX(), this.inputImage.getSizeY(), 1, 1, 
