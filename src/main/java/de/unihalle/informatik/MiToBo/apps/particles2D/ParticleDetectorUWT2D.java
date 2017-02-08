@@ -203,7 +203,7 @@ public class ParticleDetectorUWT2D extends ParticleDetector
 		supplemental = true, direction = Parameter.Direction.IN, 
 		mode = ExpertMode.ADVANCED, dataIOOrder = 0, 
 		description = "If enabled additional intermediate results are provided.")
-	private boolean additionalResultsWanted = true;
+	private boolean additionalResultsWanted = false;
 
 	/**
 	 * Number of detected regions.
@@ -1934,7 +1934,30 @@ public class ParticleDetectorUWT2D extends ParticleDetector
 		this.resultingRegions = detectedRegions;
 	}
 	
+	/**
+	 * Get resulting correlation image stack.
+	 * <p>
+	 * Note that {@link #additionalResultsWanted} needs to be selected to
+	 * get a non-null result here.
+	 * 
+	 * @return Stack of correlation images.
+	 */
+	public MTBImage getResultCorrelationStack() {
+		return this.correlationImages;
+	}
 	
+	/**
+	 * Get resulting binarized correlation image stack.
+	 * <p>
+	 * Note that {@link #additionalResultsWanted} needs to be selected to
+	 * get a non-null result here.
+	 * 
+	 * @return Stack of binarized correlation images.
+	 */
+	public MTBImage getResultBinaryCorrelationStack() {
+		return this.binaryCorrelationImages;
+	}
+
 	/**
 	 * Thread class to run UWT wavelet transformation threaded.
 	 * 
