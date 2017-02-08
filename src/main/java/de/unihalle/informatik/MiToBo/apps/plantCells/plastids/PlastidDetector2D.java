@@ -34,12 +34,10 @@ import de.unihalle.informatik.Alida.annotations.Parameter.ExpertMode;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.*;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType;
 import de.unihalle.informatik.MiToBo.core.operator.*;
-import de.unihalle.informatik.MiToBo.morphology.ImgDilate;
 import de.unihalle.informatik.MiToBo.segmentation.regions.labeling.LabelComponentsSequential;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2DSet;
 import de.unihalle.informatik.MiToBo.apps.particles2D.ParticleDetectorUWT2D;
-import de.unihalle.informatik.MiToBo.core.datatypes.MTBImageHistogram;
 
 import java.awt.geom.Point2D;
 import java.util.Vector;
@@ -69,10 +67,6 @@ public class PlastidDetector2D extends MTBOperator {
 		dataIOOrder = 2, description = "Detector.")
 	protected ParticleDetectorUWT2D particleOp = null;
 
-//	@Parameter( label= "minWidth", required = true, dataIOOrder = 2,
-//			direction = Parameter.Direction.IN, description = "minWidth")
-	int minW = 2;
-
 	/**
 	 * Set of detected plastid regions with stromuli.
 	 */
@@ -88,21 +82,6 @@ public class PlastidDetector2D extends MTBOperator {
 			direction = Parameter.Direction.OUT, 
 			description = "Label image of detected plastids with stromuli.")
 	private MTBImageShort resultLabelImage = null;
-
-
-//	@Parameter( label= "Output", required = true, dataIOOrder = 5,
-//			direction = Parameter.Direction.OUT, description = "Output")
-	private MTBImageByte outImg2 = null;
-
-//	@Parameter( label= "Output", required = true, dataIOOrder = 6,
-//	direction = Parameter.Direction.OUT, description = "Output")
-	private MTBImageHistogram hist= null;
-	@Parameter( label= "mean", required = true, dataIOOrder = 5,
-			direction = Parameter.Direction.IN, description = "Gamma")
-			double thres_mittel = 0.016;
-	@Parameter( label= "max", required = true, dataIOOrder = 7,
-			direction = Parameter.Direction.IN, description = "Gamma")
-			double thres_max = 0.02;
 
 	/**
 	 * Default constructor.
@@ -124,15 +103,10 @@ public class PlastidDetector2D extends MTBOperator {
 		MTBImageByte plastidImg = 
 				(MTBImageByte)MTBImage.createMTBImage(xSize, ySize, zSize, 
 						tSize,	cSize, MTBImageType.MTB_BYTE);
-		MTBImageByte plastidStromuliImg = 
-				(MTBImageByte)MTBImage.createMTBImage(xSize, ySize, zSize, 
-						tSize,	cSize, MTBImageType.MTB_BYTE);
 		this.resultLabelImage = (MTBImageShort)MTBImage.createMTBImage(
 				xSize, ySize, zSize, tSize,	cSize, MTBImageType.MTB_SHORT);
-		outImg2 = (MTBImageByte)MTBImage.createMTBImage(
-				xSize, ySize, zSize, tSize,	cSize, MTBImageType.MTB_BYTE);
 		
-		//1.0 Partikeldetektion
+		// particle detection
 		MTBRegion2DSet part_results = null;
 		if (this.particleOp == null) {
 			this.particleOp = new ParticleDetectorUWT2D ();
@@ -183,19 +157,14 @@ public class PlastidDetector2D extends MTBOperator {
 		}			
 		part_results = filteredParticleRegions;			
 
-		//1.1 Plastidregions in Bild umwandeln
-		for(int r = 0; r<part_results.size();r++)
-		{
-			for (int s= 0;s<part_results.get(r).getPoints().size();s++)
-			{
-				plastidImg.putValueInt((int)part_results.get(r).getPoints().get(s).getX(), (int)part_results.get(r).getPoints().get(s).getY(), 255);
+		// visualize plastid regions in image
+		for(int r = 0; r<part_results.size(); ++r) {
+			for (int s= 0; s<part_results.get(r).getPoints().size(); ++s)	{
+				plastidImg.putValueInt(
+						(int)part_results.get(r).getPoints().get(s).getX(), 
+						(int)part_results.get(r).getPoints().get(s).getY(), 255);
 			}
 		}
-		
-//		ImgDilate dilater = new ImgDilate(plastidImg, 3);
-//		dilater.runOp();
-//		MTBImage plastidbildDilated = dilater.getResultImage();
-//		plastidbildDilated.setTitle("Detected plastids");
 		
 		// label plastids
 		LabelComponentsSequential lableOp = 
@@ -208,14 +177,26 @@ public class PlastidDetector2D extends MTBOperator {
 		//      Region dann updaten
 	}
 	
+	/**
+	 * Specify input image to process.
+	 * @param image	Image to process.
+	 */
 	public void setInputImage(MTBImage image) {
 		this.inImg = image;
 	}
 	 
+	/**
+	 * Specify particle detector to apply.
+	 * @param pd	Particle detector object.
+	 */
 	public void setDetector(ParticleDetectorUWT2D pd) {
 		this.particleOp = pd;
 	}
 	
+	/**
+	 * Access detected plastid regions.
+	 * @return	Set of detected plastid regions.
+	 */
 	public MTBRegion2DSet getPlastidRegions() {
 		return this.plastidRegions;
 	}
