@@ -50,7 +50,7 @@ import java.util.Vector;
  */
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL,
 		level=Level.APPLICATION)
-public class PlastidDetector2D extends MTBOperator {
+public class PlastidDetector2DParticles extends MTBOperator {
 
 	/**
 	 * Gray-scale input image.
@@ -87,7 +87,7 @@ public class PlastidDetector2D extends MTBOperator {
 	 * Default constructor.
 	 * @throws ALDOperatorException	Thrown in case of operate failure.
 	 */
-	public PlastidDetector2D() throws ALDOperatorException {
+	public PlastidDetector2DParticles() throws ALDOperatorException {
 	}		
 	
 	@Override
