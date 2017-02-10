@@ -171,6 +171,8 @@ public class PlastidDetector2DParticles extends MTBOperator {
 				new LabelComponentsSequential(plastidImg,true);
 		lableOp.runOp();
 		this.plastidRegions = lableOp.getResultingRegions();
+		this.resultLabelImage = (MTBImageShort)lableOp.getLabelImage().convertType(
+				MTBImageType.MTB_SHORT, false);
 		
 		// TODO für alle Regionen lokale ROI anschauen und binarisieren,
 		//      um bessere Segmentierung des Plastids zu erhalten,
