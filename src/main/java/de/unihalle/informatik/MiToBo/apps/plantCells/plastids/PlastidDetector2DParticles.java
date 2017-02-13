@@ -49,7 +49,7 @@ import java.util.Vector;
  * @author Birgit Moeller
  */
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL,
-		level=Level.APPLICATION)
+		level=Level.APPLICATION, allowBatchMode=true)
 public class PlastidDetector2DParticles extends MTBOperator {
 
 	/**
