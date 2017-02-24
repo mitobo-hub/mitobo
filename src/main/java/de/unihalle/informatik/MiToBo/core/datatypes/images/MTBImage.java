@@ -24,7 +24,6 @@
 
 package de.unihalle.informatik.MiToBo.core.datatypes.images;
 
-import ij.ImageListener;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.WindowManager;
@@ -36,6 +35,8 @@ import ij.plugin.Zoom;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.geom.Point2D;
+import java.util.LinkedList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,6 +47,7 @@ import de.unihalle.informatik.Alida.exceptions.ALDOperatorException.OperatorExce
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.unihalle.informatik.Alida.operator.ALDData;
 import de.unihalle.informatik.Alida.operator.ALDOperator.HidingMode;
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBLineSegment2D;
 import de.unihalle.informatik.MiToBo.core.exceptions.MTBImageException;
 import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
 
@@ -1372,83 +1374,35 @@ public abstract class MTBImage extends ALDData
   /**
    * Draws a 2D line into the current slice of the image.
    * <p>
-   * MTBImages are 5D, but here t- and c-dimensions are ignored. This function
-   * implements the Bresenham algorithm. Code was 'stolen' from Wikipedia,
-   * and then translated into Java (German comments where kept).
+   * MTBImages are 5D, but here t- and c-dimensions are ignored. 
+   * <p>
+   * This function basically relies on the Bresenham algorithm for rendering
+   * line segments as implemented in method
+   * {@link MTBLineSegment2D#getPixelsAlongSegment()} of class
+   * {@link MTBLineSegment2D}.
    * 
-   * @see <a href="http://de.wikipedia.org/wiki/Bresenham-Algorithmus">http://de.wikipedia.org/wiki/Bresenham-Algorithmus</a> 
-   * @param xstart
-   *          x-coordinate of start point.
-   * @param ystart
-   *          y-coordinate of start point.
-   * @param xend
-   *          x-coordinate of end point.
-   * @param yend
-   *          y-coordinate of end point.
-   * @param value
-   *          Color/gray-scale value of the polygon.
+   * @param xstart	x-coordinate of start point.
+   * @param ystart	y-coordinate of start point.
+   * @param xend		x-coordinate of end point.
+   * @param yend		y-coordinate of end point.
+   * @param value		Color or gray-scale value to use for drawing the segment.
    */
-  public void drawLine2D(int xstart, int ystart, int xend, int yend, int value) {
+  public void drawLine2D(int xstart, int ystart, int xend, int yend, 
+  		int value) {
 
-    int x, y, t, dx, dy, incx, incy, pdx, pdy, ddx, ddy, es, el, err;
+  	MTBLineSegment2D line = new MTBLineSegment2D(xstart, ystart, xend, yend);
+  	
+  	LinkedList<Point2D.Double> pixelList = line.getPixelsAlongSegment();
 
-    /* Entfernung in beiden Dimensionen berechnen */
-    dx = xend - xstart;
-    dy = yend - ystart;
-
-    /* Vorzeichen des Inkrements bestimmen */
-    incx = (int) Math.signum(dx);
-    incy = (int) Math.signum(dy);
-    if (dx < 0)
-      dx = -dx;
-    if (dy < 0)
-      dy = -dy;
-
-    /* feststellen, welche Entfernung größer ist */
-    if (dx > dy) {
-      /* x ist schnelle Richtung */
-      pdx = incx;
-      pdy = 0; /* pd. ist Parallelschritt */
-      ddx = incx;
-      ddy = incy; /* dd. ist Diagonalschritt */
-      es = dy;
-      el = dx; /* Fehlerschritte schnell, langsam */
-    } else {
-      /* y ist schnelle Richtung */
-      pdx = 0;
-      pdy = incy; /* pd. ist Parallelschritt */
-      ddx = incx;
-      ddy = incy; /* dd. ist Diagonalschritt */
-      es = dx;
-      el = dy; /* Fehlerschritte schnell, langsam */
-    }
-
-    /* Initialisierungen vor Schleifenbeginn */
-    x = xstart;
-    y = ystart;
-    err = el / 2;
-    if (x >= 0 && x < this.getSizeX() && y >= 0 && y < this.getSizeY())
-      this.putValueInt(x, y, value);
-
-    /* Pixel berechnen */
-    for (t = 0; t < el; ++t) /* t zaehlt die Pixel, el ist auch Anzahl */
-    {
-      /* Aktualisierung Fehlerterm */
-      err -= es;
-      if (err < 0) {
-        /* Fehlerterm wieder positiv (>=0) machen */
-        err += el;
-        /* Schritt in langsame Richtung, Diagonalschritt */
-        x += ddx;
-        y += ddy;
-      } else {
-        /* Schritt in schnelle Richtung, Parallelschritt */
-        x += pdx;
-        y += pdy;
-      }
+  	int x, y;
+  	for (Point2D.Double p: pixelList) {
+  		x = (int)p.x;
+  		y = (int)p.y;
+  		
+  		// check for pixel not falling outside of image domain
       if (x >= 0 && x < this.getSizeX() && y >= 0 && y < this.getSizeY())
         this.putValueInt(x, y, value);
-    }
+  	}  	
   }
   
   /**
@@ -1781,6 +1735,9 @@ public abstract class MTBImage extends ALDData
    */
   abstract public double getValueDouble(int x, int y);
 
+  /**
+   * Set all pixels of the image to white, i.e. the maximal available value.
+   */
   public void fillWhite() {
     for (int c = 0; c < this.getSizeC(); ++c)
       for (int t = 0; t < this.getSizeT(); ++t)
@@ -1790,6 +1747,9 @@ public abstract class MTBImage extends ALDData
               this.putValueDouble(x, y, z, t, c, this.getTypeMax());
   }
 
+  /**
+   * Set all pixels of the image to black, i.e. the minimal available value.
+   */
   public void fillBlack() {
     for (int c = 0; c < this.getSizeC(); ++c)
       for (int t = 0; t < this.getSizeT(); ++t)
