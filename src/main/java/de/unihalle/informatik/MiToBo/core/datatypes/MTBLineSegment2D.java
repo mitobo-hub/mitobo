@@ -22,18 +22,10 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev$
- * $Date$
- * $Author$
- * 
- */
-
 package de.unihalle.informatik.MiToBo.core.datatypes;
 
 import java.awt.geom.*;
+import java.util.LinkedList;
 
 import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
 import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
@@ -123,13 +115,13 @@ public class MTBLineSegment2D extends Line2D.Double {
 		@Deprecated
 		public double getPointDist(double x, double y) {
 
-				double a_x = x2 - x1;
-				double a_y = y2 - y1;
+				double a_x = this.x2 - this.x1;
+				double a_y = this.y2 - this.y1;
 
 				// System.out.println("ax= " + a_x + " , ay= " + a_y);
 
-				double b_x = x - x1;
-				double b_y = y - y1;
+				double b_x = x - this.x1;
+				double b_y = y - this.y1;
 
 				// System.out.println("bx= " + b_x + " , by= " + b_y);
 
@@ -217,5 +209,90 @@ public class MTBLineSegment2D extends Line2D.Double {
 				double i_x = sx_that + gamma * vx_that;
 				double i_y = sy_that + gamma * vy_that;
 				return new Point2D.Double(i_x, i_y);
+		}
+		
+		/**
+		 * Calculates the set of integer pixel positions along the a segment.
+		 * <p>
+		 * This method is based on the Bresenham algorithm for rendering 
+		 * line segments. Code was 'stolen' from Wikipedia,
+		 * and then translated into Java (German comments where kept).
+		 * 
+		 * @see <a href="http://de.wikipedia.org/wiki/Bresenham-Algorithmus">http://de.wikipedia.org/wiki/Bresenham-Algorithmus</a> 
+		 * 
+		 * @return	List of (integer) pixel positions along line segment.
+		 */
+		public LinkedList<Point2D.Double> getPixelsAlongSegment() {
+
+			// init result pixel list
+			LinkedList<Point2D.Double> pixelList = new LinkedList<>();
+
+			// get rounded integer coordinates of first and last points
+			int xstart = (int)(this.x1+0.5);
+			int ystart = (int)(this.y1+0.5);
+			int xend = (int)(this.x2+0.5);
+			int yend = (int)(this.y2+0.5);
+
+			int x, y, t, dx, dy, incx, incy, pdx, pdy, ddx, ddy, es, el, err;
+
+			/* Entfernung in beiden Dimensionen berechnen */
+			dx = xend - xstart;
+			dy = yend - ystart;
+
+			/* Vorzeichen des Inkrements bestimmen */
+			incx = (int) Math.signum(dx);
+			incy = (int) Math.signum(dy);
+			if (dx < 0)
+				dx = -dx;
+			if (dy < 0)
+				dy = -dy;
+
+			/* feststellen, welche Entfernung größer ist */
+			if (dx > dy) {
+				/* x ist schnelle Richtung */
+				pdx = incx;
+				pdy = 0; /* pd. ist Parallelschritt */
+				ddx = incx;
+				ddy = incy; /* dd. ist Diagonalschritt */
+				es = dy;
+				el = dx; /* Fehlerschritte schnell, langsam */
+			} else {
+				/* y ist schnelle Richtung */
+				pdx = 0;
+				pdy = incy; /* pd. ist Parallelschritt */
+				ddx = incx;
+				ddy = incy; /* dd. ist Diagonalschritt */
+				es = dx;
+				el = dy; /* Fehlerschritte schnell, langsam */
+			}
+
+			/* Initialisierungen vor Schleifenbeginn */
+			x = xstart;
+			y = ystart;
+			err = el / 2;
+
+			// add start point to list
+			pixelList.add(new Point2D.Double(x, y));
+
+			/* Pixel berechnen */
+			for (t = 0; t < el; ++t) /* t zaehlt die Pixel, el ist auch Anzahl */
+			{
+				/* Aktualisierung Fehlerterm */
+				err -= es;
+				if (err < 0) {
+					/* Fehlerterm wieder positiv (>=0) machen */
+					err += el;
+					/* Schritt in langsame Richtung, Diagonalschritt */
+					x += ddx;
+					y += ddy;
+				} else {
+					/* Schritt in schnelle Richtung, Parallelschritt */
+					x += pdx;
+					y += pdy;
+				}
+				// add point to list
+				pixelList.add(new Point2D.Double(x, y));
+			}
+			return pixelList;
 		}
 }
