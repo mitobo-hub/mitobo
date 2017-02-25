@@ -71,7 +71,8 @@ import de.unihalle.informatik.MiToBo.segmentation.regions.labeling.LabelAreasToR
  * Note that the operator assumes squared pixels. If the pixels are not 
  * squared several feature values will not be calculated correctly.
  * 
- * @author glass
+ * @author Markus Glass
+ * @author Birgit Moeller
  */
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL, 
 	level=Level.STANDARD, allowBatchMode = true)
@@ -131,38 +132,6 @@ public class MorphologyAnalyzer2D extends MTBOperator
 		 */
 		StdDevConcavity,
 		/**
-		 * Number of skeleton branches.
-		 */
-		BranchCount,
-		/**
-		 * Average length of branches.
-		 */
-		AvgBranchLength,	
-		/**
-		 * Average distance of branch endpoints to background.
-		 */
-		AvgLobeRadius,
-		/**
-		 * Number of lobes.
-		 */
-		LobeCount,
-		/**
-		 * Ratio of non-lobe area to cell area.
-		 */
-		NonLobeAreaRatio,	
-		/**
-		 * Average depth of lobes.
-		 */
-		AvgLobeDepth,
-		/**
-		 * Average depth of necks.
-		 */
-		AvgNeckDepth,
-		/**
-		 * Length of longest path in skeleton.
-		 */
-		LongestPathLength,
-		/**
 		 * Area of convex hull in pixels.
 		 */
 		ConvexHullArea,
@@ -179,7 +148,71 @@ public class MorphologyAnalyzer2D extends MTBOperator
 		 * Same as circularity, but with perimeter of convex hull instead of
 		 * region perimeter.
 		 */
-		ConvexHullRoundness
+		ConvexHullRoundness,
+		/**
+		 * Number of skeleton branches.
+		 */
+		BranchCount,
+		/**
+		 * Average length of branches.
+		 */
+		AvgBranchLength,	
+		/**
+		 * Length of longest path in skeleton.
+		 */
+		LongestPathLength,
+		/**
+		 * Average distance of branch endpoints to background.
+		 */
+		AvgDistBranchEndpointsToBackground,
+		/**
+		 * Number of protrusions.
+		 */
+		NumberOfProtrusions,
+		/**
+		 * Area of region part not belonging to any of the detected protrusions.
+		 */
+		NonProtrusionArea,	
+		/**
+		 * Average length of detected protrusions.
+		 */
+		AvgLengthProtrusions,
+		/**
+		 * Average length of apical parts of detected protrusions.
+		 */
+		AvgLengthApicalProtrusions,
+		/**
+		 * Average length of basal parts of detected protrusions.
+		 */
+		AvgLengthBasalProtrusions,
+		/**
+		 * Average length of baselines of detected protrusions.
+		 */
+		AvgLengthBaselineProtrusions,
+		/**
+		 * Average length of the equators of detected protrusions.
+		 */
+		AvgLengthEquatorProtrusions,
+		/**
+		 * Average length of detected indentations.
+		 */
+		AvgLengthIndentations,
+		/**
+		 * Average length of apical parts of detected indentations.
+		 */
+		AvgLengthApicalIndentations,
+		/**
+		 * Average length of basal parts of detected indentations.
+		 */
+		AvgLengthBasalIndentations,
+		/**
+		 * Average length of baselines of detected indentations.
+		 */
+		AvgLengthBaselineIndentations,
+		/**
+		 * Average length of the equators of detected indentations.
+		 */
+		AvgLengthEquatorIndentations
 	}
 
 	@Parameter(label = "label image", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "label image", dataIOOrder = 0,
@@ -240,14 +273,14 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	private boolean calcMarginRoughness = true;
 
 	/**
-	 * Flag to turn on/off analysis of lobes and necks.
+	 * Flag to turn on/off analysis of protrusions and indentations.
 	 */
-	@Parameter(label = "analyze lobes and necks", required = false, 
+	@Parameter(label = "analyze protrusions and indentations", required = false, 
 		direction = Parameter.Direction.IN, supplemental = false, 
-		description = "If true lobes and necks are analyzed.",
+		description = "If true protrusions/indentations are analyzed.",
 		dataIOOrder = 12, callback = "callbackCurvature",
 		paramModificationMode = ParameterModificationMode.MODIFIES_INTERFACE)
-	private boolean analyzeLobesAndNecks = true;
+	private boolean analyzeProtrusionsIndentations = true;
 
 	/**
 	 * Threshold for minimal curvature.
@@ -268,13 +301,13 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	private double gaussianSigma = 4.0;
 
 	/**
-	 * Minimal number of pixels a valid lobe requires.
+	 * Minimal number of pixels a valid protrusion requires.
 	 */
-	@Parameter(label = "    - Minimal length of a lobe section", 
+	@Parameter(label = "    - Minimal length of a protrusion section", 
 		required = false, direction = Parameter.Direction.IN, 
 		supplemental = false, dataIOOrder = 15,
-		description = "Minimal number of pixels a lobe requires to be valid.")
-	private int minLobeLength = 10;
+		description = "Minimal number of pixels a protrusion requires to be valid.")
+	private int minProtrusionLength = 10;
 
 	/**
 	 * Flag to turn on/off calculation of skeleton branch features.
@@ -375,18 +408,31 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	private Vector<Double> marginRoughnessValues;
 	private Vector<Double> avgConcavities;	
 	private Vector<Double> stdDevConcavities;
-	private Vector<Double> branchCounts;
-	private Vector<Double> avgBranchLengths;
-	private Vector<Double> avgEndpointDistances;
-	private Vector<Integer> lobeCounts;
-	private Vector<Double> avgLobeDepths;
-	private Vector<Double> avgNeckDepths;
-	private Vector<Double> nonLobeAreaRatios;
-	private Vector<Double> longestPathLengths;
 	private Vector<Double> convexHullAreas;
 	private Vector<Double> convexHullPerimeters;
 	private Vector<Double> convexHullConvexities;
 	private Vector<Double> convexHullRoundnessValues;
+	private Vector<Double> branchCounts;
+	private Vector<Double> avgBranchLengths;
+	private Vector<Double> longestPathLengths;
+	private Vector<Double> avgEndpointDistances;
+	private Vector<Integer> protrusionCounts;
+	private Vector<Double> nonProtrusionAreas;
+	
+	private Vector<Double> avgProtrusionLengths;
+	private Vector<Double> avgApicalProtrusionLengths;
+	private Vector<Double> avgBasalProtrusionLengths;
+	private Vector<Double> avgBaselineProtrusionLengths;
+	private Vector<Double> avgEquatorProtrusionLengths;
+	private Vector<Double> avgIndentationLengths;
+	private Vector<Double> avgApicalIndentationLengths;
+	private Vector<Double> avgBasalIndentationLengths;
+	private Vector<Double> avgBaselineIndentationLengths;
+	private Vector<Double> avgEquatorIndentationLengths;
+	
+	
+	private Vector<Double> avgLobeDepths;
+	private Vector<Double> avgNeckDepths;
 	
 	private MTBRegion2DSet regions = null;
 	private MTBImage labelImg = null;
@@ -420,8 +466,8 @@ public class MorphologyAnalyzer2D extends MTBOperator
 				new ALDOperatorExecutionProgressEvent(this, operatorID 
 					+ " initializing operator..."));
 
-		this.nf.setMaximumFractionDigits(this.fracDigits);
-		this.nf.setMinimumFractionDigits(this.fracDigits);
+		this.nf.setMaximumFractionDigits(this.fracDigits.intValue());
+		this.nf.setMinimumFractionDigits(this.fracDigits.intValue());
 		this.nf.setGroupingUsed(false);
 		
 		if(this.inRegions == null)
@@ -493,18 +539,30 @@ public class MorphologyAnalyzer2D extends MTBOperator
 		this.marginRoughnessValues = new Vector<Double>();
 		this.avgConcavities = new Vector<Double>();	
 		this.stdDevConcavities = new Vector<Double>();
-		this.branchCounts = new Vector<Double>();
-		this.avgBranchLengths = new Vector<Double>();
-		this.avgEndpointDistances = new Vector<Double>();
-		this.lobeCounts = new Vector<Integer>();
-		this.avgLobeDepths = new Vector<Double>();
-		this.avgNeckDepths = new Vector<Double>();
-		this.nonLobeAreaRatios = new Vector<Double>();
-		this.longestPathLengths = new Vector<Double>();
 		this.convexHullAreas = new Vector<Double>();
 		this.convexHullPerimeters = new Vector<Double>();
 		this.convexHullConvexities = new Vector<Double>();
 		this.convexHullRoundnessValues = new Vector<Double>();
+		this.branchCounts = new Vector<Double>();
+		this.avgBranchLengths = new Vector<Double>();
+		this.longestPathLengths = new Vector<Double>();
+		this.avgEndpointDistances = new Vector<Double>();
+		this.protrusionCounts = new Vector<Integer>();
+		this.nonProtrusionAreas = new Vector<Double>();
+
+		this.avgProtrusionLengths = new Vector<Double>();
+		this.avgApicalProtrusionLengths = new Vector<Double>();
+		this.avgBasalProtrusionLengths = new Vector<Double>();
+		this.avgBaselineProtrusionLengths = new Vector<Double>();
+		this.avgEquatorProtrusionLengths = new Vector<Double>();
+		this.avgIndentationLengths = new Vector<Double>();
+		this.avgApicalIndentationLengths = new Vector<Double>();
+		this.avgBasalIndentationLengths = new Vector<Double>();
+		this.avgBaselineIndentationLengths = new Vector<Double>();
+		this.avgEquatorIndentationLengths = new Vector<Double>();
+
+		this.avgLobeDepths = new Vector<Double>();
+		this.avgNeckDepths = new Vector<Double>();
 
 		this.fireOperatorExecutionProgressEvent(
 				new ALDOperatorExecutionProgressEvent(this, operatorID 
@@ -586,7 +644,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 				new ALDOperatorExecutionProgressEvent(this, operatorID 
 					+ " performing curvature analysis..."));
 
-		if (this.calcMarginRoughness || this.analyzeLobesAndNecks) 
+		if (this.calcMarginRoughness || this.analyzeProtrusionsIndentations) 
 		{
 			this.analyzeLocalCurvatures();
 		}
@@ -704,7 +762,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 			header.add(
 					FeatureNames.AvgBranchLength.toString() + " ("+ this.unitXY + ")");
 			header.add(
-					FeatureNames.AvgLobeRadius.toString() + " ("+ this.unitXY + ")" );
+					FeatureNames.AvgDistBranchEndpointsToBackground.toString() + " ("+ this.unitXY + ")" );
 			header.add(
 					FeatureNames.LongestPathLength.toString() + " ("+ this.unitXY + ")");
 		}
@@ -713,14 +771,6 @@ public class MorphologyAnalyzer2D extends MTBOperator
 			header.add(FeatureNames.AvgConcavity.toString());
 			header.add(FeatureNames.StdDevConcavity.toString());
 		}
-		if (this.analyzeLobesAndNecks) {
-			header.add(FeatureNames.LobeCount.toString());
-			header.add(
-					FeatureNames.AvgLobeDepth.toString() + " ("+ this.unitXY + ")" );
-			header.add(
-					FeatureNames.AvgNeckDepth.toString() + " ("+ this.unitXY + ")" );
-			header.add(FeatureNames.NonLobeAreaRatio.toString());
-		}
 		if (this.calcConvexHullMeasures) {
 			header.add(FeatureNames.ConvexHullArea.toString() 
 					+ " ("+ this.unitXY + "^2)");
@@ -728,6 +778,30 @@ public class MorphologyAnalyzer2D extends MTBOperator
 					+ " ("+ this.unitXY + ")");
 			header.add(FeatureNames.ConvexHullConvexity.toString());
 			header.add(FeatureNames.ConvexHullRoundness.toString());
+		}
+		if (this.analyzeProtrusionsIndentations) {
+			header.add(FeatureNames.NumberOfProtrusions.toString());
+			header.add(FeatureNames.NonProtrusionArea.toString());
+			header.add(FeatureNames.AvgLengthProtrusions.toString() 
+					+ " ("+ this.unitXY + ")" );
+			header.add(FeatureNames.AvgLengthApicalProtrusions.toString()
+					+ " ("+ this.unitXY + ")" );
+			header.add(FeatureNames.AvgLengthBasalProtrusions.toString()
+					+ " ("+ this.unitXY + ")" );
+			header.add(FeatureNames.AvgLengthBaselineProtrusions.toString()
+					+ " ("+ this.unitXY + ")" );
+			header.add(FeatureNames.AvgLengthEquatorProtrusions.toString()
+					+ " ("+ this.unitXY + ")" );
+			header.add(FeatureNames.AvgLengthIndentations.toString() 
+					+ " ("+ this.unitXY + ")" );
+			header.add(FeatureNames.AvgLengthApicalIndentations.toString()
+					+ " ("+ this.unitXY + ")" );
+			header.add(FeatureNames.AvgLengthBasalIndentations.toString()
+					+ " ("+ this.unitXY + ")" );
+			header.add(FeatureNames.AvgLengthBaselineIndentations.toString()
+					+ " ("+ this.unitXY + ")" );
+			header.add(FeatureNames.AvgLengthEquatorIndentations.toString()
+					+ " ("+ this.unitXY + ")" );
 		}
 		
 		int n = this.regions.size();
@@ -802,20 +876,6 @@ public class MorphologyAnalyzer2D extends MTBOperator
 						this.stdDevConcavities.elementAt(i)), i, col);
 				col++;
 			}
-			if (this.analyzeLobesAndNecks) {
-				this.table.setValueAt(this.nf.format(
-						this.lobeCounts.elementAt(i)), i, col);
-				col++;
-				this.table.setValueAt(this.nf.format(
-						this.avgLobeDepths.elementAt(i)), i, col);
-				col++;
-				this.table.setValueAt(this.nf.format(
-						this.avgNeckDepths.elementAt(i)), i, col);
-				col++;
-				this.table.setValueAt(this.nf.format(
-						this.nonLobeAreaRatios.elementAt(i)), i, col);
-				col++;
-			}
 			if (this.calcConvexHullMeasures) {
 				this.table.setValueAt(this.nf.format(
 						this.convexHullAreas.elementAt(i)), i, col);
@@ -829,6 +889,53 @@ public class MorphologyAnalyzer2D extends MTBOperator
 				this.table.setValueAt(this.nf.format(
 						this.convexHullRoundnessValues.elementAt(i)), i, col);
 				col++;				
+			}
+			if (this.analyzeProtrusionsIndentations) {
+				this.table.setValueAt(this.nf.format(
+						this.protrusionCounts.elementAt(i)), i, col);
+				col++;
+				this.table.setValueAt(this.nf.format(
+						this.nonProtrusionAreas.elementAt(i)), i, col);
+				col++;
+				this.table.setValueAt(this.nf.format(
+						this.avgProtrusionLengths.elementAt(i)), i, col);
+				col++;
+				this.table.setValueAt(this.nf.format(
+						this.avgApicalProtrusionLengths.elementAt(i)), i, col);
+				col++;
+				this.table.setValueAt(this.nf.format(
+						this.avgBasalProtrusionLengths.elementAt(i)), i, col);
+				col++;
+				this.table.setValueAt(this.nf.format(
+						this.avgBaselineProtrusionLengths.elementAt(i)), i, col);
+				col++;
+				this.table.setValueAt(this.nf.format(
+						this.avgEquatorProtrusionLengths.elementAt(i)), i, col);
+				col++;
+				this.table.setValueAt(this.nf.format(
+						this.avgIndentationLengths.elementAt(i)), i, col);
+				col++;
+				this.table.setValueAt(this.nf.format(
+						this.avgApicalIndentationLengths.elementAt(i)), i, col);
+				col++;
+				this.table.setValueAt(this.nf.format(
+						this.avgBasalIndentationLengths.elementAt(i)), i, col);
+				col++;
+				this.table.setValueAt(this.nf.format(
+						this.avgBaselineIndentationLengths.elementAt(i)), i, col);
+				col++;
+				this.table.setValueAt(this.nf.format(
+						this.avgEquatorIndentationLengths.elementAt(i)), i, col);
+				col++;
+
+				
+//				this.table.setValueAt(this.nf.format(
+//						this.avgLobeDepths.elementAt(i)), i, col);
+//				col++;
+//				this.table.setValueAt(this.nf.format(
+//						this.avgNeckDepths.elementAt(i)), i, col);
+//				col++;
+
 			}
 		}
 	}
@@ -1031,17 +1138,16 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	}
 
 	/**
-	 * Turn on/off analysis of contour lobes and necks.
+	 * Turn on/off analysis of contour protrusions and indentations.
 	 * <p>
-	 * The analysis of lobes and necks subsumes the overall count of 
-	 * lobes, the average depth of lobes and necks, and the ratio between 
-	 * non-lobe area within the cell and its overall size.
+	 * The analysis of protrusions and indentations subsumes the overall count of 
+	 * protrusions, their average lengths and some more measures.
 	 * 
-	 * @param flag	If true, margin roughness values are calculated.
+	 * @param flag	If true, protrusion/indentation measures are extracted.
 	 */
-	public void setAnalyzeLobesAndNecks(boolean flag)
+	public void setAnalyzeProtrusionsAndIndentations(boolean flag)
 	{
-		this.analyzeLobesAndNecks = flag;
+		this.analyzeProtrusionsIndentations = flag;
 	}
 
 	/**
@@ -1073,7 +1179,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	 * @param m	Minimal pixel count to apply.
 	 */
 	public void setMinimalLobeLength(int m) {
-		this.minLobeLength = m;
+		this.minProtrusionLength = m;
 	}
 
 	/**
@@ -1290,7 +1396,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 			}
 		}
 		
-		if (this.analyzeLobesAndNecks) {
+		if (this.analyzeProtrusionsIndentations) {
 	    Vector< Vector<Point2D.Double> > inflectionPointLists = 
 	    		new Vector< Vector<Point2D.Double> >();
 	    
@@ -1369,7 +1475,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	    	// increase robustness: 
 	    	// check pixel count of lobes/necks, if too small, 
 	    	// remove lobe/neck by inverting sign of their curvature
-	    	removeShortLobes(fixedDirs, this.minLobeLength);
+	    	removeShortProtrusions(fixedDirs, this.minProtrusionLength);
 	    	
 	    	Vector<LinkedList<Point2D.Double>> lobeSegs = new Vector<>();
 	    	Vector<LinkedList<Point2D.Double>> neckSegs = new Vector<>();
@@ -1403,7 +1509,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	    		}
 	    	}
 	    	lobeCount = (int)(signChangeCounter/2.0);
-	    	this.lobeCounts.add(new Integer(lobeCount));
+	    	this.protrusionCounts.add(new Integer(lobeCount));
 
 	    	// remember contour directions and inflection points
 	    	curveDirections.add(fixedDirs);
@@ -1433,7 +1539,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	    		}
 	    	}
 	    	// calculate ratio of non-lobe area in cell
-				this.nonLobeAreaRatios.add(new Double(
+				this.nonProtrusionAreas.add(new Double(
 						nonLobeArea*this.deltaXY.doubleValue()*this.deltaXY.doubleValue()
 					/ this.areas.get(cellID).doubleValue())); 
 				
@@ -1791,7 +1897,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	 * @param dirArray	Array to modify.
 	 * @param minLength	Minimal required length of sequences of ones.
 	 */
-	protected static void removeShortLobes(int[] dirArray, int minLength) {
+	protected static void removeShortProtrusions(int[] dirArray, int minLength) {
 		
 		// iterate over the array until nothing changes anymore
   	int startPos = 0;
@@ -2040,19 +2146,19 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	
 	/**
 	 * Callback function called in case of changes of parameters
-	 * {@link #analyzeLobesAndNecks} or {@link #calcMarginRoughness}.
+	 * {@link #analyzeProtrusionsIndentations} or {@link #calcMarginRoughness}.
 	 */
 	@SuppressWarnings("unused")
 	private void callbackCurvature() 
 	{
     try {
-  		if (this.calcMarginRoughness || this.analyzeLobesAndNecks) {
+  		if (this.calcMarginRoughness || this.analyzeProtrusionsIndentations) {
     		if (!this.hasParameter("gaussianSigma"))
     			this.addParameter("gaussianSigma");
     		if (!this.hasParameter("minimalCurvature"))
     			this.addParameter("minimalCurvature");
     	}
-    	else if (!this.calcMarginRoughness && !this.analyzeLobesAndNecks){
+    	else if (!this.calcMarginRoughness && !this.analyzeProtrusionsIndentations){
     		if (this.hasParameter("gaussianSigma"))
     			this.removeParameter("gaussianSigma");
     		if (this.hasParameter("minimalCurvature"))
