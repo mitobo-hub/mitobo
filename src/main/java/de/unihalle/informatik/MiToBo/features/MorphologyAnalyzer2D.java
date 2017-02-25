@@ -32,7 +32,6 @@ import java.awt.Polygon;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.text.NumberFormat;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Vector;
 
@@ -900,30 +899,30 @@ public class MorphologyAnalyzer2D extends MTBOperator
 				this.table.setValueAt(this.nf.format(
 						this.avgProtrusionLengths.elementAt(i)), i, col);
 				col++;
-				this.table.setValueAt(this.nf.format(
-						this.avgApicalProtrusionLengths.elementAt(i)), i, col);
-				col++;
-				this.table.setValueAt(this.nf.format(
-						this.avgBasalProtrusionLengths.elementAt(i)), i, col);
-				col++;
+//				this.table.setValueAt(this.nf.format(
+//						this.avgApicalProtrusionLengths.elementAt(i)), i, col);
+//				col++;
+//				this.table.setValueAt(this.nf.format(
+//						this.avgBasalProtrusionLengths.elementAt(i)), i, col);
+//				col++;
 				this.table.setValueAt(this.nf.format(
 						this.avgBaselineProtrusionLengths.elementAt(i)), i, col);
 				col++;
 				this.table.setValueAt(this.nf.format(
 						this.avgEquatorProtrusionLengths.elementAt(i)), i, col);
 				col++;
-				this.table.setValueAt(this.nf.format(
-						this.avgIndentationLengths.elementAt(i)), i, col);
-				col++;
-				this.table.setValueAt(this.nf.format(
-						this.avgApicalIndentationLengths.elementAt(i)), i, col);
-				col++;
-				this.table.setValueAt(this.nf.format(
-						this.avgBasalIndentationLengths.elementAt(i)), i, col);
-				col++;
-				this.table.setValueAt(this.nf.format(
-						this.avgBaselineIndentationLengths.elementAt(i)), i, col);
-				col++;
+//				this.table.setValueAt(this.nf.format(
+//						this.avgIndentationLengths.elementAt(i)), i, col);
+//				col++;
+//				this.table.setValueAt(this.nf.format(
+//						this.avgApicalIndentationLengths.elementAt(i)), i, col);
+//				col++;
+//				this.table.setValueAt(this.nf.format(
+//						this.avgBasalIndentationLengths.elementAt(i)), i, col);
+//				col++;
+//				this.table.setValueAt(this.nf.format(
+//						this.avgBaselineIndentationLengths.elementAt(i)), i, col);
+//				col++;
 				this.table.setValueAt(this.nf.format(
 						this.avgEquatorIndentationLengths.elementAt(i)), i, col);
 				col++;
@@ -1410,11 +1409,9 @@ public class MorphologyAnalyzer2D extends MTBOperator
 		}
 		
 		if (this.analyzeProtrusionsIndentations) {
-	    Vector< Vector<Point2D.Double> > inflectionPointLists = 
-	    		new Vector< Vector<Point2D.Double> >();
-	    
+    
 	    double lobeDepthSum = 0, neckDepthSum = 0;
-	    int lobeCount = 0;
+	    int protrusionCount = 0;
 	    int cellID = 0;
 	    Vector<int[]> curveDirections = new Vector<int[]>();
 	    
@@ -1486,91 +1483,96 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	    	}
 	    	
 	    	// increase robustness: 
-	    	// check pixel count of lobes/necks, if too small, 
-	    	// remove lobe/neck by inverting sign of their curvature
+	    	// check pixel count of protrusions/indentations, if too small, 
+	    	// remove protrusion/indentation by inverting sign of their curvature
 	    	removeShortProtrusions(fixedDirs, this.minProtrusionLength);
 	    	
-	    	Vector<LinkedList<Point2D.Double>> lobeSegs = new Vector<>();
-	    	Vector<LinkedList<Point2D.Double>> neckSegs = new Vector<>();
-	    	boolean onLobe= true;
+	    	LinkedList<LinkedList<Point2D.Double>> protrusionSegs = 
+	    			new LinkedList<>();
+	    	LinkedList<LinkedList<Point2D.Double>> indentationSegs = 
+	    			new LinkedList<>();
+	    	boolean onProtrusion = true;
 	    	LinkedList<Point2D.Double> pList = new LinkedList<>();
-	    	HashMap<Point2D.Double, LinkedList<Point2D.Double>> map = new HashMap<>();
 	    	
-	    	// count sign changes along contour
+	    	// count sign changes along contour and 
+	    	// extract protrusion/indentation segments
 	    	MTBContour2D c = contours.elementAt(cellID);
-	    	Vector<Point2D.Double> inflections = 
-	    			new Vector<Point2D.Double>();
+	    	LinkedList<Point2D.Double> inflections = 
+	    			new LinkedList<Point2D.Double>();
+	    	
+	    	double protrusionEquatorSum = 0;
+	    	double indentationEquatorSum = 0;
+	    	
 	    	int signChangeCounter = 0;
 	    	int sign = fixedDirs[fixedDirs.length-1];
+    		if (sign > 0)
+    			onProtrusion = true;
+    		else
+    			onProtrusion = false;
 	    	for (int j=0; j<fixedDirs.length; ++j) {
-	    		if (sign > 0)
-	    			onLobe = true;
-	    		else
-	    			onLobe = false;
-	    		pList.add(c.getPointAt(j));
 	    		if (fixedDirs[j] != sign) {
+
+	    			if (onProtrusion) {
+	    				protrusionSegs.add(pList);
+	    				if (!inflections.isEmpty()) {
+	    					protrusionEquatorSum += 
+	    							c.getPointAt(j).distance(inflections.getLast());
+	    				}
+	    			}
+	    			else {
+	    				indentationSegs.add(pList);
+	    				if (!inflections.isEmpty()) {
+	    					indentationEquatorSum += 
+	    							c.getPointAt(j).distance(inflections.getLast());
+	    				}
+	    			}
+
 	    			++signChangeCounter;
 	    			sign *= -1;
 	    			inflections.add(c.getPointAt(j));
-	    			
-	    			if (onLobe) 
-	    				lobeSegs.add(pList);
-	    			else
-	    				neckSegs.add(pList);
-	    			map.put(c.getPointAt(j), pList);
-	    			pList = new LinkedList<>();
-	    		}
-	    	}
-	    	lobeCount = (int)(signChangeCounter/2.0);
-	    	this.protrusionCounts.add(new Integer(lobeCount));
 
-	    	// remember contour directions and inflection points
-	    	curveDirections.add(fixedDirs);
-				inflectionPointLists.add(inflections);
-	    	
-	    	// create polygon defined by inflection points, parts of the 
-	    	// cell area referring to lobes are outside while neck areas
-	    	// are still inside
-	    	MTBPolygon2D poly = new MTBPolygon2D(inflections, true);
-	    	int[][] polyMask = poly.getBinaryMask(width, height);
-	    	
-	    	// estimate non-lobe area, which is polygon area without necks
-	    	int nonLobeArea = 0;
-	    	for (int y=0;y<height;++y) {
-	    		for (int x=0;x<width;++x) {
-	    			// check if pixel is inside polygon and inside cell
-	    			if (   polyMask[y][x] > 0 
-	    					&& this.labelImg.getValueInt(x, y) == (cellID+1)) {
-	    				++nonLobeArea;
-	    				// mark non-lobe area in image
-	    				if (this.createCurvatureInfoImage) {
-								this.curvatureInfoImg.putValueR(x, y, 125);
-								this.curvatureInfoImg.putValueG(x, y, 125);
-								this.curvatureInfoImg.putValueB(x, y, 125);                                               
-	    				}
-	    			}
+	    			pList = new LinkedList<>();
+	    			onProtrusion = !onProtrusion;
+	    		}
+	    		pList.add(c.getPointAt(j));
+	    	}
+	    	// check if first and last segment belong together
+	    	if (fixedDirs[fixedDirs.length-1] == fixedDirs[0]) {
+	    		if (fixedDirs[0] > 0) {
+	    			protrusionSegs.getLast().addAll(protrusionSegs.pop());
+	    		}
+	    		else {
+	    			indentationSegs.getLast().addAll(indentationSegs.pop());	    			
 	    		}
 	    	}
-	    	// calculate ratio of non-lobe area in cell
-				this.nonProtrusionAreas.add(new Double(
-						nonLobeArea*this.deltaXY.doubleValue()*this.deltaXY.doubleValue()
-					/ this.areas.get(cellID).doubleValue())); 
-				
-				// plot result to image if requested
+	    	
+	    	// remember number of protrusions and equator lengths
+	    	protrusionCount = (int)(signChangeCounter/2.0);
+	    	this.protrusionCounts.add(new Integer(protrusionCount));
+	    	this.avgEquatorProtrusionLengths.add(
+	    			new Double(protrusionEquatorSum/protrusionCount));
+	    	this.avgEquatorIndentationLengths.add(
+	    			new Double(indentationEquatorSum/indentationEquatorSum));
+
+	    	// remember contour directions
+	    	curveDirections.add(fixedDirs);
+	    					
+				// plot protrusions and indentations as well as equators 
+	    	// to info image if requested
 				if (this.createCurvatureInfoImage) {
-					int blue = ((0 & 0xff)<<16)+((255 & 0xff)<<8) + (0 & 0xff);
+					int green = ((0 & 0xff)<<16)+((255 & 0xff)<<8) + (0 & 0xff);
 					for (int k=0; k<inflections.size()-1; ++k) {
 						int sx = (int)inflections.get(k).x;
 						int sy = (int)inflections.get(k).y;
 						int ex = (int)inflections.get(k+1).x;
 						int ey = (int)inflections.get(k+1).y;
-//						this.curvatureInfoImg.drawLine2D(sx, sy, ex, ey, blue);
+						this.curvatureInfoImg.drawLine2D(sx, sy, ex, ey, green);
 					}
 					int sx = (int)inflections.get(inflections.size()-1).x;
 					int sy = (int)inflections.get(inflections.size()-1).y;
 					int ex = (int)inflections.get(0).x;
 					int ey = (int)inflections.get(0).y;
-//					this.curvatureInfoImg.drawLine2D(sx, sy, ex, ey, blue);
+					this.curvatureInfoImg.drawLine2D(sx, sy, ex, ey, green);
 
 					Vector<Point2D.Double> ps = c.getPoints();
 					int j=0;
@@ -1596,146 +1598,151 @@ public class MorphologyAnalyzer2D extends MTBOperator
 					}
 				}
 
-				// process each lobe/neck and calculate depth
-	    	int t=0;
-	    	double d, pDist;
-	    	boolean go = true;
-	    	boolean reachedEnd = false;
-	    	boolean processLobe, processNeck;
-				Point2D.Double ep;
-	    	while (go && !reachedEnd) {
-	    		
-	    		// get contour point to analyze next
-	    		Point2D.Double p = c.getPointAt(t);
-	    		
-	    		// check if point is inflection
-	    		if (inflections.contains(p)) {
-	    			// check if a lobe starts here
-	    			if (fixedDirs[t] > 0) {
-	    				// get index in list
-	    				int is = inflections.indexOf(p);
-	    				// get endpoint of current lobe/neck
-	    				if (is + 1 < inflections.size()-1) {
-	    					ep = inflections.get(is+1);
-	    				}
-	    				else {
-	    					ep = inflections.get(0);
-	    				}
-	    				// init connecting line
-	    				Line2D.Double connectLine = 
-	    						new Line2D.Double(p.x, p.y, ep.x, ep.y);
-	    				
-	    				pDist = 0;
-	    				
-	    				++t;
-	    				if (t >= fixedDirs.length) {
-	    					t = fixedDirs.length - t;
-	    					reachedEnd = true;
-	    				}
-	    				processLobe = true;
-	    				while (processLobe) {
-	    					if (fixedDirs[t] <= 0.5) {
-	    						processLobe = false;
-	    						lobeDepthSum += pDist;
-	    					}
-	    					else {
-	  	    				// get next point
-	    						p = c.getPointAt(t);
-	    						// calculate distance of point to connecting line
-	    						d = connectLine.ptLineDist(p);
-	    						if (d > pDist) {
-	    							pDist = d;
-	    						}
-	    						
-	    						++t;
-	        				if (t >= fixedDirs.length) {
-	        					t = fixedDirs.length - t;
-	        					reachedEnd = true;
-	        				}
-	    					}
-	    				}
-	    			}
-	    			// neck region starts here
-	    			else {
-	    				int is = inflections.indexOf(p);
-	    				if (is + 1 < inflections.size()-1) {
-	    					ep = inflections.get(is+1);
-	    				}
-	    				else {
-	    					ep = inflections.get(0);
-	    				}
-	    				// init connecting line
-	    				Line2D.Double connectLine = 
-	    						new Line2D.Double(p.x, p.y, ep.x, ep.y);
-
-	    				pDist = 0;
-
-	    				// get next point
-	    				++t;
-	    				if (t >= fixedDirs.length) {
-	    					t = fixedDirs.length - t;
-	    					reachedEnd = true;
-	    				}
-	    				processNeck = true;
-	    				while (processNeck) {
-	    					if (fixedDirs[t] >= -0.5) {
-	    						processNeck = false;
-	    						neckDepthSum += pDist;
-	    					}
-	    					else {
-	    						// get next point in neck region
-	    						p = c.getPointAt(t);
-	    						
-	    						// calculate distance of point to connecting line
-	    						d = connectLine.ptLineDist(p);
-	    						if (d > pDist)
-	    							pDist = d;
-	    						
-	    						++t;
-	    						if (t >= fixedDirs.length) {
-	    							t = fixedDirs.length - t;
-	    							reachedEnd = true;
-	    						}
-	    					}
-	    				}
-	  				} // end of neck region else-clause
-	    		}
-	    		else {
-	    			++t;
-	    		}
-	    		if (t >= c.getPointNum())
-	    			go = false;
-	    	} // end of while-loop over current lobe/neck region
-	    	this.avgLobeDepths.add(
-	    			new Double( (lobeDepthSum*this.deltaXY.doubleValue()) / lobeCount));
-	    	this.avgNeckDepths.add(
-	    			new Double( (neckDepthSum*this.deltaXY.doubleValue()) / lobeCount));
-	    	++cellID;
+				// process each protrusion and indentation and calculate lengths
+//	    	int t=0;
+//	    	double d, pDist;
+//	    	boolean go = true;
+//	    	boolean reachedEnd = false;
+//	    	boolean processProtrusion, processIndentation;
+//				Point2D.Double ep;
+//	    	while (go && !reachedEnd) {
+//	    		
+//	    		// get contour point to analyze next
+//	    		Point2D.Double p = c.getPointAt(t);
+//	    		
+//	    		// check if point is inflection
+//	    		if (inflections.contains(p)) {
+//	    			// check if a protrusion starts here
+//	    			if (fixedDirs[t] > 0) {
+//	    				// get index in list
+//	    				int is = inflections.indexOf(p);
+//	    				// get endpoint of current protrusion/indentation
+//	    				if (is + 1 < inflections.size()-1) {
+//	    					ep = inflections.get(is+1);
+//	    				}
+//	    				else {
+//	    					ep = inflections.get(0);
+//	    				}
+//	    				// init connecting line
+//	    				Line2D.Double connectLine = 
+//	    						new Line2D.Double(p.x, p.y, ep.x, ep.y);
+//	    				
+//	    				pDist = 0;
+//	    				
+//	    				++t;
+//	    				if (t >= fixedDirs.length) {
+//	    					t = fixedDirs.length - t;
+//	    					reachedEnd = true;
+//	    				}
+//	    				processProtrusion = true;
+//	    				while (processProtrusion) {
+//	    					if (fixedDirs[t] <= 0.5) {
+//	    						processProtrusion = false;
+//	    						lobeDepthSum += pDist;
+//	    					}
+//	    					else {
+//	  	    				// get next point
+//	    						p = c.getPointAt(t);
+//	    						// calculate distance of point to connecting line
+//	    						d = connectLine.ptLineDist(p);
+//	    						if (d > pDist) {
+//	    							pDist = d;
+//	    						}
+//	    						
+//	    						++t;
+//	        				if (t >= fixedDirs.length) {
+//	        					t = fixedDirs.length - t;
+//	        					reachedEnd = true;
+//	        				}
+//	    					}
+//	    				}
+//	    			}
+//	    			// neck region starts here
+//	    			else {
+//	    				int is = inflections.indexOf(p);
+//	    				if (is + 1 < inflections.size()-1) {
+//	    					ep = inflections.get(is+1);
+//	    				}
+//	    				else {
+//	    					ep = inflections.get(0);
+//	    				}
+//	    				// init connecting line
+//	    				Line2D.Double connectLine = 
+//	    						new Line2D.Double(p.x, p.y, ep.x, ep.y);
+//
+//	    				pDist = 0;
+//
+//	    				// get next point
+//	    				++t;
+//	    				if (t >= fixedDirs.length) {
+//	    					t = fixedDirs.length - t;
+//	    					reachedEnd = true;
+//	    				}
+//	    				processIndentation = true;
+//	    				while (processIndentation) {
+//	    					if (fixedDirs[t] >= -0.5) {
+//	    						processIndentation = false;
+//	    						neckDepthSum += pDist;
+//	    					}
+//	    					else {
+//	    						// get next point in neck region
+//	    						p = c.getPointAt(t);
+//	    						
+//	    						// calculate distance of point to connecting line
+//	    						d = connectLine.ptLineDist(p);
+//	    						if (d > pDist)
+//	    							pDist = d;
+//	    						
+//	    						++t;
+//	    						if (t >= fixedDirs.length) {
+//	    							t = fixedDirs.length - t;
+//	    							reachedEnd = true;
+//	    						}
+//	    					}
+//	    				}
+//	  				} // end of neck region else-clause
+//	    		}
+//	    		else {
+//	    			++t;
+//	    		}
+//	    		if (t >= c.getPointNum())
+//	    			go = false;
+//	    	} // end of while-loop over current lobe/neck region
+//	    	this.avgLobeDepths.add(
+//	    			new Double( (lobeDepthSum*this.deltaXY.doubleValue()) / protrusionCount));
+//	    	this.avgNeckDepths.add(
+//	    			new Double( (neckDepthSum*this.deltaXY.doubleValue()) / protrusionCount));
 	    	
-	    	// further process neck region(s)	 
-	    	for (int n=0; n<neckSegs.size(); ++n) {
+	    	// further process indentation region(s)
+				Vector<Point2D.Double> nonProtrusionAreaPolyPoints = 
+						new Vector<Point2D.Double>();
+				double protrusionBaselineSum = 0;
+				double protrusionLengthSum = 0;
+	    	for (int n=0; n<indentationSegs.size(); ++n) {
 	    		
-	    		LinkedList<Point2D.Double> neck = neckSegs.get(n);
+	    		LinkedList<Point2D.Double> neck = indentationSegs.get(n);
 	    		Point2D.Double neckMidPoint = neck.get(neck.size()/2);
-	    		
-	    		// draw middle point to image
 					int nmpx = (int)neckMidPoint.x;
 					int nmpy = (int)neckMidPoint.y;
-					for (int dy=-1;dy<=1;++dy) {
-						for (int dx=-1;dx<=1;++dx) {
-							if (Math.abs(dx) != 1 || Math.abs(dy) != 1) {
-								this.curvatureInfoImg.putValueR(nmpx+dx, nmpy+dy, 255);
-								this.curvatureInfoImg.putValueG(nmpx+dx, nmpy+dy, 255);
-								this.curvatureInfoImg.putValueB(nmpx+dx, nmpy+dy, 255);
-							}
-						}						
+	    		
+	    		// draw middle point to image
+					if (this.createCurvatureInfoImage) {
+						for (int dy=-1;dy<=1;++dy) {
+							for (int dx=-1;dx<=1;++dx) {
+								if (Math.abs(dx) != 1 || Math.abs(dy) != 1) {
+									this.curvatureInfoImg.putValueR(nmpx+dx, nmpy+dy, 255);
+									this.curvatureInfoImg.putValueG(nmpx+dx, nmpy+dy, 255);
+									this.curvatureInfoImg.putValueB(nmpx+dx, nmpy+dy, 255);
+								}
+							}						
+						}
 					}
 
 					LinkedList<Point2D.Double> nextNeck;
-	    		if (n ==neckSegs.size()-1 )
-	    			nextNeck = neckSegs.get(0);
+	    		if (n ==indentationSegs.size()-1 )
+	    			nextNeck = indentationSegs.get(0);
 	    		else
-	    			nextNeck = neckSegs.get(n+1);
+	    			nextNeck = indentationSegs.get(n+1);
 	    		Point2D.Double nextNeckMidPoint = nextNeck.get(nextNeck.size()/2);
 					int nnmpx = (int)nextNeckMidPoint.x;
 					int nnmpy = (int)nextNeckMidPoint.y;
@@ -1754,87 +1761,16 @@ public class MorphologyAnalyzer2D extends MTBOperator
 							++pixOutside;
 						}
 					}
-					// there are pixels out of the region area...
+					
+					Point2D.Double newStartPoint = neckMidPoint;
+					Point2D.Double newEndPoint = nextNeckMidPoint;
+					
+					// there are pixels out of the region area, shift points
 					if (outsideCell) {
-						
-						Point2D.Double newStartPoint = neckMidPoint;
-						Point2D.Double newEndPoint = nextNeckMidPoint;
 						
 						int nPixOutside = 0;
 						int minOutside = pixOutside;
 						int shift, totalShift = Integer.MAX_VALUE;
-						
-//						// shift start point
-//						int pi = neck.size()/2 + 1;
-//						while (pi < neck.size()) {
-//							Point2D.Double tp = neck.get(pi);
-//							baseline = 
-//									new MTBLineSegment2D((int)tp.x, (int)tp.y, nnmpx, nnmpy);
-//							pixelList = baseline.getPixelsAlongSegment();
-//							int nPixOutside = 0;
-//							for (Point2D.Double q: pixelList) {
-//								if (this.labelImg.getValueInt((int)q.x, (int)q.y) == 0) {
-//									++nPixOutside;
-//								}
-//							}
-//							// check for minimum of segment pixels outside of region
-//							if (nPixOutside < minOutside) {
-//								minOutside = nPixOutside;
-//								newStartPoint = tp;
-//								startShifted = true;
-//							}
-//							++pi;
-//						}
-//						if (startShifted) {
-//							int px = (int)newStartPoint.x;
-//							int py = (int)newStartPoint.y;
-//							for (int dy=-1;dy<=1;++dy) {
-//								for (int dx=-1;dx<=1;++dx) {
-//									if (Math.abs(dx) != 1 || Math.abs(dy) != 1) {
-//										this.curvatureInfoImg.putValueR(px+dx, py+dy, 0);
-//										this.curvatureInfoImg.putValueG(px+dx, py+dy, 0);
-//										this.curvatureInfoImg.putValueB(px+dx, py+dy, 0);
-//									}
-//								}						
-//							}
-//						}
-//						
-//						// shift end point
-//						minOutside = pixOutside;
-//						
-//						pi = nextNeck.size()/2 - 1;
-//						while (pi >= 0) {
-//							Point2D.Double tp = nextNeck.get(pi);
-//							baseline = new MTBLineSegment2D((int)tp.x, (int)tp.y, 
-//									(int)newStartPoint.x, (int)newStartPoint.y);
-//							pixelList = baseline.getPixelsAlongSegment();
-//							int nPixOutside = 0;
-//							for (Point2D.Double q: pixelList) {
-//								if (this.labelImg.getValueInt((int)q.x, (int)q.y) == 0) {
-//									++nPixOutside;
-//								}
-//							}
-//							// check for minimum of segment pixels outside of region
-//							if (nPixOutside < minOutside) {
-//								minOutside = nPixOutside;
-//								newEndPoint = tp;
-//								endShifted = true;
-//							}
-//							--pi;
-//						}
-//						if (endShifted) {
-//							int px = (int)newEndPoint.x;
-//							int py = (int)newEndPoint.y;
-//							for (int dy=-1;dy<=1;++dy) {
-//								for (int dx=-1;dx<=1;++dx) {
-//									if (Math.abs(dx) != 1 || Math.abs(dy) != 1) {
-//										this.curvatureInfoImg.putValueR(px+dx, py+dy, 0);
-//										this.curvatureInfoImg.putValueG(px+dx, py+dy, 0);
-//										this.curvatureInfoImg.putValueB(px+dx, py+dy, 0);
-//									}
-//								}						
-//							}
-//						}
 
 						// shift start point
 						for (int ps = neck.size()/2; ps < neck.size(); ++ps) {
@@ -1861,11 +1797,58 @@ public class MorphologyAnalyzer2D extends MTBOperator
 									newStartPoint = tps;
 									newEndPoint = tpe;
 								}
-//								if (nPixOutside == 0)
-//									break;
 							}
 						}
+					} // end of if-clause for indentation region optimization
+					
+					// collect set of indentation region border points
+					nonProtrusionAreaPolyPoints.add(newStartPoint);
+					nonProtrusionAreaPolyPoints.add(newEndPoint);
+					
+					// sum lengths of baselines
+					protrusionBaselineSum += newStartPoint.distance(newEndPoint);
+					
+					Line2D.Double baseLine = new Line2D.Double(
+						newStartPoint.x, newStartPoint.y, newEndPoint.x, newEndPoint.y);
+					
+					Vector<Point2D.Double> cPoints = c.getPoints();
+					int sID = cPoints.indexOf(newStartPoint);
+					int eID = cPoints.indexOf(newEndPoint);
+					// check if segment overlaps contour start/end
+					int lastID = (eID < sID ? cPoints.size() : eID); 
+					double maxDist = 0, dist;
+					Point2D.Double maxDistPoint = newStartPoint, cp;
+					for (int id = sID+1; id<lastID; ++id) {
+						cp = cPoints.get(id);
+						dist = baseLine.ptLineDist(cp);
+						if (dist > maxDist) {
+							maxDist = dist;
+							maxDistPoint = cp;
+						}
+					}
+					if (eID < sID) {
+						for (int id = 0; id<eID; ++id) {
+							cp = cPoints.get(id);
+							dist = baseLine.ptLineDist(cp);
+							if (dist > maxDist) {
+								maxDist = dist;
+								maxDistPoint = cp;
+							}
+						}					
+					}
+					protrusionLengthSum += maxDist;		
+					
+					double vx = newEndPoint.x - newStartPoint.x;
+					double vy = newEndPoint.y - newStartPoint.y;
+					double spx = maxDistPoint.x - newStartPoint.x;
+					double spy = maxDistPoint.y - newStartPoint.y;
+					double blength = vx*vx + vy*vy;
+					double plength = (vx*spx + vy*spy) / blength;
+					
+					double ppx = newStartPoint.x + plength * vx;
+					double ppy = newStartPoint.y + plength * vy;
 
+					if (this.createCurvatureInfoImage) {
 						int px = (int)newStartPoint.x;
 						int py = (int)newStartPoint.y;
 						for (int dy=-1;dy<=1;++dy) {
@@ -1892,15 +1875,63 @@ public class MorphologyAnalyzer2D extends MTBOperator
 						this.curvatureInfoImg.drawLine2D(
 								(int)newStartPoint.x, (int)newStartPoint.y,
 								(int)newEndPoint.x, (int)newEndPoint.y, 0x00FFA500);
-					}
-					// no pixels outside of region
-					else {
-						this.curvatureInfoImg.drawLine2D(
-								nmpx, nmpy, nnmpx, nnmpy, 0x00FFFF00);						
-					}
-	    	}			
-	    }
-		}
+						
+						// draw max. distance point
+						px = (int)maxDistPoint.x;
+						py = (int)maxDistPoint.y;
+						for (int dy=-1;dy<=1;++dy) {
+							for (int dx=-1;dx<=1;++dx) {
+								if (Math.abs(dx) != 1 || Math.abs(dy) != 1) {
+									this.curvatureInfoImg.putValueR(px+dx, py+dy, 0);
+									this.curvatureInfoImg.putValueG(px+dx, py+dy, 0);
+									this.curvatureInfoImg.putValueB(px+dx, py+dy, 0);
+								}
+							}						
+						}
+						this.curvatureInfoImg.drawLine2D((int)ppx, (int)ppy, 
+								(int)maxDistPoint.x, (int)maxDistPoint.y, 0x00000000);
+
+					} // end of optional drawing section
+					
+	    	} // end of for-loop over all indentation regions			
+	    	
+	    	this.avgProtrusionLengths.add(new Double(
+		    	protrusionLengthSum*this.deltaXY.doubleValue() / protrusionCount));
+	    	this.avgBaselineProtrusionLengths.add(new Double(
+	    		protrusionBaselineSum*this.deltaXY.doubleValue() / protrusionCount));
+	    
+	    	// create polygon defined by indentation region border points
+	    	MTBPolygon2D poly = new MTBPolygon2D(nonProtrusionAreaPolyPoints, true);
+	    	int[][] polyMask = poly.getBinaryMask(width, height);
+    	
+	    	// estimate non-protrusion area, 
+	    	// which is region area without protrusions
+	    	int nonProtrusionArea = 0;
+	    	for (int y=0;y<height;++y) {
+	    		for (int x=0;x<width;++x) {
+	    			// check if pixel is inside polygon and inside cell
+	    			if (   polyMask[y][x] > 0 
+	    					&& this.labelImg.getValueInt(x, y) == (cellID+1)) {
+	    				++nonProtrusionArea;
+	    				
+	    				// mark non-lobe area in image
+//	    				if (this.createCurvatureInfoImage) {
+//	    					this.curvatureInfoImg.putValueR(x, y, 125);
+//	    					this.curvatureInfoImg.putValueG(x, y, 125);
+//	    					this.curvatureInfoImg.putValueB(x, y, 125);                                               
+//	    				}
+	    			}
+	    		}
+	    	}
+    		// calculate ratio of non-lobe area in cell
+    		this.nonProtrusionAreas.add(new Double(nonProtrusionArea
+    				*this.deltaXY.doubleValue()*this.deltaXY.doubleValue()));
+
+    		// increment cell ID
+	    	++cellID;
+
+	    } // end of for-loop over all regions
+		} // end of part of analyzing curvatures, protrusions, indentations
 	}	
 
 	/**
