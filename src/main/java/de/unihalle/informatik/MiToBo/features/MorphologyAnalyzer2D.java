@@ -899,12 +899,12 @@ public class MorphologyAnalyzer2D extends MTBOperator
 				this.table.setValueAt(this.nf.format(
 						this.avgProtrusionLengths.elementAt(i)), i, col);
 				col++;
-//				this.table.setValueAt(this.nf.format(
-//						this.avgApicalProtrusionLengths.elementAt(i)), i, col);
-//				col++;
-//				this.table.setValueAt(this.nf.format(
-//						this.avgBasalProtrusionLengths.elementAt(i)), i, col);
-//				col++;
+				this.table.setValueAt(this.nf.format(
+						this.avgApicalProtrusionLengths.elementAt(i)), i, col);
+				col++;
+				this.table.setValueAt(this.nf.format(
+						this.avgBasalProtrusionLengths.elementAt(i)), i, col);
+				col++;
 				this.table.setValueAt(this.nf.format(
 						this.avgBaselineProtrusionLengths.elementAt(i)), i, col);
 				col++;
@@ -1513,14 +1513,16 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	    		if (fixedDirs[j] != sign) {
 
 	    			if (onProtrusion) {
-	    				protrusionSegs.add(pList);
+	    				if (!pList.isEmpty())
+	    					protrusionSegs.add(pList);
 	    				if (!inflections.isEmpty()) {
 	    					protrusionEquatorSum += 
 	    							c.getPointAt(j).distance(inflections.getLast());
 	    				}
 	    			}
 	    			else {
-	    				indentationSegs.add(pList);
+	    				if (!pList.isEmpty())
+	    					indentationSegs.add(pList);
 	    				if (!inflections.isEmpty()) {
 	    					indentationEquatorSum += 
 	    							c.getPointAt(j).distance(inflections.getLast());
@@ -1536,6 +1538,15 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	    		}
 	    		pList.add(c.getPointAt(j));
 	    	}
+  			if (onProtrusion) {
+  				if (!pList.isEmpty())
+  					protrusionSegs.add(pList);
+  			}
+  			else {
+  				if (!pList.isEmpty())
+  					indentationSegs.add(pList);
+  			}
+	    	
 	    	// check if first and last segment belong together
 	    	if (fixedDirs[fixedDirs.length-1] == fixedDirs[0]) {
 	    		if (fixedDirs[0] > 0) {
@@ -1718,13 +1729,32 @@ public class MorphologyAnalyzer2D extends MTBOperator
 						new Vector<Point2D.Double>();
 				double protrusionBaselineSum = 0;
 				double protrusionLengthSum = 0;
+				double protrusionLengthApicalSum = 0;
+				double protrusionLengthBasalSum = 0;
 	    	for (int n=0; n<indentationSegs.size(); ++n) {
 	    		
 	    		LinkedList<Point2D.Double> neck = indentationSegs.get(n);
+					LinkedList<Point2D.Double> nextNeck;
+	    		if (n ==indentationSegs.size()-1 )
+	    			nextNeck = indentationSegs.get(0);
+	    		else
+	    			nextNeck = indentationSegs.get(n+1);
+
+	    		if (neck.size() < 3 || nextNeck.size() < 3) {
+	    			System.out.println("Neck to short...");
+	    			System.out.println(neck.get(0).x + " , " + neck.get(0).y);
+	    			System.out.println(nextNeck.get(0).x + " , " + nextNeck.get(0).y);
+	    			continue;
+	    		}
+	    		
 	    		Point2D.Double neckMidPoint = neck.get(neck.size()/2);
 					int nmpx = (int)neckMidPoint.x;
 					int nmpy = (int)neckMidPoint.y;
 	    		
+	    		Point2D.Double nextNeckMidPoint = nextNeck.get(nextNeck.size()/2);
+					int nnmpx = (int)nextNeckMidPoint.x;
+					int nnmpy = (int)nextNeckMidPoint.y;
+	    			    		
 	    		// draw middle point to image
 					if (this.createCurvatureInfoImage) {
 						for (int dy=-1;dy<=1;++dy) {
@@ -1738,15 +1768,6 @@ public class MorphologyAnalyzer2D extends MTBOperator
 						}
 					}
 
-					LinkedList<Point2D.Double> nextNeck;
-	    		if (n ==indentationSegs.size()-1 )
-	    			nextNeck = indentationSegs.get(0);
-	    		else
-	    			nextNeck = indentationSegs.get(n+1);
-	    		Point2D.Double nextNeckMidPoint = nextNeck.get(nextNeck.size()/2);
-					int nnmpx = (int)nextNeckMidPoint.x;
-					int nnmpy = (int)nextNeckMidPoint.y;
-	    		
 					// check if baseline intersects with background
 					MTBLineSegment2D baseline = 
 							new MTBLineSegment2D(nmpx, nmpy, nnmpx, nnmpy);
@@ -1812,12 +1833,16 @@ public class MorphologyAnalyzer2D extends MTBOperator
 						newStartPoint.x, newStartPoint.y, newEndPoint.x, newEndPoint.y);
 					
 					Vector<Point2D.Double> cPoints = c.getPoints();
+					Vector<Point2D.Double> iPoints = new Vector<>();
 					int sID = cPoints.indexOf(newStartPoint);
 					int eID = cPoints.indexOf(newEndPoint);
+					
 					// check if segment overlaps contour start/end
 					int lastID = (eID < sID ? cPoints.size() : eID); 
 					double maxDist = 0, dist;
 					Point2D.Double maxDistPoint = newStartPoint, cp;
+//					if (inflections.contains(newStartPoint))
+//						iPoints.add(newStartPoint);
 					for (int id = sID+1; id<lastID; ++id) {
 						cp = cPoints.get(id);
 						dist = baseLine.ptLineDist(cp);
@@ -1825,6 +1850,8 @@ public class MorphologyAnalyzer2D extends MTBOperator
 							maxDist = dist;
 							maxDistPoint = cp;
 						}
+						if (inflections.contains(cp))
+							iPoints.add(cp);
 					}
 					if (eID < sID) {
 						for (int id = 0; id<eID; ++id) {
@@ -1834,10 +1861,16 @@ public class MorphologyAnalyzer2D extends MTBOperator
 								maxDist = dist;
 								maxDistPoint = cp;
 							}
+							if (inflections.contains(cp))
+								iPoints.add(cp);
 						}					
 					}
+					if (inflections.contains(newEndPoint))
+						iPoints.add(newEndPoint);
+					
 					protrusionLengthSum += maxDist;		
 					
+					// calculate base point of distance line
 					double vx = newEndPoint.x - newStartPoint.x;
 					double vy = newEndPoint.y - newStartPoint.y;
 					double spx = maxDistPoint.x - newStartPoint.x;
@@ -1848,6 +1881,26 @@ public class MorphologyAnalyzer2D extends MTBOperator
 					double ppx = newStartPoint.x + plength * vx;
 					double ppy = newStartPoint.y + plength * vy;
 
+					// calculation intersection of distance line and equator
+					if (iPoints.size() == 2) {
+						Point2D.Double p1 = iPoints.get(0);
+						Point2D.Double p2 = iPoints.get(1);
+						MTBLineSegment2D equator = 
+								new MTBLineSegment2D(p1.x, p1.y, p2.x, p2.y);
+						MTBLineSegment2D distline = 
+								new MTBLineSegment2D(ppx, ppy, maxDistPoint.x, maxDistPoint.y);
+						Point2D.Double isect = equator.getIntersection(distline);
+						protrusionLengthApicalSum += isect.distance(maxDistPoint);
+						protrusionLengthBasalSum += isect.distance(ppx, ppy);
+					}
+					else {
+						System.err.println("Error: found " + iPoints.size() + " inflection points...!");
+						for (Point2D.Double p : iPoints) {
+							System.out.println(p.x + " , " + p.y);
+						}
+						System.out.println("Done");
+					}
+					
 					if (this.createCurvatureInfoImage) {
 						int px = (int)newStartPoint.x;
 						int py = (int)newStartPoint.y;
@@ -1896,9 +1949,13 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	    	} // end of for-loop over all indentation regions			
 	    	
 	    	this.avgProtrusionLengths.add(new Double(
-		    	protrusionLengthSum*this.deltaXY.doubleValue() / protrusionCount));
+		    	protrusionLengthSum*this.deltaXY.doubleValue()/protrusionCount));
 	    	this.avgBaselineProtrusionLengths.add(new Double(
-	    		protrusionBaselineSum*this.deltaXY.doubleValue() / protrusionCount));
+	    		protrusionBaselineSum*this.deltaXY.doubleValue()/protrusionCount));
+	    	this.avgApicalProtrusionLengths.add(new Double(
+		    	protrusionLengthApicalSum*this.deltaXY.doubleValue()/protrusionCount));
+	    	this.avgBasalProtrusionLengths.add(new Double(
+	    		protrusionLengthBasalSum*this.deltaXY.doubleValue()/protrusionCount));
 	    
 	    	// create polygon defined by indentation region border points
 	    	MTBPolygon2D poly = new MTBPolygon2D(nonProtrusionAreaPolyPoints, true);
