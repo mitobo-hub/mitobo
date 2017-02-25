@@ -1289,17 +1289,30 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	 * <p>
 	 * The method extracts the following features:
 	 * <ul>
-	 * <li> Number of lobes and necks:<br>
-	 * 	The sum of all lobes and necks is equal to the number of 
-	 *  inflection points found along the contour, and the number of lobes
-	 *  and necks, respectively, is each half of the total count of 
+	 * <li> Number of protrusions and indentations:<br>
+	 * 	The sum of all protrusions and indentations is equal to the number of 
+	 *  inflection points found along the contour, and the number of protrusions
+	 *  and indentations, respectively, is each half of the total count of 
 	 *  inflection points.
-	 * <li> Average lobe and neck depths:<br>
-	 *  For each lobe and neck, respectively, a line is drawn between the 
-	 *  two inflection points defining the lobe or neck. Subsequently for 
-	 *  each point of the lobe or neck considered the distance to the line 
-	 *  is calculated. The largest distance found for a single lobe or 
-	 *  neck defines the depth of the lobe or neck.
+	 * <li> Protrusion and indentation measures:<br>
+	 *  For each protrusion and indentation, respectively, various measures are
+	 *  extracted. The baseline of a protrusion or indentation is defined to be
+	 *  the line connecting the medial points of the neighboring protrusions in 
+	 *  case of an indentation and of the neighboring indentations in case of a
+	 *  protrusion. If this line intersects with the background its endpoints are
+	 *  shifted along the region contour until a minimal number of backgroud 
+	 *  pixels is touched while the shifts are kept as small as possible.
+	 *  <p>
+	 *  In addition to the baseline also the equator of protrusions and 
+	 *  indentations is extracted by drawing a line between the two inflection 
+	 *  points defining the protrusion or indentation, respectively. The total 
+	 *  length of a protrusion or indentation, and the apical and basal lengths
+	 *  are calculated by calculating the largest distance of any point of 
+	 *  the baseline to the region contour. Then the intersection point of this
+	 *  distance line with the equator is found which splits the distance line.
+	 *  The length of the upper part of this line is denoted the apical length
+	 *  of the protrusion/indentation and the length of the lower part is denoted
+	 *  the basal length of the protrusion/indentation.  
 	 * <li> Margin roughness:<br>
 	 *  The implementation of margin roughness is derived from the
 	 *  following paper <i>T. McLellan, J. Endler, The Relative Success of 
