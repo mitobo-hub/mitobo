@@ -714,10 +714,8 @@ public class RoiManagerAdapter {
 				if (roiArray == null || roiArray.length == 0)
 						return false;
 				Class<?> selectionType = roiArray[0].getClass();
-				System.out.println(selectionType);
 				for (int n = 1; n < roiArray.length; ++n) {
 						Roi r = roiArray[n];
-						System.out.println(r.getClass());
 						if (!(r.getClass().equals(selectionType))) {
 								JOptionPane.showMessageDialog(null,
 								    "ROI Manager does contain inconsistent selection..."
