@@ -1505,7 +1505,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	    	
 	    	int signChangeCounter = 0;
 	    	int sign = fixedDirs[fixedDirs.length-1];
-    		if (sign > 0)
+	    	if (sign > 0)
     			onProtrusion = true;
     		else
     			onProtrusion = false;
@@ -1531,6 +1531,9 @@ public class MorphologyAnalyzer2D extends MTBOperator
 
 	    			++signChangeCounter;
 	    			sign *= -1;
+	    			// inflection points are defined to be the starting points
+	    			// of new segments immediately after the sign changed,
+	    			// i.e. each segment start point is also inflection point
 	    			inflections.add(c.getPointAt(j));
 
 	    			pList = new LinkedList<>();
@@ -1541,10 +1544,18 @@ public class MorphologyAnalyzer2D extends MTBOperator
   			if (onProtrusion) {
   				if (!pList.isEmpty())
   					protrusionSegs.add(pList);
+    			// add length of last equator segment between first and last 
+    			// inflection point to corresponding sum
+  				protrusionEquatorSum += 
+  						inflections.getFirst().distance(inflections.getLast());
   			}
   			else {
   				if (!pList.isEmpty())
   					indentationSegs.add(pList);
+    			// add length of last equator segment between first and last 
+    			// inflection point to corresponding sum
+  				indentationEquatorSum += 
+  						inflections.getFirst().distance(inflections.getLast());
   			}
 	    	
 	    	// check if first and last segment belong together
@@ -1563,7 +1574,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	    	this.avgEquatorProtrusionLengths.add(
 	    			new Double(protrusionEquatorSum/protrusionCount));
 	    	this.avgEquatorIndentationLengths.add(
-	    			new Double(indentationEquatorSum/indentationEquatorSum));
+	    			new Double(indentationEquatorSum/protrusionCount));
 
 	    	// remember contour directions
 	    	curveDirections.add(fixedDirs);
@@ -1731,6 +1742,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 				double protrusionLengthSum = 0;
 				double protrusionLengthApicalSum = 0;
 				double protrusionLengthBasalSum = 0;
+				
 	    	for (int n=0; n<indentationSegs.size(); ++n) {
 	    		
 	    		LinkedList<Point2D.Double> neck = indentationSegs.get(n);
@@ -1740,13 +1752,6 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	    		else
 	    			nextNeck = indentationSegs.get(n+1);
 
-	    		if (neck.size() < 3 || nextNeck.size() < 3) {
-	    			System.out.println("Neck to short...");
-	    			System.out.println(neck.get(0).x + " , " + neck.get(0).y);
-	    			System.out.println(nextNeck.get(0).x + " , " + nextNeck.get(0).y);
-	    			continue;
-	    		}
-	    		
 	    		Point2D.Double neckMidPoint = neck.get(neck.size()/2);
 					int nmpx = (int)neckMidPoint.x;
 					int nmpy = (int)neckMidPoint.y;
