@@ -211,7 +211,23 @@ public class MorphologyAnalyzer2D extends MTBOperator
 		/**
 		 * Average length of the equators of detected indentations.
 		 */
-		AvgLengthEquatorIndentations
+		AvgLengthEquatorIndentations,
+		/**
+		 * Average of pairwise distances between indentation midpoints.
+		 */
+		AvgDistIndentationMidPoints,
+		/**
+		 * Minimum of all distances of the indentation midpoints to their 
+		 * nearest neighbors, i.e. the distance between any of two midpoints
+		 * is at least this value.
+		 */
+		MinMinimalDistIndentationMidPoints,
+		/**
+		 * Maximum of all distances of the indentation midpoint to their 
+		 * nearest neighbors, i.e. no midpoint has a larger distance to its 
+		 * closest neighbor than this value.
+		 */
+		MaxMinimalDistIndentationMidPoints
 	}
 
 	@Parameter(label = "label image", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "label image", dataIOOrder = 0,
@@ -429,6 +445,9 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	private Vector<Double> avgBaselineIndentationLengths;
 	private Vector<Double> avgEquatorIndentationLengths;
 	
+	private Vector<Double> avgDistsIndentationMidPoints;
+	private Vector<Double> minMinimalDistsIndentationMidPoints;
+	private Vector<Double> maxMinimalDistsIndentationMidPoints;
 	
 	private Vector<Double> avgLobeDepths;
 	private Vector<Double> avgNeckDepths;
@@ -572,6 +591,10 @@ public class MorphologyAnalyzer2D extends MTBOperator
 		this.avgBasalIndentationLengths = new Vector<Double>();
 		this.avgBaselineIndentationLengths = new Vector<Double>();
 		this.avgEquatorIndentationLengths = new Vector<Double>();
+
+		this.avgDistsIndentationMidPoints = new Vector<Double>();
+		this.minMinimalDistsIndentationMidPoints = new Vector<Double>();
+		this.maxMinimalDistsIndentationMidPoints = new Vector<Double>();
 
 		this.avgLobeDepths = new Vector<Double>();
 		this.avgNeckDepths = new Vector<Double>();
@@ -814,6 +837,12 @@ public class MorphologyAnalyzer2D extends MTBOperator
 					+ " ("+ this.unitXY + ")" );
 			header.add(FeatureNames.AvgLengthEquatorIndentations.toString()
 					+ " ("+ this.unitXY + ")" );
+			header.add(FeatureNames.AvgDistIndentationMidPoints.toString()
+					+ " ("+ this.unitXY + ")" );
+			header.add(FeatureNames.MinMinimalDistIndentationMidPoints.toString()
+					+ " ("+ this.unitXY + ")" );
+			header.add(FeatureNames.MaxMinimalDistIndentationMidPoints.toString()
+					+ " ("+ this.unitXY + ")" );
 		}
 		
 		int n = this.regions.size();
@@ -940,6 +969,15 @@ public class MorphologyAnalyzer2D extends MTBOperator
 						this.avgEquatorIndentationLengths.elementAt(i)), i, col);
 				col++;
 
+				this.table.setValueAt(this.nf.format(
+						this.avgDistsIndentationMidPoints.elementAt(i)), i, col);
+				col++;
+				this.table.setValueAt(this.nf.format(
+						this.minMinimalDistsIndentationMidPoints.elementAt(i)), i, col);
+				col++;
+				this.table.setValueAt(this.nf.format(
+						this.maxMinimalDistsIndentationMidPoints.elementAt(i)), i, col);
+				col++;
 				
 //				this.table.setValueAt(this.nf.format(
 //						this.avgLobeDepths.elementAt(i)), i, col);
@@ -1745,11 +1783,14 @@ public class MorphologyAnalyzer2D extends MTBOperator
 //	    	this.avgNeckDepths.add(
 //	    			new Double( (neckDepthSum*this.deltaXY.doubleValue()) / protrusionCount));
 	    	
-	    	// further process indentation region(s)
+	    	// further process indentation segments to learn more about protrusions
 				this.postprocessIndentationSegments(c, contourID, inflections, 
 						protrusionCount, indentationSegs);
 				
-	    	// further process protrusion region(s)
+				this.measureIndentationDistances(c, contourID, protrusionCount,
+						indentationSegs);
+				
+	    	// further process protrusion segments to learn more about indentations
 				this.postprocessProtrusionSegments(c, contourID, inflections, 
 						protrusionCount, protrusionSegs);
 
@@ -2030,6 +2071,67 @@ public class MorphologyAnalyzer2D extends MTBOperator
 				*this.deltaXY.doubleValue()*this.deltaXY.doubleValue()));
 	}
 	
+	/**
+	 * Calculate various distances between indentations midpoints.
+	 * 
+	 * @param c									Contour to process.
+	 * @param contourID					ID of the contour.
+	 * @param protrusionCount		Number of detected protrusions.
+	 * @param iSegs							Indentation segments to process.
+	 */
+	private void measureIndentationDistances(MTBContour2D c, int contourID,
+		int protrusionCount, LinkedList<LinkedList<Point2D.Double>> iSegs) {
+		
+		// collect all mid-points
+		LinkedList<Point2D.Double> iMidPoints = new LinkedList<>();
+		for (int n=0; n<iSegs.size(); ++n) {
+			LinkedList<Point2D.Double> iPoints = iSegs.get(n);
+			Point2D.Double iMidPoint = iPoints.get(iPoints.size()/2);
+			iMidPoints.add(iMidPoint);
+		}
+
+		// calculate all pairwise distances, for each point extract min and max
+		double[] minDists = new double[iMidPoints.size()];
+		double[] maxDists = new double[iMidPoints.size()];
+		for (int i=0; i<iMidPoints.size(); ++i)
+			minDists[i] = Double.MAX_VALUE;
+
+		double dist, totalDist = 0;
+		int totalCount = 0;
+		for (int m=0; m<iMidPoints.size();++m) {
+			for (int n=m+1; n<iMidPoints.size(); ++n) {
+				dist = iMidPoints.get(m).distance(iMidPoints.get(n));
+				totalDist += dist;
+				++totalCount;
+
+				if (dist < minDists[m])
+					minDists[m] = dist;
+				if (dist < minDists[n])
+					minDists[n] = dist;
+				if (dist > maxDists[m])
+					maxDists[m] = dist;
+				if (dist > maxDists[n])
+					maxDists[n] = dist;
+			}
+		}
+		
+		double totalMinMin = Double.MAX_VALUE;
+		double totalMinMax = 0;
+		for (int i=0; i<iMidPoints.size(); ++i) {
+			if (minDists[i] < totalMinMin) 
+				totalMinMin = minDists[i];
+			if (minDists[i] > totalMinMax)
+				totalMinMax = minDists[i];
+		}
+		
+		this.avgDistsIndentationMidPoints.add(
+				new Double(totalDist*this.deltaXY.doubleValue()/totalCount));
+		this.minMinimalDistsIndentationMidPoints.add(
+				new Double(totalMinMin*this.deltaXY.doubleValue()));
+		this.maxMinimalDistsIndentationMidPoints.add(
+				new Double(totalMinMax*this.deltaXY.doubleValue()));
+	}
+
 	/**
 	 * Post-process protrusion segments to get more information on indentations.
 	 * <p>
