@@ -45,7 +45,7 @@ public class TestMorphologyAnalyzer2D {
 				new int[]{-1,-1,-1,-1,1,1,1,1,1,1,1,-1,1,1,-1,-1,-1,-1};
 		int[] expectedResult = 
 				new int[]{-1,-1,-1,-1,1,1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1};
-		MorphologyAnalyzer2D.removeShortProtrusions(testArray, 3);		
+		MorphologyAnalyzer2DInProHelper.removeShortProtrusions(testArray, 3);		
 		
 		for (int i=0; i<expectedResult.length; ++i) {
 			assertTrue("Wrong entry at position " + i + ": expected " 
@@ -59,7 +59,7 @@ public class TestMorphologyAnalyzer2D {
 				new int[]{-1,-1,-1,-1,1,1,1,-1,-1,-1,-1,-1,1};
 		expectedResult = 
 				new int[]{-1,-1,-1,-1,1,1,1,-1,-1,-1,-1,-1,-1};
-		MorphologyAnalyzer2D.removeShortProtrusions(testArray, 3);		
+		MorphologyAnalyzer2DInProHelper.removeShortProtrusions(testArray, 3);		
 		
 		for (int i=0; i<expectedResult.length; ++i) {
 			assertTrue("Wrong entry at position " + i + ": expected " 
@@ -73,7 +73,7 @@ public class TestMorphologyAnalyzer2D {
 				new int[]{1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1};
 		expectedResult = 
 				new int[]{1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1};
-		MorphologyAnalyzer2D.removeShortProtrusions(testArray, 3);		
+		MorphologyAnalyzer2DInProHelper.removeShortProtrusions(testArray, 3);		
 		
 		for (int i=0; i<expectedResult.length; ++i) {
 			assertTrue("Wrong entry at position " + i + ": expected " 
@@ -87,7 +87,7 @@ public class TestMorphologyAnalyzer2D {
 				new int[]{1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1};
 		expectedResult = 
 				new int[]{-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
-		MorphologyAnalyzer2D.removeShortProtrusions(testArray, 3);		
+		MorphologyAnalyzer2DInProHelper.removeShortProtrusions(testArray, 3);		
 		
 		for (int i=0; i<expectedResult.length; ++i) {
 			assertTrue("Wrong entry at position " + i + ": expected " 
@@ -101,7 +101,7 @@ public class TestMorphologyAnalyzer2D {
 				new int[]{1,1,1,-1,-1,1,1,1,1,1,1,-1,-1,1,1,1};
 		expectedResult = 
 				new int[]{1,1,1,-1,-1,1,1,1,1,1,1,-1,-1,1,1,1};
-		MorphologyAnalyzer2D.removeShortProtrusions(testArray, 5);		
+		MorphologyAnalyzer2DInProHelper.removeShortProtrusions(testArray, 5);		
 		
 		for (int i=0; i<expectedResult.length; ++i) {
 			assertTrue("Wrong entry at position " + i + ": expected " 
@@ -115,7 +115,7 @@ public class TestMorphologyAnalyzer2D {
 				new int[]{1,1,1,-1,-1,1,1,1,1,-1,-1,-1,-1,-1,-1,1,1};
 		expectedResult = 
 				new int[]{1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1};
-		MorphologyAnalyzer2D.removeShortProtrusions(testArray, 5);		
+		MorphologyAnalyzer2DInProHelper.removeShortProtrusions(testArray, 5);		
 		
 		for (int i=0; i<expectedResult.length; ++i) {
 			assertTrue("Wrong entry at position " + i + ": expected " 
@@ -129,7 +129,7 @@ public class TestMorphologyAnalyzer2D {
 				new int[]{1,1,-1,-1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,1,1};
 		expectedResult = 
 				new int[]{-1,-1,-1,-1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1};
-		MorphologyAnalyzer2D.removeShortProtrusions(testArray, 5);		
+		MorphologyAnalyzer2DInProHelper.removeShortProtrusions(testArray, 5);		
 		
 		for (int i=0; i<expectedResult.length; ++i) {
 			assertTrue("Wrong entry at position " + i + ": expected " 
@@ -143,7 +143,7 @@ public class TestMorphologyAnalyzer2D {
 				new int[]{-1,1,1,1,1,1,1,1,-1,-1,1,1,1,1,1,-1,-1,1,1,1,1,1,1,-1,-1};
 		expectedResult = 
 				new int[]{-1,1,1,1,1,1,1,1,-1,-1,1,1,1,1,1,-1,-1,1,1,1,1,1,1,-1,-1};
-		MorphologyAnalyzer2D.removeShortProtrusions(testArray, 5);		
+		MorphologyAnalyzer2DInProHelper.removeShortProtrusions(testArray, 5);		
 		
 		for (int i=0; i<expectedResult.length; ++i) {
 			assertTrue("Wrong entry at position " + i + ": expected " 
@@ -157,7 +157,7 @@ public class TestMorphologyAnalyzer2D {
 				new int[]{1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1,1,1,1,1,-1,-1};
 		expectedResult = 
 				new int[]{-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1,1,1,1,1,-1,-1};
-		MorphologyAnalyzer2D.removeShortProtrusions(testArray, 5);		
+		MorphologyAnalyzer2DInProHelper.removeShortProtrusions(testArray, 5);		
 		
 		for (int i=0; i<expectedResult.length; ++i) {
 			assertTrue("Wrong entry at position " + i + ": expected " 
