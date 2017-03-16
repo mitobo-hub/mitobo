@@ -41,7 +41,7 @@ import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageRGB;
  * 
  * @author Birgit Moeller
  */
-public class MorphologyAnalyzer2DCurvatureSpecialsHelper {
+public class MorphologyAnalyzer2DInProHelper {
 
 	private MTBImageRGB debugInfoImg;
 	
