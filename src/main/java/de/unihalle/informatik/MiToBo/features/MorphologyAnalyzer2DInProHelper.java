@@ -86,19 +86,21 @@ public class MorphologyAnalyzer2DInProHelper {
 		double avgBasalIndentationLength;
 	}
 	
-  Vector<CurvatureAnalysisLevelResult> analyzeConcavitiesConvexities(
-			MTBContour2DSet contours, Vector<double[]> curvatureValues, 
-				int dwidth, int dheigth, double dxy, MTBImage lImg,
-				int minProtrusionLength, MTBImageRGB debugImg) {
-    
-		Vector<CurvatureAnalysisLevelResult> curveAnalysisLevelResults = new Vector<>();
-		
+	public MorphologyAnalyzer2DInProHelper(int dwidth, int dheigth, double dxy, 
+			MTBImage lImg, MTBImageRGB debugImg) {
 		this.debugInfoImg = debugImg;
 		this.labelImg = lImg;		
 		
 		this.width = dwidth;
 		this.height = dheigth;
 		this.deltaXY = dxy;
+	}
+	
+  Vector<CurvatureAnalysisLevelResult> analyzeConcavitiesConvexities(
+  	MTBContour2DSet contours, Vector<double[]> curvatureValues, 
+  		int minProtrusionLength) {
+    
+		Vector<CurvatureAnalysisLevelResult> curveAnalysisLevelResults = new Vector<>();
 		
 		double lobeDepthSum = 0, neckDepthSum = 0;
 		int protrusionCount = 0;
