@@ -1458,7 +1458,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 							this.deltaXY.doubleValue(), this.labelImg, this.curvatureInfoImg);
 			
 			Vector<InProLevelAnalysisResult> crs = 
-					ipHelper.analyzeConcavitiesConvexities(contours, curvatureValues, 
+					ipHelper.doProtrusionIndentationAnalysis(contours, curvatureValues, 
 							this.minProtrusionLength);
 			
 			// copy results to vectors collecting analysis data
