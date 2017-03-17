@@ -927,52 +927,52 @@ public class MorphologyAnalyzer2D extends MTBOperator
 				col++;				
 			}
 			if (this.analyzeProtrusionsIndentations) {
-//				this.table.setValueAt(this.nf.format(
-//						this.protrusionCounts.elementAt(i)), i, col);
-//				col++;
-//				this.table.setValueAt(this.nf.format(
-//						this.nonProtrusionAreas.elementAt(i)), i, col);
-//				col++;
-//				this.table.setValueAt(this.nf.format(
-//						this.avgProtrusionLengths.elementAt(i)), i, col);
-//				col++;
-//				this.table.setValueAt(this.nf.format(
-//						this.avgApicalProtrusionLengths.elementAt(i)), i, col);
-//				col++;
-//				this.table.setValueAt(this.nf.format(
-//						this.avgBasalProtrusionLengths.elementAt(i)), i, col);
-//				col++;
-//				this.table.setValueAt(this.nf.format(
-//						this.avgBaselineProtrusionLengths.elementAt(i)), i, col);
-//				col++;
-//				this.table.setValueAt(this.nf.format(
-//						this.avgEquatorProtrusionLengths.elementAt(i)), i, col);
-//				col++;
-//				this.table.setValueAt(this.nf.format(
-//						this.avgIndentationLengths.elementAt(i)), i, col);
-//				col++;
-//				this.table.setValueAt(this.nf.format(
-//						this.avgApicalIndentationLengths.elementAt(i)), i, col);
-//				col++;
-//				this.table.setValueAt(this.nf.format(
-//						this.avgBasalIndentationLengths.elementAt(i)), i, col);
-//				col++;
-//				this.table.setValueAt(this.nf.format(
-//						this.avgBaselineIndentationLengths.elementAt(i)), i, col);
-//				col++;
-//				this.table.setValueAt(this.nf.format(
-//						this.avgEquatorIndentationLengths.elementAt(i)), i, col);
-//				col++;
-//
-//				this.table.setValueAt(this.nf.format(
-//						this.avgDistsIndentationMidPoints.elementAt(i)), i, col);
-//				col++;
-//				this.table.setValueAt(this.nf.format(
-//						this.minMinimalDistsIndentationMidPoints.elementAt(i)), i, col);
-//				col++;
-//				this.table.setValueAt(this.nf.format(
-//						this.maxMinimalDistsIndentationMidPoints.elementAt(i)), i, col);
-//				col++;
+				this.table.setValueAt(this.nf.format(
+						this.protrusionCounts.elementAt(i)), i, col);
+				col++;
+				this.table.setValueAt(this.nf.format(
+						this.nonProtrusionAreas.elementAt(i)), i, col);
+				col++;
+				this.table.setValueAt(this.nf.format(
+						this.avgProtrusionLengths.elementAt(i)), i, col);
+				col++;
+				this.table.setValueAt(this.nf.format(
+						this.avgApicalProtrusionLengths.elementAt(i)), i, col);
+				col++;
+				this.table.setValueAt(this.nf.format(
+						this.avgBasalProtrusionLengths.elementAt(i)), i, col);
+				col++;
+				this.table.setValueAt(this.nf.format(
+						this.avgBaselineProtrusionLengths.elementAt(i)), i, col);
+				col++;
+				this.table.setValueAt(this.nf.format(
+						this.avgEquatorProtrusionLengths.elementAt(i)), i, col);
+				col++;
+				this.table.setValueAt(this.nf.format(
+						this.avgIndentationLengths.elementAt(i)), i, col);
+				col++;
+				this.table.setValueAt(this.nf.format(
+						this.avgApicalIndentationLengths.elementAt(i)), i, col);
+				col++;
+				this.table.setValueAt(this.nf.format(
+						this.avgBasalIndentationLengths.elementAt(i)), i, col);
+				col++;
+				this.table.setValueAt(this.nf.format(
+						this.avgBaselineIndentationLengths.elementAt(i)), i, col);
+				col++;
+				this.table.setValueAt(this.nf.format(
+						this.avgEquatorIndentationLengths.elementAt(i)), i, col);
+				col++;
+
+				this.table.setValueAt(this.nf.format(
+						this.avgDistsIndentationMidPoints.elementAt(i)), i, col);
+				col++;
+				this.table.setValueAt(this.nf.format(
+						this.minMinimalDistsIndentationMidPoints.elementAt(i)), i, col);
+				col++;
+				this.table.setValueAt(this.nf.format(
+						this.maxMinimalDistsIndentationMidPoints.elementAt(i)), i, col);
+				col++;
 				
 //				this.table.setValueAt(this.nf.format(
 //						this.avgLobeDepths.elementAt(i)), i, col);
