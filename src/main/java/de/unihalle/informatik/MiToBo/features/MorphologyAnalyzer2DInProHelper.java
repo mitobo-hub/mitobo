@@ -86,12 +86,12 @@ public class MorphologyAnalyzer2DInProHelper {
 					minProtrusionLength);
 			
 			// further process indentation segments to learn more about protrusions
-			this.postprocessIndentationSegments(levelResult);
-
-			this.measureIndentationPointDistances(levelResult);
-
-			// further process protrusion segments to learn more about indentations
-			this.postprocessProtrusionSegments(levelResult);
+//			this.postprocessIndentationSegments(levelResult);
+//
+//			this.measureIndentationPointDistances(levelResult);
+//
+//			// further process protrusion segments to learn more about indentations
+//			this.postprocessProtrusionSegments(levelResult);
 
 			// add result for current contour to collection
 			curveAnalysisLevelResults.add(levelResult);
@@ -297,7 +297,8 @@ public class MorphologyAnalyzer2DInProHelper {
   	}
 
   	// check if first and last segment belong together
-  	if (fixedDirs[fixedDirs.length-1] == fixedDirs[0]) {
+  	if (   protrusionSegs.size() > 1
+  			&& fixedDirs[fixedDirs.length-1] == fixedDirs[0]) {
   		if (fixedDirs[0] > 0) {
   			ipSeg = new InProContourSegment();
   			ipSeg.type = SegmentType.PROTRUSION;
