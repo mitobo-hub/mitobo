@@ -1266,7 +1266,7 @@ public class MorphologyAnalyzer2DInProHelper {
 	 * @param dirArray	Array to modify.
 	 * @param minLength	Minimal required length of sequences of ones.
 	 */
-	private static void removeShortProtrusions(int[] dirArray, int minLength) {
+	static void removeShortProtrusions(int[] dirArray, int minLength) {
 		
 		// iterate over the array until nothing changes anymore
   	int startPos = 0;
