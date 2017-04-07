@@ -492,6 +492,11 @@ public class MorphologyAnalyzer2D extends MTBOperator
 				new ALDOperatorExecutionProgressEvent(this, operatorID 
 					+ " initializing operator..."));
 
+		// set internal regions and label image to null, necessary if operator 
+		// is run multiple times
+		this.regions = null;
+		this.labelImg = null;
+
 		this.nf.setMaximumFractionDigits(this.fracDigits.intValue());
 		this.nf.setMinimumFractionDigits(this.fracDigits.intValue());
 		this.nf.setGroupingUsed(false);
@@ -542,10 +547,6 @@ public class MorphologyAnalyzer2D extends MTBOperator
 
 		// create a results table
 		makeTable();
-		
-		// set internal regions and label image to null to allow a subsequent run of the operator
-		this.regions = null;
-		this.labelImg = null;
 	}
 		
 	/**
@@ -1004,12 +1005,26 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	}
 	
 	/**
+	 * Get the label image.
+	 * <p>
+	 * If a label image is provided this method returns the input image,
+	 * otherwise the internally generated label image is returned.
+	 * 
+	 * @return Image with region labels.
+	 */
+	public MTBImage getLabelImage() {
+		if (this.inLabelImg != null)
+			return this.inLabelImg;
+		return this.labelImg;		
+	}
+	
+	/**
 	 * Set regions.
 	 * @param regs	Set of regions to process.
 	 */
 	public void setRegionSet(MTBRegion2DSet regs) 
 	{
-		this.regions = regs;
+		this.inRegions = regs;
 	}
 	
 	/**
@@ -1604,7 +1619,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
       int c=0;
       for (MTBImageRGB im: stacks) {
       	stack.setSlice(im, 0, 0, c);
-      	stack.setSliceLabel(im.getTitle(), 0, 0, i);
+      	stack.setSliceLabel(im.getTitle(), 0, 0, c);
       	++c;
       }
       stack.show();
