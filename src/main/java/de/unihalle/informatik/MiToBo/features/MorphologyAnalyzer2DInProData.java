@@ -45,7 +45,7 @@ public class MorphologyAnalyzer2DInProData {
 	int contourID;
 
 	public LinkedList<InProContourSegment> protrusionSegs;
-	LinkedList<InProContourSegment> indentationSegs;
+	public LinkedList<InProContourSegment> indentationSegs;
 
 	LinkedList<InflectionPoint> inflections;
 
