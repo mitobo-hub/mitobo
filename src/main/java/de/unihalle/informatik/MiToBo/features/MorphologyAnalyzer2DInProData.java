@@ -26,12 +26,11 @@ package de.unihalle.informatik.MiToBo.features;
 
 import java.awt.geom.Point2D;
 import java.util.LinkedList;
-import java.util.Vector;
 
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBContour2D;
 
 /**
- * Data types for protrusion/indentation analysis of region contours.
+ * Data type for protrusion/indentation analysis of region contours.
  * 
  * @author Birgit Moeller
  */
@@ -41,22 +40,11 @@ public class MorphologyAnalyzer2DInProData {
 		INDENTATION,
 		PROTRUSION		
 	}
-}
 	
-class InProAnalysisResult {
-		
-		Vector<InProLevelAnalysisResult> levelResults;
-
-}
-
-class InProLevelAnalysisResult {
-
-	//		public InProLevelAnalysisResult() {};
-
 	MTBContour2D contour;
 	int contourID;
 
-	LinkedList<InProContourSegment> protrusionSegs;
+	public LinkedList<InProContourSegment> protrusionSegs;
 	LinkedList<InProContourSegment> indentationSegs;
 
 	LinkedList<InflectionPoint> inflections;
@@ -77,42 +65,42 @@ class InProLevelAnalysisResult {
 	double avgBaselineIndentationLength;
 	double avgApicalIndentationLength;
 	double avgBasalIndentationLength;
-}
 
-class InProContourSegment {
+	public class InProContourSegment {
 
-	MorphologyAnalyzer2DInProData.SegmentType type;
+		MorphologyAnalyzer2DInProData.SegmentType type;
 
-	LinkedList<Point2D.Double> segPoints;
+		public LinkedList<Point2D.Double> segPoints;
 
-	int segLength;
+		int segLength;
 
-	int startPosOnContour;
+		int startPosOnContour;
 
-	int endPosOnContour;
+		int endPosOnContour;
 
-	Point2D.Double midPoint;
-	
-	int midPointPosOnContour;
+		Point2D.Double midPoint;
 
-	// if < 0 , then there are no inflection points along segment
-	double equatorLength;
+		int midPointPosOnContour;
 
-	Point2D.Double leftBorderPoint;
-	int leftBorderPointPosOnContour;
-	
-	Point2D.Double rightBorderPoint;
-	int rightBorderPointPosOnContour;
-}
+		// if < 0 , then there are no inflection points along segment
+		double equatorLength;
 
-class InflectionPoint extends Point2D.Double {
+		Point2D.Double leftBorderPoint;
+		int leftBorderPointPosOnContour;
 
-	public InflectionPoint(double x, double y, 
-			MorphologyAnalyzer2DInProData.SegmentType t) {
-		super(x,y);
-		this.type = t;
+		Point2D.Double rightBorderPoint;
+		int rightBorderPointPosOnContour;
 	}
 
-	MorphologyAnalyzer2DInProData.SegmentType type;
+	public class InflectionPoint extends Point2D.Double {
 
+		public InflectionPoint(double xx, double yy, 
+				MorphologyAnalyzer2DInProData.SegmentType t) {
+			super(xx,yy);
+			this.type = t;
+		}
+
+		MorphologyAnalyzer2DInProData.SegmentType type;
+
+	}
 }

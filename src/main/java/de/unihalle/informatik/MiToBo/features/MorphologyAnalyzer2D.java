@@ -448,6 +448,11 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	private Vector<Double> minMinimalDistsIndentationMidPoints;
 	private Vector<Double> maxMinimalDistsIndentationMidPoints;
 	
+	/**
+	 * Vector with detailed result data on indentations and protrusions.
+	 */
+	private Vector<MorphologyAnalyzer2DInProData> inProDetails;
+	
 	private Vector<Double> avgLobeDepths;
 	private Vector<Double> avgNeckDepths;
 	
@@ -595,6 +600,9 @@ public class MorphologyAnalyzer2D extends MTBOperator
 		this.avgDistsIndentationMidPoints = new Vector<Double>();
 		this.minMinimalDistsIndentationMidPoints = new Vector<Double>();
 		this.maxMinimalDistsIndentationMidPoints = new Vector<Double>();
+		
+		this.inProDetails = 
+				new Vector<MorphologyAnalyzer2DInProData>();
 
 		this.avgLobeDepths = new Vector<Double>();
 		this.avgNeckDepths = new Vector<Double>();
@@ -1338,6 +1346,18 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	}
 	
 	/**
+	 * Access detailed information on indentations and protrusions.
+	 * <p>
+	 * These data is only available if {@link #analyzeProtrusionsIndentations}
+	 * has been set to true.
+	 * 
+	 * @return Vector of cell-wise indentation/protrusion information.
+	 */
+	public Vector<MorphologyAnalyzer2DInProData> getDetailedInProResults() {
+		return this.inProDetails;
+	}
+	
+	/**
 	 * Access info image about curvature analysis.
 	 * @return	Info image, only non-null if construction was enabled.
 	 */
@@ -1504,7 +1524,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 			ipHelper = 
 					new MorphologyAnalyzer2DInProHelper(this.width, this.height, 
 							this.deltaXY.doubleValue(), this.labelImg, dimg);
-			InProLevelAnalysisResult prevResult = 
+			MorphologyAnalyzer2DInProData prevResult = 
 					ipHelper.doProtrusionIndentationAnalysis(contours, curvatureValues, 
 							this.minProtrusionLength).elementAt(0);
 			int prevNum = prevResult.protrusionSegs.size();
@@ -1544,10 +1564,10 @@ public class MorphologyAnalyzer2D extends MTBOperator
 
     			ipHelper = new MorphologyAnalyzer2DInProHelper(this.width, this.height, 
     							this.deltaXY.doubleValue(), this.labelImg, dimg);
-      		Vector<InProLevelAnalysisResult> r = 
+      		Vector<MorphologyAnalyzer2DInProData> r = 
       				ipHelper.doProtrusionIndentationAnalysis(s, cOp.getResultVectorOfCurvatures(), 
 							this.minProtrusionLength);
-      		InProLevelAnalysisResult ir = r.elementAt(0);
+      		MorphologyAnalyzer2DInProData ir = r.elementAt(0);
       		if (ir.indentationSegs.size() > 1 && ir.protrusionSegs.size() < prevNum) {
       			neckCount.add(new Integer(ir.protrusionSegs.size()));
       			dimg.setTitle("k = " + k + " : " + ir.protrusionSegs.size());
@@ -1629,12 +1649,16 @@ public class MorphologyAnalyzer2D extends MTBOperator
 			ipHelper = 
 					new MorphologyAnalyzer2DInProHelper(this.width, this.height, 
 							this.deltaXY.doubleValue(), this.labelImg, this.curvatureInfoImg);
-			Vector<InProLevelAnalysisResult> crs = 
+			Vector<MorphologyAnalyzer2DInProData> crs = 
 					ipHelper.doProtrusionIndentationAnalysis(contours, curvatureValues, 
 							this.minProtrusionLength);
-			
+						
 			// copy results to vectors collecting analysis data
-			for (InProLevelAnalysisResult cr: crs) {
+			for (MorphologyAnalyzer2DInProData cr: crs) {
+
+				// remember complete result
+				this.inProDetails.add(cr);
+				
 	    	this.protrusionCounts.add(
 	    			new Integer(cr.numberOfProtrusions));
 	    	this.avgEquatorProtrusionLengths.add(

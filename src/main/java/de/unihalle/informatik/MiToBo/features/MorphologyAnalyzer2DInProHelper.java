@@ -64,12 +64,13 @@ public class MorphologyAnalyzer2DInProHelper {
 		this.deltaXY = dxy;
 	}
 	
-	Vector<InProLevelAnalysisResult> doProtrusionIndentationAnalysis(
+	Vector<MorphologyAnalyzer2DInProData> doProtrusionIndentationAnalysis(
 		MTBContour2DSet contours, Vector<double[]> curvatureValues, 
 			int minProtrusionLength) {
 
 		// init result data structure
-		Vector<InProLevelAnalysisResult> curveAnalysisLevelResults = new Vector<>();
+		Vector<MorphologyAnalyzer2DInProData> curveAnalysisLevelResults = 
+				new Vector<MorphologyAnalyzer2DInProData>();
 		
 		// iterate over all contours
 		int contourID = 0;
@@ -78,7 +79,8 @@ public class MorphologyAnalyzer2DInProHelper {
 			MTBContour2D c = contours.elementAt(contourID);
 			
 			// init object for result data
-			InProLevelAnalysisResult levelResult = new InProLevelAnalysisResult();
+			MorphologyAnalyzer2DInProData levelResult = 
+					new MorphologyAnalyzer2DInProData();
 			levelResult.contourID = contourID;
 			levelResult.contour = contours.elementAt(contourID);
 
@@ -103,7 +105,7 @@ public class MorphologyAnalyzer2DInProHelper {
 	}
 	
   private void detectProtrusionsIndentations(MTBContour2D c, 
-  	InProLevelAnalysisResult levelResult, double[] curvVals,
+ 		MorphologyAnalyzer2DInProData levelResult, double[] curvVals,
   		int minProtrusionLength) {
     		
 //			lobeDepthSum = 0;
@@ -200,7 +202,7 @@ public class MorphologyAnalyzer2DInProHelper {
 
   			if (onProtrusion) {
   				if (!pList.isEmpty()) {
-  					ipSeg = new InProContourSegment();
+  					ipSeg = levelResult.new InProContourSegment();
   					ipSeg.type = SegmentType.PROTRUSION;
   					ipSeg.startPosOnContour = startPos;
   					ipSeg.endPosOnContour = endPos;
@@ -215,14 +217,14 @@ public class MorphologyAnalyzer2DInProHelper {
   					// inflection points are defined to be the starting points
   					// of new segments immediately after the sign changed,
   					// i.e. each segment start point is also inflection point
-  					iListAll.add(new InflectionPoint(
+  					iListAll.add(levelResult.new InflectionPoint(
   							c.getPointAt(startPos).x, c.getPointAt(startPos).y, 
   							SegmentType.PROTRUSION));
   				}
   			} // end of protrusion case
   			else {
   				if (!pList.isEmpty()) {
-  					ipSeg = new InProContourSegment();
+  					ipSeg = levelResult.new InProContourSegment();
   					ipSeg.type = SegmentType.INDENTATION;
   					ipSeg.startPosOnContour = startPos;
   					ipSeg.endPosOnContour = endPos;
@@ -237,7 +239,7 @@ public class MorphologyAnalyzer2DInProHelper {
   					// inflection points are defined to be the starting points
   					// of new segments immediately after the sign changed,
   					// i.e. each segment start point is also inflection point
-  					iListAll.add(new InflectionPoint(
+  					iListAll.add(levelResult.new InflectionPoint(
   							c.getPointAt(startPos).x, c.getPointAt(startPos).y, 
   							SegmentType.INDENTATION));
   				}
@@ -255,7 +257,7 @@ public class MorphologyAnalyzer2DInProHelper {
   	}
   	if (!pList.isEmpty()) {
   		if (onProtrusion) {
-  			ipSeg = new InProContourSegment();
+  			ipSeg = levelResult.new InProContourSegment();
   			ipSeg.type = SegmentType.PROTRUSION;
   			ipSeg.startPosOnContour = startPos;
   			ipSeg.endPosOnContour = endPos;
@@ -270,12 +272,12 @@ public class MorphologyAnalyzer2DInProHelper {
   			// inflection points are defined to be the starting points
   			// of new segments immediately after the sign changed,
   			// i.e. each segment start point is also inflection point
-  			iListAll.add(new InflectionPoint(
+  			iListAll.add(levelResult.new InflectionPoint(
   					c.getPointAt(startPos).x, c.getPointAt(startPos).y, 
   					SegmentType.PROTRUSION));
   		}
   		else {
-  			ipSeg = new InProContourSegment();
+  			ipSeg = levelResult.new InProContourSegment();
   			ipSeg.type = SegmentType.INDENTATION;
   			ipSeg.startPosOnContour = startPos;
   			ipSeg.endPosOnContour = endPos;
@@ -290,7 +292,7 @@ public class MorphologyAnalyzer2DInProHelper {
   			// inflection points are defined to be the starting points
   			// of new segments immediately after the sign changed,
   			// i.e. each segment start point is also inflection point
-  			iListAll.add(new InflectionPoint(
+  			iListAll.add(levelResult.new InflectionPoint(
   					c.getPointAt(startPos).x, c.getPointAt(startPos).y, 
   					SegmentType.INDENTATION));
   		}
@@ -300,7 +302,7 @@ public class MorphologyAnalyzer2DInProHelper {
   	if (   protrusionSegs.size() > 1
   			&& fixedDirs[fixedDirs.length-1] == fixedDirs[0]) {
   		if (fixedDirs[0] > 0) {
-  			ipSeg = new InProContourSegment();
+  			ipSeg = levelResult.new InProContourSegment();
   			ipSeg.type = SegmentType.PROTRUSION;
   			ipSeg.startPosOnContour = protrusionSegs.getLast().startPosOnContour;
   			ipSeg.endPosOnContour = protrusionSegs.getFirst().endPosOnContour;
@@ -320,7 +322,7 @@ public class MorphologyAnalyzer2DInProHelper {
   			protrusionSegs.add(ipSeg);
   		}
   		else {
-  			ipSeg = new InProContourSegment();
+  			ipSeg = levelResult.new InProContourSegment();
   			ipSeg.type = SegmentType.INDENTATION;
   			ipSeg.startPosOnContour = indentationSegs.getLast().startPosOnContour;
   			ipSeg.endPosOnContour = indentationSegs.getFirst().endPosOnContour;
@@ -547,7 +549,7 @@ public class MorphologyAnalyzer2DInProHelper {
 	 * @param levelResult 	Result object containing data collected until now.
 	 */
 	private void postprocessIndentationSegments(
-				InProLevelAnalysisResult levelResult) {
+				MorphologyAnalyzer2DInProData levelResult) {
 			
 		MTBContour2D c = levelResult.contour;
 		int contourID = levelResult.contourID;
@@ -908,7 +910,7 @@ public class MorphologyAnalyzer2DInProHelper {
 	 * @param levelResult 	Result object containing data collected until now.
 	 */
 	private void measureIndentationPointDistances(
-			InProLevelAnalysisResult levelResult) {
+			MorphologyAnalyzer2DInProData levelResult) {
 			
 		LinkedList<InProContourSegment> iSegs = levelResult.indentationSegs;
 		
@@ -976,7 +978,7 @@ public class MorphologyAnalyzer2DInProHelper {
 	 * @param levelResult 	Result object containing data collected until now.
 	 */
 	private void postprocessProtrusionSegments(
-			InProLevelAnalysisResult levelResult) {
+			MorphologyAnalyzer2DInProData levelResult) {
 		
 		MTBContour2D c = levelResult.contour;
 		int contourID = levelResult.contourID;
