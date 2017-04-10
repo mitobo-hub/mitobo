@@ -609,8 +609,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 
 		this.fireOperatorExecutionProgressEvent(
 				new ALDOperatorExecutionProgressEvent(this, operatorID 
-					+ " calculating areas, perimeters, lengths, widths, " 
-						+ "circularities and eccentricities..."));
+					+ " calculating global features..."));
 
 		for(int j = 0; j < this.regions.size(); j++)
 		{
