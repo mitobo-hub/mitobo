@@ -166,16 +166,31 @@ public class MorphologyAnalyzer2DInProData {
 		return this.inflectionPoints;
 	}
 	
+	/**
+	 * Class to represent concave/convex segments along a contour.
+	 */
 	public class InProContourSegment {
 
+		/**
+		 * Type of segment.
+		 * <p>
+		 * Intrusions refer to convexities along the contour, protrusions
+		 * refer to concavities.
+		 */
 		MorphologyAnalyzer2DInProData.SegmentType type;
 
+		/**
+		 * Reference to the preceeding segment along the contour.
+		 */
+		protected InProContourSegment prevSegment; 
+		
+		/**
+		 * Reference to the subsequent segment along the contour.
+		 */
+		protected InProContourSegment nextSegment;
+		
 		public LinkedList<Point2D.Double> initialSegmentPoints;
 
-		InProContourSegment prevSegment; 
-		
-		InProContourSegment nextSegment;
-		
 		int segLength;
 
 		int startPosOnContour;
@@ -195,13 +210,52 @@ public class MorphologyAnalyzer2DInProData {
 		Point2D.Double rightBorderPoint;
 		int rightBorderPointPosOnContour;
 		
-		// some additional features
-		double baselineLength;
+		/**
+		 * Length of segment baseline.
+		 */
+		private double baselineLength;
+		
+		/**
+		 * Apical length of the segment, from equator to top.
+		 */
 		double apicalLength;
+		
+		/**
+		 * Basal length of the segment, from baseline to equator.
+		 */
 		double basalLength;
+
+		/**
+		 * Total length of indentation or protrusion, i.e., equals the sum of 
+		 * {@link #basalLength} and {@link #apicalLength}.
+		 */
 		double totalLength;
 //		
 //		double perimeter;
+		
+		/**
+		 * Get preceeding segment along contour.
+		 * <p>
+		 * Note that the preceeding segment is always of complementary type
+		 * (see {@link MorphologyAnalyzer2DInProData.SegmentType}).
+		 * 
+		 * @return Preceeding segment.
+		 */
+		public InProContourSegment getPrecursorSegment() {
+			return this.prevSegment;
+		}
+		
+		/**
+		 * Get subsequent segment along contour.
+		 * <p>
+		 * Note that the subsequent segment is always of complementary type
+		 * (see {@link MorphologyAnalyzer2DInProData.SegmentType}).
+		 * 
+		 * @return Subsequent segment.
+		 */
+		public InProContourSegment getSuccessorSegment() {
+			return this.nextSegment;			
+		}
 		
 		public double getEquatorLength() {
 			return this.equatorLength;
