@@ -32,7 +32,6 @@ import java.awt.Polygon;
 import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.text.NumberFormat;
-import java.util.LinkedList;
 import java.util.Vector;
 
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
@@ -43,14 +42,12 @@ import de.unihalle.informatik.Alida.annotations.Parameter.ParameterModificationM
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.unihalle.informatik.Alida.operator.events.ALDOperatorExecutionProgressEvent;
-import de.unihalle.informatik.MiToBo.core.datatypes.MTBContour2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBContour2DSet;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2DSet;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageRGB;
-import de.unihalle.informatik.MiToBo.core.exceptions.MTBDatatypeException;
 import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
 import de.unihalle.informatik.MiToBo.features.contours.Contour2DConcavityCalculator;
 import de.unihalle.informatik.MiToBo.features.contours.Contour2DCurvatureCalculator;
@@ -1497,153 +1494,154 @@ public class MorphologyAnalyzer2D extends MTBOperator
 		if (this.analyzeProtrusionsIndentations) {
 			MorphologyAnalyzer2DInProHelper ipHelper;
 			
-			// -----------------
-			
-			Vector<MTBImageRGB> stacks = new Vector<>();
-			Vector<Integer> neckCount = new Vector<>();
-      MTBContour2D nc = contours.elementAt(0);
-      
-  		MTBImageRGB dimg = (MTBImageRGB)MTBImage.createMTBImage(
-					this.width, this.height, 1, 1, 1, MTBImageType.MTB_RGB);
-			for (int y=0;y<this.height;++y) {
-				for (int x=0;x<this.width;++x) {
-					dimg.putValueR(x, y, 200);
-					dimg.putValueG(x, y, 200);
-					dimg.putValueB(x, y, 200);                                               					
-				}
-			}
-			for (Point2D.Double p: nc.getPoints()) {
-				int px = (int)p.x;
-				int py = (int)p.y;
-				dimg.putValueR(px, py, 255);
-				dimg.putValueG(px, py, 255);
-				dimg.putValueB(px, py, 255);                                               					    				
-			}
-
-			ipHelper = 
-					new MorphologyAnalyzer2DInProHelper(this.width, this.height, 
-							this.deltaXY.doubleValue(), this.labelImg, dimg);
-			MorphologyAnalyzer2DInProData prevResult = 
-					ipHelper.doProtrusionIndentationAnalysis(contours, curvatureValues, 
-							this.minProtrusionLength).elementAt(0);
-			int prevNum = prevResult.protrusionSegs.size();
-      dimg.setTitle("Original : " + prevResult.protrusionSegs.size());
-			stacks.add(dimg);
-
-      int k=9;
-      boolean proceed = true;
-      while (proceed) {
-      	try {
-      		if (k > nc.getPointNum()/2)
-      			break;
-      		MTBContour2D ncc = nc.smoothContour(k);
-      		MTBContour2DSet s = new MTBContour2DSet();
-      		s.add(ncc);
-      		Contour2DCurvatureCalculator cOp = 
-      				new Contour2DCurvatureCalculator(s);
-      		cOp.setK(11);
-      		cOp.runOp(HidingMode.HIDE_CHILDREN);
-      		
-      		dimg = (MTBImageRGB)MTBImage.createMTBImage(
-    					this.width, this.height, 1, 1, 1, MTBImageType.MTB_RGB);
-    			for (int y=0;y<this.height;++y) {
-    				for (int x=0;x<this.width;++x) {
-    					dimg.putValueR(x, y, 200);
-    					dimg.putValueG(x, y, 200);
-    					dimg.putValueB(x, y, 200);                                               					
-    				}
-    			}
-    			for (Point2D.Double p: ncc.getPoints()) {
-    				int px = (int)p.x;
-    				int py = (int)p.y;
-  					dimg.putValueR(px, py, 255);
-  					dimg.putValueG(px, py, 255);
-  					dimg.putValueB(px, py, 255);                                               					    				
-    			}
-
-    			ipHelper = new MorphologyAnalyzer2DInProHelper(this.width, this.height, 
-    							this.deltaXY.doubleValue(), this.labelImg, dimg);
-      		Vector<MorphologyAnalyzer2DInProData> r = 
-      				ipHelper.doProtrusionIndentationAnalysis(s, cOp.getResultVectorOfCurvatures(), 
-							this.minProtrusionLength);
-      		MorphologyAnalyzer2DInProData ir = r.elementAt(0);
-      		if (ir.indentationSegs.size() > 1 && ir.protrusionSegs.size() < prevNum) {
-      			neckCount.add(new Integer(ir.protrusionSegs.size()));
-      			dimg.setTitle("k = " + k + " : " + ir.protrusionSegs.size());
-      			stacks.add(dimg);
-
-      			// analyze neckpoints
-      			boolean[] prevPointsUsed = new boolean[prevNum];
-      			Vector<Integer> matchIDs = new Vector<>();
-      			for (int p=0;p<prevNum;++p)
-      				prevPointsUsed[p] = false;
-
-      			for (int pp=0;pp<ir.indentationSegs.size();++pp) {
-      				Point2D.Double mpp = ir.indentationSegs.get(pp).midPoint;
-      				double minDist = Double.MAX_VALUE;
-      				int minID = -1;
-      				for (int ppp=0;ppp<prevNum;++ppp) {
-      					if (prevPointsUsed[ppp])
-      						continue;
-      					double dist = mpp.distance(prevResult.indentationSegs.get(ppp).midPoint);
-      					if (dist<minDist) {
-      						minDist = dist;
-      						minID = ppp;
-      					}
-      				}
-      				if (minID != -1)
-      					matchIDs.add(new Integer(minID));
-      			}
-    				int minSizeToDelete = Integer.MAX_VALUE;
-      			for (int ppp=0;ppp<prevNum;++ppp) {
-      				if (!matchIDs.contains(new Integer(ppp))) {
-      					if (prevResult.indentationSegs.get(ppp).segPoints.size() < minSizeToDelete)
-      						minSizeToDelete = prevResult.indentationSegs.get(ppp).segPoints.size();
-      				}
-      			}
-      			if (minSizeToDelete < 25) {
-      				for (int ppp=0;ppp<prevNum;++ppp) {
-      					if (!matchIDs.contains(new Integer(ppp))) {
-      						LinkedList<Point2D.Double> sp = 
-      								prevResult.indentationSegs.get(ppp).segPoints;
-      						for(Point2D.Double p: sp) {
-      							int px = (int)p.x;
-      							int py = (int)p.y;
-      							dimg.putValueR(px, py, 0);
-      							dimg.putValueG(px, py, 0);
-      							dimg.putValueB(px, py, 0);
-      						}
-      					}
-      				}    			
-      				prevNum = ir.protrusionSegs.size();
-      				prevResult = ir;
-      			}
-      			else {
-      				proceed = false;
-      			}
-      		}
-					if (ir.indentationSegs.size() <= 1) {
-						proceed = false;
-					}
-					k += 10;
-      	} catch (MTBDatatypeException e) {
-      		// ... won't happen
-      		System.err.println("Error!");
-      		e.printStackTrace();
-      	}
-      }
-      
-      MTBImageRGB stack = (MTBImageRGB)MTBImage.createMTBImage(
-					this.width, this.height, 1, 1, stacks.size(), MTBImageType.MTB_RGB);
-      int c=0;
-      for (MTBImageRGB im: stacks) {
-      	stack.setSlice(im, 0, 0, c);
-      	stack.setSliceLabel(im.getTitle(), 0, 0, c);
-      	++c;
-      }
-      stack.show();
-      
-      // -----------------
+//			// -----------------
+//			// experimental code for lobe hierarchies
+//			
+//			Vector<MTBImageRGB> stacks = new Vector<>();
+//			Vector<Integer> neckCount = new Vector<>();
+//      MTBContour2D nc = contours.elementAt(0);
+//      
+//  		MTBImageRGB dimg = (MTBImageRGB)MTBImage.createMTBImage(
+//					this.width, this.height, 1, 1, 1, MTBImageType.MTB_RGB);
+//			for (int y=0;y<this.height;++y) {
+//				for (int x=0;x<this.width;++x) {
+//					dimg.putValueR(x, y, 200);
+//					dimg.putValueG(x, y, 200);
+//					dimg.putValueB(x, y, 200);                                               					
+//				}
+//			}
+//			for (Point2D.Double p: nc.getPoints()) {
+//				int px = (int)p.x;
+//				int py = (int)p.y;
+//				dimg.putValueR(px, py, 255);
+//				dimg.putValueG(px, py, 255);
+//				dimg.putValueB(px, py, 255);                                               					    				
+//			}
+//
+//			ipHelper = 
+//					new MorphologyAnalyzer2DInProHelper(this.width, this.height, 
+//							this.deltaXY.doubleValue(), this.labelImg, dimg);
+//			MorphologyAnalyzer2DInProData prevResult = 
+//					ipHelper.doProtrusionIndentationAnalysis(contours, curvatureValues, 
+//							this.minProtrusionLength).elementAt(0);
+//			int prevNum = prevResult.protrusionSegs.size();
+//      dimg.setTitle("Original : " + prevResult.protrusionSegs.size());
+//			stacks.add(dimg);
+//
+//      int k=9;
+//      boolean proceed = true;
+//      while (proceed) {
+//      	try {
+//      		if (k > nc.getPointNum()/2)
+//      			break;
+//      		MTBContour2D ncc = nc.smoothContour(k);
+//      		MTBContour2DSet s = new MTBContour2DSet();
+//      		s.add(ncc);
+//      		Contour2DCurvatureCalculator cOp = 
+//      				new Contour2DCurvatureCalculator(s);
+//      		cOp.setK(11);
+//      		cOp.runOp(HidingMode.HIDE_CHILDREN);
+//      		
+//      		dimg = (MTBImageRGB)MTBImage.createMTBImage(
+//    					this.width, this.height, 1, 1, 1, MTBImageType.MTB_RGB);
+//    			for (int y=0;y<this.height;++y) {
+//    				for (int x=0;x<this.width;++x) {
+//    					dimg.putValueR(x, y, 200);
+//    					dimg.putValueG(x, y, 200);
+//    					dimg.putValueB(x, y, 200);                                               					
+//    				}
+//    			}
+//    			for (Point2D.Double p: ncc.getPoints()) {
+//    				int px = (int)p.x;
+//    				int py = (int)p.y;
+//  					dimg.putValueR(px, py, 255);
+//  					dimg.putValueG(px, py, 255);
+//  					dimg.putValueB(px, py, 255);                                               					    				
+//    			}
+//
+//    			ipHelper = new MorphologyAnalyzer2DInProHelper(this.width, this.height, 
+//    							this.deltaXY.doubleValue(), this.labelImg, dimg);
+//      		Vector<MorphologyAnalyzer2DInProData> r = 
+//      				ipHelper.doProtrusionIndentationAnalysis(s, cOp.getResultVectorOfCurvatures(), 
+//							this.minProtrusionLength);
+//      		MorphologyAnalyzer2DInProData ir = r.elementAt(0);
+//      		if (ir.indentationSegs.size() > 1 && ir.protrusionSegs.size() < prevNum) {
+//      			neckCount.add(new Integer(ir.protrusionSegs.size()));
+//      			dimg.setTitle("k = " + k + " : " + ir.protrusionSegs.size());
+//      			stacks.add(dimg);
+//
+//      			// analyze neckpoints
+//      			boolean[] prevPointsUsed = new boolean[prevNum];
+//      			Vector<Integer> matchIDs = new Vector<>();
+//      			for (int p=0;p<prevNum;++p)
+//      				prevPointsUsed[p] = false;
+//
+//      			for (int pp=0;pp<ir.indentationSegs.size();++pp) {
+//      				Point2D.Double mpp = ir.indentationSegs.get(pp).midPoint;
+//      				double minDist = Double.MAX_VALUE;
+//      				int minID = -1;
+//      				for (int ppp=0;ppp<prevNum;++ppp) {
+//      					if (prevPointsUsed[ppp])
+//      						continue;
+//      					double dist = mpp.distance(prevResult.indentationSegs.get(ppp).midPoint);
+//      					if (dist<minDist) {
+//      						minDist = dist;
+//      						minID = ppp;
+//      					}
+//      				}
+//      				if (minID != -1)
+//      					matchIDs.add(new Integer(minID));
+//      			}
+//    				int minSizeToDelete = Integer.MAX_VALUE;
+//      			for (int ppp=0;ppp<prevNum;++ppp) {
+//      				if (!matchIDs.contains(new Integer(ppp))) {
+//      					if (prevResult.indentationSegs.get(ppp).segPoints.size() < minSizeToDelete)
+//      						minSizeToDelete = prevResult.indentationSegs.get(ppp).segPoints.size();
+//      				}
+//      			}
+//      			if (minSizeToDelete < 25) {
+//      				for (int ppp=0;ppp<prevNum;++ppp) {
+//      					if (!matchIDs.contains(new Integer(ppp))) {
+//      						LinkedList<Point2D.Double> sp = 
+//      								prevResult.indentationSegs.get(ppp).segPoints;
+//      						for(Point2D.Double p: sp) {
+//      							int px = (int)p.x;
+//      							int py = (int)p.y;
+//      							dimg.putValueR(px, py, 0);
+//      							dimg.putValueG(px, py, 0);
+//      							dimg.putValueB(px, py, 0);
+//      						}
+//      					}
+//      				}    			
+//      				prevNum = ir.protrusionSegs.size();
+//      				prevResult = ir;
+//      			}
+//      			else {
+//      				proceed = false;
+//      			}
+//      		}
+//					if (ir.indentationSegs.size() <= 1) {
+//						proceed = false;
+//					}
+//					k += 10;
+//      	} catch (MTBDatatypeException e) {
+//      		// ... won't happen
+//      		System.err.println("Error!");
+//      		e.printStackTrace();
+//      	}
+//      }
+//      
+//      MTBImageRGB stack = (MTBImageRGB)MTBImage.createMTBImage(
+//					this.width, this.height, 1, 1, stacks.size(), MTBImageType.MTB_RGB);
+//      int c=0;
+//      for (MTBImageRGB im: stacks) {
+//      	stack.setSlice(im, 0, 0, c);
+//      	stack.setSliceLabel(im.getTitle(), 0, 0, c);
+//      	++c;
+//      }
+//      stack.show();
+//      
+//      // -----------------
 			
 			ipHelper = 
 					new MorphologyAnalyzer2DInProHelper(this.width, this.height, 
