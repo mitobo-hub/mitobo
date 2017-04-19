@@ -685,12 +685,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 
 		if (this.calcMarginRoughness || this.analyzeProtrusionsIndentations) 
 		{
-			try {
-				this.analyzeLocalCurvatures();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			this.analyzeLocalCurvatures();
 		}
 			
 		this.fireOperatorExecutionProgressEvent(
@@ -1436,7 +1431,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	 */
 	@SuppressWarnings("javadoc")
   private void analyzeLocalCurvatures() 
-			throws ALDOperatorException, ALDProcessingDAGException, IOException {
+			throws ALDOperatorException, ALDProcessingDAGException {
 		
 		if (this.createCurvatureInfoImage) {
 			this.curvatureInfoImg = (MTBImageRGB)MTBImage.createMTBImage(

@@ -36,18 +36,44 @@ import de.unihalle.informatik.MiToBo.core.datatypes.MTBContour2D;
  */
 public class MorphologyAnalyzer2DInProData {
 
+	/**
+	 * Type of segment to distinguish between indentation and protrusions. 
+	 */
 	public static enum SegmentType {
+		/**
+		 * Indentation, i.e. a convex segment along a region's contour.
+		 */
 		INDENTATION,
+		/**
+		 * Protrusion, i.e. a concave segment along a region's contour.
+		 */
 		PROTRUSION		
 	}
 	
-	MTBContour2D contour;
-	int contourID;
+	/**
+	 * Analyzed region contour.
+	 */
+	private MTBContour2D contour;
+	
+	/**
+	 * ID of the contour.
+	 */
+	private int contourID;
 
-	public LinkedList<InProContourSegment> protrusionSegs;
-	public LinkedList<InProContourSegment> indentationSegs;
+	/**
+	 * List of protrusion segments along the contour.
+	 */
+	private LinkedList<InProContourSegment> protrusionSegs;
+	
+	/**
+	 * List of indentation segments along the contour.
+	 */
+	private LinkedList<InProContourSegment> indentationSegs;
 
-	LinkedList<InflectionPoint> inflections;
+	/**
+	 * List of inflection points along the contour.
+	 */
+	private LinkedList<InflectionPoint> inflectionPoints;
 
 	int numberOfProtrusions;
 	double avgEquatorProtrusionLength;
@@ -66,12 +92,90 @@ public class MorphologyAnalyzer2DInProData {
 	double avgApicalIndentationLength;
 	double avgBasalIndentationLength;
 
+	/**
+	 * Default constructor.
+	 * @param c		Contour.
+	 * @param id	ID of contour.
+	 */
+	public MorphologyAnalyzer2DInProData(MTBContour2D c, int id) {
+		this.contour = c;
+		this.contourID = id;
+	}
+	
+	/**
+	 * Add list of indentation segments to object.
+	 * @param is	List of segments.
+	 */
+	public void addIndentationSegments(LinkedList<InProContourSegment> is) {
+		this.indentationSegs = is;
+	}
+	
+	/**
+	 * Add list of protrusion segments to object.
+	 * @param ps	List of segments.
+	 */
+	public void addProtrusionSegments(LinkedList<InProContourSegment> ps) {
+		this.protrusionSegs = ps;
+	}
+
+	/**
+	 * Add list of inflection points to object.
+	 * @param ip	List of points.
+	 */
+	public void addInflectionPoints(LinkedList<InflectionPoint> ip) {
+		this.inflectionPoints = ip;
+	}
+
+	/**
+	 * Get a reference to the contour.
+	 * @return	Reference to contour.
+	 */
+	public MTBContour2D getContour() {
+		return this.contour;
+	}
+	
+	/**
+	 * Get the contour ID.
+	 * @return	ID of contour.
+	 */
+	public int getContourID() {
+		return this.contourID;
+	}
+	
+	/**
+	 * Get list of indentation segments.
+	 * @return	List of segments.
+	 */
+	public LinkedList<InProContourSegment> getIndentationSegments() {
+		return this.indentationSegs;
+	}
+	
+	/**
+	 * Get list of protrusion segments.
+	 * @return	List of segments.
+	 */
+	public LinkedList<InProContourSegment> getProtrusionSegments() {
+		return this.protrusionSegs;
+	}
+
+	/**
+	 * Get list of inflection points.
+	 * @return	List of points.
+	 */
+	public LinkedList<InflectionPoint> getInflectionPoints() {
+		return this.inflectionPoints;
+	}
+	
 	public class InProContourSegment {
 
 		MorphologyAnalyzer2DInProData.SegmentType type;
 
-		public LinkedList<Point2D.Double> segPoints;
+		public LinkedList<Point2D.Double> initialSegmentPoints;
 
+		InProContourSegment prevSegment; 
+		
+		InProContourSegment nextSegment;
+		
 		int segLength;
 
 		int startPosOnContour;
@@ -90,6 +194,34 @@ public class MorphologyAnalyzer2DInProData {
 
 		Point2D.Double rightBorderPoint;
 		int rightBorderPointPosOnContour;
+		
+		// some additional features
+		double baselineLength;
+		double apicalLength;
+		double basalLength;
+		double totalLength;
+//		
+//		double perimeter;
+		
+		public double getEquatorLength() {
+			return this.equatorLength;
+		}
+
+		public double getBaselineLength() {
+			return this.baselineLength;
+		}
+
+		public double getApicalLength() {
+			return this.apicalLength;
+		}
+
+		public double getBasalLength() {
+			return this.basalLength;
+		}
+
+		public double getTotalLength() {
+			return this.totalLength;
+		}
 	}
 
 	public class InflectionPoint extends Point2D.Double {

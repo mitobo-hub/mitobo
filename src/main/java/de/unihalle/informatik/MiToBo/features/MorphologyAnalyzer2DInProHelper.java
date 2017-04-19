@@ -48,12 +48,32 @@ public class MorphologyAnalyzer2DInProHelper {
 	
 	private MTBImage labelImg;
 	
+	/**
+	 * Width of reference image domain.
+	 */
 	private int width;
 	
+	/**
+	 * Height of reference image domain.
+	 */
 	private int height;
 
+	/**
+	 * Physical pixel resolution.
+	 * <p>
+	 * Attention, operator assumes square pixels!
+	 */
 	double deltaXY;
 		
+	/**
+	 * Default constructor.
+	 * 
+	 * @param dwidth		Width of reference image domain.
+	 * @param dheigth		Height of reference image domain.
+	 * @param dxy				Physical pixel resolution.
+	 * @param lImg			
+	 * @param debugImg
+	 */
 	public MorphologyAnalyzer2DInProHelper(int dwidth, int dheigth, double dxy, 
 			MTBImage lImg, MTBImageRGB debugImg) {
 		this.debugInfoImg = debugImg;
@@ -64,6 +84,14 @@ public class MorphologyAnalyzer2DInProHelper {
 		this.deltaXY = dxy;
 	}
 	
+	/**
+	 * Method to perform analysis of intrusions/protrusions along contours.
+	 * 
+	 * @param contours							Contours to analyze.
+	 * @param curvatureValues				Corresponding curvature values along contours.
+	 * @param minProtrusionLength		Minimal length for valid protrusions. 
+	 * @return	Vector of result data per contour.
+	 */
 	Vector<MorphologyAnalyzer2DInProData> doProtrusionIndentationAnalysis(
 		MTBContour2DSet contours, Vector<double[]> curvatureValues, 
 			int minProtrusionLength) {
@@ -80,20 +108,19 @@ public class MorphologyAnalyzer2DInProHelper {
 			
 			// init object for result data
 			MorphologyAnalyzer2DInProData levelResult = 
-					new MorphologyAnalyzer2DInProData();
-			levelResult.contourID = contourID;
-			levelResult.contour = contours.elementAt(contourID);
+					new MorphologyAnalyzer2DInProData(contours.elementAt(contourID),
+							contourID);
 
 			this.detectProtrusionsIndentations(c, levelResult, curvVals, 
 					minProtrusionLength);
 			
 			// further process indentation segments to learn more about protrusions
-//			this.postprocessIndentationSegments(levelResult);
-//
-//			this.measureIndentationPointDistances(levelResult);
-//
-//			// further process protrusion segments to learn more about indentations
-//			this.postprocessProtrusionSegments(levelResult);
+			this.postprocessIndentationSegments(levelResult);
+
+			this.measureIndentationPointDistances(levelResult);
+
+			// further process protrusion segments to learn more about indentations
+			this.postprocessProtrusionSegments(levelResult);
 
 			// add result for current contour to collection
 			curveAnalysisLevelResults.add(levelResult);
@@ -194,6 +221,7 @@ public class MorphologyAnalyzer2DInProHelper {
   		onProtrusion = false;
   	int startPos = 0;
   	int endPos = 0;
+  	InProContourSegment prevSeg = null;
   	InProContourSegment ipSeg;
   	LinkedList<Point2D.Double> pList = new LinkedList<>();
   	LinkedList<InflectionPoint> iListAll = new LinkedList<>();
@@ -204,9 +232,12 @@ public class MorphologyAnalyzer2DInProHelper {
   				if (!pList.isEmpty()) {
   					ipSeg = levelResult.new InProContourSegment();
   					ipSeg.type = SegmentType.PROTRUSION;
+  					ipSeg.prevSegment = prevSeg;
+  					if (prevSeg != null)
+  						prevSeg.nextSegment = ipSeg;
   					ipSeg.startPosOnContour = startPos;
   					ipSeg.endPosOnContour = endPos;
-  					ipSeg.segPoints = pList;
+  					ipSeg.initialSegmentPoints = pList;
   					ipSeg.segLength = pList.size();
   					ipSeg.midPoint = pList.get(ipSeg.segLength/2);
   					ipSeg.midPointPosOnContour = startPos + ipSeg.segLength/2;
@@ -220,15 +251,19 @@ public class MorphologyAnalyzer2DInProHelper {
   					iListAll.add(levelResult.new InflectionPoint(
   							c.getPointAt(startPos).x, c.getPointAt(startPos).y, 
   							SegmentType.PROTRUSION));
+  					prevSeg = ipSeg;
   				}
   			} // end of protrusion case
   			else {
   				if (!pList.isEmpty()) {
   					ipSeg = levelResult.new InProContourSegment();
   					ipSeg.type = SegmentType.INDENTATION;
+  					ipSeg.prevSegment = prevSeg;
+  					if (prevSeg != null)
+  						prevSeg.nextSegment = ipSeg;
   					ipSeg.startPosOnContour = startPos;
   					ipSeg.endPosOnContour = endPos;
-  					ipSeg.segPoints = pList;
+  					ipSeg.initialSegmentPoints = pList;
   					ipSeg.segLength = pList.size();
   					ipSeg.midPoint = pList.get(ipSeg.segLength/2);
   					ipSeg.midPointPosOnContour = startPos + ipSeg.segLength/2;
@@ -242,6 +277,7 @@ public class MorphologyAnalyzer2DInProHelper {
   					iListAll.add(levelResult.new InflectionPoint(
   							c.getPointAt(startPos).x, c.getPointAt(startPos).y, 
   							SegmentType.INDENTATION));
+  					prevSeg = ipSeg;
   				}
   			} // end of indentation case
 
@@ -259,9 +295,12 @@ public class MorphologyAnalyzer2DInProHelper {
   		if (onProtrusion) {
   			ipSeg = levelResult.new InProContourSegment();
   			ipSeg.type = SegmentType.PROTRUSION;
+				ipSeg.prevSegment = prevSeg;
+				if (prevSeg != null)
+					prevSeg.nextSegment = ipSeg;
   			ipSeg.startPosOnContour = startPos;
   			ipSeg.endPosOnContour = endPos;
-  			ipSeg.segPoints = pList;
+  			ipSeg.initialSegmentPoints = pList;
   			ipSeg.segLength = pList.size();
   			ipSeg.midPoint = pList.get(ipSeg.segLength/2);
   			ipSeg.midPointPosOnContour = startPos + ipSeg.segLength/2;
@@ -279,9 +318,12 @@ public class MorphologyAnalyzer2DInProHelper {
   		else {
   			ipSeg = levelResult.new InProContourSegment();
   			ipSeg.type = SegmentType.INDENTATION;
+				ipSeg.prevSegment = prevSeg;
+				if (prevSeg != null)
+					prevSeg.nextSegment = ipSeg;
   			ipSeg.startPosOnContour = startPos;
   			ipSeg.endPosOnContour = endPos;
-  			ipSeg.segPoints = pList;
+  			ipSeg.initialSegmentPoints = pList;
   			ipSeg.segLength = pList.size();
   			ipSeg.midPoint = pList.get(ipSeg.segLength/2);
   			ipSeg.midPointPosOnContour = startPos + ipSeg.segLength/2;
@@ -307,9 +349,9 @@ public class MorphologyAnalyzer2DInProHelper {
   			ipSeg.startPosOnContour = protrusionSegs.getLast().startPosOnContour;
   			ipSeg.endPosOnContour = protrusionSegs.getFirst().endPosOnContour;
   			pList = new LinkedList<>();
-  			pList.addAll(protrusionSegs.getLast().segPoints);
-  			pList.addAll(protrusionSegs.getFirst().segPoints);
-  			ipSeg.segPoints = pList;
+  			pList.addAll(protrusionSegs.getLast().initialSegmentPoints);
+  			pList.addAll(protrusionSegs.getFirst().initialSegmentPoints);
+  			ipSeg.initialSegmentPoints = pList;
   			ipSeg.segLength = pList.size();
   			ipSeg.midPoint = pList.get(ipSeg.segLength/2);
   			ipSeg.midPointPosOnContour = startPos + ipSeg.segLength/2;
@@ -317,7 +359,7 @@ public class MorphologyAnalyzer2DInProHelper {
   				ipSeg.midPointPosOnContour = 
   				c.getPointNum() - ipSeg.midPointPosOnContour;
   			// remove first point from inflection list
-  			iListAll.remove(protrusionSegs.pop().segPoints.getFirst());
+  			iListAll.remove(protrusionSegs.pop().initialSegmentPoints.getFirst());
   			protrusionSegs.removeLast();
   			protrusionSegs.add(ipSeg);
   		}
@@ -327,9 +369,9 @@ public class MorphologyAnalyzer2DInProHelper {
   			ipSeg.startPosOnContour = indentationSegs.getLast().startPosOnContour;
   			ipSeg.endPosOnContour = indentationSegs.getFirst().endPosOnContour;
   			pList = new LinkedList<>();
-  			pList.addAll(indentationSegs.getLast().segPoints);
-  			pList.addAll(indentationSegs.getFirst().segPoints);
-  			ipSeg.segPoints = pList;
+  			pList.addAll(indentationSegs.getLast().initialSegmentPoints);
+  			pList.addAll(indentationSegs.getFirst().initialSegmentPoints);
+  			ipSeg.initialSegmentPoints = pList;
   			ipSeg.segLength = pList.size();
   			ipSeg.midPoint = pList.get(ipSeg.segLength/2);
   			ipSeg.midPointPosOnContour = startPos + ipSeg.segLength/2;
@@ -337,10 +379,20 @@ public class MorphologyAnalyzer2DInProHelper {
   				ipSeg.midPointPosOnContour = 
   				c.getPointNum() - ipSeg.midPointPosOnContour;
   			// remove first point from inflection list
-  			iListAll.remove(indentationSegs.pop().segPoints.getFirst());
+  			iListAll.remove(indentationSegs.pop().initialSegmentPoints.getFirst());
   			indentationSegs.removeLast();
   			indentationSegs.add(ipSeg);
   		}
+  	}
+  	
+  	// make sure that last segment points to first and vice versa
+  	if (indentationSegs.getFirst().prevSegment == null) {
+  		indentationSegs.getFirst().prevSegment = protrusionSegs.getLast();
+  		protrusionSegs.getLast().prevSegment = indentationSegs.getFirst();
+  	}
+  	else {
+  		protrusionSegs.getFirst().prevSegment = indentationSegs.getLast();
+  		indentationSegs.getLast().prevSegment = protrusionSegs.getFirst();
   	}
 
   	// calculate equator length
@@ -374,9 +426,9 @@ public class MorphologyAnalyzer2DInProHelper {
   	//			this.avgEquatorIndentationLengths.add(
   	//					new Double(indentationEquatorSum/protrusionCount));
 
-  	levelResult.indentationSegs = indentationSegs;
-  	levelResult.protrusionSegs = protrusionSegs;
-  	levelResult.inflections = iListAll;
+  	levelResult.addIndentationSegments(indentationSegs);
+  	levelResult.addProtrusionSegments(protrusionSegs);
+  	levelResult.addInflectionPoints(iListAll);
   	levelResult.numberOfProtrusions = protrusionCount;
   	levelResult.avgEquatorProtrusionLength = 
   			protrusionEquatorSum/protrusionCount;
@@ -390,7 +442,7 @@ public class MorphologyAnalyzer2DInProHelper {
   	// plot protrusions and indentations as well as equators to info image
   	if (this.debugInfoImg != null) {
   		for (InProContourSegment seg: indentationSegs) {
-  			for (Point2D.Double p: seg.segPoints) {
+  			for (Point2D.Double p: seg.initialSegmentPoints) {
   				int px = (int)p.x;
   				int py = (int)p.y;
   				this.debugInfoImg.putValueR(px, py, 0);
@@ -399,7 +451,7 @@ public class MorphologyAnalyzer2DInProHelper {
   			}
   		}
   		for (InProContourSegment seg: protrusionSegs) {
-  			for (Point2D.Double p: seg.segPoints) {
+  			for (Point2D.Double p: seg.initialSegmentPoints) {
   				int px = (int)p.x;
   				int py = (int)p.y;
   				this.debugInfoImg.putValueR(px, py, 255);
@@ -551,12 +603,12 @@ public class MorphologyAnalyzer2DInProHelper {
 	private void postprocessIndentationSegments(
 				MorphologyAnalyzer2DInProData levelResult) {
 			
-		MTBContour2D c = levelResult.contour;
-		int contourID = levelResult.contourID;
-		LinkedList<InflectionPoint> inflections = levelResult.inflections;
+		MTBContour2D c = levelResult.getContour();
+		int contourID = levelResult.getContourID();
+		LinkedList<InflectionPoint> inflections = levelResult.getInflectionPoints();
 		int protrusionCount = levelResult.numberOfProtrusions;
 		LinkedList<InProContourSegment> indentationSegs = 
-				levelResult.indentationSegs;
+				levelResult.getIndentationSegments();
 		
 		Vector<Point2D.Double> nonProtrusionAreaPolyPoints = 
 				new Vector<Point2D.Double>();
@@ -569,12 +621,13 @@ public class MorphologyAnalyzer2DInProHelper {
   		
   		InProContourSegment neck = indentationSegs.get(n);
 			InProContourSegment nextNeck;
+			InProContourSegment enclosedLobe = neck.nextSegment;
   		if (n == indentationSegs.size()-1 )
   			nextNeck = indentationSegs.get(0);
   		else
   			nextNeck = indentationSegs.get(n+1);
-  		LinkedList<Point2D.Double> neckPoints = neck.segPoints;
-  		LinkedList<Point2D.Double> nextNeckPoints = nextNeck.segPoints;
+  		LinkedList<Point2D.Double> neckPoints = neck.initialSegmentPoints;
+  		LinkedList<Point2D.Double> nextNeckPoints = nextNeck.initialSegmentPoints;
 
   		Point2D.Double neckMidPoint = neck.midPoint;
 			int nmpx = (int)neckMidPoint.x;
@@ -730,12 +783,12 @@ public class MorphologyAnalyzer2DInProHelper {
 				if (to < from)
 					to = c.getPointNum();
 				for (int p = from; p<to; ++p) {
-					nonProtrusionAreaPolyPoints.add(c.getPointAt(p));				
+					nonProtrusionAreaPolyPoints.add(c.getPointAt(p));
 				}
 				if (to < from) {
 					to = newStartPointPos;
 					for (int p = 0; p<=to; ++p) {
-						nonProtrusionAreaPolyPoints.add(c.getPointAt(p));				
+						nonProtrusionAreaPolyPoints.add(c.getPointAt(p));
 					}
 				}
 			}
@@ -751,14 +804,14 @@ public class MorphologyAnalyzer2DInProHelper {
 				if (to < from)
 					to = c.getPointNum();
 				for (int p = from; p<to; ++p) {
-					nonProtrusionAreaPolyPoints.add(c.getPointAt(p));				
+					nonProtrusionAreaPolyPoints.add(c.getPointAt(p));
 				}
 				if (to < from) {
 					to = nextNeck.midPointPosOnContour-1;
 					if (to < 0)
 						to = c.getPointNum();
 					for (int p = 0; p<to; ++p) {
-						nonProtrusionAreaPolyPoints.add(c.getPointAt(p));				
+						nonProtrusionAreaPolyPoints.add(c.getPointAt(p));
 					}
 				}
 			}
@@ -771,6 +824,9 @@ public class MorphologyAnalyzer2DInProHelper {
 				this.debugInfoImg.putValueB(px, py, 0);
 			}
 
+			// remember baseline length of enclosed lobe
+			enclosedLobe.baselineLength = newStartPoint.distance(newEndPoint);
+			
 			// sum lengths of baselines
 			protrusionBaselineSum += newStartPoint.distance(newEndPoint);
 			
@@ -811,6 +867,7 @@ public class MorphologyAnalyzer2DInProHelper {
 			if (inflections.contains(newEndPoint))
 				iPoints.add(newEndPoint);
 			
+			enclosedLobe.totalLength = maxDist;
 			protrusionLengthSum += maxDist;		
 			
 			// calculate base point of distance line
@@ -834,7 +891,9 @@ public class MorphologyAnalyzer2DInProHelper {
 			Point2D.Double isect = equator.getIntersection(distline);
 			if (!Double.isNaN(isect.x) && !Double.isNaN(isect.y)) {
 				protrusionLengthApicalSum += isect.distance(maxDistPoint);
+				enclosedLobe.apicalLength = isect.distance(maxDistPoint);
 				protrusionLengthBasalSum += isect.distance(ppx, ppy);
+				enclosedLobe.basalLength = isect.distance(ppx, ppy);
 			}
 
 			if (this.debugInfoImg != null) {
@@ -912,7 +971,7 @@ public class MorphologyAnalyzer2DInProHelper {
 	private void measureIndentationPointDistances(
 			MorphologyAnalyzer2DInProData levelResult) {
 			
-		LinkedList<InProContourSegment> iSegs = levelResult.indentationSegs;
+		LinkedList<InProContourSegment> iSegs = levelResult.getIndentationSegments();
 		
 		// collect all mid-points
 		LinkedList<Point2D.Double> iMidPoints = new LinkedList<>();
@@ -980,12 +1039,12 @@ public class MorphologyAnalyzer2DInProHelper {
 	private void postprocessProtrusionSegments(
 			MorphologyAnalyzer2DInProData levelResult) {
 		
-		MTBContour2D c = levelResult.contour;
-		int contourID = levelResult.contourID;
-		LinkedList<InflectionPoint> inflections = levelResult.inflections;
+		MTBContour2D c = levelResult.getContour();
+		int contourID = levelResult.getContourID();
+		LinkedList<InflectionPoint> inflections = levelResult.getInflectionPoints();
 		int protrusionCount = levelResult.numberOfProtrusions;
 		LinkedList<InProContourSegment> protrusionSegs =
-				levelResult.protrusionSegs;
+				levelResult.getProtrusionSegments();
 		
 		double indentationBaselineSum = 0;
 		double indentationLengthSum = 0;
@@ -1000,8 +1059,8 @@ public class MorphologyAnalyzer2DInProHelper {
   			nextLobe = protrusionSegs.get(0);
   		else
   			nextLobe = protrusionSegs.get(n+1);
-  		LinkedList<Point2D.Double> lobePoints = lobe.segPoints;
-  		LinkedList<Point2D.Double> nextLobePoints = nextLobe.segPoints;
+  		LinkedList<Point2D.Double> lobePoints = lobe.initialSegmentPoints;
+  		LinkedList<Point2D.Double> nextLobePoints = nextLobe.initialSegmentPoints;
 
   		Point2D.Double lobeMidPoint = lobe.midPoint;
   		int nmpx = (int)lobeMidPoint.x;
