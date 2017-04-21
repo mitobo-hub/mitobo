@@ -213,26 +213,42 @@ public class MorphologyAnalyzer2DInProData {
 		/**
 		 * Length of segment baseline.
 		 */
-		private double baselineLength;
+		protected double baselineLength;
 		
 		/**
 		 * Apical length of the segment, from equator to top.
 		 */
-		double apicalLength;
+		protected double apicalLength;
 		
 		/**
 		 * Basal length of the segment, from baseline to equator.
 		 */
-		double basalLength;
+		protected double basalLength;
 
 		/**
 		 * Total length of indentation or protrusion, i.e., equals the sum of 
 		 * {@link #basalLength} and {@link #apicalLength}.
 		 */
-		double totalLength;
+		protected double totalLength;
 //		
 //		double perimeter;
-		
+						
+//		void setBaselineLength(double l) {
+//			this.baselineLength = l;
+//		}
+//
+//		void setApicalLength(double l) {
+//			this.apicalLength = l;
+//		}
+//
+//		void setbasalLength(double l) {
+//			this.basalLength = l;
+//		}
+//
+//		void setTotalLength(double l) {
+//			this.totalLength = l;
+//		}
+
 		/**
 		 * Get preceeding segment along contour.
 		 * <p>
