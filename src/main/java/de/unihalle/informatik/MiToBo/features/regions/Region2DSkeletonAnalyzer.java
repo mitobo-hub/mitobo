@@ -25,7 +25,9 @@
 package de.unihalle.informatik.MiToBo.features.regions;
 
 import java.awt.geom.Point2D;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Vector;
 
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
@@ -37,6 +39,7 @@ import de.unihalle.informatik.Alida.operator.events.ALDOperatorExecutionProgress
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBNeuriteSkelGraph;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageByte;
+import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageDouble;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageRGB;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType;
 import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
@@ -132,7 +135,15 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 		/**
 		 * Longest path in skeleton.
 		 */
-		LongestSkeletonPathLength
+		LongestSkeletonPathLength,
+		/**
+		 * Minimal width of core region (non-branch section).
+		 */
+		MinCoreRegionWidth,
+		/**
+		 * Maximal width of core region (non-branch section).
+		 */
+		MaxCoreRegionWidth
 	}
 
 	/**
@@ -291,7 +302,7 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 				DistanceMetric.EUCLIDEAN, ForegroundColor.FG_BLACK);
 		dTrans.runOp(HidingMode.HIDE_CHILDREN);
 		MTBImage distTransImg = dTrans.getDistanceImage();
-		
+
 		this.fireOperatorExecutionProgressEvent(
 				new ALDOperatorExecutionProgressEvent(this, operatorID 
 					+ " extracting region skeletons..."));
@@ -452,7 +463,7 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 						++branchCounts[this.inImg.getValueInt(x, y)-1];
 						
 						// calculate branch length...
-						length = traceBranch(skelImg, x, y);
+						length = traceBranch(skelImg, x, y, null);
 						branchLengths[this.inImg.getValueInt(x, y)-1] += length;
 						
 						// ... and endpoint distance to background
@@ -493,13 +504,106 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 				branchCounts[i] = 1;
 		}
 		
+		// *
+		
+		MTBImageByte nonBranchPixelImg = (MTBImageByte)skelImg.duplicate().convertType(
+				MTBImageType.MTB_BYTE, true);
+		memImg = skelImg.duplicate();
+		for (int y=0;y<this.height;++y) {
+			for (int x=0;x<this.width;++x) {
+				if (   skelImg.getValueInt(x, y) > 0 
+						&& memImg.getValueInt(x, y) > 0) {
+					nCount = numberOfNeighbors(skelImg, x, y);
+					if (nCount == 1) {
+						// found an endpoint, mark as processed
+						memImg.putValueInt(x, y, 0);
+
+						// calculate branch length...
+						length = traceBranch(skelImg, x, y, nonBranchPixelImg);
+					}
+				}
+			}
+		}
+
+		MTBImageDouble nonBranchDistImg = (MTBImageDouble)MTBImage.createMTBImage(
+				this.width, this.height, 1, 1, 1, MTBImageType.MTB_DOUBLE); 
+		for (int y=0;y<this.height;++y) {
+			for (int x=0;x<this.width; ++x) {
+				if (nonBranchPixelImg.getValueInt(x, y) != 0) {
+					double minDist = Double.MAX_VALUE;
+					for (int yy=0;yy<this.height;++yy) {
+						for (int xx=0;xx<this.width; ++xx) {
+							if (binImg.getValueInt(xx, yy) != 0)
+								continue;
+							double dist = (x-xx)*(x-xx) + (y-yy)*(y-yy);
+							if (dist < minDist)
+								minDist = dist;
+						}
+					}
+					nonBranchDistImg.putValueDouble(x, y, minDist);
+				}
+			}
+		}
+		MTBImage maxImg = nonBranchDistImg.duplicate();
+		for (int y=1;y<this.height-1;++y) {
+			for (int x=1;x<this.width-1; ++x) {
+				for (int dx=-1;dx<=1;++dx) {
+					for (int dy=-1;dy<=1;++dy) {
+						if (nonBranchDistImg.getValueDouble(x+dx, y+dy) > 
+							 	nonBranchDistImg.getValueDouble(x, y)) {
+							maxImg.putValueDouble(x, y, 0);
+							dx = 2;
+							break;
+						}
+					}					
+				}
+			}
+		}
+		
+		skelImg.show();
+		nonBranchDistImg.show();
+		nonBranchPixelImg.show();
+		binImg.show();		
+		maxImg.show();
+		
+		HashMap<Integer, Double> minDist = new HashMap<>();
+		HashMap<Integer, Double> maxDist = new HashMap<>();
+		Integer label;
+		Double distVal;
+		for (int y=0;y<this.height;++y) {
+			for (int x=0;x<this.width; ++x) {
+				if (maxImg.getValueDouble(x, y) > 0) {
+					label = new Integer(this.inImg.getValueInt(x, y));
+					distVal = new Double(maxImg.getValueDouble(x, y));
+					if (!minDist.containsKey(label)) 
+						minDist.put(label, distVal);
+					else if (  minDist.get(label).doubleValue() 
+							     > maxImg.getValueDouble(x, y))
+						minDist.put(label, distVal);
+					if (!maxDist.containsKey(label)) 
+						maxDist.put(label, distVal);
+					else if (  maxDist.get(label).doubleValue() 
+							     < maxImg.getValueDouble(x, y))
+						maxDist.put(label, distVal);
+				}
+			}
+		}
+		try {
+			System.in.read();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// *
+		
 		// allocate and fill result table
 		int regionCount = 0;
 		for (int i=0;i<regionWithLabelFound.length;++i) {
 			if (regionWithLabelFound[i])
 				++regionCount;
 		}
-		this.resultFeatureTable = new MTBTableModel(regionCount, 5);
+		this.resultFeatureTable = new MTBTableModel(regionCount, 7);
 		this.resultFeatureTable.setColumnName(0, 
 				FeatureNames.RegionID.toString());
 		this.resultFeatureTable.setColumnName(1, 
@@ -510,6 +614,10 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 				FeatureNames.AvgBranchEndpointDistance.toString());
 		this.resultFeatureTable.setColumnName(4, 
 				FeatureNames.LongestSkeletonPathLength.toString());
+		this.resultFeatureTable.setColumnName(5, 
+				FeatureNames.MinCoreRegionWidth.toString());
+		this.resultFeatureTable.setColumnName(6, 
+				FeatureNames.MaxCoreRegionWidth.toString());
 		int rowID = 0;
 		for (int i=0; i<regionWithLabelFound.length; ++i) {
 			if (!regionWithLabelFound[i])
@@ -523,6 +631,10 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 					Double.toString(branchDistances[i]), rowID, 3);
 			this.resultFeatureTable.setValueAt(
 					Double.toString(longestPathLengths[i+1]), rowID, 4);
+			this.resultFeatureTable.setValueAt(
+					Double.toString(minDist.get(new Integer(i)).doubleValue()), rowID, 5);
+			this.resultFeatureTable.setValueAt(
+					Double.toString(maxDist.get(new Integer(i)).doubleValue()), rowID, 6);
 			++rowID;
 		}		
 	}
@@ -562,12 +674,14 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 	 * The tracing starts at the given position and ends at the next 
 	 * branch point, i.e., the next pixel having more than one neighbor.
 	 * 
-	 * @param img	Skeleton image
-	 * @param x		x-coordinate where to start.
-	 * @param y		y-coordinate where to start.
+	 * @param img									Skeleton image.
+	 * @param x										x-coordinate where to start.
+	 * @param y										y-coordinate where to start.
+	 * @param nonBranchPixelImg 	Image where to erase branch pixels (optional).
 	 * @return	Length of the branch.
 	 */
-	private double traceBranch(MTBImage img, int x, int y) {
+	private double traceBranch(MTBImage img, int x, int y, 
+			MTBImage nonBranchPixelImg) {
 		
 		int iwidth = img.getSizeX();
 		int iheight = img.getSizeY();
@@ -579,6 +693,8 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 		// init working image and mark point as processed
 		MTBImage memImg = img.duplicate();
 		memImg.putValueInt(x, y, 0);
+		if (nonBranchPixelImg != null)
+			nonBranchPixelImg.putValueInt(x, y, 0);
 
 		// search next neighbor point
 		boolean neighborFound = false;
@@ -604,6 +720,8 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 		while(tracingActive) {
 			// mark current point as processed
 			memImg.putValueInt(nx, ny, 0);
+			if (nonBranchPixelImg != null)
+				nonBranchPixelImg.putValueInt(nx, ny, 0);
 			int nCount = numberOfNeighbors(memImg, nx, ny);
 			if (nCount == 1) {
 				// continue path
