@@ -25,7 +25,6 @@
 package de.unihalle.informatik.MiToBo.features.regions;
 
 import java.awt.geom.Point2D;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Vector;
@@ -504,10 +503,21 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 				branchCounts[i] = 1;
 		}
 		
-		// *
+		/* Extract dimensions of core region: 
+		   the dimensions of the core region are extracted based on the skeleton
+		   image; first the skeleton is extracted, then the distance of each
+		   skeleton point to the closest background pixel is extracted; 
+		   subsequently local distance maxima along the skeleton are found,
+		   and the minimal and maximal values of these maxima define the minimal
+		   and maximal extension of the core region 
+		 */ 
 		
-		MTBImageByte nonBranchPixelImg = (MTBImageByte)skelImg.duplicate().convertType(
-				MTBImageType.MTB_BYTE, true);
+		// skeleton image containing only pixels not belonging to a branch,
+		// where all branch pixels are to be deleted
+		MTBImageByte nonBranchPixelImg = 
+			(MTBImageByte)skelImg.duplicate().convertType(MTBImageType.MTB_BYTE, true);
+		
+		// extract branches of the skeleton and delete corresponding pixels
 		memImg = skelImg.duplicate();
 		for (int y=0;y<this.height;++y) {
 			for (int x=0;x<this.width;++x) {
@@ -525,49 +535,54 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 			}
 		}
 
+		// calculate distances to the background for all non-branch pixels
 		MTBImageDouble nonBranchDistImg = (MTBImageDouble)MTBImage.createMTBImage(
 				this.width, this.height, 1, 1, 1, MTBImageType.MTB_DOUBLE); 
+		double dist, minDist;
 		for (int y=0;y<this.height;++y) {
 			for (int x=0;x<this.width; ++x) {
 				if (nonBranchPixelImg.getValueInt(x, y) != 0) {
-					double minDist = Double.MAX_VALUE;
-					for (int yy=0;yy<this.height;++yy) {
-						for (int xx=0;xx<this.width; ++xx) {
+					minDist = Double.MAX_VALUE;
+					for (int yy=0;Math.abs(y-yy)<minDist && yy<this.height;++yy) {
+						for (int xx=0;Math.abs(x-xx)<minDist && xx<this.width; ++xx) {
+							// ignore non-background pixels
 							if (binImg.getValueInt(xx, yy) != 0)
 								continue;
-							double dist = (x-xx)*(x-xx) + (y-yy)*(y-yy);
+							dist = (x-xx)*(x-xx) + (y-yy)*(y-yy);
 							if (dist < minDist)
 								minDist = dist;
 						}
 					}
-					nonBranchDistImg.putValueDouble(x, y, minDist);
+					// remember final non-squared distance (in pixels)
+					nonBranchDistImg.putValueDouble(x, y, Math.sqrt(minDist));
 				}
 			}
 		}
+		
+		// consider only local maxima according to 8-neighborhood
 		MTBImage maxImg = nonBranchDistImg.duplicate();
 		for (int y=1;y<this.height-1;++y) {
-			for (int x=1;x<this.width-1; ++x) {
+			for (int x=1;x<this.width-1;++x) {
 				for (int dx=-1;dx<=1;++dx) {
 					for (int dy=-1;dy<=1;++dy) {
-						if (nonBranchDistImg.getValueDouble(x+dx, y+dy) > 
-							 	nonBranchDistImg.getValueDouble(x, y)) {
+						// if distance is not maximal, set to zero
+						if (  nonBranchDistImg.getValueDouble(x+dx, y+dy) 
+								>	nonBranchDistImg.getValueDouble(x, y)) {
 							maxImg.putValueDouble(x, y, 0);
-							dx = 2;
-							break;
+							dx = 2; // leave outer dx-loop
+							break;  // leave inner dy-loop
 						}
 					}					
 				}
 			}
 		}
 		
-		skelImg.show();
 		nonBranchDistImg.show();
-		nonBranchPixelImg.show();
-		binImg.show();		
 		maxImg.show();
 		
-		HashMap<Integer, Double> minDist = new HashMap<>();
-		HashMap<Integer, Double> maxDist = new HashMap<>();
+		// store minimal and maximal minimum distances to background
+		HashMap<Integer, Double> minDistances = new HashMap<>();
+		HashMap<Integer, Double> maxDistances = new HashMap<>();
 		Integer label;
 		Double distVal;
 		for (int y=0;y<this.height;++y) {
@@ -575,27 +590,23 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 				if (maxImg.getValueDouble(x, y) > 0) {
 					label = new Integer(this.inImg.getValueInt(x, y));
 					distVal = new Double(maxImg.getValueDouble(x, y));
-					if (!minDist.containsKey(label)) 
-						minDist.put(label, distVal);
-					else if (  minDist.get(label).doubleValue() 
-							     > maxImg.getValueDouble(x, y))
-						minDist.put(label, distVal);
-					if (!maxDist.containsKey(label)) 
-						maxDist.put(label, distVal);
-					else if (  maxDist.get(label).doubleValue() 
-							     < maxImg.getValueDouble(x, y))
-						maxDist.put(label, distVal);
+					if (!minDistances.containsKey(label)) {
+						minDistances.put(label, distVal);
+					}
+					else if (  minDistances.get(label).doubleValue() 
+							     > distVal.doubleValue()) {
+						minDistances.put(label, distVal);
+					}
+					if (!maxDistances.containsKey(label)) { 
+						maxDistances.put(label, distVal);
+					}
+					else if (  maxDistances.get(label).doubleValue() 
+							     < distVal.doubleValue()) {
+						maxDistances.put(label, distVal);
+					}
 				}
 			}
 		}
-		try {
-			System.in.read();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		// *
 		
 		// allocate and fill result table
 		int regionCount = 0;
@@ -622,6 +633,7 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 		for (int i=0; i<regionWithLabelFound.length; ++i) {
 			if (!regionWithLabelFound[i])
 				continue;
+			System.out.println("Label = " + i);
 			this.resultFeatureTable.setValueAt(Integer.toString(i+1),rowID,0);
 			this.resultFeatureTable.setValueAt(
 					Integer.toString(branchCounts[i]), rowID, 1);
@@ -631,10 +643,18 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 					Double.toString(branchDistances[i]), rowID, 3);
 			this.resultFeatureTable.setValueAt(
 					Double.toString(longestPathLengths[i+1]), rowID, 4);
-			this.resultFeatureTable.setValueAt(
-					Double.toString(minDist.get(new Integer(i)).doubleValue()), rowID, 5);
-			this.resultFeatureTable.setValueAt(
-					Double.toString(maxDist.get(new Integer(i)).doubleValue()), rowID, 6);
+			if (minDistances.get(new Integer(i+1)) == null)
+				this.resultFeatureTable.setValueAt(Double.toString(-1.0), rowID, 5);
+			else
+				this.resultFeatureTable.setValueAt(Double.toString(
+					minDistances.get(new Integer(i+1)).doubleValue() * this.pixelLength), 
+						rowID, 5);
+			if (maxDistances.get(new Integer(i+1)) == null)
+				this.resultFeatureTable.setValueAt(Double.toString(-1.0), rowID, 6);
+			else
+				this.resultFeatureTable.setValueAt(Double.toString(
+					maxDistances.get(new Integer(i+1)).doubleValue() * this.pixelLength), 
+						rowID, 6);
 			++rowID;
 		}		
 	}
