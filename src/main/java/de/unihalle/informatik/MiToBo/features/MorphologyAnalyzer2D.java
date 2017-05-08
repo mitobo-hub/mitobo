@@ -217,13 +217,13 @@ public class MorphologyAnalyzer2D extends MTBOperator
 		 * nearest neighbors, i.e. the distance between any of two midpoints
 		 * is at least this value.
 		 */
-		MinMinimalDistIndentationMidPoints,
+		MinCoreRegionWidth,
 		/**
 		 * Maximum of all distances of the indentation midpoint to their 
 		 * nearest neighbors, i.e. no midpoint has a larger distance to its 
 		 * closest neighbor than this value.
 		 */
-		MaxMinimalDistIndentationMidPoints
+		MaxCoreRegionWidth
 	}
 
 	@Parameter(label = "label image", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "label image", dataIOOrder = 0,
@@ -427,6 +427,10 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	private Vector<Double> avgBranchLengths;
 	private Vector<Double> longestPathLengths;
 	private Vector<Double> avgEndpointDistances;
+	
+	private Vector<Double> minCoreRegionWidths;
+	private Vector<Double> maxCoreRegionWidths;
+	
 	private Vector<Integer> protrusionCounts;
 	private Vector<Double> nonProtrusionAreas;
 	
@@ -440,10 +444,6 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	private Vector<Double> avgBasalIndentationLengths;
 	private Vector<Double> avgBaselineIndentationLengths;
 	private Vector<Double> avgEquatorIndentationLengths;
-	
-	private Vector<Double> avgDistsIndentationMidPoints;
-	private Vector<Double> minMinimalDistsIndentationMidPoints;
-	private Vector<Double> maxMinimalDistsIndentationMidPoints;
 	
 	/**
 	 * Vector with detailed result data on indentations and protrusions.
@@ -580,6 +580,10 @@ public class MorphologyAnalyzer2D extends MTBOperator
 		this.avgBranchLengths = new Vector<Double>();
 		this.longestPathLengths = new Vector<Double>();
 		this.avgEndpointDistances = new Vector<Double>();
+		
+		this.minCoreRegionWidths = new Vector<Double>();
+		this.maxCoreRegionWidths = new Vector<Double>();
+
 		this.protrusionCounts = new Vector<Integer>();
 		this.nonProtrusionAreas = new Vector<Double>();
 
@@ -594,10 +598,6 @@ public class MorphologyAnalyzer2D extends MTBOperator
 		this.avgBaselineIndentationLengths = new Vector<Double>();
 		this.avgEquatorIndentationLengths = new Vector<Double>();
 
-		this.avgDistsIndentationMidPoints = new Vector<Double>();
-		this.minMinimalDistsIndentationMidPoints = new Vector<Double>();
-		this.maxMinimalDistsIndentationMidPoints = new Vector<Double>();
-		
 		this.inProDetails = 
 				new Vector<MorphologyAnalyzer2DInProData>();
 
@@ -744,6 +744,10 @@ public class MorphologyAnalyzer2D extends MTBOperator
 			int branchLongestLengthIndex = skeletonData.findColumn(
 				Region2DSkeletonAnalyzer.FeatureNames.LongestSkeletonPathLength.
 				  toString());
+			int minCoreRegionWidthIndex = skeletonData.findColumn(
+				Region2DSkeletonAnalyzer.FeatureNames.MinCoreRegionWidth.toString());
+			int maxCoreRegionWidthIndex = skeletonData.findColumn(
+				Region2DSkeletonAnalyzer.FeatureNames.MaxCoreRegionWidth.toString());
 			for (int i = 0; i<skeletonData.getRowCount(); ++i) {
 				this.branchCounts.add(Double.valueOf(
 					(String)skeletonData.getValueAt(i, branchCountIndex)));
@@ -753,6 +757,10 @@ public class MorphologyAnalyzer2D extends MTBOperator
 					(String)skeletonData.getValueAt(i, branchDistIndex)));
 				this.longestPathLengths.add(Double.valueOf(
 					(String)skeletonData.getValueAt(i, branchLongestLengthIndex)));
+				this.minCoreRegionWidths.add(Double.valueOf(
+					(String)skeletonData.getValueAt(i, minCoreRegionWidthIndex)));
+				this.maxCoreRegionWidths.add(Double.valueOf(
+					(String)skeletonData.getValueAt(i, maxCoreRegionWidthIndex)));
 			}
 		}
 	}
@@ -804,6 +812,10 @@ public class MorphologyAnalyzer2D extends MTBOperator
 					FeatureNames.AvgDistBranchEndpointsToBackground.toString() + " ("+ this.unitXY + ")" );
 			header.add(
 					FeatureNames.LongestPathLength.toString() + " ("+ this.unitXY + ")");
+			header.add(FeatureNames.MinCoreRegionWidth.toString()
+					+ " ("+ this.unitXY + ")" );
+			header.add(FeatureNames.MaxCoreRegionWidth.toString()
+					+ " ("+ this.unitXY + ")" );
 		}
 		if (this.calcConcavityData) 
 		{
@@ -840,12 +852,6 @@ public class MorphologyAnalyzer2D extends MTBOperator
 			header.add(FeatureNames.AvgLengthBaselineIndentations.toString()
 					+ " ("+ this.unitXY + ")" );
 			header.add(FeatureNames.AvgLengthEquatorIndentations.toString()
-					+ " ("+ this.unitXY + ")" );
-			header.add(FeatureNames.AvgDistIndentationMidPoints.toString()
-					+ " ("+ this.unitXY + ")" );
-			header.add(FeatureNames.MinMinimalDistIndentationMidPoints.toString()
-					+ " ("+ this.unitXY + ")" );
-			header.add(FeatureNames.MaxMinimalDistIndentationMidPoints.toString()
 					+ " ("+ this.unitXY + ")" );
 		}
 		
@@ -911,6 +917,12 @@ public class MorphologyAnalyzer2D extends MTBOperator
 				this.table.setValueAt(this.nf.format(
 						this.longestPathLengths.elementAt(i)), i, col);
 				col++;
+				this.table.setValueAt(this.nf.format(
+						this.minCoreRegionWidths.elementAt(i)), i, col);
+				col++;
+				this.table.setValueAt(this.nf.format(
+						this.maxCoreRegionWidths.elementAt(i)), i, col);
+				col++;
 			}
 			if (this.calcConcavityData) 
 			{
@@ -973,16 +985,6 @@ public class MorphologyAnalyzer2D extends MTBOperator
 						this.avgEquatorIndentationLengths.elementAt(i)), i, col);
 				col++;
 
-				this.table.setValueAt(this.nf.format(
-						this.avgDistsIndentationMidPoints.elementAt(i)), i, col);
-				col++;
-				this.table.setValueAt(this.nf.format(
-						this.minMinimalDistsIndentationMidPoints.elementAt(i)), i, col);
-				col++;
-				this.table.setValueAt(this.nf.format(
-						this.maxMinimalDistsIndentationMidPoints.elementAt(i)), i, col);
-				col++;
-				
 //				this.table.setValueAt(this.nf.format(
 //						this.avgLobeDepths.elementAt(i)), i, col);
 //				col++;
@@ -1667,12 +1669,12 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	    			new Double(cr.avgBasalProtrusionLength));
 	    	this.nonProtrusionAreas.add(
 	    			new Double(cr.nonProtrusionArea));
-	    	this.avgDistsIndentationMidPoints.add(
-	    			new Double(cr.avgDistsIndentationMidPoints));
-	    	this.minMinimalDistsIndentationMidPoints.add(
-	    			new Double(cr.minMinimalDistsIndentationMidPoints));
-	    	this.maxMinimalDistsIndentationMidPoints.add(
-	    			new Double(cr.maxMinimalDistsIndentationMidPoints));
+//	    	this.avgDistsIndentationMidPoints.add(
+//	    			new Double(cr.avgDistsIndentationMidPoints));
+//	    	this.minMinimalDistsIndentationMidPoints.add(
+//	    			new Double(cr.minMinimalDistsIndentationMidPoints));
+//	    	this.maxMinimalDistsIndentationMidPoints.add(
+//	    			new Double(cr.maxMinimalDistsIndentationMidPoints));
 	    	this.avgIndentationLengths.add(
 	    			new Double(cr.avgIndentationLength));
 	    	this.avgBaselineIndentationLengths.add(
