@@ -27,6 +27,7 @@ package de.unihalle.informatik.MiToBo.features.regions;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Set;
 import java.util.Vector;
 
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
@@ -36,6 +37,8 @@ import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.unihalle.informatik.Alida.operator.events.ALDOperatorExecutionProgressEvent;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBNeuriteSkelGraph;
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2D;
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2DSet;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageByte;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageDouble;
@@ -47,6 +50,7 @@ import de.unihalle.informatik.MiToBo.morphology.DistanceTransform;
 import de.unihalle.informatik.MiToBo.morphology.SkeletonExtractor;
 import de.unihalle.informatik.MiToBo.morphology.DistanceTransform.DistanceMetric;
 import de.unihalle.informatik.MiToBo.morphology.DistanceTransform.ForegroundColor;
+import de.unihalle.informatik.MiToBo.segmentation.regions.labeling.LabelComponentsSequential;
 import de.unihalle.informatik.MiToBo.segmentation.thresholds.ImgThresh;
 
 /**
@@ -504,18 +508,67 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 		}
 		
 		/* Extract dimensions of core region: 
-		   the dimensions of the core region are extracted based on the skeleton
-		   image; first the skeleton is extracted, then the distance of each
-		   skeleton point to the closest background pixel is extracted; 
-		   subsequently local distance maxima along the skeleton are found,
+		   The dimensions of the core region are extracted based on the skeleton
+		   image. First the skeleton is extracted, then the distance of each
+		   skeleton point to the closest background pixel is extracted. 
+		   Subsequently local distance maxima along the skeleton are found,
 		   and the minimal and maximal values of these maxima define the minimal
-		   and maximal extension of the core region 
-		 */ 
+		   and maximal extension of the core region.  */ 
+		
+		// analyze input image for bounding boxes of individual regions
+		HashMap<Integer, int[]> regionBoxes = new  HashMap<>();
+		for (int y=0;y<this.height;++y) {
+			for (int x=0;x<this.width;++x) {
+				if (this.inImg.getValueInt(x, y) == 0)
+					continue;
+				Integer label = new Integer(this.inImg.getValueInt(x, y));
+				if (regionBoxes.get(label) == null)
+					// Array: [x-min, y-min, x-max, y-max]
+					regionBoxes.put(label, new int[]{x,y,x,y}); 
+				else {
+					int[] dims = regionBoxes.get(label);
+					if (x < dims[0])
+						dims[0] = x;
+				  if (x > dims[2])
+						dims[2] = x;
+					if (y < dims[1])
+						dims[1] = y;
+					if (y > dims[3])
+						dims[3] = y;
+				}
+			}
+		}
+
+		Set<Integer> keys = regionBoxes.keySet();
+		int dims[];
+		int xmin, xmax, ymin, ymax;
+		for (Integer k: keys) {
+			dims = regionBoxes.get(k);
+			xmin = dims[0]-1;
+			xmax = dims[2]+1;
+			ymin = dims[1]-1;
+			ymax = dims[3]+1;
+			if (xmin < 0) xmin = 0;
+			if (ymin < 0) ymin = 0;
+			if (xmax >= this.width) xmax = this.width-1;
+			if (ymax >= this.height) ymax = this.height-1;
+			dims[0] = xmin;
+			dims[1] = ymin;
+			dims[2] = xmax;
+			dims[3] = ymax;
+		}
 		
 		// skeleton image containing only pixels not belonging to a branch,
 		// where all branch pixels are to be deleted
 		MTBImageByte nonBranchPixelImg = 
 			(MTBImageByte)skelImg.duplicate().convertType(MTBImageType.MTB_BYTE, true);
+		
+		// extract set of components from skeleton image
+		LabelComponentsSequential labler = new LabelComponentsSequential();
+		labler.setInputImage(skelImg);
+		labler.setDiagonalNeighborsFlag(true);
+		labler.runOp();
+		MTBRegion2DSet skeletonRegs = labler.getResultingRegions();
 		
 		// extract branches of the skeleton and delete corresponding pixels
 		memImg = skelImg.duplicate();
@@ -535,16 +588,42 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 			}
 		}
 
+		// check that for each skeleton region at least one pixel survived;
+		// if not, re-add the complete skeleton to the image as the skeleton
+		// of the region just consists of a single branch that should be kept
+		for (MTBRegion2D r: skeletonRegs) {
+			boolean pointFound = false;
+			for (Point2D.Double p: r.getPoints()) {
+				if (nonBranchPixelImg.getValueInt((int)p.x, (int)p.y) > 0) {
+					pointFound = true;
+					break;
+				}
+			}
+			if (!pointFound) {
+				for (Point2D.Double p: r.getPoints()) {
+					nonBranchPixelImg.putValueInt((int)p.x, (int)p.y, 255);
+				}				
+			}
+		}
+		
 		// calculate distances to the background for all non-branch pixels
 		MTBImageDouble nonBranchDistImg = (MTBImageDouble)MTBImage.createMTBImage(
 				this.width, this.height, 1, 1, 1, MTBImageType.MTB_DOUBLE); 
 		double dist, minDist;
+		Integer label;
 		for (int y=0;y<this.height;++y) {
 			for (int x=0;x<this.width; ++x) {
 				if (nonBranchPixelImg.getValueInt(x, y) != 0) {
+					// search only inside the bounding box of this region (plus one pix)
+					label = new Integer(this.inImg.getValueInt(x, y));
+					dims = regionBoxes.get(label);
+					xmin = dims[0];
+					xmax = dims[2];
+					ymin = dims[1];
+					ymax = dims[3];
 					minDist = Double.MAX_VALUE;
-					for (int yy=0;Math.abs(y-yy)<minDist && yy<this.height;++yy) {
-						for (int xx=0;Math.abs(x-xx)<minDist && xx<this.width; ++xx) {
+					for (int yy=ymin; yy<=ymax; ++yy) {
+						for (int xx=xmin; xx<=xmax; ++xx) {
 							// ignore non-background pixels
 							if (binImg.getValueInt(xx, yy) != 0)
 								continue;
@@ -577,13 +656,9 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 			}
 		}
 		
-		nonBranchDistImg.show();
-		maxImg.show();
-		
-		// store minimal and maximal minimum distances to background
+		// store smallest and largest minimal distances to background
 		HashMap<Integer, Double> minDistances = new HashMap<>();
 		HashMap<Integer, Double> maxDistances = new HashMap<>();
-		Integer label;
 		Double distVal;
 		for (int y=0;y<this.height;++y) {
 			for (int x=0;x<this.width; ++x) {
@@ -642,18 +717,20 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 					Double.toString(branchDistances[i]), rowID, 3);
 			this.resultFeatureTable.setValueAt(
 					Double.toString(longestPathLengths[i+1]), rowID, 4);
+			// set core region dimensions, note that estimated distances 
+			// refer to half of the actual widths, i.e. are multiplied by 2 here
 			if (minDistances.get(new Integer(i+1)) == null)
-				this.resultFeatureTable.setValueAt(Double.toString(-1.0), rowID, 5);
+				this.resultFeatureTable.setValueAt(Double.NaN, rowID, 5);
 			else
 				this.resultFeatureTable.setValueAt(Double.toString(
-					minDistances.get(new Integer(i+1)).doubleValue() * this.pixelLength), 
-						rowID, 5);
+					minDistances.get(new Integer(i+1)).doubleValue() 
+						* 2.0 * this.pixelLength), rowID, 5);
 			if (maxDistances.get(new Integer(i+1)) == null)
-				this.resultFeatureTable.setValueAt(Double.toString(-1.0), rowID, 6);
+				this.resultFeatureTable.setValueAt(Double.NaN, rowID, 6);
 			else
 				this.resultFeatureTable.setValueAt(Double.toString(
-					maxDistances.get(new Integer(i+1)).doubleValue() * this.pixelLength), 
-						rowID, 6);
+					maxDistances.get(new Integer(i+1)).doubleValue()
+						* 2.0 * this.pixelLength), rowID, 6);
 			++rowID;
 		}		
 	}
