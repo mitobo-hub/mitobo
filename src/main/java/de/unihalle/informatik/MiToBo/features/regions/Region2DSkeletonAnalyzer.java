@@ -640,21 +640,21 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 		
 		// consider only local maxima according to 8-neighborhood
 		MTBImage maxImg = nonBranchDistImg.duplicate();
-		for (int y=1;y<this.height-1;++y) {
-			for (int x=1;x<this.width-1;++x) {
-				for (int dx=-1;dx<=1;++dx) {
-					for (int dy=-1;dy<=1;++dy) {
-						// if distance is not maximal, set to zero
-						if (  nonBranchDistImg.getValueDouble(x+dx, y+dy) 
-								>	nonBranchDistImg.getValueDouble(x, y)) {
-							maxImg.putValueDouble(x, y, 0);
-							dx = 2; // leave outer dx-loop
-							break;  // leave inner dy-loop
-						}
-					}					
-				}
-			}
-		}
+//		for (int y=1;y<this.height-1;++y) {
+//			for (int x=1;x<this.width-1;++x) {
+//				for (int dx=-1;dx<=1;++dx) {
+//					for (int dy=-1;dy<=1;++dy) {
+//						// if distance is not maximal, set to zero
+//						if (  nonBranchDistImg.getValueDouble(x+dx, y+dy) 
+//								>	nonBranchDistImg.getValueDouble(x, y)) {
+//							maxImg.putValueDouble(x, y, 0);
+//							dx = 2; // leave outer dx-loop
+//							break;  // leave inner dy-loop
+//						}
+//					}					
+//				}
+//			}
+//		}
 		
 		// store smallest and largest minimal distances to background
 		HashMap<Integer, Double> minDistances = new HashMap<>();
