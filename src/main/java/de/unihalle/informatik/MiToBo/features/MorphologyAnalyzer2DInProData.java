@@ -83,9 +83,9 @@ public class MorphologyAnalyzer2DInProData {
 	double avgApicalProtrusionLength;
 	double avgBasalProtrusionLength;
 	double nonProtrusionArea;
-	double avgDistsIndentationMidPoints;
-	double minMinimalDistsIndentationMidPoints;
-	double maxMinimalDistsIndentationMidPoints;
+//	double avgDistsIndentationMidPoints;
+//	double minMinimalDistsIndentationMidPoints;
+//	double maxMinimalDistsIndentationMidPoints;
 
 	double avgIndentationLength;
 	double avgBaselineIndentationLength;

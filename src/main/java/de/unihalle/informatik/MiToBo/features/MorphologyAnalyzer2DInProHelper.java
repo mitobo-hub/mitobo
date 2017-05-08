@@ -1044,12 +1044,12 @@ public class MorphologyAnalyzer2DInProHelper {
 //		this.maxMinimalDistsIndentationMidPoints.add(
 //				new Double(totalMinMax*this.deltaXY.doubleValue()));
 		
-		levelResult.avgDistsIndentationMidPoints = 
-			totalDist * this.deltaXY / totalCount;
-		levelResult.minMinimalDistsIndentationMidPoints = 
-			totalMinMin*this.deltaXY;
-		levelResult.maxMinimalDistsIndentationMidPoints =
-			totalMinMax*this.deltaXY;
+//		levelResult.avgDistsIndentationMidPoints = 
+//			totalDist * this.deltaXY / totalCount;
+//		levelResult.minMinimalDistsIndentationMidPoints = 
+//			totalMinMin*this.deltaXY;
+//		levelResult.maxMinimalDistsIndentationMidPoints =
+//			totalMinMax*this.deltaXY;
 	}
 
 	/**
