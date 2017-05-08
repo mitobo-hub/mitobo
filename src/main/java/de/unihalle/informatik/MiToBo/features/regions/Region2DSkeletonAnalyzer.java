@@ -633,7 +633,6 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 		for (int i=0; i<regionWithLabelFound.length; ++i) {
 			if (!regionWithLabelFound[i])
 				continue;
-			System.out.println("Label = " + i);
 			this.resultFeatureTable.setValueAt(Integer.toString(i+1),rowID,0);
 			this.resultFeatureTable.setValueAt(
 					Integer.toString(branchCounts[i]), rowID, 1);
