@@ -34,6 +34,7 @@ import java.awt.geom.Point2D;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Set;
 import java.util.Vector;
@@ -704,6 +705,11 @@ public class RoiManagerAdapter {
 				return false;
 		}
 
+		/**
+		 * Checks if a proper set of regions is selected in ImageJ ROI manager.
+		 * @return True, if a proper set, i.e. at least one region, is
+		 * 				 selected and the region(s) is/are of correct type.
+		 */
 		private boolean checkSelectionConsistency() {
 				RoiManager roiM = RoiManager.getInstance();
 				if (roiM == null) {
@@ -926,11 +932,14 @@ public class RoiManagerAdapter {
 							throw new ALDOperatorException(OperatorExceptionType.OPERATE_FAILED,
 									"SnakeFormatConverter: no roi's in zip file?!");
 						}
+						
 						Set<String> keys = this.roitable.keySet();
+						Object[] keyArray = keys.toArray();
+						Arrays.sort(keyArray);
 
 						// snakes or just polygons?
 						if (this.format == TargetFormat.SNAKES) {
-							for (String k : keys) {
+							for (Object k : keyArray) {
 								Roi r = this.roitable.get(k);
 								Polygon selPoly = r.getPolygon();
 								Vector<MTBSnakePoint2D> points = new Vector<MTBSnakePoint2D>();
@@ -946,7 +955,7 @@ public class RoiManagerAdapter {
 						}
 						// read all the polygons and put them into a set
 						else {
-							for (String k : keys) {
+							for (Object k : keyArray) {
 								Roi r = this.roitable.get(k);
 								Polygon selPoly = r.getPolygon();
 								Vector<Point2D.Double> points = new Vector<Point2D.Double>();
@@ -973,7 +982,9 @@ public class RoiManagerAdapter {
 						Vector<MTBRegion2D> tmpRegions = new Vector<MTBRegion2D>();
 						double domainMaxX = 0, domainMaxY = 0;
 						Set<String> keys = this.roitable.keySet();
-						for (String k : keys) {
+						Object[] keyArray = keys.toArray();
+						Arrays.sort(keyArray);
+						for (Object k : keyArray) {
 							double xmax = 0, ymax = 0;
 							Roi r = this.roitable.get(k);
 							Polygon selPoly = r.getPolygon();
@@ -1022,6 +1033,10 @@ public class RoiManagerAdapter {
 			/* copied from ImageJ source */
 			// Modified on 2005/11/15 by Ulrik Stervbo to only read .roi files
 			// and to not empty the current list
+			/**
+			 * Opens a zip file with ImageJ ROIs.
+			 * @param path	Path to file that should be opened.
+			 */
 			private void openRoiManagerFile(String path) {
 				ZipInputStream in = null;
 				ByteArrayOutputStream out;
@@ -1076,6 +1091,12 @@ public class RoiManagerAdapter {
 					}
 				} catch (IOException e) {
 					e.printStackTrace();
+					try {
+						if (in != null)
+							in.close();
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
 				}
 				if (nRois == 0)
 					System.err.println("This ZIP archive does not appear "
