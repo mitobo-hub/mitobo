@@ -185,11 +185,21 @@ public class MTBImageDataIO implements ALDDataIOCmdline {
 	}
 
 	@Override
-	public String writeData(Object obj, String oname) throws ALDDataIOProviderException {
+	public String writeData(Object obj, String oname) 
+			throws ALDDataIOProviderException {
+		
 		if ((!(obj instanceof MTBImage)) && (!(obj instanceof ImagePlus)))
 			return null;
+		
 		if (obj instanceof MTBImage) {
 			MTBImage img = (MTBImage)obj;
+			
+			// check if output file name starts with '-', if so, show image directly
+			if (oname.startsWith("-")) {
+				img.show();
+				return null;
+			}
+			
 			try {
 				ImageWriterMTB writer = new ImageWriterMTB(img, oname);
 				writer.runOp(false);
@@ -206,6 +216,13 @@ public class MTBImageDataIO implements ALDDataIOCmdline {
 		}
 		else if (obj instanceof ImagePlus) {
 			ImagePlus imgp = (ImagePlus)obj;
+			
+			// check if output file name starts with '-', if so, show image directly
+			if (oname.startsWith("-")) {
+				MTBImage.createMTBImage(imgp).show();
+				return null;
+			}
+
 			try {
 				ImageWriterMTB writer = 
 						new ImageWriterMTB(MTBImage.createMTBImage(imgp), oname);
