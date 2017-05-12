@@ -22,15 +22,6 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev$
- * $Date$
- * $Author$
- * 
- */
-
 package de.unihalle.informatik.MiToBo.core.dataio.provider.swing;
 
 import de.unihalle.informatik.Alida.annotations.ALDDataIOProvider;
@@ -114,51 +105,9 @@ public class MTBTableModelDataIOSwing implements ALDDataIOSwing {
 					ALDDataIOProviderExceptionType.OBJECT_TYPE_ERROR, 
 					"MTBTabelModelDataIO: object to write has wrong type!");
 		// return a button to show a window with the elements
-		return new TableModelShowButton(obj);
+		return new TableModelShowButton(obj, descr);
 	}
 
-//	/**
-//	 * GUI element for configuring collections.
-//	 * <p>
-//	 * This button has a collection configuration window attached to it 
-//	 * where specific data is stored and accessable.
-//	 * 
-//	 * @author moeller
-//	 */
-//	private class CollectionConfigButton extends JButton {
-//
-//		/**
-//		 * Collection configuration window.
-//		 */
-//		private CollectionConfigWindow confWin;
-//
-//		/**
-//		 * Constructor.
-//		 * 
-//		 * @param field	Field of collection.
-//		 * @param cl	Class of collection.
-//		 * @param obj	Default object.
-//		 */
-//		public CollectionConfigButton(Field field, Class<?> cl, Object obj) {
-//			super("Configure Collection...");
-//			this.confWin = new CollectionConfigWindow(field, cl, obj);
-//			this.setActionCommand("configButtonPressed");
-//			this.addActionListener(this.confWin);
-//		}
-//		
-//		/**
-//		 * Gets the data from the configuration window.
-//		 * 
-//		 * @param field	Field of collection.
-//		 * @param cl	Class of collection.
-//		 * @param obj	Default object.
-//		 * @return Current data.
-//		 */
-//		public Object readData(Field field, Class<?> cl) {
-//			return this.confWin.readData(field, cl);
-//		}
-//	}	
-	
 	/**
 	 * GUI element for displaying table model data.
 	 * <p>
@@ -180,11 +129,22 @@ public class MTBTableModelDataIOSwing implements ALDDataIOSwing {
 		private ALDTableWindow tabwin = null;
 		
 		/**
-		 * Constructor.
-		 * @param obj Table object associated with button.
+		 * Descriptor of underlying parameter.
 		 */
-		public TableModelShowButton(Object obj) {
-			super("Show data...");
+		private ALDParameterDescriptor paramDescr = null;
+		
+		/**
+		 * Constructor.
+		 * @param obj 	Table object associated with button.
+		 * @param descr	Descriptor of corresponding parameter.
+		 */
+		public TableModelShowButton(Object obj, ALDParameterDescriptor descr) {
+			super("Show table data...");
+			// if descriptor is provided, use parameter label as text for button
+			if (descr != null) {
+				this.paramDescr = descr;
+				this.setText("Show " + descr.getLabel());
+			}
 			this.setActionCommand("showButtonPressed");
 			this.addActionListener(this);
 			this.data = (MTBTableModel)obj;
@@ -197,7 +157,11 @@ public class MTBTableModelDataIOSwing implements ALDDataIOSwing {
 				if (this.data != null) {
 					if (this.tabwin == null) {
 						this.tabwin = new ALDTableWindow(this.data);
-						this.tabwin.setTitle("MTBTableModel data:");
+						if (this.paramDescr != null)
+							this.tabwin.setTitle("MTBTableModel data: " 
+									+ this.paramDescr.getLabel());
+						else 
+							this.tabwin.setTitle("MTBTableModel data:"); 
 						this.tabwin.setVisible(true);
 					}
 					else
