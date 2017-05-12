@@ -217,6 +217,7 @@ public class RoiWriter extends MTBOperator {
 			filename = filename + ".zip";
 
 		DataOutputStream out = null;
+		String index;
 		try {
 			ZipOutputStream zos = new ZipOutputStream(
 					new BufferedOutputStream(new FileOutputStream(filename)));
@@ -225,7 +226,8 @@ public class RoiWriter extends MTBOperator {
 
 			for (int i=0;i<prs.length; ++i) {
 				PolygonRoi pr = prs[i];
-				zos.putNextEntry(new ZipEntry("Roi_" + (i+1) + ".roi"));
+				index = String.format("%05d", new Integer(i+1));
+				zos.putNextEntry(new ZipEntry("Roi_" + index + ".roi"));
 				re.write(pr);
 				out.flush();
 			}
