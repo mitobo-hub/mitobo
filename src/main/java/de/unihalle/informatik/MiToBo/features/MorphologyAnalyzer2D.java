@@ -1660,7 +1660,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	    	this.avgEquatorIndentationLengths.add(
 	    			new Double(cr.avgEquatorIndentationLength));
 	    	this.avgProtrusionLengths.add(
-	    			new Double(cr.avgApicalProtrusionLength));
+	    			new Double(cr.avgProtrusionLength));
 	    	this.avgBaselineProtrusionLengths.add(
 	    			new Double(cr.avgBaselineProtrusionLength));
 	    	this.avgApicalProtrusionLengths.add(
