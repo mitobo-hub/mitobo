@@ -597,7 +597,11 @@ public class MTBImageHistogram extends ALDData
 
 
 		/**
-		 * normalize the histogram
+		 * Normalize the histogram.
+		 * <p>
+		 * Attention! Note that due to accuracy issues in the internal calculations 
+		 * the re-normalization of an already normalized histogram may cause 
+		 * histogram entries to change again which usually must not happen! 
 		 */
 		public void normalize()
 		{
@@ -610,22 +614,6 @@ public class MTBImageHistogram extends ALDData
 			initialize();
 		}
 
-		
-		/**
-		 * normalize the histogram without changing the sum of absolute frequencies
-		 * (normalizing factor), because normalize() calls initialize() and thus
-		 * destroys this normalizing factor.
-		 */
-		public void normalizeOnly()
-		{
-			for(int i = 0; i < this.size; i++)
-			{
-//				data[i] /= sum;
-				this.data[i] /= this.numEntries;
-			}
-		}
-
-		
 		/**
 		 * truncate the histogram to the specified interval
 		 * 

@@ -25,6 +25,7 @@
 package de.unihalle.informatik.MiToBo.enhance;
 
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
+
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator.Level;
 import de.unihalle.informatik.Alida.annotations.Parameter;
@@ -140,6 +141,7 @@ public class HistogramEqualization extends MTBOperator {
 		// calculate histogram
 		MTBImageHistogram histo = 
 				new MTBImageHistogram(ip,this.maxVal+1,-0.5,this.maxVal+0.5);
+		histo.normalize();
 		this.inputEntropy = HistogramEqualization.calcEntropy(histo);
 		
 		// get transfer function
@@ -171,23 +173,22 @@ public class HistogramEqualization extends MTBOperator {
 				this.inImg.getTitle() + "\"");
 		
 		// calculate entropy of output image
-		histo= new MTBImageHistogram(this.resultImg);
+		histo = new MTBImageHistogram(this.resultImg, 
+				this.maxVal+1, -0.5, this.maxVal+0.5);
+		histo.normalize();
 		this.outputEntropy = HistogramEqualization.calcEntropy(histo);
 	}
 	
 	/**
 	 * Get the discrete transfer function for the histogram.
 	 * 
-	 * @param histo		Histogram to transfer.
+	 * @param histo		(Normalized!) histogram to transfer.
 	 * @return	Array containing discrete transfer function.
 	 */
 	private int [] getTransferFunktion(MTBImageHistogram histo) {
 		int binNum= histo.getSize();
 		double [] histoData= histo.getData();
 				
-		// normalize histogram
-		histo.normalize();
-		
 		// calculate cumulative histogram
 		double [] cHisto= new double[binNum];
 		
@@ -206,7 +207,7 @@ public class HistogramEqualization extends MTBOperator {
 	}
 	
 	/**
-	 * Calculates the Shannon entropy for the given histogram.
+	 * Calculates the Shannon entropy for the given (normalized!) histogram.
 	 * @param histo		Input histogram.
 	 * @return	Shannon entropy value.
 	 */
@@ -214,9 +215,6 @@ public class HistogramEqualization extends MTBOperator {
 		int binNum= histo.getSize();
 		double [] histoData= histo.getData();
 				
-		// normalize histogram
-		histo.normalizeOnly();
-		
 		double entropy= 0;
 		for (int i=0; i<binNum; ++i) {
 			if (histoData[i] < MTBConstants.epsilon)
