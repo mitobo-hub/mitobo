@@ -26,6 +26,7 @@ package de.unihalle.informatik.MiToBo.features.regions;
 
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.Vector;
@@ -140,11 +141,11 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 		 */
 		LongestSkeletonPathLength,
 		/**
-		 * Minimal width of core region (non-branch section).
+		 * First quartile width of core region (non-branch section).
 		 */
 		MinCoreRegionWidth,
 		/**
-		 * Maximal width of core region (non-branch section).
+		 * Thrid quartile width of core region (non-branch section).
 		 */
 		MaxCoreRegionWidth
 	}
@@ -609,6 +610,8 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 		// calculate distances to the background for all non-branch pixels
 		MTBImageDouble nonBranchDistImg = (MTBImageDouble)MTBImage.createMTBImage(
 				this.width, this.height, 1, 1, 1, MTBImageType.MTB_DOUBLE); 
+		Point2D.Double[][] nonBranchDistImgPoints = 
+				new Point2D.Double[this.width][this.height];
 		double dist, minDist;
 		Integer label;
 		for (int y=0;y<this.height;++y) {
@@ -628,8 +631,10 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 							if (binImg.getValueInt(xx, yy) != 0)
 								continue;
 							dist = (x-xx)*(x-xx) + (y-yy)*(y-yy);
-							if (dist < minDist)
+							if (dist < minDist) {
 								minDist = dist;
+								nonBranchDistImgPoints[x][y] = new Point2D.Double(xx, yy);
+							}
 						}
 					}
 					// remember final non-squared distance (in pixels)
@@ -638,49 +643,33 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 			}
 		}
 		
-		// consider only local maxima according to 8-neighborhood
-		MTBImage maxImg = nonBranchDistImg.duplicate();
-//		for (int y=1;y<this.height-1;++y) {
-//			for (int x=1;x<this.width-1;++x) {
-//				for (int dx=-1;dx<=1;++dx) {
-//					for (int dy=-1;dy<=1;++dy) {
-//						// if distance is not maximal, set to zero
-//						if (  nonBranchDistImg.getValueDouble(x+dx, y+dy) 
-//								>	nonBranchDistImg.getValueDouble(x, y)) {
-//							maxImg.putValueDouble(x, y, 0);
-//							dx = 2; // leave outer dx-loop
-//							break;  // leave inner dy-loop
-//						}
-//					}					
-//				}
-//			}
-//		}
-		
-		// store smallest and largest minimal distances to background
-		HashMap<Integer, Double> minDistances = new HashMap<>();
-		HashMap<Integer, Double> maxDistances = new HashMap<>();
+		// coolect set of distances along non-branch skeleton
 		Double distVal;
+		HashMap<Integer, Double> quartileFirst = new HashMap<>();
+		HashMap<Integer, Double> quartileThird = new HashMap<>();
+		HashMap<Integer, ArrayList<Double>> distances = 
+				new HashMap<Integer, ArrayList<Double>>();
 		for (int y=0;y<this.height;++y) {
 			for (int x=0;x<this.width; ++x) {
-				if (maxImg.getValueDouble(x, y) > 0) {
+				if (nonBranchDistImg.getValueDouble(x, y) > 0) {
 					label = new Integer(this.inImg.getValueInt(x, y));
-					distVal = new Double(maxImg.getValueDouble(x, y));
-					if (!minDistances.containsKey(label)) {
-						minDistances.put(label, distVal);
+					distVal = new Double(nonBranchDistImg.getValueDouble(x, y));
+					if (!distances.containsKey(label)) {
+						distances.put(label, new ArrayList<Double>());
 					}
-					else if (  minDistances.get(label).doubleValue() 
-							     > distVal.doubleValue()) {
-						minDistances.put(label, distVal);
-					}
-					if (!maxDistances.containsKey(label)) { 
-						maxDistances.put(label, distVal);
-					}
-					else if (  maxDistances.get(label).doubleValue() 
-							     < distVal.doubleValue()) {
-						maxDistances.put(label, distVal);
-					}
+					distances.get(label).add(distVal);										
 				}
 			}
+		}
+		keys = distances.keySet();
+		int qFirstID, qThirdID;
+		for (Integer k: keys) {
+			Object[] sortedArray = distances.get(k).toArray(); 
+			Arrays.sort(sortedArray);
+			qFirstID = (int)(sortedArray.length * 1.0 / 4.0);
+			qThirdID = (int)(sortedArray.length * 3.0 / 4.0);
+			quartileFirst.put(k, (Double)sortedArray[qFirstID]);
+			quartileThird.put(k, (Double)sortedArray[qThirdID]);
 		}
 		
 		// allocate and fill result table
@@ -719,17 +708,17 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 					Double.toString(longestPathLengths[i+1]), rowID, 4);
 			// set core region dimensions, note that estimated distances 
 			// refer to half of the actual widths, i.e. are multiplied by 2 here
-			if (minDistances.get(new Integer(i+1)) == null)
-				this.resultFeatureTable.setValueAt(Double.NaN, rowID, 5);
+			if (quartileFirst.get(new Integer(i+1)) == null)
+				this.resultFeatureTable.setValueAt(new Double(Double.NaN), rowID, 5);
 			else
 				this.resultFeatureTable.setValueAt(Double.toString(
-					minDistances.get(new Integer(i+1)).doubleValue() 
+					quartileFirst.get(new Integer(i+1)).doubleValue() 
 						* 2.0 * this.pixelLength), rowID, 5);
-			if (maxDistances.get(new Integer(i+1)) == null)
-				this.resultFeatureTable.setValueAt(Double.NaN, rowID, 6);
+			if (quartileThird.get(new Integer(i+1)) == null)
+				this.resultFeatureTable.setValueAt(new Double(Double.NaN), rowID, 6);
 			else
 				this.resultFeatureTable.setValueAt(Double.toString(
-					maxDistances.get(new Integer(i+1)).doubleValue()
+					quartileThird.get(new Integer(i+1)).doubleValue()
 						* 2.0 * this.pixelLength), rowID, 6);
 			++rowID;
 		}		
