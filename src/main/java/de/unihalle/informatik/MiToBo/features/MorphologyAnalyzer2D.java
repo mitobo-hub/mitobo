@@ -832,7 +832,8 @@ public class MorphologyAnalyzer2D extends MTBOperator
 		}
 		if (this.analyzeProtrusionsIndentations) {
 			header.add(FeatureNames.NumberOfProtrusions.toString());
-			header.add(FeatureNames.NonProtrusionArea.toString());
+			header.add(FeatureNames.NonProtrusionArea.toString()
+					+ " ("+ this.unitXY + "^2)");
 			header.add(FeatureNames.AvgLengthProtrusions.toString() 
 					+ " ("+ this.unitXY + ")" );
 			header.add(FeatureNames.AvgLengthApicalProtrusions.toString()
