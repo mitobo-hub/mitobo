@@ -44,8 +44,14 @@ import de.unihalle.informatik.MiToBo.features.MorphologyAnalyzer2DInProData.*;
  */
 public class MorphologyAnalyzer2DInProHelper {
 
+	/**
+	 * Debug image to visualize analysis results.
+	 */
 	private MTBImageRGB debugInfoImg;
 	
+	/**
+	 * Input label image.
+	 */
 	private MTBImage labelImg;
 	
 	/**
@@ -71,8 +77,8 @@ public class MorphologyAnalyzer2DInProHelper {
 	 * @param dwidth		Width of reference image domain.
 	 * @param dheigth		Height of reference image domain.
 	 * @param dxy				Physical pixel resolution.
-	 * @param lImg			
-	 * @param debugImg
+	 * @param lImg			Label image to analysis.			
+	 * @param debugImg	Debug info image.
 	 */
 	public MorphologyAnalyzer2DInProHelper(int dwidth, int dheigth, double dxy, 
 			MTBImage lImg, MTBImageRGB debugImg) {
@@ -116,8 +122,6 @@ public class MorphologyAnalyzer2DInProHelper {
 			
 			// further process indentation segments to learn more about protrusions
 			this.postprocessIndentationSegments(levelResult);
-
-			this.measureIndentationPointDistances(levelResult);
 
 			// further process protrusion segments to learn more about indentations
 			this.postprocessProtrusionSegments(levelResult);
@@ -992,65 +996,65 @@ public class MorphologyAnalyzer2DInProHelper {
 	 * 
 	 * @param levelResult 	Result object containing data collected until now.
 	 */
-	private void measureIndentationPointDistances(
-			MorphologyAnalyzer2DInProData levelResult) {
-			
-		LinkedList<InProContourSegment> iSegs = levelResult.getIndentationSegments();
-		
-		// collect all mid-points
-		LinkedList<Point2D.Double> iMidPoints = new LinkedList<>();
-		for (InProContourSegment seg: iSegs) {
-			iMidPoints.add(seg.midPoint);
-		}
-
-		// calculate all pairwise distances, for each point extract min and max
-		double[] minDists = new double[iMidPoints.size()];
-		double[] maxDists = new double[iMidPoints.size()];
-		for (int i=0; i<iMidPoints.size(); ++i)
-			minDists[i] = Double.MAX_VALUE;
-
-		double dist, totalDist = 0;
-		int totalCount = 0;
-		for (int m=0; m<iMidPoints.size();++m) {
-			for (int n=m+1; n<iMidPoints.size(); ++n) {
-				dist = iMidPoints.get(m).distance(iMidPoints.get(n));
-				totalDist += dist;
-				++totalCount;
-
-				if (dist < minDists[m])
-					minDists[m] = dist;
-				if (dist < minDists[n])
-					minDists[n] = dist;
-				if (dist > maxDists[m])
-					maxDists[m] = dist;
-				if (dist > maxDists[n])
-					maxDists[n] = dist;
-			}
-		}
-		
-		double totalMinMin = Double.MAX_VALUE;
-		double totalMinMax = 0;
-		for (int i=0; i<iMidPoints.size(); ++i) {
-			if (minDists[i] < totalMinMin) 
-				totalMinMin = minDists[i];
-			if (minDists[i] > totalMinMax)
-				totalMinMax = minDists[i];
-		}
-		
+//	private void measureIndentationPointDistances(
+//			MorphologyAnalyzer2DInProData levelResult) {
+//			
+//		LinkedList<InProContourSegment> iSegs = levelResult.getIndentationSegments();
+//		
+//		// collect all mid-points
+//		LinkedList<Point2D.Double> iMidPoints = new LinkedList<>();
+//		for (InProContourSegment seg: iSegs) {
+//			iMidPoints.add(seg.midPoint);
+//		}
+//
+//		// calculate all pairwise distances, for each point extract min and max
+//		double[] minDists = new double[iMidPoints.size()];
+//		double[] maxDists = new double[iMidPoints.size()];
+//		for (int i=0; i<iMidPoints.size(); ++i)
+//			minDists[i] = Double.MAX_VALUE;
+//
+//		double dist, totalDist = 0;
+//		int totalCount = 0;
+//		for (int m=0; m<iMidPoints.size();++m) {
+//			for (int n=m+1; n<iMidPoints.size(); ++n) {
+//				dist = iMidPoints.get(m).distance(iMidPoints.get(n));
+//				totalDist += dist;
+//				++totalCount;
+//
+//				if (dist < minDists[m])
+//					minDists[m] = dist;
+//				if (dist < minDists[n])
+//					minDists[n] = dist;
+//				if (dist > maxDists[m])
+//					maxDists[m] = dist;
+//				if (dist > maxDists[n])
+//					maxDists[n] = dist;
+//			}
+//		}
+//		
+//		double totalMinMin = Double.MAX_VALUE;
+//		double totalMinMax = 0;
+//		for (int i=0; i<iMidPoints.size(); ++i) {
+//			if (minDists[i] < totalMinMin) 
+//				totalMinMin = minDists[i];
+//			if (minDists[i] > totalMinMax)
+//				totalMinMax = minDists[i];
+//		}
+//		
 //		this.avgDistsIndentationMidPoints.add(
 //				new Double(totalDist*this.deltaXY.doubleValue()/totalCount));
 //		this.minMinimalDistsIndentationMidPoints.add(
 //				new Double(totalMinMin*this.deltaXY.doubleValue()));
 //		this.maxMinimalDistsIndentationMidPoints.add(
 //				new Double(totalMinMax*this.deltaXY.doubleValue()));
-		
+
 //		levelResult.avgDistsIndentationMidPoints = 
 //			totalDist * this.deltaXY / totalCount;
 //		levelResult.minMinimalDistsIndentationMidPoints = 
 //			totalMinMin*this.deltaXY;
 //		levelResult.maxMinimalDistsIndentationMidPoints =
 //			totalMinMax*this.deltaXY;
-	}
+//	}
 
 	/**
 	 * Post-process protrusion segments to get more information on indentations.

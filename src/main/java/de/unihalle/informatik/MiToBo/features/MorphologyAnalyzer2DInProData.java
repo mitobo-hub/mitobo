@@ -75,21 +75,64 @@ public class MorphologyAnalyzer2DInProData {
 	 */
 	private LinkedList<InflectionPoint> inflectionPoints;
 
+	/**
+	 * Number of detected protrusions along contour.
+	 */
 	int numberOfProtrusions;
-	double avgEquatorProtrusionLength;
-	double avgEquatorIndentationLength;
-	double avgProtrusionLength;
-	double avgBaselineProtrusionLength;
-	double avgApicalProtrusionLength;
-	double avgBasalProtrusionLength;
-	double nonProtrusionArea;
-//	double avgDistsIndentationMidPoints;
-//	double minMinimalDistsIndentationMidPoints;
-//	double maxMinimalDistsIndentationMidPoints;
 
+	/**
+	 * Average length of protrusion equators.
+	 */
+	double avgEquatorProtrusionLength;
+
+	/**
+	 * Average length of indentation equators.
+	 */
+	double avgEquatorIndentationLength;
+	
+	/**
+	 * Average length of protrusions.
+	 */
+	double avgProtrusionLength;
+	
+	/**
+	 * Average length of protrusion baselines.
+	 */
+	double avgBaselineProtrusionLength;
+	
+	/**
+	 * Average of apical protrusion lengths.
+	 */
+	double avgApicalProtrusionLength;
+	
+	/**
+	 * Average of basal protrusion lengths.
+	 */
+	double avgBasalProtrusionLength;
+	
+	/**
+	 * Non-protrusion area in cell region.
+	 */
+	double nonProtrusionArea;
+	
+	/**
+	 * Average length of indentations.
+	 */
 	double avgIndentationLength;
+
+	/**
+	 * Average length of indentations baselines.
+	 */
 	double avgBaselineIndentationLength;
+	
+	/**
+	 * Average of apical indentations lengths.
+	 */
 	double avgApicalIndentationLength;
+
+	/**
+	 * Average of basal indentation lengths.
+	 */
 	double avgBasalIndentationLength;
 
 	/**
@@ -189,25 +232,61 @@ public class MorphologyAnalyzer2DInProData {
 		 */
 		protected InProContourSegment nextSegment;
 		
+		/**
+		 * Initial border points of the segment (before any shift takes place).
+		 */
 		public LinkedList<Point2D.Double> initialSegmentPoints;
 
+		/**
+		 * Length of segment measured as number of pixels.
+		 */
 		int segLength;
 
+		/**
+		 * Index of segment start pixel on contour.
+		 */
 		int startPosOnContour;
 
+		/**
+		 * Index of segment end pixel on contour.
+		 */
 		int endPosOnContour;
 
+		/**
+		 * Median point of contour.
+		 */
 		Point2D.Double midPoint;
 
+		/**
+		 * Index of median segment pixel on contour.
+		 */
 		int midPointPosOnContour;
 
-		// if < 0 , then there are no inflection points along segment
+		/**
+		 * Length of the equator in pixels.
+		 * <p>
+		 * If length is smaller than 0 there are no inflection points along segment.
+		 */
 		double equatorLength;
 
+		/**
+		 * Left boundary point of segment after potential shifts.
+		 */
 		Point2D.Double leftBorderPoint;
+
+		/**
+		 * Index of left boundary point of segment after potential shifts.
+		 */
 		int leftBorderPointPosOnContour;
 
+		/**
+		 * Right boundary point of segment after potential shifts.
+		 */
 		Point2D.Double rightBorderPoint;
+
+		/**
+		 * Index of right boundary point of segment after potential shifts.
+		 */
 		int rightBorderPointPosOnContour;
 		
 		/**
@@ -230,24 +309,6 @@ public class MorphologyAnalyzer2DInProData {
 		 * {@link #basalLength} and {@link #apicalLength}.
 		 */
 		protected double totalLength;
-//		
-//		double perimeter;
-						
-//		void setBaselineLength(double l) {
-//			this.baselineLength = l;
-//		}
-//
-//		void setApicalLength(double l) {
-//			this.apicalLength = l;
-//		}
-//
-//		void setbasalLength(double l) {
-//			this.basalLength = l;
-//		}
-//
-//		void setTotalLength(double l) {
-//			this.totalLength = l;
-//		}
 
 		/**
 		 * Get preceeding segment along contour.
@@ -273,36 +334,67 @@ public class MorphologyAnalyzer2DInProData {
 			return this.nextSegment;			
 		}
 		
+		/**
+		 * Get equator length.
+		 * @return	Length of equator.
+		 */
 		public double getEquatorLength() {
 			return this.equatorLength;
 		}
 
+		/**
+		 * Get baseline length.
+		 * @return	Length of baseline.
+		 */
 		public double getBaselineLength() {
 			return this.baselineLength;
 		}
 
+		/**
+		 * Get apical length.
+		 * @return	Apical length.
+		 */
 		public double getApicalLength() {
 			return this.apicalLength;
 		}
 
+		/**
+		 * Get basal length.
+		 * @return	Basal length.
+		 */
 		public double getBasalLength() {
 			return this.basalLength;
 		}
 
+		/**
+		 * Get total length.
+		 * @return	Total length.
+		 */
 		public double getTotalLength() {
 			return this.totalLength;
 		}
 	}
 
+	/**
+	 * Class to represent inflection points.
+	 */
 	public class InflectionPoint extends Point2D.Double {
 
+		/**
+		 * Type of segment starting with this point.
+		 */
+		MorphologyAnalyzer2DInProData.SegmentType type;
+
+		/**
+		 * Default constructor.
+		 * @param xx	x-coordinate of point.
+		 * @param yy  y-coordinate of point.
+		 * @param t		Type of segment.
+		 */
 		public InflectionPoint(double xx, double yy, 
 				MorphologyAnalyzer2DInProData.SegmentType t) {
 			super(xx,yy);
 			this.type = t;
 		}
-
-		MorphologyAnalyzer2DInProData.SegmentType type;
-
 	}
 }
