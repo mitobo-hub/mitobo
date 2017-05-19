@@ -96,11 +96,12 @@ public class MorphologyAnalyzer2DInProHelper {
 	 * @param contours							Contours to analyze.
 	 * @param curvatureValues				Corresponding curvature values along contours.
 	 * @param minProtrusionLength		Minimal length for valid protrusions. 
+	 * @param minIndentationLength	Minimal length for valid indentations. 
 	 * @return	Vector of result data per contour.
 	 */
 	Vector<MorphologyAnalyzer2DInProData> doProtrusionIndentationAnalysis(
 		MTBContour2DSet contours, Vector<double[]> curvatureValues, 
-			int minProtrusionLength) {
+			int minProtrusionLength, int minIndentationLength) {
 
 		// init result data structure
 		Vector<MorphologyAnalyzer2DInProData> curveAnalysisLevelResults = 
@@ -118,7 +119,7 @@ public class MorphologyAnalyzer2DInProHelper {
 							contourID);
 
 			this.detectProtrusionsIndentations(c, levelResult, curvVals, 
-					minProtrusionLength);
+					minProtrusionLength, minIndentationLength);
 			
 			// further process indentation segments to learn more about protrusions
 			this.postprocessIndentationSegments(levelResult);
@@ -137,15 +138,21 @@ public class MorphologyAnalyzer2DInProHelper {
 	
   /**
    * Method to detect significant indentations and protrusions along contour.
+   * <p>
+   * Protrusions and indentations are required to have a certain length of 
+   * at least the given number of pixels. This is tested first for protrusions
+   * and only afterwards for indentations. Note that changing this order can
+   * change results.  
    * 
-   * @param c										Contour to analyze.
-   * @param levelResult					Result data object to fill.
-   * @param curvVals						Curvature values along contour.
-   * @param minProtrusionLength	Minimal length of valid protrusions.
+   * @param c											Contour to analyze.
+   * @param levelResult						Result data object to fill.
+   * @param curvVals							Curvature values along contour.
+   * @param minProtrusionLength		Minimal length of valid protrusions.
+   * @param minIndentationLength	Minimal length of valid indentations.
    */
   private void detectProtrusionsIndentations(MTBContour2D c, 
  		MorphologyAnalyzer2DInProData levelResult, double[] curvVals,
-  		int minProtrusionLength) {
+  		int minProtrusionLength, int minIndentationLength) {
     		
 //			lobeDepthSum = 0;
 //			neckDepthSum = 0;
@@ -217,7 +224,8 @@ public class MorphologyAnalyzer2DInProHelper {
   	// increase robustness: 
   	// check pixel count of protrusions/indentations, if too small, 
   	// remove protrusion/indentation by inverting sign of their curvature
-  	removeShortProtrusions(fixedDirs, minProtrusionLength);
+  	removeShortRuns(fixedDirs, 1, minProtrusionLength);
+  	removeShortRuns(fixedDirs, -1, minIndentationLength);
 
   	LinkedList<InProContourSegment> protrusionSegs = new LinkedList<>();
   	LinkedList<InProContourSegment> indentationSegs = new LinkedList<>();
@@ -1349,13 +1357,14 @@ public class MorphologyAnalyzer2DInProHelper {
 	}
 
 	/**
-	 * Function to remove all sub-sequences of ones shorter than the given
-	 * minimum length by replacing them with -1.
+	 * Function to remove all sub-sequences of target shorter than the given
+	 * minimum length by replacing them with negated target.
 	 * 
 	 * @param dirArray	Array to modify.
+	 * @param tSign			Target sign of run to check for, should be 1 or -1.
 	 * @param minLength	Minimal required length of sequences of ones.
 	 */
-	static void removeShortProtrusions(int[] dirArray, int minLength) {
+	static void removeShortRuns(int[] dirArray, int tSign, int minLength) {
 		
 		// iterate over the array until nothing changes anymore
   	int startPos = 0;
@@ -1379,8 +1388,8 @@ public class MorphologyAnalyzer2DInProHelper {
   				++pixCount;
   			}
   			else {
-  				// sign changes, but was a run of '-1' -> not of interest
-  				if (sign == -1) {
+  				// sign changes, but was a run of non-target -> not of interest
+  				if (sign == -tSign) {
   					pixCount = 1;
   					sign *= -1;
   					startPos = j;
@@ -1407,9 +1416,9 @@ public class MorphologyAnalyzer2DInProHelper {
   				}
   			}
   		}
-  		// if we are at the end and in a 1-run, check if we can continue it
+  		// if we are at the end and in a target-run, check if we can continue it
   		// at the beginning of the array, if not, remove it (if too short)
-  		if (sign == 1 && j == dirArray.length && pixCount < minLength) {
+  		if (sign == tSign && j == dirArray.length && pixCount < minLength) {
   			int z=0;
   			for (z=0; z<dirArray.length; ++z) {
   				if (dirArray[z] == sign) {

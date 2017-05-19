@@ -30,7 +30,6 @@ import ij.process.ImageProcessor;
 
 import java.awt.Polygon;
 import java.awt.geom.Point2D;
-import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Vector;
 
@@ -317,14 +316,26 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	@Parameter(label = "    - Minimal length of a protrusion section", 
 		required = false, direction = Parameter.Direction.IN, 
 		supplemental = false, dataIOOrder = 15,
-		description = "Minimal number of pixels a protrusion requires to be valid.")
+		description = "Minimal pixel number a protrusion requires to be valid.")
 	private int minProtrusionLength = 10;
+
+	/**
+	 * Minimal number of pixels a valid indentation requires.
+	 * <p> 
+	 * Note that too short protrusions are removed first, 
+	 * and indentations are only checked afterwards.
+	 */
+	@Parameter(label = "    - Minimal length of an indentation section", 
+		required = false, direction = Parameter.Direction.IN, 
+		supplemental = false, dataIOOrder = 16,
+		description = "Minimal pixel number an indentation requires to be valid.")
+	private int minIndentationLength = 1;
 
 	/**
 	 * Flag to turn on/off calculation of skeleton branch features.
 	 */
 	@Parameter(label = "calculate skeleton branch features", 
-		required = false, dataIOOrder = 16,
+		required = false, dataIOOrder = 17,
 		direction = Parameter.Direction.IN, supplemental = false, 
 		description = "If true skeleton branches are analyzed.") 
 	private boolean calcSkeletonBranchFeatures = true;
@@ -334,7 +345,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	 */
 	@Parameter(label = "calculate concavity information", 
 		required = false, direction = Parameter.Direction.IN, 
-		supplemental = false, dataIOOrder = 17,
+		supplemental = false, dataIOOrder = 18,
 		description = "If true average concavity and standard deviation "
 			+ "are calculated.", callback = "callbackConcavity",
 		paramModificationMode = ParameterModificationMode.MODIFIES_INTERFACE)
@@ -347,7 +358,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	 */
 	@Parameter(label = "    - Concavity Masksize", 
 		required = false, direction = Parameter.Direction.IN, 
-		supplemental = false, dataIOOrder = 18,
+		supplemental = false, dataIOOrder = 19,
 		description = "Size of local mask in concavity calculations.") 
 	private int concavityMaskSize = 11;
 
@@ -356,7 +367,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	 */
 	@Parameter(label = "calculate convex hull measures", 
 		required = false, direction = Parameter.Direction.IN, 
-		supplemental = false, dataIOOrder = 19,
+		supplemental = false, dataIOOrder = 20,
 		description = "If true some measures of the convex hull "
 			+ "are calculated.")
 	private boolean calcConvexHullMeasures = true;
@@ -1646,7 +1657,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 							this.deltaXY.doubleValue(), this.labelImg, this.curvatureInfoImg);
 			Vector<MorphologyAnalyzer2DInProData> crs = 
 					ipHelper.doProtrusionIndentationAnalysis(contours, curvatureValues, 
-							this.minProtrusionLength);
+							this.minProtrusionLength, this.minIndentationLength);
 						
 			// copy results to vectors collecting analysis data
 			for (MorphologyAnalyzer2DInProData cr: crs) {

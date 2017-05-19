@@ -41,11 +41,13 @@ public class TestMorphologyAnalyzer2D {
 	@Test
 	public void testLobeNeckArrayCleanUp() {
 
+		// test removal of protrusions (sign = 1)
+		
 		int[] testArray = 
 				new int[]{-1,-1,-1,-1,1,1,1,1,1,1,1,-1,1,1,-1,-1,-1,-1};
 		int[] expectedResult = 
 				new int[]{-1,-1,-1,-1,1,1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1};
-		MorphologyAnalyzer2DInProHelper.removeShortProtrusions(testArray, 3);		
+		MorphologyAnalyzer2DInProHelper.removeShortRuns(testArray, 1, 3);		
 		
 		for (int i=0; i<expectedResult.length; ++i) {
 			assertTrue("Wrong entry at position " + i + ": expected " 
@@ -59,7 +61,7 @@ public class TestMorphologyAnalyzer2D {
 				new int[]{-1,-1,-1,-1,1,1,1,-1,-1,-1,-1,-1,1};
 		expectedResult = 
 				new int[]{-1,-1,-1,-1,1,1,1,-1,-1,-1,-1,-1,-1};
-		MorphologyAnalyzer2DInProHelper.removeShortProtrusions(testArray, 3);		
+		MorphologyAnalyzer2DInProHelper.removeShortRuns(testArray, 1, 3);		
 		
 		for (int i=0; i<expectedResult.length; ++i) {
 			assertTrue("Wrong entry at position " + i + ": expected " 
@@ -73,7 +75,7 @@ public class TestMorphologyAnalyzer2D {
 				new int[]{1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1};
 		expectedResult = 
 				new int[]{1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1};
-		MorphologyAnalyzer2DInProHelper.removeShortProtrusions(testArray, 3);		
+		MorphologyAnalyzer2DInProHelper.removeShortRuns(testArray, 1, 3);		
 		
 		for (int i=0; i<expectedResult.length; ++i) {
 			assertTrue("Wrong entry at position " + i + ": expected " 
@@ -87,7 +89,7 @@ public class TestMorphologyAnalyzer2D {
 				new int[]{1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1};
 		expectedResult = 
 				new int[]{-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
-		MorphologyAnalyzer2DInProHelper.removeShortProtrusions(testArray, 3);		
+		MorphologyAnalyzer2DInProHelper.removeShortRuns(testArray, 1, 3);		
 		
 		for (int i=0; i<expectedResult.length; ++i) {
 			assertTrue("Wrong entry at position " + i + ": expected " 
@@ -101,7 +103,7 @@ public class TestMorphologyAnalyzer2D {
 				new int[]{1,1,1,-1,-1,1,1,1,1,1,1,-1,-1,1,1,1};
 		expectedResult = 
 				new int[]{1,1,1,-1,-1,1,1,1,1,1,1,-1,-1,1,1,1};
-		MorphologyAnalyzer2DInProHelper.removeShortProtrusions(testArray, 5);		
+		MorphologyAnalyzer2DInProHelper.removeShortRuns(testArray, 1, 5);		
 		
 		for (int i=0; i<expectedResult.length; ++i) {
 			assertTrue("Wrong entry at position " + i + ": expected " 
@@ -115,7 +117,7 @@ public class TestMorphologyAnalyzer2D {
 				new int[]{1,1,1,-1,-1,1,1,1,1,-1,-1,-1,-1,-1,-1,1,1};
 		expectedResult = 
 				new int[]{1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1};
-		MorphologyAnalyzer2DInProHelper.removeShortProtrusions(testArray, 5);		
+		MorphologyAnalyzer2DInProHelper.removeShortRuns(testArray, 1, 5);		
 		
 		for (int i=0; i<expectedResult.length; ++i) {
 			assertTrue("Wrong entry at position " + i + ": expected " 
@@ -129,7 +131,7 @@ public class TestMorphologyAnalyzer2D {
 				new int[]{1,1,-1,-1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,1,1};
 		expectedResult = 
 				new int[]{-1,-1,-1,-1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,-1,-1};
-		MorphologyAnalyzer2DInProHelper.removeShortProtrusions(testArray, 5);		
+		MorphologyAnalyzer2DInProHelper.removeShortRuns(testArray, 1, 5);		
 		
 		for (int i=0; i<expectedResult.length; ++i) {
 			assertTrue("Wrong entry at position " + i + ": expected " 
@@ -143,7 +145,7 @@ public class TestMorphologyAnalyzer2D {
 				new int[]{-1,1,1,1,1,1,1,1,-1,-1,1,1,1,1,1,-1,-1,1,1,1,1,1,1,-1,-1};
 		expectedResult = 
 				new int[]{-1,1,1,1,1,1,1,1,-1,-1,1,1,1,1,1,-1,-1,1,1,1,1,1,1,-1,-1};
-		MorphologyAnalyzer2DInProHelper.removeShortProtrusions(testArray, 5);		
+		MorphologyAnalyzer2DInProHelper.removeShortRuns(testArray, 1, 5);		
 		
 		for (int i=0; i<expectedResult.length; ++i) {
 			assertTrue("Wrong entry at position " + i + ": expected " 
@@ -157,7 +159,7 @@ public class TestMorphologyAnalyzer2D {
 				new int[]{1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1,1,1,1,1,-1,-1};
 		expectedResult = 
 				new int[]{-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1,1,1,1,1,-1,-1};
-		MorphologyAnalyzer2DInProHelper.removeShortProtrusions(testArray, 5);		
+		MorphologyAnalyzer2DInProHelper.removeShortRuns(testArray, 1, 5);		
 		
 		for (int i=0; i<expectedResult.length; ++i) {
 			assertTrue("Wrong entry at position " + i + ": expected " 
@@ -165,5 +167,130 @@ public class TestMorphologyAnalyzer2D {
 					testArray[i] == expectedResult[i]);	
 		}
 
+		// test removal of indentations (sign = -1)
+		
+		testArray = 
+				new int[]{-1,-1,-1,-1,1,1,1,1,1,1,1,-1,1,1,-1,-1,-1,-1};
+		expectedResult = 
+				new int[]{-1,-1,-1,-1,1,1,1,1,1,1,1,-1,1,1,-1,-1,-1,-1};
+		MorphologyAnalyzer2DInProHelper.removeShortRuns(testArray, -1, 1);		
+		
+		for (int i=0; i<expectedResult.length; ++i) {
+			assertTrue("Wrong entry at position " + i + ": expected " 
+				+ expectedResult[i] + ", got " + testArray[i] + "...",
+					testArray[i] == expectedResult[i]);	
+		}
+
+		// ---
+		
+		testArray = 
+				new int[]{-1,-1,-1,-1,1,1,1,-1,-1,-1,-1,-1,1};
+		expectedResult = 
+				new int[]{-1,-1,-1,-1,1,1,1,-1,-1,-1,-1,-1,1};
+		MorphologyAnalyzer2DInProHelper.removeShortRuns(testArray, -1, 3);		
+		
+		for (int i=0; i<expectedResult.length; ++i) {
+			assertTrue("Wrong entry at position " + i + ": expected " 
+				+ expectedResult[i] + ", got " + testArray[i] + "...",
+					testArray[i] == expectedResult[i]);	
+		}
+
+		// ---
+		
+		testArray = 
+				new int[]{1,-1,-1,-1, 1,-1,-1, 1,-1,-1,-1,-1,1,1};
+		expectedResult = 
+				new int[]{1,-1,-1,-1, 1, 1, 1, 1,-1,-1,-1,-1,1,1};
+		MorphologyAnalyzer2DInProHelper.removeShortRuns(testArray, -1, 3);		
+		
+		for (int i=0; i<expectedResult.length; ++i) {
+			assertTrue("Wrong entry at position " + i + ": expected " 
+				+ expectedResult[i] + ", got " + testArray[i] + "...",
+					testArray[i] == expectedResult[i]);	
+		}
+
+		// ---
+		
+		testArray = 
+				new int[]{1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,-1,-1};
+		expectedResult = 
+				new int[]{1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1, 1, 1};
+		MorphologyAnalyzer2DInProHelper.removeShortRuns(testArray, -1, 3);		
+		
+		for (int i=0; i<expectedResult.length; ++i) {
+			assertTrue("Wrong entry at position " + i + ": expected " 
+				+ expectedResult[i] + ", got " + testArray[i] + "...",
+					testArray[i] == expectedResult[i]);	
+		}
+
+		// ---
+		
+		testArray = 
+				new int[]{-1,-1,-1,1,1,1,1,1,-1,-1,-1,-1,-1,1,-1,-1};
+		expectedResult = 
+				new int[]{-1,-1,-1,1,1,1,1,1,-1,-1,-1,-1,-1,1,-1,-1};
+		MorphologyAnalyzer2DInProHelper.removeShortRuns(testArray, -1, 5);		
+		
+		for (int i=0; i<expectedResult.length; ++i) {
+			assertTrue("Wrong entry at position " + i + ": expected " 
+				+ expectedResult[i] + ", got " + testArray[i] + "...",
+					testArray[i] == expectedResult[i]);	
+		}
+
+		// ---
+		
+		testArray = 
+				new int[]{1,1,1,-1,-1,1,1,1,1,-1,-1,-1,-1,-1,-1,1,1};
+		expectedResult = 
+				new int[]{1,1,1, 1, 1,1,1,1,1,-1,-1,-1,-1,-1,-1,1,1};
+		MorphologyAnalyzer2DInProHelper.removeShortRuns(testArray, -1, 5);		
+		
+		for (int i=0; i<expectedResult.length; ++i) {
+			assertTrue("Wrong entry at position " + i + ": expected " 
+				+ expectedResult[i] + ", got " + testArray[i] + "...",
+					testArray[i] == expectedResult[i]);	
+		}
+		
+		// ---
+		
+		testArray = 
+				new int[]{-1,-1,-1,1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,1,-1};
+		expectedResult = 
+				new int[]{ 1, 1, 1,1,1,1,1,1,1,-1,-1,-1,-1,-1,-1,1, 1};
+		MorphologyAnalyzer2DInProHelper.removeShortRuns(testArray, -1, 5);		
+		
+		for (int i=0; i<expectedResult.length; ++i) {
+			assertTrue("Wrong entry at position " + i + ": expected " 
+				+ expectedResult[i] + ", got " + testArray[i] + "...",
+					testArray[i] == expectedResult[i]);	
+		}
+
+		// ---
+		
+		testArray = 
+				new int[]{-1,1,1,1,1,1,1,1,-1,-1,1,1,1,1,1,-1,-1,1,1,1,1,1,1,-1,-1};
+		expectedResult = 
+				new int[]{ 1,1,1,1,1,1,1,1, 1, 1,1,1,1,1,1, 1, 1,1,1,1,1,1,1, 1, 1};
+		MorphologyAnalyzer2DInProHelper.removeShortRuns(testArray, -1, 5);		
+		
+		for (int i=0; i<expectedResult.length; ++i) {
+			assertTrue("Wrong entry at position " + i + ": expected " 
+				+ expectedResult[i] + ", got " + testArray[i] + "...",
+					testArray[i] == expectedResult[i]);	
+		}
+
+		// ---
+		
+		testArray = 
+				new int[]{1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1,1,-1,-1,-1,-1,-1};
+		expectedResult = 
+				new int[]{1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1,1,-1,-1,-1,-1,-1};
+		MorphologyAnalyzer2DInProHelper.removeShortRuns(testArray, -1, 5);		
+		
+		for (int i=0; i<expectedResult.length; ++i) {
+			assertTrue("Wrong entry at position " + i + ": expected " 
+				+ expectedResult[i] + ", got " + testArray[i] + "...",
+					testArray[i] == expectedResult[i]);	
+		}
 	}
 }
