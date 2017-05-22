@@ -316,11 +316,9 @@ public class MTBPolygon2D extends ALDData
    * Generates binary mask for inside part of the polygon. Negative coordinates
    * of the polygon should be avoid.
    * 
-   * @param w
-   *          image width
-   * @param h
-   *          image height
-   * @return Binary mask, 0= outside / 1=inside
+   * @param w Image width.
+   * @param h Image height.
+   * @return Binary mask of size height times width, 0= outside / 1=inside.
    */
   public int[][] getBinaryMask(int w, int h) {
     ImagePlus img = NewImage.createByteImage("", w, h, 1, NewImage.FILL_WHITE);
@@ -332,15 +330,23 @@ public class MTBPolygon2D extends ALDData
       xps[n] = (int) (p.x + 0.5);
       yps[n] = (int) (p.y + 0.5);
       n++;
-    }
+    }    
     Polygon awtPoly = new Polygon(xps, yps, this.getPointNum());
     // background white, polygon black
     ip.fillPolygon(awtPoly);
+    // transfer region information to result mask
     int[][] mask = new int[h][w];
     for (int y = 0; y < h; ++y)
       for (int x = 0; x < w; ++x)
         if (ip.getPixel(x, y) == 0)
           mask[y][x] = 1;
+    // safety check: add potentially missing contour pixels
+    // (ImageJ uses scan-line polygon filling, but sometimes apparently
+    //  misses some of the contour pixels themselves which we want to be
+    //  part of the polygon region...)
+    for (int i=0;i<n; ++i) {
+    	mask[yps[i]][xps[i]] = 1;
+    }
     return mask;
   }
 

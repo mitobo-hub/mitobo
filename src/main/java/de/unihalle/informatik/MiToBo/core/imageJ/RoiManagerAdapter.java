@@ -979,19 +979,30 @@ public class RoiManagerAdapter {
 							throw new ALDOperatorException(OperatorExceptionType.OPERATE_FAILED,
 									"[RoiManagerAdapter:RoiReader] no roi's in zip file?!");
 						}
+						Roi r;
+						Polygon selPoly;
+						MTBRegion2D region;
+						MTBPolygon2D polygon;
 						Vector<MTBRegion2D> tmpRegions = new Vector<MTBRegion2D>();
+						Vector<Point2D.Double> points;
+						int width, height;
 						double domainMaxX = 0, domainMaxY = 0;
+						double xmax = 0, ymax = 0;
+						double x, y;
+						
+						// get key set and sort alpha-numerically
 						Set<String> keys = this.roitable.keySet();
 						Object[] keyArray = keys.toArray();
 						Arrays.sort(keyArray);
 						for (Object k : keyArray) {
-							double xmax = 0, ymax = 0;
-							Roi r = this.roitable.get(k);
-							Polygon selPoly = r.getPolygon();
-							Vector<Point2D.Double> points = new Vector<Point2D.Double>();
+							xmax = 0;
+							ymax = 0;
+							r = this.roitable.get(k);
+							selPoly = r.getPolygon();
+							points = new Vector<Point2D.Double>();
 							for (int i = 0; i < selPoly.npoints; i++) {
-									double x = selPoly.xpoints[i];
-									double y = selPoly.ypoints[i];
+									x = selPoly.xpoints[i];
+									y = selPoly.ypoints[i];
 									points.addElement(new Point2D.Double(x, y));
 									if (y > ymax)
 											ymax = y;
@@ -1004,15 +1015,16 @@ public class RoiManagerAdapter {
 							if (ymax > domainMaxY)
 								domainMaxY = ymax;
 							// create polygon
-							MTBPolygon2D polygon = new MTBPolygon2D(points, true);
-							int width = (int) (xmax + 0.5);
-							int height = (int) (ymax + 0.5);
+							polygon = new MTBPolygon2D(points, true);
+							// just for safety reasons, increase size a bit in each dimension
+							width = (int) (xmax + 0.5) + 1;
+							height = (int) (ymax + 0.5) + 1;
 							int[][] mask = polygon.getBinaryMask(width, height);
-							MTBRegion2D region = new MTBRegion2D();
-							for (int y = 0; y < height; ++y) {
-									for (int x = 0; x < width; ++x) {
-											if (mask[y][x] > 0)
-													region.addPixel(new Point2D.Double(x, y));
+							region = new MTBRegion2D();
+							for (int py = 0; py < height; ++py) {
+									for (int px = 0; px < width; ++px) {
+											if (mask[py][px] > 0)
+													region.addPixel(new Point2D.Double(px, py));
 									}
 							}
 							tmpRegions.add(region);
@@ -1023,8 +1035,8 @@ public class RoiManagerAdapter {
 								this.domainYmin, this.domainXmax, this.domainYmax);
 						else
 							this.regions = new MTBRegion2DSet(0, 0, domainMaxX, domainMaxY);
-						for (MTBRegion2D r: tmpRegions)
-							this.regions.add(r);
+						for (MTBRegion2D reg: tmpRegions)
+							this.regions.add(reg);
 					}
 					break;
 				}					
