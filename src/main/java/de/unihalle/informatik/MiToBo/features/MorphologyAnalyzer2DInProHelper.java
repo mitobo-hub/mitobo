@@ -479,18 +479,24 @@ public class MorphologyAnalyzer2DInProHelper {
   			for (Point2D.Double p: seg.initialSegmentPoints) {
   				int px = (int)p.x;
   				int py = (int)p.y;
-  				this.debugInfoImg.putValueR(px, py, 0);
-  				this.debugInfoImg.putValueG(px, py, 0);
-  				this.debugInfoImg.putValueB(px, py, 255);
+					if (   px >= 0 && px < this.debugInfoImg.getSizeX()
+							&& py >= 0 && py < this.debugInfoImg.getSizeY()) {
+						this.debugInfoImg.putValueR(px, py, 0);
+						this.debugInfoImg.putValueG(px, py, 0);
+						this.debugInfoImg.putValueB(px, py, 255);
+					}
   			}
   		}
   		for (InProContourSegment seg: protrusionSegs) {
   			for (Point2D.Double p: seg.initialSegmentPoints) {
   				int px = (int)p.x;
   				int py = (int)p.y;
-  				this.debugInfoImg.putValueR(px, py, 255);
-  				this.debugInfoImg.putValueG(px, py, 0);
-  				this.debugInfoImg.putValueB(px, py, 0);
+					if (   px >= 0 && px < this.debugInfoImg.getSizeX()
+							&& py >= 0 && py < this.debugInfoImg.getSizeY()) {
+						this.debugInfoImg.putValueR(px, py, 255);
+						this.debugInfoImg.putValueG(px, py, 0);
+						this.debugInfoImg.putValueB(px, py, 0);
+					}
   			}
   		}
 
@@ -500,13 +506,23 @@ public class MorphologyAnalyzer2DInProHelper {
   			int sy = (int)iListAll.get(k).y;
   			int ex = (int)iListAll.get(k+1).x;
   			int ey = (int)iListAll.get(k+1).y;
-  			this.debugInfoImg.drawLine2D(sx, sy, ex, ey, green);
+				if (   sx >= 0 && sx < this.debugInfoImg.getSizeX()
+						&& sy >= 0 && sy < this.debugInfoImg.getSizeY()
+						&& ex >= 0 && ex < this.debugInfoImg.getSizeX()
+						&& ey >= 0 && ey < this.debugInfoImg.getSizeY()) {
+					this.debugInfoImg.drawLine2D(sx, sy, ex, ey, green);
+				}
   		}
   		int sx = (int)iListAll.get(iListAll.size()-1).x;
   		int sy = (int)iListAll.get(iListAll.size()-1).y;
   		int ex = (int)iListAll.get(0).x;
   		int ey = (int)iListAll.get(0).y;
-  		this.debugInfoImg.drawLine2D(sx, sy, ex, ey, green);
+			if (   sx >= 0 && sx < this.debugInfoImg.getSizeX()
+					&& sy >= 0 && sy < this.debugInfoImg.getSizeY()
+					&& ex >= 0 && ex < this.debugInfoImg.getSizeX()
+					&& ey >= 0 && ey < this.debugInfoImg.getSizeY()) {
+				this.debugInfoImg.drawLine2D(sx, sy, ex, ey, green);
+			}
   	}
 
 				// process each protrusion and indentation and calculate lengths
@@ -676,9 +692,12 @@ public class MorphologyAnalyzer2DInProHelper {
 				for (int dy=-1;dy<=1;++dy) {
 					for (int dx=-1;dx<=1;++dx) {
 						if (Math.abs(dx) != 1 || Math.abs(dy) != 1) {
-							this.debugInfoImg.putValueR(nmpx+dx, nmpy+dy, 255);
-							this.debugInfoImg.putValueG(nmpx+dx, nmpy+dy, 255);
-							this.debugInfoImg.putValueB(nmpx+dx, nmpy+dy, 255);
+							if (   nmpx+dx >= 0 && nmpx+dx < this.debugInfoImg.getSizeX()
+									&& nmpy+dy >= 0 && nmpy+dy < this.debugInfoImg.getSizeY()) {
+								this.debugInfoImg.putValueR(nmpx+dx, nmpy+dy, 255);
+								this.debugInfoImg.putValueG(nmpx+dx, nmpy+dy, 255);
+								this.debugInfoImg.putValueB(nmpx+dx, nmpy+dy, 255);
+							}
 						}
 					}						
 				}
@@ -773,9 +792,12 @@ public class MorphologyAnalyzer2DInProHelper {
 				for (int dy=-1;dy<=1;++dy) {
 					for (int dx=-1;dx<=1;++dx) {
 						if (Math.abs(dx) != 1 || Math.abs(dy) != 1) {
-							this.debugInfoImg.putValueR(px+dx, py+dy, 0);
-							this.debugInfoImg.putValueG(px+dx, py+dy, 0);
-							this.debugInfoImg.putValueB(px+dx, py+dy, 0);
+							if (   px+dx >= 0 && px+dx < this.debugInfoImg.getSizeX()
+									&& py+dy >= 0 && py+dy < this.debugInfoImg.getSizeY()) {
+								this.debugInfoImg.putValueR(px+dx, py+dy, 0);
+								this.debugInfoImg.putValueG(px+dx, py+dy, 0);
+								this.debugInfoImg.putValueB(px+dx, py+dy, 0);
+							}
 						}
 					}						
 				}
@@ -784,9 +806,12 @@ public class MorphologyAnalyzer2DInProHelper {
 				for (int dy=-1;dy<=1;++dy) {
 					for (int dx=-1;dx<=1;++dx) {
 						if (Math.abs(dx) != 1 || Math.abs(dy) != 1) {
-							this.debugInfoImg.putValueR(px+dx, py+dy, 0);
-							this.debugInfoImg.putValueG(px+dx, py+dy, 0);
-							this.debugInfoImg.putValueB(px+dx, py+dy, 0);
+							if (   px+dx >= 0 && px+dx < this.debugInfoImg.getSizeX()
+									&& py+dy >= 0 && py+dy < this.debugInfoImg.getSizeY()) {
+								this.debugInfoImg.putValueR(px+dx, py+dy, 0);
+								this.debugInfoImg.putValueG(px+dx, py+dy, 0);
+								this.debugInfoImg.putValueB(px+dx, py+dy, 0);
+							}
 						}
 					}						
 				}
@@ -854,9 +879,12 @@ public class MorphologyAnalyzer2DInProHelper {
 				for (Point2D.Double p: nonProtrusionAreaPolyPoints) {
 					int px = (int)p.x;
 					int py = (int)p.y;
-					this.debugInfoImg.putValueR(px, py, 0);
-					this.debugInfoImg.putValueG(px, py, 0);
-					this.debugInfoImg.putValueB(px, py, 0);
+					if (   px >= 0 && px < this.debugInfoImg.getSizeX()
+							&& py >= 0 && py < this.debugInfoImg.getSizeY()) {
+						this.debugInfoImg.putValueR(px, py, 0);
+						this.debugInfoImg.putValueG(px, py, 0);
+						this.debugInfoImg.putValueB(px, py, 0);
+					}
 				}
 			}
 
@@ -939,14 +967,24 @@ public class MorphologyAnalyzer2DInProHelper {
 				for (int dy=-1;dy<=1;++dy) {
 					for (int dx=-1;dx<=1;++dx) {
 						if (Math.abs(dx) != 1 || Math.abs(dy) != 1) {
-							this.debugInfoImg.putValueR(px+dx, py+dy, 0);
-							this.debugInfoImg.putValueG(px+dx, py+dy, 0);
-							this.debugInfoImg.putValueB(px+dx, py+dy, 0);
+							if (   px+dx >= 0 && px+dx < this.debugInfoImg.getSizeX()
+									&& py+dy >= 0 && py+dy < this.debugInfoImg.getSizeY()) {
+								this.debugInfoImg.putValueR(px+dx, py+dy, 0);
+								this.debugInfoImg.putValueG(px+dx, py+dy, 0);
+								this.debugInfoImg.putValueB(px+dx, py+dy, 0);
+							}
 						}
 					}						
 				}
-				this.debugInfoImg.drawLine2D((int)ppx, (int)ppy, 
+				if (   ppx >= 0 && ppx < this.debugInfoImg.getSizeX()
+						&& ppy >= 0 && ppy < this.debugInfoImg.getSizeY()
+						&& (int)maxDistPoint.x >= 0 
+						&& (int)maxDistPoint.x < this.debugInfoImg.getSizeX()
+						&& (int)maxDistPoint.y >= 0 
+						&& (int)maxDistPoint.y < this.debugInfoImg.getSizeY()) {
+					this.debugInfoImg.drawLine2D((int)ppx, (int)ppy, 
 						(int)maxDistPoint.x, (int)maxDistPoint.y, 0x00000000);
+				}
 			} // end of optional drawing section			
 			
   	} // end of for-loop over all indentation regions			
@@ -1111,9 +1149,12 @@ public class MorphologyAnalyzer2DInProHelper {
   			for (int dy=-1;dy<=1;++dy) {
   				for (int dx=-1;dx<=1;++dx) {
   					if (Math.abs(dx) != 1 || Math.abs(dy) != 1) {
-  						this.debugInfoImg.putValueR(nmpx+dx, nmpy+dy, 255);
-  						this.debugInfoImg.putValueG(nmpx+dx, nmpy+dy, 255);
-  						this.debugInfoImg.putValueB(nmpx+dx, nmpy+dy, 255);
+							if (   nmpx+dx >= 0 && nmpx+dx < this.debugInfoImg.getSizeX()
+									&& nmpy+dy >= 0 && nmpy+dy < this.debugInfoImg.getSizeY()) {
+								this.debugInfoImg.putValueR(nmpx+dx, nmpy+dy, 255);
+								this.debugInfoImg.putValueG(nmpx+dx, nmpy+dy, 255);
+								this.debugInfoImg.putValueB(nmpx+dx, nmpy+dy, 255);
+							}
   					}
   				}						
   			}
@@ -1204,9 +1245,12 @@ public class MorphologyAnalyzer2DInProHelper {
 				for (int dy=-1;dy<=1;++dy) {
 					for (int dx=-1;dx<=1;++dx) {
 						if (Math.abs(dx) != 1 || Math.abs(dy) != 1) {
-							this.debugInfoImg.putValueR(px+dx, py+dy, 0);
-							this.debugInfoImg.putValueG(px+dx, py+dy, 0);
-							this.debugInfoImg.putValueB(px+dx, py+dy, 0);
+							if (   px+dx >= 0 && px+dx < this.debugInfoImg.getSizeX()
+									&& py+dy >= 0 && py+dy < this.debugInfoImg.getSizeY()) {
+								this.debugInfoImg.putValueR(px+dx, py+dy, 0);
+								this.debugInfoImg.putValueG(px+dx, py+dy, 0);
+								this.debugInfoImg.putValueB(px+dx, py+dy, 0);
+							}
 						}
 					}						
 				}
@@ -1215,9 +1259,12 @@ public class MorphologyAnalyzer2DInProHelper {
 				for (int dy=-1;dy<=1;++dy) {
 					for (int dx=-1;dx<=1;++dx) {
 						if (Math.abs(dx) != 1 || Math.abs(dy) != 1) {
-							this.debugInfoImg.putValueR(px+dx, py+dy, 0);
-							this.debugInfoImg.putValueG(px+dx, py+dy, 0);
-							this.debugInfoImg.putValueB(px+dx, py+dy, 0);
+							if (   px+dx >= 0 && px+dx < this.debugInfoImg.getSizeX()
+									&& py+dy >= 0 && py+dy < this.debugInfoImg.getSizeY()) {
+								this.debugInfoImg.putValueR(px+dx, py+dy, 0);
+								this.debugInfoImg.putValueG(px+dx, py+dy, 0);
+								this.debugInfoImg.putValueB(px+dx, py+dy, 0);
+							}
 						}
 					}						
 				}
@@ -1295,9 +1342,12 @@ public class MorphologyAnalyzer2DInProHelper {
 				for (int dy=-1;dy<=1;++dy) {
 					for (int dx=-1;dx<=1;++dx) {
 						if (Math.abs(dx) != 1 || Math.abs(dy) != 1) {
-							this.debugInfoImg.putValueR(px+dx, py+dy, 0);
-							this.debugInfoImg.putValueG(px+dx, py+dy, 0);
-							this.debugInfoImg.putValueB(px+dx, py+dy, 0);
+							if (   px+dx >= 0 && px+dx < this.debugInfoImg.getSizeX()
+									&& py+dy >= 0 && py+dy < this.debugInfoImg.getSizeY()) {
+								this.debugInfoImg.putValueR(px+dx, py+dy, 0);
+								this.debugInfoImg.putValueG(px+dx, py+dy, 0);
+								this.debugInfoImg.putValueB(px+dx, py+dy, 0);
+							}
 						}
 					}						
 				}
@@ -1306,9 +1356,12 @@ public class MorphologyAnalyzer2DInProHelper {
 				for (int dy=-1;dy<=1;++dy) {
 					for (int dx=-1;dx<=1;++dx) {
 						if (Math.abs(dx) != 1 || Math.abs(dy) != 1) {
-							this.debugInfoImg.putValueR(px+dx, py+dy, 0);
-							this.debugInfoImg.putValueG(px+dx, py+dy, 0);
-							this.debugInfoImg.putValueB(px+dx, py+dy, 0);
+							if (   px+dx >= 0 && px+dx < this.debugInfoImg.getSizeX()
+									&& py+dy >= 0 && py+dy < this.debugInfoImg.getSizeY()) {
+								this.debugInfoImg.putValueR(px+dx, py+dy, 0);
+								this.debugInfoImg.putValueG(px+dx, py+dy, 0);
+								this.debugInfoImg.putValueB(px+dx, py+dy, 0);
+							}
 						}
 					}						
 				}
@@ -1323,15 +1376,24 @@ public class MorphologyAnalyzer2DInProHelper {
 				for (int dy=-1;dy<=1;++dy) {
 					for (int dx=-1;dx<=1;++dx) {
 						if (Math.abs(dx) != 1 || Math.abs(dy) != 1) {
-							this.debugInfoImg.putValueR(px+dx, py+dy, 0);
-							this.debugInfoImg.putValueG(px+dx, py+dy, 0);
-							this.debugInfoImg.putValueB(px+dx, py+dy, 0);
+							if (   px+dx >= 0 && px+dx < this.debugInfoImg.getSizeX()
+									&& py+dy >= 0 && py+dy < this.debugInfoImg.getSizeY()) {
+								this.debugInfoImg.putValueR(px+dx, py+dy, 0);
+								this.debugInfoImg.putValueG(px+dx, py+dy, 0);
+								this.debugInfoImg.putValueB(px+dx, py+dy, 0);
+							}
 						}
 					}						
 				}
-				this.debugInfoImg.drawLine2D((int)ppx, (int)ppy, 
+				if (   ppx >= 0 && ppx < this.debugInfoImg.getSizeX()
+						&& ppy >= 0 && ppy < this.debugInfoImg.getSizeY()
+						&& (int)maxDistPoint.x >= 0 
+						&& (int)maxDistPoint.x < this.debugInfoImg.getSizeX() 
+						&& (int)maxDistPoint.y >= 0 
+						&& (int)maxDistPoint.x < this.debugInfoImg.getSizeY()) {
+					this.debugInfoImg.drawLine2D((int)ppx, (int)ppy, 
 						(int)maxDistPoint.x, (int)maxDistPoint.y, 0x00000000);
-
+				}
 			} // end of optional drawing section
 			
   	} // end of for-loop over all protrusion regions			
