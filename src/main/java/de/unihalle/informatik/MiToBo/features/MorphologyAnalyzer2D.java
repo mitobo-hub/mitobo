@@ -69,7 +69,7 @@ import de.unihalle.informatik.MiToBo.segmentation.regions.labeling.LabelAreasToR
  * @author Birgit Moeller
  */
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL, 
-	level=Level.STANDARD, allowBatchMode = true)
+	level=Level.APPLICATION, allowBatchMode = false)
 public class MorphologyAnalyzer2D extends MTBOperator
 {
 	/**
@@ -225,11 +225,11 @@ public class MorphologyAnalyzer2D extends MTBOperator
 		MaxCoreRegionWidth
 	}
 
-	@Parameter(label = "label image", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "label image", dataIOOrder = 0,
+	@Parameter(label = "Label image", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "label image", dataIOOrder = 0,
 				callback = "getCalibration", paramModificationMode = ParameterModificationMode.MODIFIES_INTERFACE)
 	private transient MTBImage inLabelImg = null;	// labeled input image stack, corresponding objects in different frames must be labeled with the same value
 	
-	@Parameter(label = "regions", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "input regions", dataIOOrder = 1)
+	@Parameter(label = "Regions", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "input regions", dataIOOrder = 1)
 	private MTBRegion2DSet inRegions = null;
 	
 	//analysis parameters
@@ -239,35 +239,35 @@ public class MorphologyAnalyzer2D extends MTBOperator
 			dataIOOrder = 2)
 	private Double deltaXY = new Double(1.0);
 	
-	@Parameter(label = "unit x/y", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "unit x/y", dataIOOrder = 4)
+	@Parameter(label = "Unit in x/y", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "unit x/y", dataIOOrder = 4)
 	private String unitXY = "pixel";
 	
 	// which features should be calculated
-	@Parameter(label = "calculate area", required = false, 
+	@Parameter(label = "Calculate area", required = false, 
 		direction = Parameter.Direction.IN, supplemental = false, 
 		description = "should object's areas be calculated", 
 		dataIOOrder = 5, callback = "callbackArea",
 		paramModificationMode = ParameterModificationMode.MODIFIES_INTERFACE)
 	private boolean calcArea = true;
 	
-	@Parameter(label = "calculate perimeter", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "should object's perimeters be calculated", dataIOOrder = 6)
+	@Parameter(label = "Calculate perimeter", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "should object's perimeters be calculated", dataIOOrder = 6)
 	private boolean calcPerimeter = true;
 	
-	@Parameter(label = "calculate length and width", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "should object's length and width (fitting ellipse's major/minor axes length) be calculated", dataIOOrder = 7)
+	@Parameter(label = "Calculate length and width", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "should object's length and width (fitting ellipse's major/minor axes length) be calculated", dataIOOrder = 7)
 	private boolean calcLengthWidth = true;
 	
-	@Parameter(label = "calculate circularitie", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "should object's circularities be calculated", dataIOOrder = 8)
+	@Parameter(label = "Calculate circularity", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "should object's circularities be calculated", dataIOOrder = 8)
 	private boolean calcCircularity = true;
 	
-	@Parameter(label = "calculate eccentricity", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "should object's eccentricities be calculated", dataIOOrder = 9)
+	@Parameter(label = "Calculate eccentricity", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "should object's eccentricities be calculated", dataIOOrder = 9)
 	private boolean calcEccentricity = true;
 	
 	/**
 	 * Flag to turn on/off calculation of solidity.
 	 */
-	@Parameter(label = "calculate solidity", required = false, 
+	@Parameter(label = "Calculate solidity", required = false, 
 		direction = Parameter.Direction.IN, supplemental = false, 
-		description = "should object's solidity be calculated", 
+		description = "Should object's solidity be calculated?", 
 		dataIOOrder = 10, callback = "callbackSolidity",
 		paramModificationMode = ParameterModificationMode.MODIFIES_INTERFACE)
 	private boolean calcSolidity = true;
@@ -275,7 +275,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	/**
 	 * Flag to turn on/off calculation of margin roughness.
 	 */
-	@Parameter(label = "calculate margin roughness", required = false, 
+	@Parameter(label = "Calculate margin roughness", required = false, 
 		direction = Parameter.Direction.IN, supplemental = false, 
 		description = "If true margin roughness is calculated.", 
 		dataIOOrder = 11, callback = "callbackCurvature",
@@ -285,7 +285,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	/**
 	 * Flag to turn on/off analysis of protrusions and indentations.
 	 */
-	@Parameter(label = "analyze protrusions and indentations", required = false, 
+	@Parameter(label = "Analyze protrusions and indentations", required = false, 
 		direction = Parameter.Direction.IN, supplemental = false, 
 		description = "If true protrusions/indentations are analyzed.",
 		dataIOOrder = 12, callback = "callbackCurvature",
@@ -334,7 +334,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	/**
 	 * Flag to turn on/off calculation of skeleton branch features.
 	 */
-	@Parameter(label = "calculate skeleton branch features", 
+	@Parameter(label = "Calculate skeleton branch features", 
 		required = false, dataIOOrder = 17,
 		direction = Parameter.Direction.IN, supplemental = false, 
 		description = "If true skeleton branches are analyzed.") 
@@ -343,7 +343,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	/**
 	 * Flag to turn on/off analysis of concavities.
 	 */
-	@Parameter(label = "calculate concavity information", 
+	@Parameter(label = "Calculate concavity information", 
 		required = false, direction = Parameter.Direction.IN, 
 		supplemental = false, dataIOOrder = 18,
 		description = "If true average concavity and standard deviation "
@@ -365,15 +365,18 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	/**
 	 * Flag to turn on/off analysis of convex hull.
 	 */
-	@Parameter(label = "calculate convex hull measures", 
+	@Parameter(label = "Calculate convex hull measures", 
 		required = false, direction = Parameter.Direction.IN, 
 		supplemental = false, dataIOOrder = 20,
 		description = "If true some measures of the convex hull "
 			+ "are calculated.")
 	private boolean calcConvexHullMeasures = true;
 
-	@Parameter(label = "fractional digits", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "fractional digits", dataIOOrder = 17, mode=ExpertMode.ADVANCED)
-	private Integer fracDigits = 3;
+	@Parameter(label = "Fractional digits", required = false, 
+		direction = Parameter.Direction.IN, 
+		supplemental = false, description = "fractional digits", 
+		dataIOOrder = 21, mode=ExpertMode.ADVANCED)
+	private Integer fracDigits = new Integer(3);
 	
 	/**
 	 * Flag to enable drawing curvature information to info image.
