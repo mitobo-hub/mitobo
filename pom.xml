@@ -491,10 +491,19 @@
 
   <dependencyManagement>
     <dependencies>
+      <!--
       <dependency>
 	<groupId>net.imagej</groupId>
 	<artifactId>pom-imagej</artifactId>
 	<version>17.0.0</version>
+	<type>pom</type>
+        <scope>import</scope>
+	</dependency>
+	-->
+      <dependency>
+	<groupId>org.scijava</groupId>
+	<artifactId>pom-scijava</artifactId>
+	<version>16.1.0</version>
 	<type>pom</type>
         <scope>import</scope>
       </dependency>
