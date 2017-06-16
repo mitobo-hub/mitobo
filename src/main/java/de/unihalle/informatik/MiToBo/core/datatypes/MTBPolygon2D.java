@@ -321,14 +321,35 @@ public class MTBPolygon2D extends ALDData
    * @return Binary mask of size height times width, 0= outside / 1=inside.
    */
   public int[][] getBinaryMask(int w, int h) {
+  	return this.getBinaryMask(w, h, true);
+  }
+  
+  /**
+   * Generates binary mask for inside part of the polygon. 
+   * <p>
+   * It is important to avoid negative coordinates in the polygon point list.
+   * <p>
+   * Note that this method internally uses a sweeping algorithm implemented in 
+   * ImageJ. This algorithm seems to have some problems if the polygon is
+   * represented by a complete point list of all contour pixels, like in case
+   * of contours in MiToBo. In that case some polygon pixels are not
+   * automatically included in the final mask, but have to be added manually.
+   * This can be triggered by setting 'includePolyPixels' to true.
+   * 
+   * @param w Image width.
+   * @param h Image height.
+   * @param includePolyPixels Ensure that polygon pixels belong to mask.
+   * @return Binary mask of size height times width, 0= outside / 1=inside.
+   */
+  public int[][] getBinaryMask(int w, int h, boolean includePolyPixels) {
     ImagePlus img = NewImage.createByteImage("", w, h, 1, NewImage.FILL_WHITE);
     ImageProcessor ip = img.getProcessor();
     int[] xps = new int[this.getPointNum()];
     int[] yps = new int[this.getPointNum()];
     int n = 0;
     for (Point2D.Double p : this.points) {
-      xps[n] = (int) (p.x + 0.5);
-      yps[n] = (int) (p.y + 0.5);
+      xps[n] = (int)(p.x + 0.5);
+      yps[n] = (int)(p.y + 0.5);
       n++;
     }    
     Polygon awtPoly = new Polygon(xps, yps, this.getPointNum());
@@ -340,16 +361,19 @@ public class MTBPolygon2D extends ALDData
       for (int x = 0; x < w; ++x)
         if (ip.getPixel(x, y) == 0)
           mask[y][x] = 1;
+    
     // safety check: add potentially missing contour pixels
     // (ImageJ uses scan-line polygon filling, but sometimes apparently
     //  misses some of the contour pixels themselves which we want to be
     //  part of the polygon region...)
-    for (int i=0;i<n; ++i) {
-    	mask[yps[i]][xps[i]] = 1;
-    }
+    if (includePolyPixels) {
+    	for (int i=0;i<n; ++i) {
+    		mask[yps[i]][xps[i]] = 1;
+    	} 
+    }	
     return mask;
   }
-
+   
 		/**
 		 * Checks if (simple!) polygon points are sorted counter-clockwise.
 		 * <p>
