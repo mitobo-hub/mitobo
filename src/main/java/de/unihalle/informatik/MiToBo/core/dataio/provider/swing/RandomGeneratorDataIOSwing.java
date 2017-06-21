@@ -44,7 +44,7 @@ import de.unihalle.informatik.Alida.annotations.ALDDataIOProvider;
 import de.unihalle.informatik.Alida.dataio.provider.ALDDataIOSwingInitialGUIValueDefaultHandler;
 import de.unihalle.informatik.Alida.dataio.provider.swing.components.ALDSwingComponent;
 import de.unihalle.informatik.Alida.dataio.provider.swing.components.ALDSwingComponentComboBox;
-import de.unihalle.informatik.Alida.dataio.provider.swing.components.ALDSwingComponentComboBoxItem;
+import de.unihalle.informatik.Alida.dataio.provider.swing.components.ALDSwingComponentItem;
 import de.unihalle.informatik.Alida.dataio.provider.swing.components.ALDSwingComponentTextField;
 import de.unihalle.informatik.Alida.dataio.provider.swing.events.ALDSwingValueChangeEvent;
 import de.unihalle.informatik.Alida.dataio.provider.swing.events.ALDSwingValueChangeListener;
@@ -181,11 +181,11 @@ public class RandomGeneratorDataIOSwing
 			this.mainPanel = new JPanel();
 			this.paramDescr = d;
 			
-			Vector<ALDSwingComponentComboBoxItem> items = 
-					new Vector<ALDSwingComponentComboBoxItem>();
-			items.add(new ALDSwingComponentComboBoxItem("None (null)",
+			Vector<ALDSwingComponentItem> items = 
+					new Vector<ALDSwingComponentItem>();
+			items.add(new ALDSwingComponentItem("None (null)",
 					"None (null)", null));
-			items.add(new ALDSwingComponentComboBoxItem("Seeded random generator",
+			items.add(new ALDSwingComponentItem("Seeded random generator",
 					"Seeded random generator", "-1 = default seed"));
 			this.cb = new ALDSwingComponentComboBox(this.paramDescr, items);
 			this.cb.getJComponent().addActionListener(this);
