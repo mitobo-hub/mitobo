@@ -348,8 +348,8 @@ public class MTBPolygon2D extends ALDData
     int[] yps = new int[this.getPointNum()];
     int n = 0;
     for (Point2D.Double p : this.points) {
-      xps[n] = (int)(p.x + 0.5);
-      yps[n] = (int)(p.y + 0.5);
+      xps[n] = (int) (p.x + 0.5);
+      yps[n] = (int) (p.y + 0.5);
       n++;
     }    
     Polygon awtPoly = new Polygon(xps, yps, this.getPointNum());
@@ -368,12 +368,14 @@ public class MTBPolygon2D extends ALDData
     //  part of the polygon region...)
     if (includePolyPixels) {
     	for (int i=0;i<n; ++i) {
+    	// safety check if pixel is inside mask
+    	if (yps[i] >= 0 && yps[i] < h && xps[i] >= 0 && xps[i] < w)
     		mask[yps[i]][xps[i]] = 1;
     	} 
     }	
     return mask;
   }
-   
+
 		/**
 		 * Checks if (simple!) polygon points are sorted counter-clockwise.
 		 * <p>
