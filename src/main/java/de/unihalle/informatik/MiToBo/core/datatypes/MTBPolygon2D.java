@@ -345,7 +345,9 @@ public class MTBPolygon2D extends ALDData
     //  misses some of the contour pixels themselves which we want to be
     //  part of the polygon region...)
     for (int i=0;i<n; ++i) {
-    	mask[yps[i]][xps[i]] = 1;
+    	// safety check if pixel is inside mask
+    	if (yps[i] >= 0 && yps[i] < h && xps[i] >= 0 && xps[i] < w)
+    		mask[yps[i]][xps[i]] = 1;
     }
     return mask;
   }
