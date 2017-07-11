@@ -385,8 +385,8 @@ public class RoiManagerAdapter {
 						MTBPolygon2DSet polygonSet = this.getPolygonSetFromRoiManager();
 						if (polygonSet.size() == 0)
 								return new MTBRegion2DSet(0, 0, 0, 0);
-						int width = (int) (polygonSet.getXmax() + 0.5);
-						int height = (int) (polygonSet.getYmax() + 0.5);
+						int width = (int) (polygonSet.getXmax() + 0.5) + 1;
+						int height = (int) (polygonSet.getYmax() + 0.5) + 1;
 						Vector<MTBRegion2D> regVec = new Vector<MTBRegion2D>();
 						for (int n = 0; n < polygonSet.size(); ++n) {
 								MTBPolygon2D poly = polygonSet.elementAt(n);
