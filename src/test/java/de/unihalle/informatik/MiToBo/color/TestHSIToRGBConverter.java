@@ -147,6 +147,11 @@ public class TestHSIToRGBConverter {
 		hsi[0] = 0; hsi[1] = 1.0/4.0; hsi[2] = 2.0/3.0;
 		rgb[0] = 1; rgb[1] = 0.5; rgb[2] = 0.5;
 		this.colorCheck("saturation-reduced red", hsi, rgb);
+		
+		// color without saturation
+		hsi[0] = 0; hsi[1] = 0; hsi[2] = 125.0/255.0;
+		rgb[0] = 125.0/255.0; rgb[1] = 125.0/255.0; rgb[2] = 125.0/255.0;
+		this.colorCheck("no saturation gray", hsi, rgb);
 	}
 	
 	/**
