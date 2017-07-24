@@ -18,7 +18,7 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 
 ### Fixed
 - HistogramEqualization: removed multiple calls of histogram normalization leading to wrong results
-
+- HSIToRGBPixelConverter: I=1 now always results in white color, clipped RGB values out of range back to valid range of [0,1]
 
 ## [1.8.5] - 2017-03-27
 Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
