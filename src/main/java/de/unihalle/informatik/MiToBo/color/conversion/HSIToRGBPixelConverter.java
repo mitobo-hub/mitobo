@@ -25,6 +25,7 @@
 package de.unihalle.informatik.MiToBo.color.conversion;
 
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
+import de.unihalle.informatik.Alida.exceptions.ALDOperatorException.OperatorExceptionType;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator.Level;
 import de.unihalle.informatik.Alida.annotations.Parameter;
@@ -42,6 +43,11 @@ import de.unihalle.informatik.MiToBo.core.operator.*;
  * to a range of [0,1]. The implementation is based on
  * <p>
  * Gonzalez/Woods, "Digital Image Processing", pp. 235, Addison-Wesley, 1992
+ * <p>
+ * Note that if I = 0 the RGB color black is returned, and if I = 1 white.
+ * If S = 0 an RGB gray value corresponding to the given intensity is returned.
+ * And if the calculation results in RGB values larger than 1, i.e. in values
+ * out of range, the values are clipped to a maximum of 1.0.
  * 
  * @author moeller
  */
@@ -65,7 +71,7 @@ public class HSIToRGBPixelConverter extends MTBOperator {
 
 	/**
 	 * Default constructor.
-	 * @throws ALDOperatorException
+	 * @throws ALDOperatorException	Thrown in case of failure.
 	 */
 	public HSIToRGBPixelConverter() throws ALDOperatorException {
 		// nothing to do here
@@ -74,12 +80,25 @@ public class HSIToRGBPixelConverter extends MTBOperator {
 	/**
 	 * Constructor. 
 	 * @param hsi 	HSI value to convert.
-	 * @throws ALDOperatorException
+	 * @throws ALDOperatorException	Thrown in case of failure.
 	 */
 	public HSIToRGBPixelConverter(double[] hsi) throws ALDOperatorException {
 		this.hsiInput = hsi;
 	}
 
+	@Override
+	public void validateCustom() throws ALDOperatorException {
+		if (this.hsiInput[0] < 0 || this.hsiInput[0] > 1) 
+			throw new ALDOperatorException(OperatorExceptionType.VALIDATION_FAILED,
+				"[HSIToRGBPixelConverter] hue input value out of range [0,1]!");
+		if (this.hsiInput[1] < 0 || this.hsiInput[1] > 1) 
+			throw new ALDOperatorException(OperatorExceptionType.VALIDATION_FAILED,
+				"[HSIToRGBPixelConverter] hue input value out of range [0,1]!");
+		if (this.hsiInput[2] < 0 || this.hsiInput[2] > 1) 
+			throw new ALDOperatorException(OperatorExceptionType.VALIDATION_FAILED,
+				"[HSIToRGBPixelConverter] hue input value out of range [0,1]!");
+	}
+	
 	/**
 	 * Specify HSI value to be converted.
 	 * @param hsiVal		HSI value.
@@ -90,6 +109,7 @@ public class HSIToRGBPixelConverter extends MTBOperator {
 	
 	/**
 	 * Returns the result RGB color.
+	 * @return Result array of RGB values.
 	 */
 	public double[] getResultRGB() {
 		return this.rgbOutput;
@@ -111,18 +131,18 @@ public class HSIToRGBPixelConverter extends MTBOperator {
 			return;
 		}
 		
+		// if intensity is 1, color is white 
+		if (i == 1.0) {
+			this.rgbOutput = new double[]{1.0,1.0,1.0};
+			return;
+		}
+
 		// if saturation is zero, color is gray
 		if (s <= MTBConstants.epsilon) {
 			this.rgbOutput = new double[]{i,i,i};
 			return;
 		}
 
-		// do some safety checks
-		if (s > 1.0)
-			s = 1.0;
-		if (i > 1.0)
-			i = 1.0;
-		
 		// convert hue from [0,1] to range of [0,2*PI]
 		double H = 2 * Math.PI * h;
 		
@@ -150,6 +170,18 @@ public class HSIToRGBPixelConverter extends MTBOperator {
 		r = 3.0 * i * r;
 		g = 3.0 * i * g;
 		b = 3.0 * i * b;
+		
+		// check for color fractions out of range, clip back to valid values
+		// (according to 
+		//    http://fourier.eng.hmc.edu/e161/lectures/ColorProcessing/node3.html)
+		if (r > 1)
+			r = 1;
+		if (g > 1)
+			g = 1;
+		if (b > 1)
+			b = 1;
+		
+		// fill output array
 		this.rgbOutput = new double[]{r, g, b};
 	}
 }
