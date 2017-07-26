@@ -5,6 +5,7 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 
 ## [Unreleased]
 ### Added
+- MTBDataIOFile: support for reading ImageJ ROI archive files in command line mode
 
 ### Changed
 - MTBImageDataIO: setting the filename for result images on command line to '-' now directly opens the image

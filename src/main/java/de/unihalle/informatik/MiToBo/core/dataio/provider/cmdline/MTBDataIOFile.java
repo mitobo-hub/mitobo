@@ -22,15 +22,6 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev: 3901 $
- * $Date: 2011/10/28 15:22:44 $
- * $Author: posch $
- * 
- */
-
 package de.unihalle.informatik.MiToBo.core.dataio.provider.cmdline;
 
 import ij.io.OpenDialog;
@@ -38,19 +29,16 @@ import ij.io.OpenDialog;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.font.TextAttribute;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.LinkedList;
-import java.util.Map;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -58,11 +46,8 @@ import javax.swing.JTextField;
 
 import org.apache.xmlbeans.XmlException;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.annotations.ALDDataIOProvider;
 import de.unihalle.informatik.Alida.dataio.provider.ALDDataIOCmdline;
-import de.unihalle.informatik.Alida.dataio.provider.ALDDataIOSwing;
 import de.unihalle.informatik.Alida.exceptions.ALDDataIOProviderException;
 import de.unihalle.informatik.Alida.exceptions.ALDDataIOProviderException.ALDDataIOProviderExceptionType;
 import de.unihalle.informatik.Alida.exceptions.ALDException;
@@ -77,7 +62,6 @@ import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2DSet;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2DSetBag;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion3DSet;
-import de.unihalle.informatik.MiToBo.core.exceptions.MTBException;
 import de.unihalle.informatik.MiToBo.core.imageJ.RoiManagerAdapter;
 
 /**
@@ -119,7 +103,8 @@ public class MTBDataIOFile implements ALDDataIOCmdline {
 	}
 
 	@Override
-	public Object readData(Field field, Class<?> cl, String iname) throws ALDDataIOProviderException {
+	public Object readData(Field field, Class<?> cl, String iname) 
+			throws ALDDataIOProviderException {
 		if (field != null)
 			cl = field.getType();
 		
@@ -166,9 +151,11 @@ public class MTBDataIOFile implements ALDDataIOCmdline {
 		}
 		else if (cl.equals(MTBPolygon2DSet.class)) {
 			try {
-				MTBPolygon2DSet pset = new MTBPolygon2DSet(0,0,0,0);
-				pset.read(iname);
-				return pset;
+				if (iname.endsWith(".xml")) {
+					MTBPolygon2DSet pset = new MTBPolygon2DSet(0,0,0,0);
+					pset.read(iname);
+					return pset;
+				}
 			} catch (ClassNotFoundException e) {
 				throw new ALDDataIOProviderException( ALDDataIOProviderExceptionType.OBJECT_INSTANTIATION_ERROR,
 						"MTBDataIOFile::readData cannot read MTBPolygon2DSet from xml-file " + iname + "\n" +
@@ -181,6 +168,28 @@ public class MTBDataIOFile implements ALDDataIOCmdline {
 				throw new ALDDataIOProviderException( ALDDataIOProviderExceptionType.SYNTAX_ERROR,
 						"MTBDataIOFile::readData cannot read MTBPolygon2DSet from xml-file " + iname + "\n" +
 								e.getMessage());
+			}
+			try	{
+				// try to read from ROI file
+				if (iname.endsWith(".zip")) {
+					return 
+							RoiManagerAdapter.getInstance().getPolygonSetFromRoiFile(
+									iname, false);
+				}
+				throw new ALDDataIOProviderException( 
+					ALDDataIOProviderExceptionType.OBJECT_INSTANTIATION_ERROR,
+						"MTBDataIOFile::readData cannot read MTBPolygon2DSet from file " 
+								+ iname + ", \n format unknown!");
+			} catch (ALDOperatorException e) {
+				throw new ALDDataIOProviderException( 
+					ALDDataIOProviderExceptionType.OBJECT_INSTANTIATION_ERROR,
+						"MTBDataIOFile::readData cannot read MTBPolygon2DSet from zip file " 
+								+ iname + "\n" + e.getMessage());
+			} catch (ALDProcessingDAGException e) {
+				throw new ALDDataIOProviderException( 
+					ALDDataIOProviderExceptionType.OBJECT_INSTANTIATION_ERROR,
+						"MTBDataIOFile::readData cannot read MTBPolygon2DSet from zip file " 
+								+ iname + "\n" + e.getMessage());
 			}
 		}
 		else if (cl.equals(MTBContour2DSet.class)) {
