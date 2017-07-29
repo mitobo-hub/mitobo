@@ -7,11 +7,22 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 ### Added
 
 ### Changed
-- MTBImageDataIO: setting the filename for result images on command line to '-' now directly opens the image
-- MTBPolygon2D: distiguishing between polygon point lists containing all contour pixels or only a subset in generating binary polygon masks; in the first case it is guaranteed that all contour pixels are included in the mask, in the latter case not
-- ROIManagerAdapter: regions within ROI manager region sets are now sorted alpha-numerically upon import
 
 ### Deprecated
+
+### Removed
+
+### Fixed
+
+
+## [1.8.5.1] - 2017-07-29
+Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
+- Released MiToBo 1.8.5.1
+
+### Changed
+- MTBImageDataIO: setting the filename for result images on command line to '-' now directly opens the image
+- MTBPolygon2D: distinguishing between polygon point lists containing all contour pixels or only a subset in generating binary polygon masks; in the first case it is guaranteed that all contour pixels are included in the mask, in the latter case not
+- ROIManagerAdapter: regions within ROI manager region sets are now sorted alpha-numerically upon import
 
 ### Removed
 - MTBImageHistogramm: error-prone histogram normalization method normalizeOnly()
