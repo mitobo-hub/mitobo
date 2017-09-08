@@ -140,4 +140,12 @@ public class DrawStringToImage extends MTBOperator
 		this.color = c;
 	}
 	
+	/**
+	 * Get result image.
+	 * @return	Result image.
+	 */
+	public MTBImage getResultImage() {
+		return this.resultImg;
+	}
+	
 }
