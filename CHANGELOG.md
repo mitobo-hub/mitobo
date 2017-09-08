@@ -5,6 +5,7 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 
 ## [Unreleased]
 ### Added
+- new operator for drawing text strings into an image
 
 ### Changed
 
