@@ -63,6 +63,20 @@ public class MTBLineSegment2D extends Line2D.Double {
 	}
 
 	/**
+	 * Copy constructor.
+	 * @param line	Line segment to copy.
+	 */
+	public MTBLineSegment2D(MTBLineSegment2D line) {
+		super(line.x1, line.y1, line.x2, line.y2);
+		this.width = line.width;
+	}
+
+	@Override
+	public MTBLineSegment2D clone() {
+		return new MTBLineSegment2D(this);
+	}
+
+	/**
 	 * Set the width associated with the segment.
 	 * @param w	Width of segment.
 	 */
