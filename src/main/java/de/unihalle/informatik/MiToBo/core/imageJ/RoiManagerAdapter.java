@@ -281,6 +281,10 @@ public class RoiManagerAdapter {
 					Line lSel = (Line)selection;
 					MTBLineSegment2D l = new MTBLineSegment2D(
 						lSel.x1d, lSel.y1d, lSel.x2d, lSel.y2d);
+					l.setWidth(lSel.getStrokeWidth());
+					// default width in ImageJ is zero, we want 1
+					if (l.getWidth() == 0)
+						l.setWidth(1.0);
 					lSet.add(l);
 				}
 				return lSet;
@@ -303,6 +307,10 @@ public class RoiManagerAdapter {
 					Line lSel = (Line)r;
 					MTBLineSegment2D l = new MTBLineSegment2D(
 							lSel.x1d, lSel.y1d, lSel.x2d, lSel.y2d);
+					l.setWidth(lSel.getStrokeWidth());
+					// default width in ImageJ is zero, we want 1
+					if (l.getWidth() == 0)
+						l.setWidth(1.0);
 					lSet.add(l);
 				}
 			}
@@ -824,7 +832,7 @@ public class RoiManagerAdapter {
 				return false;
 			for (int n = 0; n < roiArray.length; ++n) {
 				Roi r = roiArray[n];
-				if (!(r instanceof PolygonRoi && r instanceof Line)) {
+				if (!(r instanceof PolygonRoi || r instanceof Line)) {
 					JOptionPane.showMessageDialog(null,
 						"ROI Manager does contain inconsistent selection..."
 							+ "Please select only ROIs convertible to line segments!", 
