@@ -24,6 +24,7 @@
 
 package de.unihalle.informatik.MiToBo.core.imageJ;
 
+import ij.gui.Line;
 import ij.gui.PolygonRoi;
 import ij.gui.Roi;
 import ij.io.RoiDecoder;
@@ -234,6 +235,78 @@ public class RoiManagerAdapter {
 					new RoiReader(file,RoiManagerAdapter.RoiReader.TargetFormat.POLYGONS);
 			reader.runOp(false);
 			return reader.getPolySet();
+		}
+
+		/**
+		 * Reads ROI manager selections into a set of line segments.
+		 * <p>
+		 * Note that polylines are not automatically closed, i.e. the first and
+		 * last point are not identical even if ImageJ shows a closed polygon.
+		 *  
+		 * @return Set of line segments; always non-null, but probably empty.
+		 */
+		public MTBLineSegment2DSet getLineSegmentSetFromRoiManager() {
+			// get the current ROI manager from ImageJ environment
+			openRoiManager();
+			if (!this.checkSelectionConsistencyForLineSegments())
+				return new MTBLineSegment2DSet();
+			Roi[] roiArray = this.roiManager.getSelectedRoisAsArray();
+
+			// init result data object
+			MTBLineSegment2DSet lSet = new MTBLineSegment2DSet();
+			
+			/*
+			 * only a single entry selected
+			 */
+			if (roiArray.length == 1) {
+				// safety check
+				if (   roiArray[0] instanceof MTBContour2DSetROI
+						|| roiArray[0] instanceof MTBRegion2DSetROI
+						|| roiArray[0] instanceof MTBBorder2DSetROI
+						|| roiArray[0] instanceof MTBPolygon2DSetROI) {
+					return new MTBLineSegment2DSet();
+				}
+				// get selected ROI
+				Roi selection = roiArray[0];
+				if (selection instanceof PolygonRoi) {
+					Polygon poly = ((PolygonRoi)selection).getPolygon();
+					for (int i = 0; i < poly.npoints-1; ++i) {
+						MTBLineSegment2D l = new MTBLineSegment2D(
+							poly.xpoints[i], poly.ypoints[i],
+								poly.xpoints[i+1], poly.ypoints[i+1]);
+						lSet.add(l);
+					}
+				}
+				else if (selection instanceof Line) {
+					Line lSel = (Line)selection;
+					MTBLineSegment2D l = new MTBLineSegment2D(
+						lSel.x1d, lSel.y1d, lSel.x2d, lSel.y2d);
+					lSet.add(l);
+				}
+				return lSet;
+			}
+
+			/*
+			 * more than one entry has been selected
+			 */
+			for (Roi r : roiArray) {
+				if (r instanceof PolygonRoi) {
+					Polygon poly = ((PolygonRoi)r).getPolygon();
+					for (int i = 0; i < poly.npoints-1; ++i) {
+						MTBLineSegment2D l = new MTBLineSegment2D(
+								poly.xpoints[i], poly.ypoints[i],
+								poly.xpoints[i+1], poly.ypoints[i+1]);
+						lSet.add(l);
+					}
+				}
+				else if (r instanceof Line) {
+					Line lSel = (Line)r;
+					MTBLineSegment2D l = new MTBLineSegment2D(
+							lSel.x1d, lSel.y1d, lSel.x2d, lSel.y2d);
+					lSet.add(l);
+				}
+			}
+			return lSet;
 		}
 
 		/**
@@ -731,6 +804,35 @@ public class RoiManagerAdapter {
 						}
 				}
 				return true;
+		}
+
+		/**
+		 * Checks if a proper set of ROIs convertible to line segments is 
+		 * selected in ImageJ ROI manager.
+		 * 
+		 * @return True, if a proper set, i.e. at least one ROI, is
+		 * 				 selected and the ROI(s) is/are of correct type.
+		 */
+		private boolean checkSelectionConsistencyForLineSegments() {
+			RoiManager roiM = RoiManager.getInstance();
+			if (roiM == null) {
+				return false;
+			}
+			openRoiManager();
+			Roi[] roiArray = this.roiManager.getSelectedRoisAsArray();
+			if (roiArray == null || roiArray.length == 0)
+				return false;
+			for (int n = 0; n < roiArray.length; ++n) {
+				Roi r = roiArray[n];
+				if (!(r instanceof PolygonRoi && r instanceof Line)) {
+					JOptionPane.showMessageDialog(null,
+						"ROI Manager does contain inconsistent selection..."
+							+ "Please select only ROIs convertible to line segments!", 
+								"Warning", JOptionPane.WARNING_MESSAGE);
+					return false;
+				}
+			}
+			return true;
 		}
 
 		/**
