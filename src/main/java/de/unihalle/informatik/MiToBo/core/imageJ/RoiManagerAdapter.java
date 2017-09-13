@@ -274,6 +274,10 @@ public class RoiManagerAdapter {
 						MTBLineSegment2D l = new MTBLineSegment2D(
 							poly.xpoints[i], poly.ypoints[i],
 								poly.xpoints[i+1], poly.ypoints[i+1]);
+						l.setWidth(selection.getStrokeWidth());
+						// default width in ImageJ is zero, we want 1
+						if (l.getWidth() == 0)
+							l.setWidth(1.0);
 						lSet.add(l);
 					}
 				}
@@ -300,6 +304,10 @@ public class RoiManagerAdapter {
 						MTBLineSegment2D l = new MTBLineSegment2D(
 								poly.xpoints[i], poly.ypoints[i],
 								poly.xpoints[i+1], poly.ypoints[i+1]);
+						l.setWidth(r.getStrokeWidth());
+						// default width in ImageJ is zero, we want 1
+						if (l.getWidth() == 0)
+							l.setWidth(1.0);
 						lSet.add(l);
 					}
 				}
