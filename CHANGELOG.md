@@ -5,9 +5,9 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 
 ## [Unreleased]
 ### Added
-- PaCeQuant operator for pavement cell shape analysis,
+- PaCeQuant operator for pavement cell shape analysis,  
   Birgit Möller, Yvonne Poeschl, Romina Plötner, Katharina Bürstenbinder,
-  "PaCeQuant: A Tool for High-Throughput Quantification of Pavement Cell Shape Characteristics",
+  "PaCeQuant: A Tool for High-Throughput Quantification of Pavement Cell Shape Characteristics",  
   Plant Physiology, Vol. 175, Issue 1, Sep 2017. DOI: https://doi.org/10.1104/pp.17.00961
 - new operator for drawing text strings into an image
 - MTBDataIOFile: support for reading ImageJ ROI archive files in command line mode
