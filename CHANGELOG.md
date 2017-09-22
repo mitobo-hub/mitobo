@@ -5,6 +5,17 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 
 ## [Unreleased]
 ### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+## [1.8.6] - 2017-09-22
+### Added
 - PaCeQuant operator for pavement cell shape analysis,  
   Birgit Möller, Yvonne Poeschl, Romina Plötner, Katharina Bürstenbinder,
   "PaCeQuant: A Tool for High-Throughput Quantification of Pavement Cell Shape Characteristics",  
