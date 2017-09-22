@@ -45,6 +45,7 @@ import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageByte;
 import de.unihalle.informatik.MiToBo.core.datatypes.interfaces.MTBDataExportableToImageJROI;
 import de.unihalle.informatik.MiToBo.core.exceptions.MTBDatatypeException;
 import de.unihalle.informatik.MiToBo.core.exceptions.MTBDatatypeException.DatatypeExceptionType;
+import de.unihalle.informatik.MiToBo.math.arrays.filter.GaussFilterDouble1D;
 import de.unihalle.informatik.MiToBo.segmentation.regions.labeling.LabelComponentsSequential;
 
 /**
@@ -532,4 +533,78 @@ public class MTBContour2D extends MTBBorder2D
 //				bbox[3] = maxY;
 //				return bbox;
 //		}
+		
+		/**
+		 * Smoothes the contour by convolving x and y coordinates with a 
+		 * Gaussian kernel. 
+		 * <p>
+		 * Note that the outer contour and all inner contours are smoothed.
+		 * 
+		 * @param gaussSigma	Standard deviation of the Gaussian kernel.
+		 * @return	Smoothed contour.
+		 * @throws MTBDatatypeException 			Thrown in case of failure.
+		 * @throws ALDProcessingDAGException 	Thrown in case of failure.
+		 * @throws ALDOperatorException 			Thrown in case of failure.
+		 */
+		public MTBContour2D smoothContour(double gaussSigma) throws 
+			MTBDatatypeException, ALDOperatorException, ALDProcessingDAGException {
+			
+			Vector<Point2D.Double> smoothedPoints = 
+					smoothPointVector(this.points, gaussSigma);
+			MTBContour2D nc = new MTBContour2D(smoothedPoints);
+			
+			MTBContour2D ic;
+			for (int i=0; i<this.inner.size(); ++i) {
+				ic = new MTBContour2D(
+						smoothPointVector(this.inner.elementAt(i).points, gaussSigma));
+				nc.addInner(ic);
+			}
+			return nc;
+		}
+
+		/**
+		 * Convolves a list of 2D points with a Gaussian kernel.
+		 * <p>
+		 * x and y coordinates are each convolved with a Gaussian kernel.
+		 * For convolution an operator of type {@link GaussFilterDouble1D}
+		 * is applied. Take a look at its documentation for more details.
+		 * <p>
+		 * Note that we assume here that the list of points is periodic, e.g.,
+		 * represents a closed contour.
+		 * 
+		 * @param pList		List of points.
+		 * @param sigma		Standard deviation of Gaussian kernel.
+		 * @return	Result of convolution.
+		 * @throws ALDOperatorException				Thrown in case of failure. 
+		 * @throws ALDProcessingDAGException 	Thrown in case of failure.
+		 */
+		private static Vector<Point2D.Double> smoothPointVector(
+				Vector<Point2D.Double> pList, double sigma) 
+						throws ALDOperatorException, ALDProcessingDAGException {
+
+			int pointNum = pList.size();
+			double[] xcoords = new double[pointNum];
+			double[] ycoords = new double[pointNum];
+
+			for (int i=0; i<pointNum; ++i) {
+				xcoords[i] = pList.elementAt(i).x;
+				ycoords[i] = pList.elementAt(i).y;
+			}
+			
+			GaussFilterDouble1D gaussFilter = new GaussFilterDouble1D();
+			gaussFilter.setSigma(sigma);
+			gaussFilter.setDataIsPeriodic(true);
+			gaussFilter.setInputArray(xcoords);
+			gaussFilter.runOp();
+			double[] nxcoords = gaussFilter.getResultArray();
+			gaussFilter.setInputArray(ycoords);
+			gaussFilter.runOp();
+			double[] nycoords = gaussFilter.getResultArray();
+			
+			Vector<Point2D.Double> npList = new Vector<>();
+			for (int i=0; i<pointNum; ++i) {
+				npList.add(new Point2D.Double(nxcoords[i], nycoords[i]));
+			}
+			return npList;
+		}
 }

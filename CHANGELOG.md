@@ -6,6 +6,7 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 ## [Unreleased]
 ### Added
 - new operator for drawing text strings into an image
+- MTBDataIOFile: support for reading ImageJ ROI archive files in command line mode
 
 ### Changed
 
@@ -14,7 +15,6 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 ### Removed
 
 ### Fixed
-
 
 ## [1.8.5.1] - 2017-07-29
 Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>

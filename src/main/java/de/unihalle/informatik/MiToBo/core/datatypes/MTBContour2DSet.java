@@ -48,7 +48,7 @@ import ij.gui.PolygonRoi;
  */
 @ALDParametrizedClass
 public class MTBContour2DSet extends ALDData 
-	implements Cloneable, MTBDataExportableToImageJROI {
+	implements Cloneable, MTBDataExportableToImageJROI, Iterable<MTBContour2D> {
 		// subset of R x R
 		/**
 		 * Minimal x coordinate of the domain of this contour set.
@@ -434,5 +434,11 @@ public class MTBContour2DSet extends ALDData
 				++n;
 			}
 			return rois;		
+		}
+				
+		@Override
+		public Iterator<MTBContour2D> iterator() {
+			Iterator<MTBContour2D> iter = this.contourSet.iterator();
+			return iter;
 		}
 }
