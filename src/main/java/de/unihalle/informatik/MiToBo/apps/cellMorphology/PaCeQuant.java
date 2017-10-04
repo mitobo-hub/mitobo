@@ -2869,7 +2869,11 @@ public class PaCeQuant extends MTBOperator {
 				String morphValue = (String)morphTab.getValueAt(r, c);
 				// convert numbers to English style with '.' instead of ','
 				morphValue = morphValue.replace(",",".");
-				featureTable.setValueAt(new Double(morphValue), r, c);
+				try {
+					featureTable.setValueAt(new Double(morphValue), r, c);
+				} catch (NumberFormatException nex) {
+					featureTable.setValueAt(new Double(Double.NaN), r, c);
+				}
 			}
 		}
 		// post-process skeleton features, a skeleton with only two-endpoints
