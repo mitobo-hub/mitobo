@@ -127,6 +127,15 @@ public class MorphologyAnalyzer2DInProHelper {
 			// further process protrusion segments to learn more about indentations
 			this.postprocessProtrusionSegments(levelResult);
 			
+			// if we detected just one protrusion/indentation this does not fit 
+			// in our model, thus, we eliminate this protrusion
+			if (levelResult.numberOfProtrusions == 1) {
+				levelResult.numberOfProtrusions = 0;
+				levelResult.nonProtrusionArea = 0;
+				levelResult.avgEquatorIndentationLength = Double.NaN;
+				levelResult.avgEquatorProtrusionLength = Double.NaN;
+			}
+			
 			// add result for current contour to collection
 			curveAnalysisLevelResults.add(levelResult);
 
@@ -1008,7 +1017,7 @@ public class MorphologyAnalyzer2DInProHelper {
 //  	this.avgBasalProtrusionLengths.add(new Double(
 //  		protrusionLengthBasalSum*this.deltaXY.doubleValue()/protrusionCount));
   
-  	if (protrusionCount > 0) {
+  	if (protrusionCount > 0 && indentationSegs.size() > 1) {
   		levelResult.avgProtrusionLength = 
   				protrusionLengthSum*this.deltaXY/protrusionCount;
   		levelResult.avgBaselineProtrusionLength = 
@@ -1427,7 +1436,7 @@ public class MorphologyAnalyzer2DInProHelper {
 //  	this.avgBasalIndentationLengths.add(new Double(
 //  		indentationLengthBasalSum*this.deltaXY.doubleValue()/protrusionCount));
 
-  	if (protrusionCount > 0) {
+  	if (protrusionCount > 0 && protrusionSegs.size() > 1) {
   		levelResult.avgIndentationLength = 
  				indentationLengthSum*this.deltaXY/protrusionCount;
   		levelResult.avgBaselineIndentationLength = 
