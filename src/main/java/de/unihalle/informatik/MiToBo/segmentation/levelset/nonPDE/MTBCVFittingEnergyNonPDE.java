@@ -71,10 +71,23 @@ public class MTBCVFittingEnergyNonPDE extends MTBGenericEnergyNonPDE
 	/** number of phases including background
 	 */
 	private int numPhases = -1;
+	
+	 /** An array of lambda values to be set in this energy object during initialization,
+	  * i.e. the <code>init()</code> method. This is an alternative to supply lambdas
+	  * besides setting the members <code>lambdaFg</code> and <code>lambdaBg</code>:
+	  * <b>
+	 *  The first value (with index 0) is taken as the lambda for the background phase, the subsequent
+	 *  values for the foreground phases. If the array is longer as the number of phases superfluous
+	 *  values are ignored. If it is shorter then the number of phases <code>lambdaFg</code> and/or
+	 *  <code>lambdaBg</code> are used for the foreground resp. background phase.
+	 *  <br>
+	 *  This array may be <code>null</code>, which is handled equivalent to a size of zero.
+	 */
+	private double lambdaArray[];   
 
 	/** array to hold lambdas of phases, starting with MTBLevelsetMembership.BG_PHASE 
 	 */
-	private double lambda[];  
+	private double lambdaForOptimization[];  
 	
 	/** array to hold means of phases, starting with MTBLevelsetMembership.BG_PHASE 
 	 */
@@ -84,9 +97,7 @@ public class MTBCVFittingEnergyNonPDE extends MTBGenericEnergyNonPDE
 	 * Construct an energy object for the level set function  <code>phi</code> realizing the fitting term of the Chan-Vese energy.
 	 */
 	public MTBCVFittingEnergyNonPDE() {
-		this.name = new String( "MTBCVFittingEnergyNonPDE");
-        this.lambdaFg = 1;		
-        this.lambdaBg = 1;		
+		this( 1.0, 1.0);
 	}
 
 	/**
@@ -97,11 +108,22 @@ public class MTBCVFittingEnergyNonPDE extends MTBGenericEnergyNonPDE
 	 * @param lambdaFg	Weight for foreground phase
 	 */
 	public MTBCVFittingEnergyNonPDE( double lambdaBg, double lambdaFg) {
+		this( lambdaBg, lambdaFg, null);		
+	}
+	
+	/**
+	 * Construct an energy object realizing the fitting term of the Chan-Vese energy.
+     * The weight for the background is lambdaBg and for all for all object phases an identically lambdaFg. 
+	 * 
+	 * @param lambdaBg	Weight for background phase
+	 * @param lambdaFg	Weight for foreground phase
+	 */
+	public MTBCVFittingEnergyNonPDE( double lambdaBg, double lambdaFg, double lambdaArray[]) {
 		this.name = new String( "MTBCVFittingEnergyNonPDE");
 
         this.lambdaFg = lambdaFg;		
         this.lambdaBg = lambdaBg;		
-
+        this.lambdaArray = lambdaArray;   
 	}
 	
 	/**
@@ -137,10 +159,20 @@ public class MTBCVFittingEnergyNonPDE extends MTBGenericEnergyNonPDE
 	
 		this.numPhases = phi.getNumPhases();
 
-        this.lambda = new double[this.numPhases+1];
-		this.lambda[MTBLevelsetMembership.BG_PHASE] = this.lambdaBg;
-        for ( short p = (MTBLevelsetMembership.BG_PHASE+1) ; p <= numPhases ; p++ )
-			this.lambda[p] = lambdaFg;
+        this.lambdaForOptimization = new double[this.numPhases+1];
+        if ( lambdaArray != null && lambdaArray.length > 0)
+    		this.lambdaForOptimization[MTBLevelsetMembership.BG_PHASE] = this.lambdaArray[0];
+        else
+        	this.lambdaForOptimization[MTBLevelsetMembership.BG_PHASE] = this.lambdaBg;
+        
+        int idx = 1; // used to index into lambdaArray
+        for ( short p = (MTBLevelsetMembership.BG_PHASE+1) ; p <= numPhases ; p++ ) {
+            if ( lambdaArray != null && lambdaArray.length > idx)
+            	this.lambdaForOptimization[p] = lambdaArray[idx];
+            else
+            	this.lambdaForOptimization[p] = lambdaFg;
+            idx++;
+        }
 
         this.c = new double[this.numPhases+1];
 
@@ -165,10 +197,10 @@ public class MTBCVFittingEnergyNonPDE extends MTBGenericEnergyNonPDE
 		
 		if( phi.getPhase(x, y, z) > BG_PHASE) 
 			// change from object phase to background
-			return( lambda[BG_PHASE] * (out * out) * (n / (n + 1)) - lambda[BG_PHASE+1] * (in * in) * (m / (m - 1)));
+			return( lambdaForOptimization[BG_PHASE] * (out * out) * (n / (n + 1)) - lambdaForOptimization[BG_PHASE+1] * (in * in) * (m / (m - 1)));
 		else 
 			// change from background  to object phase 
-			return(  lambda[BG_PHASE+1] * (in * in) * (m / (m + 1)) - lambda[BG_PHASE] * (out * out) * (n / (n - 1)));
+			return(  lambdaForOptimization[BG_PHASE+1] * (in * in) * (m / (m + 1)) - lambdaForOptimization[BG_PHASE] * (out * out) * (n / (n - 1)));
 	}
 	
 	@Override
@@ -181,8 +213,8 @@ public class MTBCVFittingEnergyNonPDE extends MTBGenericEnergyNonPDE
 		double diffNew = (picVal - this.c[newPhase]);
 		double diffOld = (picVal - this.c[oldPhase]);
 
-		double lambdaNew = lambda[ newPhase];
-		double lambdaOld = lambda[ oldPhase];
+		double lambdaNew = lambdaForOptimization[ newPhase];
+		double lambdaOld = lambdaForOptimization[ oldPhase];
 		
             double sizeNew =  phi.getSizePhase( newPhase);
             double sizeOld =  phi.getSizePhase( oldPhase);
@@ -213,7 +245,7 @@ public class MTBCVFittingEnergyNonPDE extends MTBGenericEnergyNonPDE
 					    //double out = this.lambda[2] * (img.getValueDouble(x, y, z, 0, 0) - this.c[2]);
 						//sum += in * in * heaviside(phi.getPhase(x, y, z)) + out * out * (1 - heaviside(phi.getPhase(x, y, z)));
 						double picval = img.getValueDouble(x, y, z);
-						sum += lambda[phase] * (picval - c[phase]) * (picval - c[phase]) ;
+						sum += lambdaForOptimization[phase] * (picval - c[phase]) * (picval - c[phase]) ;
 					}
 				}
 			}
@@ -278,11 +310,25 @@ public class MTBCVFittingEnergyNonPDE extends MTBGenericEnergyNonPDE
 		this.c[p] /= phi.getSizePhase(p);
 	}
 	
+	/**
+	 * @return the lambdaArray
+	 */
+	public double[] getLambdaArray() {
+		return lambdaArray;
+	}
+
+	/**
+	 * @param lambdaArray the lambdaArray to set
+	 */
+	public void setLambdaArray(double[] lambdaArray) {
+		this.lambdaArray = lambdaArray;
+	}
+
 	@Override
 	public  String 	toString() {
         String str = new String( name + ": " + numPhases + " phases\n    Lambdas: ");
         for ( short p = 1 ; p <= numPhases ; p++ )
-            str = str.concat( lambda[p] + "\t");
+            str = str.concat( lambdaForOptimization[p] + "\t");
         return str;
     }
 
@@ -293,7 +339,7 @@ public class MTBCVFittingEnergyNonPDE extends MTBGenericEnergyNonPDE
 		String newIndent = getNewIndent( indent);
 		out.print( newIndent + "Lambdas: ");
         for ( short p = 1 ; p <= numPhases ; p++ )
-            out.print( indent + lambda[p] + "\t");
+            out.print( indent + lambdaForOptimization[p] + "\t");
 		out.println();
 
         out.println( newIndent + "c:");
