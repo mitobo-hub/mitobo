@@ -102,6 +102,7 @@ public class MTBPolygon2D extends ALDData
    *          Should be true if polygon is closed.
    */
   public MTBPolygon2D(double[] xp, double[] yp, boolean closed) {
+    this.points = new Vector<Point2D.Double>();
     for (int i = 0; i < xp.length; ++i) {
       this.points.add(new Point2D.Double(xp[i], yp[i]));
     }
