@@ -126,7 +126,16 @@ public class MorphologyAnalyzer2DInProHelper {
 
 			// further process protrusion segments to learn more about indentations
 			this.postprocessProtrusionSegments(levelResult);
-
+			
+			// if we detected just one protrusion/indentation this does not fit 
+			// in our model, thus, we eliminate this protrusion
+			if (levelResult.numberOfProtrusions == 1) {
+				levelResult.numberOfProtrusions = 0;
+				levelResult.nonProtrusionArea = 0;
+				levelResult.avgEquatorIndentationLength = Double.NaN;
+				levelResult.avgEquatorProtrusionLength = Double.NaN;
+			}
+			
 			// add result for current contour to collection
 			curveAnalysisLevelResults.add(levelResult);
 
@@ -419,14 +428,16 @@ public class MorphologyAnalyzer2DInProHelper {
   		}
   	}
   	
-  	// make sure that last segment points to first and vice versa
-  	if (indentationSegs.getFirst().prevSegment == null) {
-  		indentationSegs.getFirst().prevSegment = protrusionSegs.getLast();
-  		protrusionSegs.getLast().nextSegment = indentationSegs.getFirst();
-  	}
-  	else if (protrusionSegs.getFirst().prevSegment == null) {
-  		protrusionSegs.getFirst().prevSegment = indentationSegs.getLast();
-  		indentationSegs.getLast().nextSegment = protrusionSegs.getFirst();
+  	if (protrusionSegs.size() > 0 && indentationSegs.size() > 0) {
+  		// make sure that last segment points to first and vice versa
+  		if (indentationSegs.getFirst().prevSegment == null) {
+  			indentationSegs.getFirst().prevSegment = protrusionSegs.getLast();
+  			protrusionSegs.getLast().nextSegment = indentationSegs.getFirst();
+  		}
+  		else if (protrusionSegs.getFirst().prevSegment == null) {
+  			protrusionSegs.getFirst().prevSegment = indentationSegs.getLast();
+  			indentationSegs.getLast().nextSegment = protrusionSegs.getFirst();
+  		}
   	}
 
   	// calculate equator length
@@ -464,10 +475,16 @@ public class MorphologyAnalyzer2DInProHelper {
   	levelResult.addProtrusionSegments(protrusionSegs);
   	levelResult.addInflectionPoints(iListAll);
   	levelResult.numberOfProtrusions = protrusionCount;
-  	levelResult.avgEquatorProtrusionLength = 
+  	if (levelResult.numberOfProtrusions == 0) {  	
+  		levelResult.avgEquatorProtrusionLength = Double.NaN;
+    	levelResult.avgEquatorIndentationLength = Double.NaN;
+  	}
+  	else {
+  		levelResult.avgEquatorProtrusionLength = 
   			protrusionEquatorSum/protrusionCount;
-  	levelResult.avgEquatorIndentationLength = 
+  		levelResult.avgEquatorIndentationLength = 
   			indentationEquatorSum/protrusionCount;
+  	}
 
   	// remember contour directions
 		Vector<int[]> curveDirections = new Vector<int[]>();
@@ -946,18 +963,20 @@ public class MorphologyAnalyzer2DInProHelper {
 			double ppy = newStartPoint.y + plength * vy;
 
 			// calculation intersection of distance line and equator
-			Point2D.Double p1 = iPoints.get(0);
-			Point2D.Double p2 = iPoints.get(1);
-			MTBLineSegment2D equator = 
-					new MTBLineSegment2D(p1.x, p1.y, p2.x, p2.y);
-			MTBLineSegment2D distline = 
-					new MTBLineSegment2D(ppx, ppy, maxDistPoint.x, maxDistPoint.y);
-			Point2D.Double isect = equator.getIntersection(distline);
-			if (!Double.isNaN(isect.x) && !Double.isNaN(isect.y)) {
-				protrusionLengthApicalSum += isect.distance(maxDistPoint);
-				enclosedLobe.apicalLength = isect.distance(maxDistPoint);
-				protrusionLengthBasalSum += isect.distance(ppx, ppy);
-				enclosedLobe.basalLength = isect.distance(ppx, ppy);
+			if (iPoints.size() > 1) {
+				Point2D.Double p1 = iPoints.get(0);
+				Point2D.Double p2 = iPoints.get(1);
+				MTBLineSegment2D equator = 
+						new MTBLineSegment2D(p1.x, p1.y, p2.x, p2.y);
+				MTBLineSegment2D distline = 
+						new MTBLineSegment2D(ppx, ppy, maxDistPoint.x, maxDistPoint.y);
+				Point2D.Double isect = equator.getIntersection(distline);
+				if (!Double.isNaN(isect.x) && !Double.isNaN(isect.y)) {
+					protrusionLengthApicalSum += isect.distance(maxDistPoint);
+					enclosedLobe.apicalLength = isect.distance(maxDistPoint);
+					protrusionLengthBasalSum += isect.distance(ppx, ppy);
+					enclosedLobe.basalLength = isect.distance(ppx, ppy);
+				}
 			}
 
 			if (this.debugInfoImg != null) {
@@ -998,14 +1017,22 @@ public class MorphologyAnalyzer2DInProHelper {
 //  	this.avgBasalProtrusionLengths.add(new Double(
 //  		protrusionLengthBasalSum*this.deltaXY.doubleValue()/protrusionCount));
   
-  	levelResult.avgProtrusionLength = 
-  			protrusionLengthSum*this.deltaXY/protrusionCount;
-  	levelResult.avgBaselineProtrusionLength = 
-  			protrusionBaselineSum*this.deltaXY/protrusionCount;
-  	levelResult.avgApicalProtrusionLength = 
-  			protrusionLengthApicalSum*this.deltaXY/protrusionCount;
-  	levelResult.avgBasalProtrusionLength = 
-  			protrusionLengthBasalSum*this.deltaXY/protrusionCount;
+  	if (protrusionCount > 0 && indentationSegs.size() > 1) {
+  		levelResult.avgProtrusionLength = 
+  				protrusionLengthSum*this.deltaXY/protrusionCount;
+  		levelResult.avgBaselineProtrusionLength = 
+  				protrusionBaselineSum*this.deltaXY/protrusionCount;
+  		levelResult.avgApicalProtrusionLength = 
+  				protrusionLengthApicalSum*this.deltaXY/protrusionCount;
+  		levelResult.avgBasalProtrusionLength = 
+  				protrusionLengthBasalSum*this.deltaXY/protrusionCount;
+  	}
+  	else {
+  		levelResult.avgProtrusionLength = Double.NaN;
+  		levelResult.avgBaselineProtrusionLength = Double.NaN;
+  		levelResult.avgApicalProtrusionLength = Double.NaN;
+  		levelResult.avgBasalProtrusionLength = Double.NaN;
+  	}
   	
   	// create polygon defined by indentation region border points
   	MTBPolygon2D poly = new MTBPolygon2D(nonProtrusionAreaPolyPoints, true);
@@ -1324,16 +1351,18 @@ public class MorphologyAnalyzer2DInProHelper {
 			double ppy = newStartPoint.y + plength * vy;
 
 			// calculation intersection of distance line and equator
-			Point2D.Double p1 = iPoints.get(0);
-			Point2D.Double p2 = iPoints.get(1);
-			MTBLineSegment2D equator = 
-					new MTBLineSegment2D(p1.x, p1.y, p2.x, p2.y);
-			MTBLineSegment2D distline = 
-					new MTBLineSegment2D(ppx, ppy, maxDistPoint.x, maxDistPoint.y);
-			Point2D.Double isect = equator.getIntersection(distline);
-			if (!Double.isNaN(isect.x) && !Double.isNaN(isect.y)) {
-				indentationLengthApicalSum += isect.distance(maxDistPoint);
-				indentationLengthBasalSum += isect.distance(ppx, ppy);
+			if (iPoints.size() > 1) {
+				Point2D.Double p1 = iPoints.get(0);
+				Point2D.Double p2 = iPoints.get(1);
+				MTBLineSegment2D equator = 
+						new MTBLineSegment2D(p1.x, p1.y, p2.x, p2.y);
+				MTBLineSegment2D distline = 
+						new MTBLineSegment2D(ppx, ppy, maxDistPoint.x, maxDistPoint.y);
+				Point2D.Double isect = equator.getIntersection(distline);
+				if (!Double.isNaN(isect.x) && !Double.isNaN(isect.y)) {
+					indentationLengthApicalSum += isect.distance(maxDistPoint);
+					indentationLengthBasalSum += isect.distance(ppx, ppy);
+				}
 			}
 			
 			if (this.debugInfoImg != null) {
@@ -1407,15 +1436,22 @@ public class MorphologyAnalyzer2DInProHelper {
 //  	this.avgBasalIndentationLengths.add(new Double(
 //  		indentationLengthBasalSum*this.deltaXY.doubleValue()/protrusionCount));
 
-  	levelResult.avgIndentationLength = 
- 			indentationLengthSum*this.deltaXY/protrusionCount;
-  	levelResult.avgBaselineIndentationLength = 
- 			indentationBaselineSum*this.deltaXY/protrusionCount;
-  	levelResult.avgApicalIndentationLength = 
- 			indentationLengthApicalSum*this.deltaXY/protrusionCount;
-  	levelResult.avgBasalIndentationLength = 
-  		indentationLengthBasalSum*this.deltaXY/protrusionCount;
-
+  	if (protrusionCount > 0 && protrusionSegs.size() > 1) {
+  		levelResult.avgIndentationLength = 
+ 				indentationLengthSum*this.deltaXY/protrusionCount;
+  		levelResult.avgBaselineIndentationLength = 
+ 				indentationBaselineSum*this.deltaXY/protrusionCount;
+  		levelResult.avgApicalIndentationLength = 
+ 				indentationLengthApicalSum*this.deltaXY/protrusionCount;
+  		levelResult.avgBasalIndentationLength = 
+ 				indentationLengthBasalSum*this.deltaXY/protrusionCount;
+  	}
+  	else {
+  		levelResult.avgIndentationLength = Double.NaN;
+  		levelResult.avgBaselineIndentationLength = Double.NaN; 
+  		levelResult.avgApicalIndentationLength = Double.NaN;
+  		levelResult.avgBasalIndentationLength = Double.NaN; 
+  	}
 	}
 
 	/**
