@@ -69,20 +69,58 @@ public class MTBChanVeseEnergyNonPDE extends MTBGenericEnergyNonPDE
 	
 	/** weight of the length term
 	 */
-	@ALDClassParameter(label="mu", dataIOOrder=3)
+	@ALDClassParameter(label="mu", dataIOOrder=4)
 	private double mu; 
  
 	/** weight of the size term
 	 */
-	@ALDClassParameter(label="nu", dataIOOrder=4)
+	@ALDClassParameter(label="nu", dataIOOrder=5)
 	private double nu; 
  
 	/** Image to be segmented
 	 */
-	@ALDClassParameter(label="Input image",dataIOOrder=3)
+	@ALDClassParameter(label="Input image",dataIOOrder=6)
 	private MTBImage img;
 
+	 /** An array of lambda values to be set in this energy object during initialization,
+	  * i.e. the <code>init()</code> method. This is an alternative to supply lambdas
+	  * besides setting the members <code>lambdaFg</code> and <code>lambdaBg</code>:
+	  * <b>
+	 *  The first value (with index 0) is taken as the lambda for the background phase, the subsequent
+	 *  values for the foreground phases. If the array is longer as the number of phases superfluous
+	 *  values are ignored. If it is shorter then the number of phases <code>lambdaFg</code> and/or
+	 *  <code>lambdaBg</code> are used for the foreground resp. background phase.
+	 *  <br>
+	 *  This array may be <code>null</code>, which is handled equivalent to a size of zero.
+	 */
+	private double lambdaArray[];   
+
 	
+	/**
+	 * Construct an energy object realizing the Chan-Vese energy. 
+	 * The lambda for the background is lambdaBg and for all for all object phases an identical lambdaFg. 
+	 * Mu and nu for length and size term.
+	 * 
+	 * @param lambdaBg
+	 * @param lambdaFg
+	 * @param lambdaArray
+	 * @param mu
+	 * @param nu
+	 */
+	public MTBChanVeseEnergyNonPDE( double lambdaBg, double lambdaFg, double lambdaArray[], double mu, double nu)
+	{
+		this.name = new String( "Chan-Vese energy");
+		this.lambdaFg = lambdaFg;
+		this.lambdaBg = lambdaBg;
+		this.lambdaArray = lambdaArray;
+		this.mu = mu;
+		this.nu = nu;
+		
+		fittingEnergy = new MTBCVFittingEnergyNonPDE( lambdaBg, lambdaFg, lambdaArray);
+		lengthEnergy = new MTBLengthEnergyNonPDE( mu);
+		sizeEnergy = new MTBSizeEnergyNonPDE( nu);
+	}
+
 	/**
 	 * Construct an energy object realizing the Chan-Vese energy. 
 	 * The lambda for the background is lambdaBg and for all for all object phases an identical lambdaFg. 
@@ -95,15 +133,7 @@ public class MTBChanVeseEnergyNonPDE extends MTBGenericEnergyNonPDE
 	 */
 	public MTBChanVeseEnergyNonPDE( double lambdaBg, double lambdaFg, double mu, double nu)
 	{
-		this.name = new String( "Chan-Vese energy");
-		this.lambdaFg = lambdaFg;
-		this.lambdaBg = lambdaBg;
-		this.mu = mu;
-		this.nu = nu;
-		
-		fittingEnergy = new MTBCVFittingEnergyNonPDE( lambdaBg, lambdaFg);
-		lengthEnergy = new MTBLengthEnergyNonPDE( mu);
-		sizeEnergy = new MTBSizeEnergyNonPDE( nu);
+		this( lambdaBg, lambdaFg, null, mu, nu);
 	}
 	
 	/**
@@ -119,6 +149,7 @@ public class MTBChanVeseEnergyNonPDE extends MTBGenericEnergyNonPDE
 	 * @param mu
 	 * @param nu
 	 */
+	
 	public MTBChanVeseEnergyNonPDE( MTBImage img, MTBLevelsetMembership phi, double lambdaBg, double lambdaFg, double mu, double nu)
 	{
 		this( lambdaBg, lambdaFg, mu, nu);
@@ -150,7 +181,7 @@ public class MTBChanVeseEnergyNonPDE extends MTBGenericEnergyNonPDE
 	public MTBGenericEnergyNonPDE init( MTBImage img, MTBLevelsetMembership phi) {
 		this.img = img;
 
-		this.fittingEnergy = new MTBCVFittingEnergyNonPDE( lambdaBg, lambdaFg);
+		this.fittingEnergy = new MTBCVFittingEnergyNonPDE( lambdaBg, lambdaFg, getLambdaArray());
 		this.fittingEnergy = (MTBCVFittingEnergyNonPDE) this.fittingEnergy.init( this.img, phi);
 
 		this.lengthEnergy = new MTBLengthEnergyNonPDE( mu);
@@ -213,6 +244,20 @@ public class MTBChanVeseEnergyNonPDE extends MTBGenericEnergyNonPDE
 		if ( fittingEnergy != null )fittingEnergy.setDebug( debug);
 		if ( lengthEnergy != null ) lengthEnergy.setDebug( debug);
 		if ( sizeEnergy != null ) sizeEnergy.setDebug( debug);
+	}
+
+	/**
+	 * @return the lambdaArray
+	 */
+	public double[] getLambdaArray() {
+		return lambdaArray;
+	}
+
+	/**
+	 * @param lambdaArray the lambdaArray to set
+	 */
+	public void setLambdaArray(double lambdaArray[]) {
+		this.lambdaArray = lambdaArray;
 	}
 
 	@Override

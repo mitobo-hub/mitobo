@@ -479,7 +479,26 @@ public class RoiManagerAdapter {
 						Vector<MTBRegion2D> regVec = new Vector<MTBRegion2D>();
 						for (int n = 0; n < polygonSet.size(); ++n) {
 								MTBPolygon2D poly = polygonSet.elementAt(n);
-								int[][] mask = poly.getBinaryMask(width, height);
+								
+								// try to figure out if we have a polygon represented by a 
+								// complete list of all contour pixels, e.g., a MiToBo contour; 
+								// if so we have to ensure that during mask generation all 
+								// polygon pixels really become part of the final mask which 
+								// does not automatically happen; most likely this is due to the 
+								// sweeping algorithm of ImageJ used for that which might have 
+								// problems with polygons represented by complete pixel lists...
+								boolean realPolygon = false;
+								Vector<Point2D.Double> points = poly.getPoints();
+								if (  points.get(0).distance(points.get(points.size()-1)) 
+										> Math.sqrt(2))
+									realPolygon = true;
+								for (int i=1; !realPolygon && i<points.size();++i) {
+									if (points.get(i).distance(points.get(i-1)) > Math.sqrt(2))
+										realPolygon = true;							
+								}
+
+								int[][] mask = 
+										poly.getBinaryMask(width, height, !realPolygon);
 								MTBRegion2D region = new MTBRegion2D();
 								for (int y = 0; y < height; ++y) {
 										for (int x = 0; x < width; ++x) {
@@ -542,7 +561,26 @@ public class RoiManagerAdapter {
 						Vector<MTBRegion2D> regVec = new Vector<MTBRegion2D>();
 						for (int n = 0; n < polygonSet.size(); ++n) {
 								MTBPolygon2D poly = polygonSet.elementAt(n);
-								int[][] mask = poly.getBinaryMask(width, height);
+								
+								// try to figure out if we have a polygon represented by a 
+								// complete list of all contour pixels, e.g., a MiToBo contour; 
+								// if so we have to ensure that during mask generation all 
+								// polygon pixels really become part of the final mask which 
+								// does not automatically happen; most likely this is due to the 
+								// sweeping algorithm of ImageJ used for that which might have 
+								// problems with polygons represented by complete pixel lists...
+								boolean realPolygon = false;
+								Vector<Point2D.Double> points = poly.getPoints();
+								if (  points.get(0).distance(points.get(points.size()-1)) 
+										> Math.sqrt(2))
+									realPolygon = true;
+								for (int i=1; !realPolygon && i<points.size();++i) {
+									if (points.get(i).distance(points.get(i-1)) > Math.sqrt(2))
+										realPolygon = true;							
+								}
+
+								int[][] mask = 
+										poly.getBinaryMask(width, height, !realPolygon);
 								MTBRegion2D region = new MTBRegion2D();
 								for (int y = 0; y < height; ++y) {
 										for (int x = 0; x < width; ++x) {
@@ -1132,12 +1170,30 @@ public class RoiManagerAdapter {
 								domainMaxX = xmax;
 							if (ymax > domainMaxY)
 								domainMaxY = ymax;
+							
+							// try to figure out if we have a polygon represented by a 
+							// complete list of all contour pixels, e.g., a MiToBo contour; 
+							// if so we have to ensure that during mask generation all 
+							// polygon pixels really become part of the final mask which 
+							// does not automatically happen; most likely this is due to the 
+							// sweeping algorithm of ImageJ used for that which might have 
+							// problems with polygons represented by complete pixel lists...
+							boolean realPolygon = false;
+							if (  points.get(0).distance(points.get(points.size()-1)) 
+									> Math.sqrt(2))
+								realPolygon = true;
+							for (int i=1; !realPolygon && i<points.size();++i) {
+								if (points.get(i).distance(points.get(i-1)) > Math.sqrt(2))
+									realPolygon = true;							
+							}
+							
 							// create polygon
 							polygon = new MTBPolygon2D(points, true);
 							// just for safety reasons, increase size a bit in each dimension
 							width = (int) (xmax + 0.5) + 1;
 							height = (int) (ymax + 0.5) + 1;
-							int[][] mask = polygon.getBinaryMask(width, height);
+							int[][] mask = 
+									polygon.getBinaryMask(width, height, !realPolygon);
 							region = new MTBRegion2D();
 							for (int py = 0; py < height; ++py) {
 									for (int px = 0; px < width; ++px) {

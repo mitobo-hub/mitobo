@@ -5,7 +5,6 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 
 ## [Unreleased]
 ### Added
-- new operator for drawing text strings into an image
 
 ### Changed
 
@@ -15,6 +14,27 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 
 ### Fixed
 
+## [1.8.6.1] - 2017-10-09
+### Changed
+- updated PaCeQuant for better handling of small, circular cells;
+  lobe analysis is now only performed for cells with at least two real lobes
+
+## [1.8.6] - 2017-09-22
+### Added
+- PaCeQuant operator for pavement cell shape analysis,
+  Birgit Möller, Yvonne Poeschl, Romina Plötner, Katharina Bürstenbinder,
+  "PaCeQuant: A Tool for High-Throughput Quantification of Pavement Cell Shape Characteristics",
+  Plant Physiology, Vol. 175, Issue 1, Sep 2017. DOI: https://doi.org/10.1104/pp.17.00961
+- new operator for drawing text strings into an image
+- MTBDataIOFile: support for reading ImageJ ROI archive files in command line mode
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
 
 ## [1.8.5.1] - 2017-07-29
 Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
