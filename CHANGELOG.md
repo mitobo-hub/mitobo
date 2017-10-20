@@ -5,6 +5,8 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 
 ## [Unreleased]
 ### Added
+- new data type MTBLineSegment2DSet for sets of MTBLineSegment2D objects
+- support for importing sets of MTBLineSegment2D objects from ImageJ via the ROI manager
 
 ### Changed
 
