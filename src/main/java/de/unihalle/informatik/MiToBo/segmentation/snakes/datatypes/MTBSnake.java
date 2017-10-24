@@ -37,6 +37,8 @@ import de.unihalle.informatik.MiToBo.core.datatypes.defines.MTBConstants;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.*;
 import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
 import de.unihalle.informatik.MiToBo.segmentation.basics.*;
+import de.unihalle.informatik.MiToBo_xml.MTBXMLPolygon2DType;
+import de.unihalle.informatik.MiToBo_xml.MTBXMLSnakeType;
 
 /**
  * Active Contour (Snake) datatype.
@@ -215,6 +217,26 @@ public class MTBSnake extends MTBPolygon2D implements MTBSegmentationInterface {
 				}
 		}
 
+		/**
+		 * Convert object to XML representation.
+		 * <p>
+		 * Copy the information of this object into the corresponding xml
+		 * element <code>xmlSnake</code>. If <code>xmlSnake</code> is null, a new
+		 * object is created, otherwise the passed object filled.
+		 * 
+		 * @param xmlSnake 	Object to be filled.
+		 * @return Filled or newly created XML object.
+		 */
+		public MTBXMLSnakeType toXMLType(MTBXMLSnakeType xmlSnake) {
+			MTBXMLSnakeType rsnake = xmlSnake;
+			if (rsnake == null)
+				rsnake = MTBXMLSnakeType.Factory.newInstance();
+
+			rsnake = (MTBXMLSnakeType)super.toXMLType(rsnake);
+			rsnake.setScaleFactor(this.getScaleFactor());
+			return rsnake;
+		}
+		
 		/**
 		 * Get the scaling factor of the snake.
 		 * 

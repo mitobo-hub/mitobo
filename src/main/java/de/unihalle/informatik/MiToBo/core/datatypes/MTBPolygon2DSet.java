@@ -419,13 +419,10 @@ public class MTBPolygon2DSet extends ALDData
 				MTBXMLPolygon2DType xmlPolygon = xmlPolygonSet.addNewPolygon();
 
 				MTBPolygon2D polygon = this.polygonSet.elementAt(p);
-				// may we should move getPolygon2DAsXml to Polygon2D and overide it in
-				// derived classes
 				if (polygon.getClass() == MTBPolygon2D.class) {
-					xmlPolygonSet.setPolygonArray(p, getPolygon2DAsXml(polygon, null));
+					xmlPolygonSet.setPolygonArray(p, polygon.toXMLType(null));
 				} else if (polygon.getClass() == MTBSnake.class) {
-					xmlPolygonSet.setPolygonArray(p, getSnakeAsXml((MTBSnake) polygon,
-							null));
+					xmlPolygonSet.setPolygonArray(p, ((MTBSnake)polygon).toXMLType(null));
 				} else {
 					throw new ClassNotFoundException();
 				}
@@ -476,49 +473,15 @@ public class MTBPolygon2DSet extends ALDData
 			// may we should move getPolygon2DAsXml to Polygon2D and overide it in
 			// derived classes
 			if (polygon.getClass() == MTBPolygon2D.class) {
-				xmlPolygonSet.setPolygonArray(p, getPolygon2DAsXml(polygon, null));
+				xmlPolygonSet.setPolygonArray(p, polygon.toXMLType(null));
 			} else if (polygon.getClass() == MTBSnake.class) {
-				xmlPolygonSet.setPolygonArray(p, getSnakeAsXml((MTBSnake) polygon,
-						null));
+				xmlPolygonSet.setPolygonArray(p, ((MTBSnake) polygon).toXMLType(null));
 			} else {
 				throw new ClassNotFoundException();
 			}
 		}
 
 		return xmlPolygonSet;
-	}
-	/**
-	 * Copy the information of <code>polygon</code> into the corresponding xml
-	 * element <code>xmlPolygon</code>. If <code>xmlPolygon</code> is null, a new
-	 * object is created, otherwise the passed object filled.
-	 */
-	public MTBXMLPolygon2DType getPolygon2DAsXml(MTBPolygon2D polygon,
-			MTBXMLPolygon2DType xmlPolygon) {
-		if (xmlPolygon == null)
-			xmlPolygon = MTBXMLPolygon2DType.Factory.newInstance();
-
-		xmlPolygon.setClosed(polygon.isClosed());
-		Vector<java.awt.geom.Point2D.Double> points = polygon.getPoints();
-		for (int i = 0; i < points.size(); i++) {
-			MTBXMLPoint2DDoubleType xmlPoint = xmlPolygon.addNewPoint();
-			xmlPoint.setX(points.elementAt(i).getX());
-			xmlPoint.setY(points.elementAt(i).getY());
-		}
-		return xmlPolygon;
-	}
-
-	/**
-	 * Copy the information of <code>snake</code> into the corresponding xml
-	 * element <code>xmlSnake</code>. If <code>xmlSnake</code> is null, a new
-	 * obejct is created, otherwise the passed object filled.
-	 */
-	public MTBXMLSnakeType getSnakeAsXml(MTBSnake snake, MTBXMLSnakeType xmlSnake) {
-		if (xmlSnake == null)
-			xmlSnake = MTBXMLSnakeType.Factory.newInstance();
-
-		xmlSnake = (MTBXMLSnakeType) getPolygon2DAsXml(snake, xmlSnake);
-		xmlSnake.setScaleFactor(snake.getScaleFactor());
-		return xmlSnake;
 	}
 
 	@Override

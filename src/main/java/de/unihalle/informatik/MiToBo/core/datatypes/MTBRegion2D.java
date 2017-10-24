@@ -63,7 +63,7 @@ public class MTBRegion2D implements MTBRegionInterface {
 		 * Id of the region (uniqueness is not guaranteed nor checked!).
 		 */
 		@ALDClassParameter(label="ID")
-		int id;
+		private int id;
 
 		/**
 		 * Pixels belonging to region.
@@ -75,17 +75,17 @@ public class MTBRegion2D implements MTBRegionInterface {
 		/**
 		 * Center of mass in x (just sum, not normalized by area!).
 		 */
-		float com_x = 0;
+		private float com_x = 0;
 
 		/**
 		 * Center of mass in y (just sum, not normalized by area!).
 		 */
-		float com_y = 0;
+		private float com_y = 0;
 
 		/**
 		 * Size of region in pixels.
 		 */
-		int area = 0;
+		private int area = 0;
 
 		/**
 		 * Construct a new empty MTBRegion2D object.
@@ -120,30 +120,31 @@ public class MTBRegion2D implements MTBRegionInterface {
 		 */
 		MTBRegion2D(MTBXMLRegion2DType xmlregion2D) {
 
-				this.id = xmlregion2D.getId();
-				this.area = xmlregion2D.getArea();
-				this.com_x = xmlregion2D.getComX();
-				this.com_y = xmlregion2D.getComY();
+			this.id = xmlregion2D.getId();
 
-				MTBXMLPoint2DDoubleType[] ptTypes = xmlregion2D.getPoints().getPointArray();
-				this.points = new Vector<Point2D.Double>(ptTypes.length);
+			MTBXMLPoint2DDoubleType[] ptTypes = 
+				xmlregion2D.getPoints().getPointArray();
+			this.points = new Vector<Point2D.Double>(ptTypes.length);
 
-				for (int i = 0; i < ptTypes.length; i++) {
-						this.points.add(new Point2D.Double(ptTypes[i].getX(), ptTypes[i].getY()));
-				}
+			for (int i = 0; i < ptTypes.length; i++) {
+				this.points.add(
+					new Point2D.Double(ptTypes[i].getX(), ptTypes[i].getY()));
+			}
+			// make sure that area and other internal variables are properly set
+			this.hookPointsUpdated();
 		}
 
 		/**
 		 * Construct an object that represents this region by xml. Only used for
 		 * writing region sets ({@link MTBRegion2DSet}) to file.
 		 */
-		MTBXMLRegion2DType toXMLType() {
+		public MTBXMLRegion2DType toXMLType() {
 				MTBXMLRegion2DType xmlregion2D = MTBXMLRegion2DType.Factory.newInstance();
 
 				xmlregion2D.setArea(this.area);
 				xmlregion2D.setId(this.id);
-				xmlregion2D.setComX(this.com_x);
-				xmlregion2D.setComY(this.com_y);
+				xmlregion2D.setComX(this.getCenterOfMass_X());
+				xmlregion2D.setComY(this.getCenterOfMass_Y());
 
 				MTBXMLPoint2DDoubleType[] ptTypes = new MTBXMLPoint2DDoubleType[this.points
 				    .size()];
@@ -278,6 +279,7 @@ public class MTBRegion2D implements MTBRegionInterface {
 				this.com_x += p.getX();
 				this.com_y += p.getY();
 				this.points.addElement(p);
+				this.hookPointsUpdated();
 		}
 
 		/**

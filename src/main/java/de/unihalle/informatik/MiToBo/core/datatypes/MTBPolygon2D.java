@@ -41,6 +41,8 @@ import de.unihalle.informatik.MiToBo.core.datatypes.defines.MTBConstants;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.*;
 import de.unihalle.informatik.MiToBo.core.datatypes.interfaces.MTBDataExportableToImageJROI;
 import de.unihalle.informatik.MiToBo.segmentation.snakes.datatypes.MTBSnake;
+import de.unihalle.informatik.MiToBo_xml.MTBXMLPoint2DDoubleType;
+import de.unihalle.informatik.MiToBo_xml.MTBXMLPolygon2DType;
 
 /**
  * Polygon datatype with double precision.
@@ -120,6 +122,30 @@ public class MTBPolygon2D extends ALDData
   public MTBPolygon2D(Vector<Point2D.Double> ps, boolean closed) {
     this.points = ps;
     this.isClosed = closed;
+  }
+
+	/**
+	 * Convert object to XML representation.
+	 * <p>
+	 * Copy the information of this object into the corresponding xml
+	 * element <code>xmlPolygon</code>. If <code>xmlPolygon</code> is null, a new
+	 * object is created, otherwise the passed object filled.
+	 * 
+	 * @param xmlPolygon 	Object to be filled.
+	 * @return Filled or newly created XML object.
+	 */
+  public MTBXMLPolygon2DType toXMLType(MTBXMLPolygon2DType xmlPolygon) {
+		MTBXMLPolygon2DType rpoly = xmlPolygon;
+  	if (rpoly == null)
+  		rpoly = MTBXMLPolygon2DType.Factory.newInstance();
+
+  	rpoly.setClosed(this.isClosed());
+  	for (int i = 0; i < this.points.size(); i++) {
+  		MTBXMLPoint2DDoubleType xmlPoint = rpoly.addNewPoint();
+  		xmlPoint.setX(this.points.elementAt(i).getX());
+  		xmlPoint.setY(this.points.elementAt(i).getY());
+  	}
+  	return rpoly;
   }
 
   @Override
