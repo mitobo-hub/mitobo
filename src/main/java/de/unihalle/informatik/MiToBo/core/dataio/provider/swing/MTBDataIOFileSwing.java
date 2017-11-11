@@ -70,6 +70,7 @@ import de.unihalle.informatik.MiToBo.core.dataio.provider.swing.components.MTBTa
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBBorder2DSet;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBContour2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBContour2DSet;
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBLineSegment2DSet;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBPolygon2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBPolygon2DSet;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2D;
@@ -89,6 +90,7 @@ import de.unihalle.informatik.MiToBo.gui.MTBTableModel;
  * {@link de.unihalle.informatik.MiToBo.core.datatypes.MTBPolygon2DSet}<br>
  * {@link de.unihalle.informatik.MiToBo.core.datatypes.MTBContour2DSet}<br>
  * {@link de.unihalle.informatik.MiToBo.core.datatypes.MTBBorder2DSet}<br>
+ * {@link de.unihalle.informatik.MiToBo.core.datatypes.MTBLineSegment2DSet}<br>
  * <p>
  * Note that some of the classes allow for interaction with the ROI manager 
  * of ImageJ, i.e. the class 
@@ -161,6 +163,7 @@ public class MTBDataIOFileSwing
 		l.add(MTBPolygon2DSet.class);
 		l.add(MTBContour2DSet.class);
 		l.add(MTBBorder2DSet.class);
+		l.add(MTBLineSegment2DSet.class);
 		return l;
 	}
 
@@ -491,6 +494,17 @@ public class MTBDataIOFileSwing
 								this.data = bset;
 							}
 						}
+					else if (this.myClass.equals(MTBLineSegment2DSet.class)) {
+						MTBLineSegment2DSet bset= 
+							RoiManagerAdapter.getInstance().getLineSegmentSetFromRoiManager();
+						if (bset.size() == 0)
+							JOptionPane.showMessageDialog(this.mainPanel, 
+									"ROI Manager does not contain any valid selection... no data!", 
+									"Warning", JOptionPane.WARNING_MESSAGE);
+						else {
+							this.data = bset;
+						}
+					}
 					else {
 						JOptionPane.showMessageDialog(this.mainPanel, "Input mode not supported \n" + 
 								"for data type \"" + this.myClass.getSimpleName() + "\"",
@@ -529,6 +543,13 @@ public class MTBDataIOFileSwing
 					}
 					break;
 				case MTB_XML:
+					if (this.myClass.equals(MTBLineSegment2DSet.class)) {
+						JOptionPane.showMessageDialog(this.mainPanel, 
+							"Input mode not supported \n for data type \"" 
+								+ this.myClass.getSimpleName() + "\"",
+									"Warning", JOptionPane.WARNING_MESSAGE);
+						return;							
+					}
 					// open file chooser
 					JFileChooser getDirDialog= new JFileChooser();
 					if (this.lastFile != null)
@@ -695,6 +716,13 @@ public class MTBDataIOFileSwing
 				switch(selectedMode)
 				{
 				case ROI_MANAGER:
+					if (this.myData instanceof MTBLineSegment2DSet) {
+						JOptionPane.showMessageDialog(this, 
+							"Output mode not supported \n for data type \"" 
+								+ this.myData.getClass().getSimpleName() + "\"",
+									"Warning", JOptionPane.WARNING_MESSAGE);
+						return;							
+					}
 					if (this.roisAdded) {
 						Object[] options = { "OK"};
 						JOptionPane.showOptionDialog(null, 
@@ -871,6 +899,13 @@ public class MTBDataIOFileSwing
 										}
 										break;
 				case MTB_XML:
+					if (this.myData instanceof MTBLineSegment2DSet) {
+						JOptionPane.showMessageDialog(this, 
+							"Output mode not supported \n for data type \"" 
+								+ this.myData.getClass().getSimpleName() + "\"",
+									"Warning", JOptionPane.WARNING_MESSAGE);
+						return;							
+					}
 					String idir = 
 					ALDEnvironmentConfig.getConfigValue("mitobo", null, "savedir");
 					if (idir == null)

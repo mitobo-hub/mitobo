@@ -27,8 +27,6 @@ package de.unihalle.informatik.MiToBo.core.datatypes;
 import java.awt.geom.*;
 import java.util.LinkedList;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.core.datatypes.defines.MTBConstants;
 
 /**
@@ -36,27 +34,64 @@ import de.unihalle.informatik.MiToBo.core.datatypes.defines.MTBConstants;
  * <p>
  * This class adds some useful functions to {@link java.awt.geom.Line2D.Double},
  * mostly concerning geometrical calculations like intersections, orientations,
- * scalar products and distances.
+ * scalar products and distances.<br>
+ * For consistency with ImageJ each segment also has a specific width. By 
+ * default the width of a segment is 1.
  * 
  * @see java.awt.geom.Line2D.Double
+ * @see ij.gui.Line
  * 
  * @author moeller
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class MTBLineSegment2D extends Line2D.Double {
 
-		/**
-		 * Constructor.
-		 * 
-		 * @param X1	x-coordinate of first point.
-		 * @param Y1	y-coordinate of first point.
-		 * @param X2	x-coordinate of second point.
-		 * @param Y2	y-coordinate of second point.
-		 */
-		public MTBLineSegment2D(double X1, double Y1, double X2, double Y2) {
-				super(X1, Y1, X2, Y2);
-		}
+	/**
+	 * Width of the segment (for compatibility with ImageJ).
+	 */
+	private double width = 1.0;
+	
+	/**
+	 * Constructor.
+	 * 
+	 * @param X1	x-coordinate of first point.
+	 * @param Y1	y-coordinate of first point.
+	 * @param X2	x-coordinate of second point.
+	 * @param Y2	y-coordinate of second point.
+	 */
+	public MTBLineSegment2D(double X1, double Y1, double X2, double Y2) {
+		super(X1, Y1, X2, Y2);
+	}
 
+	/**
+	 * Copy constructor.
+	 * @param line	Line segment to copy.
+	 */
+	public MTBLineSegment2D(MTBLineSegment2D line) {
+		super(line.x1, line.y1, line.x2, line.y2);
+		this.width = line.width;
+	}
+
+	@Override
+	public MTBLineSegment2D clone() {
+		return new MTBLineSegment2D(this);
+	}
+
+	/**
+	 * Set the width associated with the segment.
+	 * @param w	Width of segment.
+	 */
+	public void setWidth(double w) {
+		this.width = w;
+	}
+	
+	/**
+	 * Get the width associated with the segment.
+	 * @return	Width of segment.
+	 */
+	public double getWidth() {
+		return this.width;
+	}
+	
 		/**
 		 * Calculates the scalar product of the given segment to this one.
 		 * <p>
