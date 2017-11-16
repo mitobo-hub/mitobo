@@ -125,13 +125,23 @@ public class ReadXML {
 			}
 			markerVector.setColor(c);
 			
+			int fragmentCounter = 0;
 			NodeList markerNodeList = markerTypeElement.getElementsByTagName("Marker");
 			for(int j=0; j<markerNodeList.getLength(); j++){
 				Element markerElement = getElement(markerNodeList, j);
+				
+//				System.out.println("Marker element:");
+//				System.out.println(markerElement.getTextContent());
+				
 				NodeList markerXNodeList = markerElement.getElementsByTagName("MarkerX");
 				NodeList markerYNodeList = markerElement.getElementsByTagName("MarkerY");
 				NodeList markerZNodeList = markerElement.getElementsByTagName("MarkerZ");
 
+//				System.out.println(
+//						Integer.parseInt(readValue(markerXNodeList,0)) + " , " +
+//							Integer.parseInt(readValue(markerYNodeList,0)) + " , " +
+//								Integer.parseInt(readValue(markerZNodeList,0)));
+				
 				NodeList markerType = markerElement.getElementsByTagName("MarkerShape");
 				if (markerType.getLength() == 0) {
 					CellCntrMarker marker = new CellCntrMarker(
@@ -140,12 +150,17 @@ public class ReadXML {
 								Integer.parseInt(readValue(markerZNodeList,0)), null);
 					markerVector.addMarker(marker);
 				}
-				else {
+				else {						
+					NodeList markerShapeList = 
+							markerTypeElement.getElementsByTagName("xml-fragment");
+					Element shapeElement = getElement(markerShapeList, fragmentCounter);
+					++fragmentCounter;
+
+//					System.out.println("Marker shape contents");
+//					System.out.println(shapeElement.getTextContent());
+
 					String type = readValue(markerType,0); 
 					if (type.equals("region")) {
-						NodeList markerShapeList = 
-								markerTypeElement.getElementsByTagName("xml-fragment");
-						Element shapeElement = getElement(markerShapeList, j);
 
 						Vector<Point2D.Double> pList = new Vector<>();
 						NodeList pointNodeList = shapeElement.getElementsByTagName("mit:points");
@@ -167,12 +182,9 @@ public class ReadXML {
 						markerVector.addMarker(marker);
 					}
 					else if (type.equals("polygon")) {
-						NodeList markerShapeList = 
-								markerTypeElement.getElementsByTagName("xml-fragment");
-						Element shapeElement = getElement(markerShapeList, j);
+
 						NodeList polygonType = shapeElement.getElementsByTagName("mit:closed");
 						boolean closed = Boolean.parseBoolean(readValue(polygonType,0));
-
 						Vector<Point2D.Double> pList = new Vector<>();
 						NodeList pointNodeList = shapeElement.getElementsByTagName("mit:point");
 						for(int l=0; l<pointNodeList.getLength(); l++){
