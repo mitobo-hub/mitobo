@@ -187,12 +187,21 @@ public class ParticleDetectorUWT2D extends ParticleDetector
 	private boolean poisson2gauss = true;
 
 	/**
+	 * Flag to use initial sigma = 0.5 for the wavelet transform
+	 */
+	@Parameter( label= "use initial sigma = 0.5 for the wavelet transform", 
+		required = true, direction = Parameter.Direction.IN, 
+		mode = ExpertMode.ADVANCED, dataIOOrder = 8, 
+		description = "use initial sigma = 0.5 for the wavelet transform")
+	private boolean initialSigmaOneHalve = false;
+
+/**
 	 * Optional mask to exclude particles in certain regions.
 	 * <p>
 	 * Particles in masked regions are ignored if mask is non-null.
 	 */
 	@Parameter( label = "Exclude mask", direction = Direction.IN, 
-		mode = ExpertMode.ADVANCED, dataIOOrder = 8, required = false, 
+		mode = ExpertMode.ADVANCED, dataIOOrder = 9, required = false, 
 		description = "Exclude mask.")
 	private transient MTBImageByte excludeMask = null;
 
@@ -201,7 +210,7 @@ public class ParticleDetectorUWT2D extends ParticleDetector
 	 */
 	@Parameter( label= "Provide (binarized) correlation images", 
 		supplemental = true, direction = Parameter.Direction.IN, 
-		mode = ExpertMode.ADVANCED, dataIOOrder = 0, 
+		mode = ExpertMode.ADVANCED, dataIOOrder = 10, 
 		description = "If enabled additional intermediate results are provided.")
 	private boolean additionalResultsWanted = false;
 
@@ -839,9 +848,9 @@ public class ParticleDetectorUWT2D extends ParticleDetector
 		
 		// DWT configuration
 		UndecimatedWaveletTransform uwt = 
-			new UndecimatedWaveletTransform(img, 
-				this.getJmax().intValue(), true);
+			         new UndecimatedWaveletTransform(img, this.getJmax().intValue(), true, ! initialSigmaOneHalve);
 		uwt.setVerbose(this.verbose);
+		uwt.setExcludeMask( this.excludeMask);
 
 		for (int i = 0; i < this.m_statusListeners.size(); i++) {
 			uwt.addStatusListener(this.m_statusListeners.get(i));
