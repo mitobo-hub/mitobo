@@ -84,6 +84,11 @@ public class UndecimatedWaveletTransform
 	        description = "Input image")
 	private MTBImage img = null;
 
+	@Parameter( label= "mask image", required = false, direction = Direction.IN,
+			mode = ExpertMode.STANDARD, dataIOOrder = 5,
+	        description = "mask image used for denoising: a value of zero INCLUDES a pixel")
+	private MTBImage excludeMask = null;
+
 	@Parameter( label= "UWT coefficient images", required = true, direction = Direction.OUT,
 			mode = ExpertMode.STANDARD, dataIOOrder = 1,
 	        description = "Images with UWT coefficients of the different scales")
@@ -104,27 +109,32 @@ public class UndecimatedWaveletTransform
 	
 	
 	/**
-	 * Constructor with default Gaussian kernel [1/16, 1/4, 3/8, 1/4, 1/16] for dimension x, y and z.
+	 * Constructor with default Gaussian kernel [1/16, 1/4, 3/8, 1/4, 1/16] for dimension x, y and z,
+	 * no image and <code>denoise</code> set to false.
 	 */
 	public UndecimatedWaveletTransform() throws ALDOperatorException {
-		this.m_statusListeners = new Vector<StatusListener>(1);
-		
-		double[] kernel = {1.0/16.0, 1.0/4.0, 3.0/8.0, 1.0/4.0, 1.0/16.0};
-		MTBImage[] kernels;
-
-		kernels = new MTBImage[3];
-		kernels[0] = MTBImage.createMTBImage(5, 1, 1, 1, 1, MTBImageType.MTB_DOUBLE);
-		kernels[1] = MTBImage.createMTBImage(1, 5, 1, 1, 1, MTBImageType.MTB_DOUBLE);
-		kernels[2] = MTBImage.createMTBImage(1, 1, 5, 1, 1, MTBImageType.MTB_DOUBLE);
-		
-		for (int i = 0; i < kernel.length; i++) {
-			kernels[0].putValueDouble(i, 0, 0, 0, 0, kernel[i]);
-			kernels[1].putValueDouble(0, i, 0, 0, 0, kernel[i]);
-			kernels[2].putValueDouble(0, 0, i, 0, 0, kernel[i]);
-		}
-		
-		this.setKernels(kernels);
-		this.operatorExecStatus = OperatorExecutionStatus.OP_EXEC_INIT;
+		this( null, 0, false);
+//		this.m_statusListeners = new Vector<StatusListener>(1);
+//		
+//		double[] kernel = //{1.0/16.0, 1.0/4.0, 3.0/8.0, 1.0/4.0, 1.0/16.0};
+//			{0.0002638651, 0.1064507720, 0.7865707259, 0.1064507720, 0.0002638651};
+//
+//
+//		MTBImage[] kernels;
+//
+//		kernels = new MTBImage[3];
+//		kernels[0] = MTBImage.createMTBImage(5, 1, 1, 1, 1, MTBImageType.MTB_DOUBLE);
+//		kernels[1] = MTBImage.createMTBImage(1, 5, 1, 1, 1, MTBImageType.MTB_DOUBLE);
+//		kernels[2] = MTBImage.createMTBImage(1, 1, 5, 1, 1, MTBImageType.MTB_DOUBLE);
+//		
+//		for (int i = 0; i < kernel.length; i++) {
+//			kernels[0].putValueDouble(i, 0, 0, 0, 0, kernel[i]);
+//			kernels[1].putValueDouble(0, i, 0, 0, 0, kernel[i]);
+//			kernels[2].putValueDouble(0, 0, i, 0, 0, kernel[i]);
+//		}
+//		
+//		this.setKernels(kernels);
+//		this.operatorExecStatus = OperatorExecutionStatus.OP_EXEC_INIT;
 	}
 	
 	/**
@@ -157,6 +167,20 @@ public class UndecimatedWaveletTransform
 	 */
 	public UndecimatedWaveletTransform(MTBImage _img, int _Jmax, 
 			boolean _denoise) throws ALDOperatorException {
+		this( _img, _Jmax, _denoise, true);
+	}
+	
+	/**
+	 * Constructor with default Gaussian kernel for sd = 1 [1/16, 1/4, 3/8, 1/4, 1/16] for at most dimension x, y (and z if present)
+	 * or sd=0.5 [0.0002638651, 0.1064507720, 0.7865707259, 0.1064507720, 0.0002638651] if 
+	 * <code>sigmaEqualsOne</code> is false
+	 * @param img input image
+	 * @param Jmax maximum scale (2^Jmax - 1)
+	 * @param denoise reduction of gaussian noise
+	 * @throws ALDOperatorException 
+	 */
+	public UndecimatedWaveletTransform(MTBImage _img, int _Jmax, 
+			boolean _denoise, boolean sigmaEqualsOne) throws ALDOperatorException {
 		this.m_statusListeners = new Vector<StatusListener>(1);
 		
 		this.setImg(_img);
@@ -164,10 +188,14 @@ public class UndecimatedWaveletTransform
 		this.setForwardTransform();
 		this.setDenoise(_denoise);
 		
-		double[] kernel = {1.0/16.0, 1.0/4.0, 3.0/8.0, 1.0/4.0, 1.0/16.0};
+		double[] kernel = (sigmaEqualsOne) ? 
+				new double[] {1.0/16.0, 1.0/4.0, 3.0/8.0, 1.0/4.0, 1.0/16.0}
+		        : new double[] {0.0002638651, 0.1064507720, 0.7865707259, 0.1064507720, 0.0002638651};
+		
+		
 		MTBImage[] kernels;
 		
-		if (_img.getSizeZ() > 1) {
+		if ( _img == null || _img.getSizeZ() > 1) {
 			kernels = new MTBImage[3];
 			kernels[0] = MTBImage.createMTBImage(5, 1, 1, 1, 1, MTBImageType.MTB_DOUBLE);
 			kernels[1] = MTBImage.createMTBImage(1, 5, 1, 1, 1, MTBImageType.MTB_DOUBLE);
@@ -336,7 +364,7 @@ public class UndecimatedWaveletTransform
 
 			// smooth image at specified scale
 			dwtData[0] = conv(lastA, scaleOneKernels, j);
-
+			
 			// subtract the smoothed image from the last smoothed image
 			dwtData[j] = mia.sub(lastA, dwtData[0]);
 
@@ -409,7 +437,7 @@ public class UndecimatedWaveletTransform
 				
 				// compute anchor element of the kernel
 				int[] kAnchor = {kSizeX/2, kSizeY/2, kSizeZ/2, kSizeT/2, kSizeC/2};
-				
+
 				// linear filter
 				LinearFilter lf = new LinearFilter(tImg, kernel, kAnchor, true, BoundaryPadding.PADDING_BORDER);
 				for (int i = 0; i < this.m_statusListeners.size(); i++) {
@@ -454,19 +482,22 @@ public class UndecimatedWaveletTransform
 			img.setCurrentSliceIndex(i);
 			
 			for (int y = 0; y < sizeY; y++) {
-				for (int x = 0; x < sizeX; x++) {
-					val = img.getValueDouble(x, y);
+				for (int x = 0; x < sizeX; x++)	{	
+					if ( this.excludeMask == null || this.excludeMask.getValueInt(x, y) == 0){
+						val = img.getValueDouble(x, y);
 
 						val2 = (val*val - s2);
-						
+
 						if (val2 < 0.0)
 							val2 = 0.0;
-						
+
 						if (val != 0.0) 
 							img.putValueDouble(x, y, val2/val);
 						else
 							img.putValueDouble(x, y, 0.0);
-						
+					} else {
+						img.putValueDouble(x, y, 0.0);
+					}
 				}
 			}
 		}	
@@ -528,13 +559,15 @@ public class UndecimatedWaveletTransform
 		
 		for (int i = 0; i < sizeStack; i++) {
 			img.setCurrentSliceIndex(i);
-			
+
 			for (int y = 0; y < sizeY; y++) {
 				for (int x = 0; x < sizeX; x++) {
-					val = img.getValueDouble(x, y);
-					mu += val;
-					mu2 += val*val;
-					N++;		
+					if ( this.excludeMask == null || this.excludeMask.getValueInt(x, y) == 0){
+						val = img.getValueDouble(x, y);
+						mu += val;
+						mu2 += val*val;
+						N++;		
+					}
 				}
 			}
 		}
@@ -549,18 +582,21 @@ public class UndecimatedWaveletTransform
 		
 		for (int i = 0; i < sizeStack; i++) {
 			img.setCurrentSliceIndex(i);
-			
+
 			for (int y = 0; y < sizeY; y++) {
 				for (int x = 0; x < sizeX; x++) {
-					val = img.getValueDouble(x, y);
-					if (Math.abs(val - mu) <= 3.0*sigma) {
-						mu += val;
-						mu2 += val*val;
-						N++;
+					if ( this.excludeMask == null || this.excludeMask.getValueInt(x, y) == 0){ {
+						val = img.getValueDouble(x, y);
+						if (Math.abs(val - mu) <= 3.0*sigma) {
+							mu += val;
+							mu2 += val*val;
+							N++;
+						}
+					}
 					}
 				}
 			}
-		}
+		}			
 		img.setCurrentSliceIndex(0);
 		
 		mu /= N;
@@ -711,6 +747,20 @@ public class UndecimatedWaveletTransform
 		this.img = img;
 	}
 	
+	/**
+	 * @return the excludeMask
+	 */
+	public MTBImage getExcludeMask() {
+		return excludeMask;
+	}
+
+	/**
+	 * @param excludeMask the excludeMask to set
+	 */
+	public void setExcludeMask(MTBImage excludeMask) {
+		this.excludeMask = excludeMask;
+	}
+
 	/**
 	 * Get Jmax (maximum scale 2^Jmax - 1)
 	 */
