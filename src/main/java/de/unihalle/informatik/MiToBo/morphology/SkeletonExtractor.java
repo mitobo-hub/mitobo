@@ -27,9 +27,6 @@ package de.unihalle.informatik.MiToBo.morphology;
 import ij.process.BinaryProcessor;
 import ij.process.ByteProcessor;
 
-import java.util.Hashtable;
-import java.util.Set;
-
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator.Level;
@@ -44,7 +41,15 @@ import de.unihalle.informatik.MiToBo.core.operator.*;
  * The foreground of the given image is defined by all pixels having
  * values larger than zero.
  * <p>
- * Note that this operator directly uses ImageJ 1.x functionality!
+ * Note that this operator directly uses ImageJ 1.x functionality! In ImageJ
+ * the skeletonization is implemented based on this paper: 
+ * <p>
+ * <b>Zhang TY, Suen CY (1984) <i>A fast parallel algorithm for thinning digital
+ * patterns</i>. Commun ACM 27: 236–239</b>
+ * <p>
+ * For more details take a look at Section 29.8.9 on this page:<br>
+ * <a href="https://imagej.nih.gov/ij/docs/guide/146-29.html#toc-Subsection-29.8">
+ * 		https://imagej.nih.gov/ij/docs/guide/146-29.html#toc-Subsection-29.8</a>
  * 
  * @author moeller
  */
@@ -52,17 +57,23 @@ import de.unihalle.informatik.MiToBo.core.operator.*;
 		level=Level.APPLICATION)
 public class SkeletonExtractor extends MTBOperator {
 
+	/**
+	 * Binary input image, pixels with value 0 are interpreted as background.
+	 */
 	@Parameter( label= "Input Image", required = true, dataIOOrder = 0,
-			direction = Parameter.Direction.IN, description = "Input image")
+			direction = Parameter.Direction.IN, description = "Input image.")
 	private transient MTBImage inImg = null;
 
+	/**
+	 * Binary result image, skeleton in white, background in black.
+	 */
 	@Parameter( label= "Result Image", required = true,
-			direction = Parameter.Direction.OUT, description = "Result image")
+			direction = Parameter.Direction.OUT, description = "Result image.")
 	private transient MTBImageByte resultImg = null;
 
 	/**
 	 * Default constructor.
-	 *  @throws ALDOperatorException
+	 * @throws ALDOperatorException Thrown in case of failure.
 	 */
 	public SkeletonExtractor() throws ALDOperatorException {
 		// nothing to do here
@@ -70,6 +81,7 @@ public class SkeletonExtractor extends MTBOperator {
 
 	/**
 	 * Set input image to process.
+	 * @param img Input image to process.
 	 */
 	public void setInputImage(MTBImage img) {
 		this.inImg = img;
@@ -77,6 +89,7 @@ public class SkeletonExtractor extends MTBOperator {
 
 	/**
 	 * Returns the input image, null if not set.
+	 * @return Input image.
 	 */
 	public MTBImage getInputImage() {
 		return this.inImg;
@@ -84,6 +97,7 @@ public class SkeletonExtractor extends MTBOperator {
 
 	/**
 	 * Returns the skeleton image.
+	 * @return Binary skeleton image.
 	 */
 	public MTBImageByte getResultImage() {
 		return this.resultImg;
