@@ -838,7 +838,7 @@ public class ParticleDetectorUWT2D extends ParticleDetector
 			if (this.verbose.booleanValue())
 				System.out.print(opIdentifier 
 					+ "performing Poisson-to-Gauss noise transformation...");
-			img = this.poisson2gauss(img);
+			img = poisson2gauss(img);
 			if (this.verbose.booleanValue())
 				System.out.println("done."); 
 		}
@@ -973,7 +973,7 @@ public class ParticleDetectorUWT2D extends ParticleDetector
 	 * Transforms image with poisson noise to image with gaussian noise
 	 * J.-L. Starck et al., Multiresolution Support Applied to Image Filtering and Restoration
 	 */
-	protected MTBImage poisson2gauss(MTBImage img) throws ALDOperatorException {
+	protected static MTBImage poisson2gauss(MTBImage img) throws ALDOperatorException {
 		MTBImage imgT = img.convertType(MTBImageType.MTB_DOUBLE, false);
 
 		MTBImageArithmetics mia = new MTBImageArithmetics();
@@ -989,7 +989,7 @@ public class ParticleDetectorUWT2D extends ParticleDetector
 	 * Transforms image with gaussian noise to image with poisson noise
 	 * J.-L. Starck et al., Multiresolution Support Applied to Image Filtering and Restoration
 	 */
-	protected MTBImage gauss2poisson(MTBImage img) throws ALDOperatorException {
+	protected static MTBImage gauss2poisson(MTBImage img) throws ALDOperatorException {
 		MTBImage imgT = img.convertType(MTBImageType.MTB_DOUBLE, false);
 
 		MTBImageArithmetics mia = new MTBImageArithmetics();
@@ -1972,7 +1972,7 @@ public class ParticleDetectorUWT2D extends ParticleDetector
 	 * 
 	 * @author moeller
 	 */
-	protected class UWTRunner implements Runnable {
+	protected static class UWTRunner implements Runnable {
 		
 		/**
 		 * Reference to (external) UWT operator.
