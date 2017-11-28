@@ -44,7 +44,7 @@ import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
  * <p>
  * The new intensity value of a pixel is calculated by the following 
  * equation:
- * {@latex.ilb %preamble{\\usepackage{amssymb}}
+ * {@latex.ilb %preamble{\\usepackage{amssymb,amsmath}}
  * 	\\begin{equation*}
  *  		I_{new}(x,y) = (I(x,y) - c) \\cdot \\frac{b-a}{d-c} + a
  *  \\end{equation*}}
