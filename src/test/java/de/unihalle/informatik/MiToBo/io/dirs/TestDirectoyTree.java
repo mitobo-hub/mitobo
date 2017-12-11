@@ -62,7 +62,7 @@ public class TestDirectoyTree {
 		try {
 			URL url = this.getClass().getResource("/");
 			URI uri = new URI(url.toString());
-			String testDir = uri.getPath() + File.separator + "io/dirA"; 
+			String testDir = uri.getPath() + File.separator + "io" + File.separator + "dirA"; 
 			
 			// test non-recursive processing
 			DirectoryTree testTree = new DirectoryTree(testDir, false);
@@ -87,32 +87,40 @@ public class TestDirectoyTree {
 					+ files.size(),	files.size() == 5);
 			file = files.get(0);
 			// throw away any absolute path above test folder
-			file = file.substring(file.indexOf("//")+2);
-			assertTrue("First file should be io/dirA/testFileA.txt, but is " 
-					+ file,	file.equals("io/dirA/testFileA1.txt"));
+			file = file.substring(file.indexOf("io"));
+			assertTrue("First file should be io" + File.separator + "dirA" 
+				+ File.separator + "testFileA.txt, but is " 
+					+ file,	file.equals("io" + File.separator + "dirA" 
+						+ File.separator + "testFileA1.txt"));
 			file = files.get(1);
 			// throw away any absolute path above test folder
-			file = file.substring(file.indexOf("//")+2);
-			assertTrue("Second file should be io/dirA/testFileA2.txt, but is " 
-					+ file,	file.equals("io/dirA/testFileA2.txt"));
+			file = file.substring(file.indexOf("io"));
+			assertTrue("Second file should be io" + File.separator + "dirA"
+				+ File.separator + "testFileA2.txt, but is " 
+					+ file,	file.equals("io" + File.separator + "dirA" 
+						+ File.separator + "testFileA2.txt"));
 			file = files.get(2);
 			// throw away any absolute path above test folder
-			file = file.substring(file.indexOf("//")+2);
-			String targetFile = 
-					"io/dirA/subDirAA/subSubDirAAB/testFileAAB.txt";
+			file = file.substring(file.indexOf("io"));
+			String targetFile = "io" + File.separator + "dirA" 
+				+ File.separator + "subDirAA" + File.separator 
+					+ "subSubDirAAB" + File.separator + "testFileAAB.txt";
 			assertTrue("Second file should be " + targetFile + ", but is " 
 					+ file,	file.equals(targetFile));
 			file = files.get(3);
 			// throw away any absolute path above test folder
-			file = file.substring(file.indexOf("//")+2);
-			targetFile = 
-				"io/dirA/subDirAA/subSubDirAAB/subSubSubDirAABB/testFileAABB.txt";
+			file = file.substring(file.indexOf("io"));
+			targetFile = "io" + File.separator + "dirA" + File.separator 
+				+ "subDirAA" + File.separator + "subSubDirAAB" 
+					+ File.separator + "subSubSubDirAABB" + File.separator 
+						+ "testFileAABB.txt";
 			assertTrue("Second file should be " + targetFile + ", but is " 
 					+ file,	file.equals(targetFile));
 			file = files.get(4);
 			// throw away any absolute path above test folder
-			file = file.substring(file.indexOf("//")+2);
-			targetFile = "io/dirA/subDirAB/testFileAB.txt";
+			file = file.substring(file.indexOf("io"));
+			targetFile = "io" + File.separator + "dirA" + File.separator 
+				+ "subDirAB" + File.separator + "testFileAB.txt";
 			assertTrue("Second file should be " + targetFile + ", but is " 
 					+ file,	file.equals(targetFile));
 
@@ -124,29 +132,34 @@ public class TestDirectoyTree {
 					+ subDirs.size(), subDirs.size() == 4);
 			String dir = subDirs.get(0);
 			// throw away any absolute path above test folder
-			dir = dir.substring(dir.indexOf("//")+2);
-			String targetDir = "io/dirA/subDirAA";
+			dir = dir.substring(dir.indexOf("io"));
+			String targetDir = "io" + File.separator + "dirA" 
+					+ File.separator + "subDirAA";
 			assertTrue("First directory should be " + targetDir + ", but is " 
 					+ dir, dir.equals(targetDir));
 			
 			dir = subDirs.get(1);
 			// throw away any absolute path above test folder
-			dir = dir.substring(dir.indexOf("//")+2);
-			targetDir = "io/dirA/subDirAA/subSubDirAAB";
+			dir = dir.substring(dir.indexOf("io"));
+			targetDir = "io" + File.separator + "dirA" + File.separator 
+				+ "subDirAA" + File.separator + "subSubDirAAB";
 			assertTrue("First directory should be " + targetDir + ", but is " 
 					+ dir, dir.equals(targetDir));
 			
 			dir = subDirs.get(2);
 			// throw away any absolute path above test folder
-			dir = dir.substring(dir.indexOf("//")+2);
-			targetDir = "io/dirA/subDirAA/subSubDirAAB/subSubSubDirAABB";
+			dir = dir.substring(dir.indexOf("io"));
+			targetDir = "io" + File.separator + "dirA" + File.separator 
+				+ "subDirAA" + File.separator + "subSubDirAAB" 
+					+ File.separator + "subSubSubDirAABB";
 			assertTrue("First directory should be " + targetDir + ", but is " 
 					+ dir, dir.equals(targetDir));
 
 			dir = subDirs.get(3);
 			// throw away any absolute path above test folder
-			dir = dir.substring(dir.indexOf("//")+2);
-			targetDir = "io/dirA/subDirAB";
+			dir = dir.substring(dir.indexOf("io"));
+			targetDir = "io" + File.separator + "dirA" + File.separator 
+				+ "subDirAB";
 			assertTrue("First directory should be " + targetDir + ", but is " 
 					+ dir, dir.equals(targetDir));
 
