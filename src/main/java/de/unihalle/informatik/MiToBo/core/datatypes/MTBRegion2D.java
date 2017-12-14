@@ -104,8 +104,8 @@ public class MTBRegion2D implements MTBRegionInterface {
 		 */
 		public MTBRegion2D(Vector<Point2D.Double> inPoints) {
 			this.points = new Vector<Point2D.Double>();
-			for (int i = 0; i < inPoints.size(); i++) {
-				this.addPixel(inPoints.elementAt(i));
+			for (Point2D.Double p: inPoints) {				
+				this.points.addElement(p);
 			}
 			this.hookPointsUpdated();
 		}
