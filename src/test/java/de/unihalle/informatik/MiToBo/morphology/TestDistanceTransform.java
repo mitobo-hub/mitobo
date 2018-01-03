@@ -38,11 +38,11 @@ import de.unihalle.informatik.MiToBo.morphology.DistanceTransform.DistanceMetric
 import de.unihalle.informatik.MiToBo.morphology.DistanceTransform.ForegroundColor;
 
 /**
- * JUnit test class for {@link DistanceTransformPrecursorInfos}.
+ * JUnit test class for {@link DistanceTransform}.
  * 
  * @author moeller
  */
-public class TestDistanceTransformPrecursorInfos {
+public class TestDistanceTransform {
 
 	/**
 	 * Dummy image for tests.
@@ -74,8 +74,7 @@ public class TestDistanceTransformPrecursorInfos {
 	public void testDistanceTransform() {
 		
 		try {
-			DistanceTransformPrecursorInfos tOp = 
-					new DistanceTransformPrecursorInfos();
+			DistanceTransform tOp = new DistanceTransform();
 			tOp.setInImg(this.dummyImage);
 			tOp.setDistMetric(DistanceMetric.CITYBLOCK);
 			tOp.setForeground(ForegroundColor.FG_WHITE);
@@ -185,11 +184,11 @@ public class TestDistanceTransformPrecursorInfos {
 	public void testDistanceTransformPrecursorMap() {
 		
 		try {
-			DistanceTransformPrecursorInfos tOp = 
-					new DistanceTransformPrecursorInfos();
+			DistanceTransform tOp = new DistanceTransform();
 			tOp.setInImg(this.dummyImage);
 			tOp.setDistMetric(DistanceMetric.CITYBLOCK);
 			tOp.setForeground(ForegroundColor.FG_WHITE);
+			tOp.setPrecursorInfosEnabled(true);
 			
 			System.out.println("Running distance transformation...");
 			
@@ -274,11 +273,11 @@ public class TestDistanceTransformPrecursorInfos {
 	public void testDistanceTransformClosestObjectPixelMap() {
 		
 		try {
-			DistanceTransformPrecursorInfos tOp = 
-					new DistanceTransformPrecursorInfos();
+			DistanceTransform tOp = new DistanceTransform();
 			tOp.setInImg(this.dummyImage);
 			tOp.setDistMetric(DistanceMetric.CITYBLOCK);
 			tOp.setForeground(ForegroundColor.FG_WHITE);
+			tOp.setPrecursorInfosEnabled(true);
 			
 			System.out.println("Running distance transformation...");
 			
