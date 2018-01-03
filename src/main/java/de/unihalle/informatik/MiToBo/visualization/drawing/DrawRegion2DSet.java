@@ -76,7 +76,8 @@ import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
  * <p>
  * Be sure to set the xMin, xMax, yMin, yMax values of the input 
  * {@link MTBRegion2DSet} correctly, because these values are
- * used to determine the output image size!
+ * used to determine the output image size if no target image is specified
+ * nor dimensions are given explicitly!
  * 
  * @author Oliver Gress
  *
@@ -163,6 +164,52 @@ public class DrawRegion2DSet extends MTBOperator {
 			description = "Select if the target image should be cloned.")
 	private boolean cloneTargetImage = true;
 	
+	/**
+	 * Desired width of result image.
+	 * <p>
+	 * If this parameter and {@link #resultImgHeight} are set to something 
+	 * different from -1 they will overwrite all other specifications.
+	 */
+	@Parameter( label = "Result Image Width", required = false, 
+		direction = Direction.IN, dataIOOrder = 5, 
+		mode = ExpertMode.ADVANCED, description = "Width of target image.")
+	private int resultImgWidth = -1;
+	
+	/**
+	 * Desired height of result image.
+	 * <p>
+	 * If this parameter and {@link #resultImgWidth} are set to something 
+	 * different from -1 they will overwrite all other specifications.
+	 */
+	@Parameter( label = "Result Image Height", required = false, 
+		direction = Direction.IN, dataIOOrder = 6, 
+		mode = ExpertMode.ADVANCED, description = "Height of target image.")
+	private int resultImgHeight = -1;
+	
+	/**
+	 * Desired offset in x of result image.
+	 * <p>
+	 * If {@link #resultImgHeight} and {@link #resultImgWidth} are set to values
+	 * different from -1 this parameter will be used and overwrite all other 
+	 * specifications.
+	 */
+	@Parameter( label = "Result Image Offset X", required = false, 
+		direction = Direction.IN, dataIOOrder = 7, 
+		mode = ExpertMode.ADVANCED, description = "Offset in x of result image.")
+	private int resultImgOffsetX = 0;
+
+	/**
+	 * Desired offset in y of result image.
+	 * <p>
+	 * If {@link #resultImgHeight} and {@link #resultImgWidth} are set to values
+	 * different from -1 this parameter will be used and overwrite all other 
+	 * specifications.
+	 */
+	@Parameter( label = "Result Image Offset Y", required = false, 
+		direction = Direction.IN, dataIOOrder = 8, 
+		mode = ExpertMode.ADVANCED, description = "Offset in y of result image.")
+	private int resultImgOffsetY = 0;
+
 	/**
 	 * Output image.
 	 */
@@ -531,7 +578,7 @@ public class DrawRegion2DSet extends MTBOperator {
 	 * Set the resulting image.
 	 * @param image Result image.
 	 */
-	protected void setResultImage(MTBImage image) {
+	private void setResultImage(MTBImage image) {
 		this.resultImage = image;
 	}
 	
@@ -567,7 +614,15 @@ public class DrawRegion2DSet extends MTBOperator {
 		// y-coordinate value of the first pixel 
 		int offsetY = 0;
 		
-		if (this.getTargetImage() != null) {
+		if (this.resultImgWidth > -1 && this.resultImgHeight > -1) {
+			sizeX = this.resultImgWidth;
+			sizeY = this.resultImgHeight;
+			offsetX = this.resultImgOffsetX;
+			offsetY = this.resultImgOffsetY;
+			outImg = MTBImage.createMTBImage(sizeX, sizeY, 1, 1, 1, 
+					this.getImageType());
+		}
+		else if (this.getTargetImage() != null) {
 			sizeX = this.getTargetImage().getSizeX();
 			sizeY = this.getTargetImage().getSizeY();
 			if (this.cloneTargetImage)
