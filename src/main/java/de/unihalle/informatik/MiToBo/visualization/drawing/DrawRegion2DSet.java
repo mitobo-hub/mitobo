@@ -669,9 +669,6 @@ public class DrawRegion2DSet extends MTBOperator {
 						
 						outImg.putValueInt(x, y, c);
 					}
-					else {
-						System.err.println("Warning: Cannot draw region pixel outside of image. Coordinate (" + x + "," + y + "), image size " + sizeX + "x" + sizeY + ".");
-					}
 				}	
 			}
 		} else if (dtype == DrawType.TRANSPARENT_IMAGE) {
@@ -705,9 +702,6 @@ public class DrawRegion2DSet extends MTBOperator {
 								(int)Math.round(col.getBlue()*val)));
 						outImg.putValueInt(x, y, c);
 					}
-					else {
-						System.err.println("Warning: Cannot draw region pixel outside of image. Coordinate (" + x + "," + y + "), image size " + sizeX + "x" + sizeY + ".");
-					}
 				}	
 			}
 		} else if ( dtype == DrawType.CONTOURS ) {
@@ -732,10 +726,6 @@ public class DrawRegion2DSet extends MTBOperator {
 					if (x >= 0 && x < sizeX && y >= 0 && y < sizeY) {
 						outImg.putValueDouble(x, y, ccolor);
 					}
-					else {
-						System.err.println("Warning: Cannot draw region pixel outside of image. Coordinate (" + x + "," + y + "), image size " + sizeX + "x" + sizeY + ".");
-					}
-					
 				}
 					
 			}
@@ -771,9 +761,6 @@ public class DrawRegion2DSet extends MTBOperator {
 					
 					if (x >= 0 && x < sizeX && y >= 0 && y < sizeY) {
 						outImg.putValueDouble(x, y, v);
-					}
-					else {
-						System.err.println("Warning: Cannot draw region pixel outside of image. Coordinate (" + x + "," + y + "), image size " + sizeX + "x" + sizeY + ".");
 					}
 				}	
 			}
