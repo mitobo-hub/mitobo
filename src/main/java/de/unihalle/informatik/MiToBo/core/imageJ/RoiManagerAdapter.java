@@ -499,15 +499,15 @@ public class RoiManagerAdapter {
 
 								int[][] mask = 
 										poly.getBinaryMask(width, height, !realPolygon);
-								MTBRegion2D region = new MTBRegion2D();
+								Vector<Point2D.Double> regps = new Vector<>();
 								for (int y = 0; y < height; ++y) {
 										for (int x = 0; x < width; ++x) {
 												if (mask[y][x] > 0)
-														region.addPixel(new Point2D.Double(x, y));
+													regps.add(new Point2D.Double(x, y));
 										}
 								}
 								// add region to region vector
-								regVec.add(region);
+								regVec.add(new MTBRegion2D(regps));
 						}
 						// create region set from vector
 						MTBRegion2DSet regionSet = new MTBRegion2DSet(regVec, 0, 0, polygonSet
@@ -581,15 +581,15 @@ public class RoiManagerAdapter {
 
 								int[][] mask = 
 										poly.getBinaryMask(width, height, !realPolygon);
-								MTBRegion2D region = new MTBRegion2D();
+								Vector<Point2D.Double> regps = new Vector<>();
 								for (int y = 0; y < height; ++y) {
-										for (int x = 0; x < width; ++x) {
-												if (mask[y][x] > 0)
-														region.addPixel(new Point2D.Double(x, y));
-										}
+									for (int x = 0; x < width; ++x) {
+										if (mask[y][x] > 0)
+											regps.add(new Point2D.Double(x, y));
+									}
 								}
 								// add region to region vector
-								regVec.add(region);
+								regVec.add(new MTBRegion2D(regps));
 						}
 						// create region set from vector
 						MTBRegion2DSet regionSet = new MTBRegion2DSet(regVec, 0, 0, 
