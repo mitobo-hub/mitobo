@@ -11,6 +11,7 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 
 ### Changed
 - DistanceTransform: integrated functionality to extract pre-cursor infos
+- DrawRegion2DSet: added parameters to specify desired size of result image directly
 - ParticleDetectorUWT2D: visibility of some internal methods updated
 
 ### Deprecated
@@ -19,6 +20,7 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 - obsolete class DistanceTransformPrecursorInfos, functionality is now part of DistanceTransform
 
 ### Fixed
+- RoiManagerAdapter: fixed performance issue in reading regions, avoiding iterative init of internal fields
 - SkeletonExtractor: padding image to compensate for border issue in ImageJ 1.x skeleton extraction
 - TestDirectoryTree: fixed file separators to properly work on Windows systems
 

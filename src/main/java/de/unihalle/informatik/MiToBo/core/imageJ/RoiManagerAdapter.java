@@ -499,15 +499,15 @@ public class RoiManagerAdapter {
 
 								int[][] mask = 
 										poly.getBinaryMask(width, height, !realPolygon);
-								MTBRegion2D region = new MTBRegion2D();
+								Vector<Point2D.Double> regps = new Vector<>();
 								for (int y = 0; y < height; ++y) {
 										for (int x = 0; x < width; ++x) {
 												if (mask[y][x] > 0)
-														region.addPixel(new Point2D.Double(x, y));
+													regps.add(new Point2D.Double(x, y));
 										}
 								}
 								// add region to region vector
-								regVec.add(region);
+								regVec.add(new MTBRegion2D(regps));
 						}
 						// create region set from vector
 						MTBRegion2DSet regionSet = new MTBRegion2DSet(regVec, 0, 0, polygonSet
@@ -581,15 +581,15 @@ public class RoiManagerAdapter {
 
 								int[][] mask = 
 										poly.getBinaryMask(width, height, !realPolygon);
-								MTBRegion2D region = new MTBRegion2D();
+								Vector<Point2D.Double> regps = new Vector<>();
 								for (int y = 0; y < height; ++y) {
-										for (int x = 0; x < width; ++x) {
-												if (mask[y][x] > 0)
-														region.addPixel(new Point2D.Double(x, y));
-										}
+									for (int x = 0; x < width; ++x) {
+										if (mask[y][x] > 0)
+											regps.add(new Point2D.Double(x, y));
+									}
 								}
 								// add region to region vector
-								regVec.add(region);
+								regVec.add(new MTBRegion2D(regps));
 						}
 						// create region set from vector
 						MTBRegion2DSet regionSet = new MTBRegion2DSet(regVec, 0, 0, 
@@ -1137,7 +1137,6 @@ public class RoiManagerAdapter {
 						}
 						Roi r;
 						Polygon selPoly;
-						MTBRegion2D region;
 						MTBPolygon2D polygon;
 						Vector<MTBRegion2D> tmpRegions = new Vector<MTBRegion2D>();
 						Vector<Point2D.Double> points;
@@ -1194,14 +1193,15 @@ public class RoiManagerAdapter {
 							height = (int) (ymax + 0.5) + 1;
 							int[][] mask = 
 									polygon.getBinaryMask(width, height, !realPolygon);
-							region = new MTBRegion2D();
+							
+							Vector<Point2D.Double> ps = new Vector<>();
 							for (int py = 0; py < height; ++py) {
 									for (int px = 0; px < width; ++px) {
 											if (mask[py][px] > 0)
-													region.addPixel(new Point2D.Double(px, py));
+													ps.add(new Point2D.Double(px, py));
 									}
 							}
-							tmpRegions.add(region);
+							tmpRegions.add(new MTBRegion2D(ps));
 						}
 						// add region to region vector
 						if (this.useSpecifiedDomain)
