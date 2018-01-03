@@ -7,6 +7,7 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 ### Added
 - new data type MTBLineSegment2DSet for sets of MTBLineSegment2D objects
 - support for importing sets of MTBLineSegment2D objects from ImageJ via the ROI manager
+- MTBDataIOFile: added support for loading region sets from ImageJ ROI files
 - UndecimatedWaveletTransform: support for exclusion mask and an initial sigma of 0.5
 
 ### Changed

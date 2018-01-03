@@ -125,15 +125,32 @@ public class MTBDataIOFile implements ALDDataIOCmdline {
 		}
 		else if (cl.equals(MTBRegion2DSet.class)) {
 			try {
-				return new MTBRegion2DSet(iname);
+				if (iname.endsWith(".xml")) {
+					return new MTBRegion2DSet(iname);
+				}
+				else if (iname.endsWith(".zip") || iname.endsWith(".roi")) { 
+					return RoiManagerAdapter.getInstance().getRegionSetFromRoiFile(iname);
+				}
+				else 
+					throw new ALDDataIOProviderException( 
+						ALDDataIOProviderExceptionType.FILE_IO_ERROR,
+							"MTBDataIOFile::readData cannot read MTBRegion2DSet from file " 
+								+ iname + ",\n" + "unknown format");
 			} catch (XmlException e) {
-				throw new ALDDataIOProviderException( ALDDataIOProviderExceptionType.SYNTAX_ERROR,
-						"MTBDataIOFile::readData cannot read MTBRegion2DSet from xml-file " + iname + "\n" +
-								e.getMessage());
+				throw new ALDDataIOProviderException( 
+					ALDDataIOProviderExceptionType.SYNTAX_ERROR,
+						"MTBDataIOFile::readData cannot read MTBRegion2DSet from xml-file " 
+							+ iname + "\n" + e.getMessage());
 			} catch (IOException e) {
-				throw new ALDDataIOProviderException( ALDDataIOProviderExceptionType.FILE_IO_ERROR,
-						"MTBDataIOFile::readData cannot read MTBRegion2DSet from xml-file " + iname + "\n" +
-								e.getMessage());
+				throw new ALDDataIOProviderException( 
+					ALDDataIOProviderExceptionType.FILE_IO_ERROR,
+						"MTBDataIOFile::readData cannot read MTBRegion2DSet from xml-file " 
+							+ iname + "\n" + e.getMessage());
+			} catch (ALDException e) {
+				throw new ALDDataIOProviderException( 
+					ALDDataIOProviderExceptionType.UNSPECIFIED_ERROR,
+						"MTBDataIOFile::readData cannot read MTBRegion2DSet from xml-file " 
+							+ iname + "\n" + e.getMessage());
 			}
 		}
 		else if (cl.equals(MTBRegion3DSet.class)) {
