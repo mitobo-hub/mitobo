@@ -1131,9 +1131,9 @@ public class ComponentPostprocess extends MTBOperator {
     	}
     	
     	// perform distance transform
-    	DistanceTransformPrecursorInfos dOp = 
-    			new DistanceTransformPrecursorInfos(bImg, 
+    	DistanceTransform dOp =	new DistanceTransform(bImg, 
     					DistanceMetric.CITYBLOCK, ForegroundColor.FG_WHITE);
+    	dOp.setPrecursorInfosEnabled(true);
     	dOp.runOp();
     	
     	// get result data

@@ -7,14 +7,20 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 ### Added
 - new data type MTBLineSegment2DSet for sets of MTBLineSegment2D objects
 - support for importing sets of MTBLineSegment2D objects from ImageJ via the ROI manager
+- UndecimatedWaveletTransform: support for exclusion mask and an initial sigma of 0.5
 
 ### Changed
+- DistanceTransform: integrated functionality to extract pre-cursor infos
+- ParticleDetectorUWT2D: visibility of some internal methods updated
 
 ### Deprecated
 
 ### Removed
+- obsolete class DistanceTransformPrecursorInfos, functionality is now part of DistanceTransform
 
 ### Fixed
+- SkeletonExtractor: padding image to compensate for border issue in ImageJ 1.x skeleton extraction
+- TestDirectoryTree: fixed file separators to properly work on Windows systems
 
 ## [1.8.6.1] - 2017-10-09
 ### Changed

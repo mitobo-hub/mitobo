@@ -22,20 +22,12 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev$
- * $Date$
- * $Author$
- * 
- */
-
 package de.unihalle.informatik.MiToBo.morphology;
 
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
+
+import java.awt.geom.Point2D;
+
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
 import de.unihalle.informatik.Alida.annotations.Parameter;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator.Level;
@@ -47,10 +39,12 @@ import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType
 import de.unihalle.informatik.MiToBo.core.operator.*;
 
 /**
+ * Calculate Champfer distance transform with optional precursor infos.
+ * 
  * <pre>
  * 
  * Class to calculate a distance map / field from a binary image using the
- * Champfer-algorithm from
+ * Champfer algorithm from
  * 
  * G. Borgefors, "Distance transformations in digital images", Computer
  * Vision, Graphics, and Image Processing, vol. 34, pp. 344–371, 1986.
@@ -63,25 +57,43 @@ import de.unihalle.informatik.MiToBo.core.operator.*;
  * foreground pixel. For example, if the distance should be calculated inside a
  * white object, the black background should be set as foreground color.
  * 
- * The distance field is created as MTBImage or as a two dimensional double array.
- * First dimension specifies the y-coordinate of the field, and the
+ * The distance field is created as MTBImage or as a two dimensional double 
+ * array. First dimension specifies the y-coordinate of the field, and the
  * second dimension specifies the x-coordinate of the field.
  * 
  * </pre>
  * 
+ * Optionally this class offers as additional information a map of the 
+ * precursor pixels for each position, i.e. the pixel which lead to the 
+ * actual distance value, and a map containing for each background
+ * pixel the object pixel being closest to the pixel according to 
+ * the distances calculated during the transformation. 
+ * <p>
+ * Note that if precursor information is extracted the distance transform runs
+ * slightly less efficient than the original one since the two additional maps 
+ * are filled during the calculations and more memory is required for them.
  * 
  * @author misiak
+ * @author moeller
  */
-@ALDAOperator(genericExecutionMode = ALDAOperator.ExecutionMode.ALL, level = Level.APPLICATION)
-@ALDMetaInfo(export = ExportPolicy.MANDATORY)
+@ALDAOperator(genericExecutionMode = ALDAOperator.ExecutionMode.ALL, 
+	level = Level.APPLICATION)
 public class DistanceTransform extends MTBOperator {
+	
 		/**
 		 * Color of binary image foreground.
 		 * 
 		 * @author Danny Misiak
 		 */
 		public static enum ForegroundColor {
-				FG_BLACK, FG_WHITE
+			/**
+			 * Foreground color is black.
+			 */
+			FG_BLACK, 
+			/**
+			 * Foreground color is white. 
+			 */
+			FG_WHITE
 		}
 
 		/**
@@ -90,52 +102,98 @@ public class DistanceTransform extends MTBOperator {
 		 * @author misiak
 		 */
 		public static enum DistanceMetric {
-				/**
-				 * Euclidean distance metric where dist = Math.sqrt(dx * dx + dy * dy).
-				 */
-				EUCLIDEAN,
-				/**
-				 * Cityblock distance metric where dist = Math.abs(dx) + Math.abs(dy).
-				 */
-				CITYBLOCK,
-				/**
-				 * Chessboard distance metric where dist = 1.
-				 */
-				CHESSBOARD
+			/**
+			 * Euclidean distance metric where dist = Math.sqrt(dx * dx + dy * dy).
+			 */
+			EUCLIDEAN,
+			/**
+			 * Cityblock distance metric where dist = Math.abs(dx) + Math.abs(dy).
+			 */
+			CITYBLOCK,
+			/**
+			 * Chessboard distance metric where dist = 1.
+			 */
+			CHESSBOARD
 		}
 
-		@Parameter(label = "Binary Input Image", required = true, direction = Parameter.Direction.IN, description = "Binary input image.", mode = ExpertMode.STANDARD, dataIOOrder = 0)
+		/**
+		 * Binary input image.
+		 */
+		@Parameter(label = "Binary Input Image", required = true, 
+			direction = Parameter.Direction.IN, description = "Binary input image.", 
+			mode = ExpertMode.STANDARD, dataIOOrder = 0)
 		private transient MTBImageByte inputImage = null;
 
-		@Parameter(label = "Distance Metric", direction = Parameter.Direction.IN, required = true, description = "Used distance metric", mode = ExpertMode.STANDARD, dataIOOrder = 1)
+		/**
+		 * Distance metric to apply.
+		 */
+		@Parameter(label = "Distance Metric", required = true,
+			direction = Parameter.Direction.IN,  description = "Used distance metric", 
+			mode = ExpertMode.STANDARD, dataIOOrder = 1)
 		private DistanceMetric distanceMetric = DistanceMetric.EUCLIDEAN;
 
 		/**
 		 * Foreground color of the foreground object.
 		 */
-		@Parameter(label = "Foreground Color", required = true, direction = Parameter.Direction.IN, description = "Color of foreground.", mode = ExpertMode.STANDARD, dataIOOrder = 2)
+		@Parameter(label = "Foreground Color", required = true, 
+			direction = Parameter.Direction.IN, description = "Color of foreground.", 
+			mode = ExpertMode.STANDARD, dataIOOrder = 2)
 		private ForegroundColor foreground = ForegroundColor.FG_WHITE;
+
+		/**
+		 * Flag to enable/disable extraction of precursor infos.
+		 */
+		@Parameter(label = "Extract Precursor Iinformation?", required = true, 
+			direction = Parameter.Direction.IN, 
+			description = "Flag for precursor infos.", 
+			mode = ExpertMode.STANDARD, dataIOOrder = 3)
+		private boolean extractPrecursorInfos = false;
 
 		/**
 		 * The distance field as MTBImage.
 		 */
-		@Parameter(label = "Distance Map Image", direction = Parameter.Direction.OUT, description = "Image of the distance map.")
+		@Parameter(label = "Distance Map Image", 
+			direction = Parameter.Direction.OUT, 
+			description = "Image of the distance map.")
 		private transient MTBImage distanceImg = null;
 
 		/**
 		 * The distance field as two-dimensional double array. Organized as
 		 * double[y-dimension][x-dimension].
 		 */
-		@Parameter(label = "Distance Map", direction = Parameter.Direction.OUT, description = "2D distance map array.")
+		@Parameter(label = "Distance Map", direction = Parameter.Direction.OUT, 
+			description = "2D distance map array.")
 		private double[][] distanceMap = null;
 
 		/**
-		 * Width and height of the given image.
+		 * Map of precursor positions for each pixel in the background.
 		 */
-		private int width, height;
+		@Parameter(label = "Precursor Map", 
+				direction = Parameter.Direction.OUT, 
+				description = "2D map of precursor pixels for each position.")
+		private Point2D.Double[][] precursorMap = null;
+
+		/**
+		 * Map of closest object pixels for each background location.
+		 */
+		@Parameter(label = "Closest Object Pixel Map", 
+				direction = Parameter.Direction.OUT, 
+				description = "Map of closest object pixels for each position.")
+		private Point2D.Double[][] closestObjectPixelMap = null;
+
+		/**
+		 * Width of the given image.
+		 */
+		private int width;
+
+		/**
+		 * Height of the given image.
+		 */
+		private int height;
 
 		/**
 		 * Standard constructor.
+		 * @throws ALDOperatorException Thrown in case of failure.
 		 */
 		public DistanceTransform() throws ALDOperatorException {
 				// nothing to do here
@@ -150,7 +208,7 @@ public class DistanceTransform extends MTBOperator {
 		 *          the distance metric
 		 * @param fg
 		 *          set foreground white or black
-		 * @throws ALDOperatorException
+		 * @throws ALDOperatorException Thrown in case of failure.
 		 */
 		public DistanceTransform(MTBImageByte image, DistanceMetric dm,
 		    ForegroundColor fg) throws ALDOperatorException {
@@ -170,6 +228,7 @@ public class DistanceTransform extends MTBOperator {
 
 		/**
 		 * Set the input image.
+		 * @param inImg	Input image.
 		 */
 		public void setInImg(MTBImageByte inImg) {
 				this.inputImage = inImg;
@@ -186,6 +245,7 @@ public class DistanceTransform extends MTBOperator {
 
 		/**
 		 * Set the distance metric.
+		 * @param metric	Distance metric to apply.
 		 */
 		public void setDistMetric(DistanceMetric metric) {
 				this.distanceMetric = metric;
@@ -202,11 +262,20 @@ public class DistanceTransform extends MTBOperator {
 
 		/**
 		 * Set the foreground color.
+		 * @param fColor	Foreground color.
 		 */
 		public void setForeground(ForegroundColor fColor) {
 				this.foreground = fColor;
 		}
 
+		/**
+		 * Enable or disable extraction of additional precursor infos.
+		 * @param f	If true, additional infos are extracted.
+		 */
+		public void setPrecursorInfosEnabled(boolean f) {
+			this.extractPrecursorInfos = f;
+		}
+		
 		/**
 		 * Get the calculated distance map image.
 		 * 
@@ -217,9 +286,10 @@ public class DistanceTransform extends MTBOperator {
 		}
 
 		/**
-		 * Get the calculated distance map. First dimension specifies the y-coordinate
-		 * of the field, and the second dimension specifies the x-coordinate of the
-		 * field.
+		 * Get the calculated distance map.
+		 * <p>
+		 * First dimension specifies the y-coordinate of the field, 
+		 * and the second dimension specifies the x-coordinate.
 		 * 
 		 * @return Distance map.
 		 */
@@ -228,55 +298,90 @@ public class DistanceTransform extends MTBOperator {
 		}
 
 		/**
+		 * Get the calculated precursor map.
+		 * <p>
+		 * First dimension specifies the y-coordinate of the field, 
+		 * and the second dimension specifies the x-coordinate.
+		 * 
+		 * @return Precursor map.
+		 */
+		public Point2D.Double[][] getPrecursorMap() {
+			return this.precursorMap;
+		}
+
+		/**
+		 * Get the calculated map of closest object pixels.
+		 * <p>
+		 * First dimension specifies the y-coordinate of the field, 
+		 * and the second dimension specifies the x-coordinate.
+		 * 
+		 * @return Closest object pixel map.
+		 */
+		public Point2D.Double[][] getClosestObjectPixelMap() {
+			return this.closestObjectPixelMap;
+		}
+
+		/**
 		 * Get image width.
+		 * @return Width of the input image.
 		 */
 		public int getWidth() {
-				return width;
+				return this.width;
 		}
-
-		/**
-		 * Set image width.
-		 */
-		public void setWidth(int width) {
-				this.width = width;
-		}
-
+		
 		/**
 		 * Get image height.
+		 * @return Height of the input image.
 		 */
 		public int getHeight() {
-				return height;
+				return this.height;
 		}
 
-		/**
-		 * Set image height.
+		/* (non-Javadoc)
+		 * @see de.unihalle.informatik.Alida.operator.ALDOperator#operate()
 		 */
-		public void setHeight(int height) {
-				this.height = height;
-		}
-
 		@Override
-		protected void operate() throws ALDOperatorException {
-				this.width = this.inputImage.getSizeX();
-				this.height = this.inputImage.getSizeY();
-				// calculate distance map
-				this.calcDM();
-				// create distance image
-				this.distanceImg = MTBImage.createMTBImage(this.width, this.height, 1, 1,
-				    1, MTBImageType.MTB_DOUBLE);
-				this.distanceImg.setTitle("DistanceTransformation-Result");
+		protected void operate() {
+			
+			this.width = this.inputImage.getSizeX();
+			this.height = this.inputImage.getSizeY();
+			
+			if (this.extractPrecursorInfos) {
+				this.precursorMap = 
+						new Point2D.Double[this.height][this.width];
+				this.closestObjectPixelMap = 
+						new Point2D.Double[this.height][this.width];
+
+				// initially each points is its own precursor and closest
+				// object pixel
 				for (int y = 0; y < this.height; y++) {
-						for (int x = 0; x < this.width; x++) {
-								distanceImg.putValueDouble(x, y, this.distanceMap[y][x]);
-						}
+					for (int x = 0; x < this.width; x++) {
+						this.precursorMap[y][x] = new Point2D.Double(x, y);
+						this.closestObjectPixelMap[y][x] = new Point2D.Double(x, y);
+					}
 				}
+			}
+			
+			// calculate distance map
+			this.calcDM();
+			// create distance image
+			this.distanceImg = MTBImage.createMTBImage(this.width, this.height, 1, 1,
+					1, MTBImageType.MTB_DOUBLE);
+			this.distanceImg.setTitle("DistanceTransformation-Result");
+			for (int y = 0; y < this.height; y++) {
+				for (int x = 0; x < this.width; x++) {
+					this.distanceImg.putValueDouble(x, y, this.distanceMap[y][x]);
+				}
+			}
 		}
 
 		/**
-		 * Method to calculate the distance map of the given binary image using the
-		 * Chamfer-algorithm. A specified distance metric and the fore- and background
-		 * of the binary image can be chosen. A neighborhood of 8 is used for the
-		 * distance calculation.
+		 * Method to calculate the distance map of the given binary image 
+		 * using the Chamfer-algorithm.
+		 * <p> 
+		 * A specified distance metric and the fore- and background
+		 * of the binary image can be chosen. A neighborhood of 8 is used 
+		 * for the distance calculations.
 		 */
 		private void calcDM() {
 				/**
@@ -366,24 +471,96 @@ public class DistanceTransform extends MTBOperator {
 						}
 				}
 				for (int y = 0; y < this.height; ++y) {// top -> bottom
-						for (int x = 0; x < this.width; ++x) {// left -> right
-								if (this.distanceMap[y][x] > MTBConstants.epsilon) {
-										double d1 = Double.MAX_VALUE;
-										double d2 = Double.MAX_VALUE;
-										double d3 = Double.MAX_VALUE;
-										double d4 = Double.MAX_VALUE;
-										if (x > 0)
-												d1 = a + this.distanceMap[y][x - 1];
-										if (x > 0 && y > 0)
-												d2 = b + this.distanceMap[y - 1][x - 1];
-										if (y > 0)
-												d3 = a + this.distanceMap[y - 1][x];
-										if (x < this.width - 1 && y > 0)
-												d4 = b + this.distanceMap[y - 1][x + 1];
-										double min = Math.min(Math.min(d1, d2), Math.min(d3, d4));
-										this.distanceMap[y][x] = min;
+					for (int x = 0; x < this.width; ++x) {// left -> right
+						if (this.distanceMap[y][x] > MTBConstants.epsilon) {
+							double d1 = Double.MAX_VALUE;
+							double d2 = Double.MAX_VALUE;
+							double d3 = Double.MAX_VALUE;
+							double d4 = Double.MAX_VALUE;
+							double min = Double.MAX_VALUE;
+							
+							// calculation without precursor infos
+							if (!this.extractPrecursorInfos) {
+								if (x > 0) {
+									d1 = a + this.distanceMap[y][x - 1];
+									if (d1 < min) {
+										min = d1;
+									}
 								}
+								if (x > 0 && y > 0) {
+									d2 = b + this.distanceMap[y - 1][x - 1];
+									if (d2 < min) {
+										min = d2;
+									}
+								}
+								if (y > 0) {
+									d3 = a + this.distanceMap[y - 1][x];
+									if (d3 < min) {
+										min = d3;
+									}
+								}
+								if (x < this.width - 1 && y > 0) {
+									d4 = b + this.distanceMap[y - 1][x + 1];
+									if (d4 < min) {
+										min = d4;
+									}
+								}
+								this.distanceMap[y][x] = min;
+							}
+							// calculations considering precursor infos
+							else { 
+								if (x > 0) {
+									d1 = a + this.distanceMap[y][x - 1];
+									if (d1 < min) {
+										min = d1;
+										this.precursorMap[y][x].x = x-1; 	
+										this.precursorMap[y][x].y = y; 	
+										this.closestObjectPixelMap[y][x].x = 
+												this.closestObjectPixelMap[y][x-1].x; 	
+										this.closestObjectPixelMap[y][x].y = 
+												this.closestObjectPixelMap[y][x-1].y; 
+									}
+								}
+								if (x > 0 && y > 0) {
+									d2 = b + this.distanceMap[y - 1][x - 1];
+									if (d2 < min) {
+										min = d2;
+										this.precursorMap[y][x].x = x-1; 
+										this.precursorMap[y][x].y = y-1; 
+										this.closestObjectPixelMap[y][x].x = 
+												this.closestObjectPixelMap[y-1][x-1].x; 	
+										this.closestObjectPixelMap[y][x].y = 
+												this.closestObjectPixelMap[y-1][x-1].y; 	
+									}
+								}
+								if (y > 0) {
+									d3 = a + this.distanceMap[y - 1][x];
+									if (d3 < min) {
+										min = d3;
+										this.precursorMap[y][x].x = x; 
+										this.precursorMap[y][x].y = y-1; 
+										this.closestObjectPixelMap[y][x].x = 
+												this.closestObjectPixelMap[y-1][x].x; 	
+										this.closestObjectPixelMap[y][x].y = 
+												this.closestObjectPixelMap[y-1][x].y; 	
+									}
+								}
+								if (x < this.width - 1 && y > 0) {
+									d4 = b + this.distanceMap[y - 1][x + 1];
+									if (d4 < min) {
+										min = d4;
+										this.precursorMap[y][x].x = x+1; 
+										this.precursorMap[y][x].y = y-1; 
+										this.closestObjectPixelMap[y][x].x = 
+												this.closestObjectPixelMap[y-1][x+1].x; 	
+										this.closestObjectPixelMap[y][x].y = 
+												this.closestObjectPixelMap[y-1][x+1].y; 	
+									}
+								}
+								this.distanceMap[y][x] = min;
+							}
 						}
+					}
 				}
 				/**
 				 * <pre>
@@ -396,25 +573,82 @@ public class DistanceTransform extends MTBOperator {
 				 * </pre>
 				 */
 				for (int y = this.height - 1; y >= 0; --y) { // bottom -> top
-						for (int x = this.width - 1; x >= 0; --x) { // right -> left
-								if (this.distanceMap[y][x] > MTBConstants.epsilon) {
-										double d1 = Double.MAX_VALUE;
-										double d2 = Double.MAX_VALUE;
-										double d3 = Double.MAX_VALUE;
-										double d4 = Double.MAX_VALUE;
-										if (x < this.width - 1)
-												d1 = a + this.distanceMap[y][x + 1];
-										if (x < this.width - 1 && y < this.height - 1)
-												d2 = b + this.distanceMap[y + 1][x + 1];
-										if (y < this.height - 1)
-												d3 = a + this.distanceMap[y + 1][x];
-										if (x > 0 && y < this.height - 1)
-												d4 = b + this.distanceMap[y + 1][x - 1];
-										double min = Math.min(this.distanceMap[y][x], Math.min(Math.min(d1,
-										    d2), Math.min(d3, d4)));
-										this.distanceMap[y][x] = min;
+					for (int x = this.width - 1; x >= 0; --x) { // right -> left
+						if (this.distanceMap[y][x] > MTBConstants.epsilon) {
+							double d1 = Double.MAX_VALUE;
+							double d2 = Double.MAX_VALUE;
+							double d3 = Double.MAX_VALUE;
+							double d4 = Double.MAX_VALUE;
+							double min = this.distanceMap[y][x];
+
+							// calculation without precursor infos
+							if (!this.extractPrecursorInfos) {
+								if (x < this.width - 1)
+									d1 = a + this.distanceMap[y][x + 1];
+								if (x < this.width - 1 && y < this.height - 1)
+									d2 = b + this.distanceMap[y + 1][x + 1];
+								if (y < this.height - 1)
+									d3 = a + this.distanceMap[y + 1][x];
+								if (x > 0 && y < this.height - 1)
+									d4 = b + this.distanceMap[y + 1][x - 1];
+								min = Math.min(this.distanceMap[y][x], 
+										Math.min(Math.min(d1, d2), Math.min(d3, d4)));
+								this.distanceMap[y][x] = min;
+							}
+							// calculations considering precursor infos
+							else { 
+								if (x < this.width - 1) {
+									d1 = a + this.distanceMap[y][x + 1];
+									if (d1 < min) {
+										min = d1;
+										this.precursorMap[y][x].x = x+1; 	
+										this.precursorMap[y][x].y = y; 	
+										this.closestObjectPixelMap[y][x].x = 
+												this.closestObjectPixelMap[y][x+1].x; 	
+										this.closestObjectPixelMap[y][x].y = 
+												this.closestObjectPixelMap[y][x+1].y; 	
+									}
 								}
+								if (x < this.width - 1 && y < this.height - 1) {
+									d2 = b + this.distanceMap[y + 1][x + 1];
+									if (d2 < min) {
+										min = d2;
+										this.precursorMap[y][x].x = x+1; 
+										this.precursorMap[y][x].y = y+1; 
+										this.closestObjectPixelMap[y][x].x = 
+												this.closestObjectPixelMap[y+1][x+1].x; 	
+										this.closestObjectPixelMap[y][x].y = 
+												this.closestObjectPixelMap[y+1][x+1].y; 	
+									}
+								}
+								if (y < this.height - 1) {
+									d3 = a + this.distanceMap[y + 1][x];
+									if (d3 < min) {
+										min = d3;
+										this.precursorMap[y][x].x = x; 
+										this.precursorMap[y][x].y = y+1; 
+										this.closestObjectPixelMap[y][x].x = 
+												this.closestObjectPixelMap[y+1][x].x; 	
+										this.closestObjectPixelMap[y][x].y = 
+												this.closestObjectPixelMap[y+1][x].y; 	
+									}
+								}
+								if (x > 0 && y < this.height - 1) {
+									d4 = b + this.distanceMap[y + 1][x - 1];
+									if (d4 < min) {
+										min = d4;
+										this.precursorMap[y][x].x = x-1; 
+										this.precursorMap[y][x].y = y+1; 
+										this.closestObjectPixelMap[y][x].x = 
+												this.closestObjectPixelMap[y+1][x-1].x; 	
+										this.closestObjectPixelMap[y][x].y = 
+												this.closestObjectPixelMap[y+1][x-1].y; 	
+									}
+								}
+								this.distanceMap[y][x] = min;
+							}
 						}
+					}
 				}
 		}
 }
