@@ -112,17 +112,28 @@ public class SkeletonExtractor extends MTBOperator {
 		int width = this.inImg.getSizeX();
 		int height = this.inImg.getSizeY();
 
-		// transform input image to byte processor, image is inverted
-		ByteProcessor bP = new ByteProcessor(width, height);
+		// transform input image to byte processor, image is inverted;
+		// note that image is padded by one row/column on each side to compensate
+		// ImageJ ignoring the outmost rows and columns on all sides
+		ByteProcessor bP = new ByteProcessor(width+2, height+2);
+		for (int x = 0; x < width+2; x++) {
+			bP.putPixel(x, 0, 0);
+			bP.putPixel(x, height+1, 0);
+		}
+		for (int y = 0; y < height+2; y++) {
+			bP.putPixel(0, y, 0);
+			bP.putPixel(width+1, y, 0);
+		}
 		for (int y = 0; y < height; y++) {
 			for (int x = 0; x < width; x++) {
 				if (this.inImg.getValueInt(x, y) > 0)
-					bP.putPixel(x, y, 0);
+					bP.putPixel(x+1, y+1, 0);
 				else
-					bP.putPixel(x, y, 255);
+					bP.putPixel(x+1, y+1, 255);
 			}
 		}
 		BinaryProcessor bbP = new BinaryProcessor(bP);
+		
 		// create the skeleton using ImageJ's skeletonize() function
 		bbP.skeletonize();
 
@@ -132,7 +143,7 @@ public class SkeletonExtractor extends MTBOperator {
 		this.resultImg.fillBlack();
 		for (int y = 0; y < height; y++) {
 			for (int x = 0; x < width; x++) {
-				if (bbP.getPixel(x, y) == 0) {
+				if (bbP.getPixel(x+1, y+1) == 0) {
 					this.resultImg.putValueInt(x, y, 255);
 				}
 			}
