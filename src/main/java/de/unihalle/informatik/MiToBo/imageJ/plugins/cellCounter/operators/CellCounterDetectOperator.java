@@ -24,7 +24,6 @@
 
 package de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.operators;
 
-import java.util.Collection;
 import java.util.Vector;
 
 import loci.common.StatusEvent;
@@ -37,15 +36,12 @@ import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarker;
-import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarkerVector;
-import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrSegResult;
 
 /**
  * Container base class for all detectors used in the cell counter.
  * <p>
- * This class has actually no functionality, but just serves as a 
- * place-holder and defines the interface. Detector functionality is
- * to be implemented in related sub-classes. 
+ * This class basically serves as a place-holder and defines the interface. 
+ * Detector functionality is to be implemented in related sub-classes. 
  *  
  * @author Birgit Moeller
  */
@@ -60,11 +56,17 @@ public abstract class CellCounterDetectOperator extends MTBOperator
 		dataIOOrder = 1, description = "Input image.")
 	protected transient MTBImage inputImage = null;
 
-	@Parameter( label = "Channel", required = true, 
+	/**
+	 * Index of input image slice if z-stack is provided as input.
+	 */
+	@Parameter( label = "Channel index", required = true, 
 		direction = Parameter.Direction.IN,	mode = ExpertMode.STANDARD, 
-		dataIOOrder = 1, description = "Channel.")
+		dataIOOrder = 2, description = "Channel index in stack.")
 	protected int detectZSlice;
 
+	/**
+	 * Detection result.
+	 */
 	@Parameter( label = "Detection Results", direction = Parameter.Direction.OUT, 
 		dataIOOrder = 1, description = "Detection results.")
 	protected Vector<CellCntrMarker> detectResults;
@@ -75,53 +77,24 @@ public abstract class CellCounterDetectOperator extends MTBOperator
 	 */
 	public abstract String getShortName();
 	
+	/**
+	 * Open the configuration frame.
+	 */
 	public abstract void openConfigFrame();
 	
+	/**
+	 * Close the configuration frame.
+	 */
 	public abstract void closeConfigFrame();
 	
+	/**
+	 * Get the detection results.
+	 * 
+	 * @return Vector of detected objects.
+	 */
 	public Vector<CellCntrMarker> getDetectionResults() {
 		return this.detectResults;
 	}
-	
-//	/**
-//	 * Set of detected plastid regions.
-//	 */
-//	@Parameter( label = "Resulting plastid regions", 
-//		direction = Parameter.Direction.OUT, mode = ExpertMode.STANDARD, 
-//		dataIOOrder = 1, description = "Detected plastid regions.")
-//	protected transient MTBRegion2DSet resultPlastidRegions = null;
-//
-//	/**
-//	 * Number of detected plastid regions.
-//	 */
-//	@Parameter( label = "#PlastidRegions", dataIOOrder = 2,
-//		direction = Parameter.Direction.OUT, mode = ExpertMode.STANDARD,	
-//		description = "Number of detected plastid regions.")
-//	protected transient int resultPlastidCount = 0;
-//	
-//	/**
-//	 * Set of detected stomata regions.
-//	 */
-//	@Parameter( label = "Resulting stomata regions", 
-//		direction = Parameter.Direction.OUT, mode = ExpertMode.STANDARD, 
-//		dataIOOrder = 3, description = "Detected stomata regions.")
-//	protected transient Vector<MTBQuadraticCurve2D> resultStomataRegions;
-
-//	/**
-//	 * Set of detected stromuli regions.
-//	 */
-//	@Parameter( label = "Resulting stromuli regions", 
-//		direction = Parameter.Direction.OUT, mode = ExpertMode.STANDARD, 
-//		dataIOOrder = 4, description = "Detected plastid regions.")
-//	protected transient MTBRegion2DSet resultStromuliRegions;
-//
-//	/**
-//	 * Number of detected stromuli regions.
-//	 */
-//	@Parameter( label = "#StromuliRegions", dataIOOrder = 4,
-//		direction = Parameter.Direction.OUT, mode = ExpertMode.STANDARD,	
-//		description = "Number of detected stromuli regions.")
-//	protected transient int resultStromuliCount = 0;
 	
 	/** 
 	 * Vector of installed {@link StatusListener} objects.
@@ -145,8 +118,8 @@ public abstract class CellCounterDetectOperator extends MTBOperator
 	}	
 	
 	/**
-	 * Set index of slice in Z-stack.
-	 * @param i	Index in z-stack.
+	 * Set index of slice in stack, starting with 0 for first slice.
+	 * @param i	Index in stack.
 	 */
 	public void setSliceZid(int i) {
 		this.detectZSlice = i;

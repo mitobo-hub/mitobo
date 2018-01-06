@@ -37,7 +37,6 @@ import de.unihalle.informatik.Alida.annotations.ALDAOperator;
 import de.unihalle.informatik.Alida.annotations.ALDDerivedClass;
 import de.unihalle.informatik.Alida.dataio.ALDDataIOManagerSwing;
 import de.unihalle.informatik.Alida.dataio.provider.swing.components.ALDSwingComponent;
-import de.unihalle.informatik.Alida.dataio.provider.swing.events.ALDSwingValueChangeEvent;
 import de.unihalle.informatik.Alida.dataio.provider.swing.events.ALDSwingValueChangeListener;
 import de.unihalle.informatik.Alida.exceptions.ALDException;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
