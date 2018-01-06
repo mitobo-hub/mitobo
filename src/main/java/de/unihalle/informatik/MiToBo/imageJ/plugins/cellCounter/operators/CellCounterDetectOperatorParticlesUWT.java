@@ -57,7 +57,7 @@ import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCn
  */
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.NONE)
 @ALDDerivedClass
-public class CellCounterDetectOperatorPlastidsParticlesUWT 
+public class CellCounterDetectOperatorParticlesUWT 
 	extends CellCounterDetectOperator {
 	
 	/**
@@ -79,7 +79,7 @@ public class CellCounterDetectOperatorPlastidsParticlesUWT
 	 * Constructor.	
 	 * @throws ALDOperatorException Thrown in case of initialization error.
 	 */
-	public CellCounterDetectOperatorPlastidsParticlesUWT() 
+	public CellCounterDetectOperatorParticlesUWT() 
 			throws ALDOperatorException {
 		this.m_statusListeners = new Vector<StatusListener>(1);
 		// configure the particle detector, except for the input image
