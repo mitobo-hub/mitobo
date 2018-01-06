@@ -36,7 +36,9 @@ import de.unihalle.informatik.Alida.dataio.provider.swing.events.ALDSwingValueCh
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
+import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarker;
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarkerVector;
+import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrSegResult;
 
 /**
  * Container base class for all detectors used in the cell counter.
@@ -58,9 +60,14 @@ public abstract class CellCounterDetectOperator extends MTBOperator
 		dataIOOrder = 1, description = "Input image.")
 	protected transient MTBImage inputImage = null;
 
+	@Parameter( label = "Channel", required = true, 
+		direction = Parameter.Direction.IN,	mode = ExpertMode.STANDARD, 
+		dataIOOrder = 1, description = "Channel.")
+	protected int detectZSlice;
+
 	@Parameter( label = "Detection Results", direction = Parameter.Direction.OUT, 
 		dataIOOrder = 1, description = "Detection results.")
-	protected Collection<CellCntrMarkerVector> detectResults;
+	protected Vector<CellCntrMarker> detectResults;
 	
 	/**
 	 * Get common short name of operator for GUI.
@@ -72,7 +79,7 @@ public abstract class CellCounterDetectOperator extends MTBOperator
 	
 	public abstract void closeConfigFrame();
 	
-	protected Collection<CellCntrMarkerVector> getDetectionResults() {
+	public Vector<CellCntrMarker> getDetectionResults() {
 		return this.detectResults;
 	}
 	
@@ -137,6 +144,14 @@ public abstract class CellCounterDetectOperator extends MTBOperator
 		this.inputImage = img;
 	}	
 	
+	/**
+	 * Set index of slice in Z-stack.
+	 * @param i	Index in z-stack.
+	 */
+	public void setSliceZid(int i) {
+		this.detectZSlice = i;
+	}	
+
 	/**
 	 * Method for handling over value change listener to sub-windows.
 	 * @param listener	Value change listener to notify in case of changes.
