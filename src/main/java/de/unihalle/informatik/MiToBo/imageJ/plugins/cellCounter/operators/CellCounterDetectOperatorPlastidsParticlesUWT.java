@@ -25,6 +25,7 @@
 package de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.operators;
 
 import java.awt.FlowLayout;
+import java.awt.geom.Point2D;
 import java.util.Vector;
 
 import javax.swing.JLabel;
@@ -44,6 +45,11 @@ import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.unihalle.informatik.Alida.operator.ALDOpParameterDescriptor;
 import de.unihalle.informatik.MiToBo.apps.particles2D.ParticleDetectorUWT2D;
 import de.unihalle.informatik.MiToBo.apps.plantCells.plastids.PlastidDetector2DParticlesUWT;
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2D;
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2DSet;
+import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarker;
+import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarkerShape;
+import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarkerShapeRegion;
 
 /**
  * Cell counter detector for detecting plastids.
@@ -58,8 +64,7 @@ public class CellCounterDetectOperatorPlastidsParticlesUWT
 	/**
 	 * Identifier for outputs in verbose mode.
 	 */
-	private final static String opIdentifier =
-			"[CellCounterDetectorOpPlastids] ";
+	private final static String opIdentifier = "[Particles with UWT] ";
 
 	/**
 	 * Particle detector object.
@@ -93,40 +98,51 @@ public class CellCounterDetectOperatorPlastidsParticlesUWT
   protected void operate() 
   		throws ALDOperatorException, ALDProcessingDAGException {
 		
-//		// if plastid detection is disabled, do nothing
-//		if (!this.detectPlastids)
-//			return;
-//		
-//		// post ImageJ status
-//		String msg = opIdentifier + "running plastid detection...";	
-//		this.notifyListeners(new StatusEvent(msg));
-//
-//		if (this.verbose.booleanValue())
-//			System.out.println(opIdentifier 
-//				+ "running plastid detection...");
-//
-//		// clean-up, reset variables
-//		this.resultPlastidCount = 0;
-//		this.resultPlastidRegions = null;
-//		this.resultStomataRegions = null;
-//		this.resultStromuliCount = 0;
-//		this.resultStromuliRegions = null;
-//		
-//		PlastidDetector2DParticlesUWT pd = new PlastidDetector2DParticlesUWT();
-//		pd.setInputImage(this.inputImage);
-//		if (this.particleOp != null) {
-//			pd.setDetector(this.particleOp);
-//		}
-//		pd.runOp();
-//		this.resultPlastidRegions = pd.getPlastidRegions();
-//		this.resultPlastidCount = this.resultPlastidRegions.size();
-//
-//		if (this.verbose.booleanValue())
-//			System.out.println(opIdentifier + 
-//				"\t -> Number of detected plastids: " + this.resultPlastidCount);
+		// post ImageJ status
+		String msg = opIdentifier + "running plastid detection...";	
+		this.notifyListeners(new StatusEvent(msg));
+
+		if (this.verbose.booleanValue())
+			System.out.println(opIdentifier 
+				+ "running plastid detection...");
+
+		PlastidDetector2DParticlesUWT pd = new PlastidDetector2DParticlesUWT();
+		pd.setInputImage(this.inputImage);		
+		if (this.particleOp != null) {
+			this.particleOp.addStatusListener(this);
+			pd.setDetector(this.particleOp);
+		}
+		pd.runOp();
+		MTBRegion2DSet resultPlastidRegions = pd.getPlastidRegions();
+		int resultPlastidCount = resultPlastidRegions.size();
+
+		// format results
+		Vector<CellCntrMarker> markers = new Vector<>();
+		for (MTBRegion2D reg: resultPlastidRegions) {
+			// calculate average intensity
+			double intensity = 0; 
+			for (Point2D.Double p: reg.getPoints()) {
+				intensity += this.inputImage.getValueDouble((int)p.x, (int)p.y,	0);
+			}
+			CellCntrMarkerShape s = new CellCntrMarkerShapeRegion(reg);
+			s.setAvgIntensity(intensity/reg.getArea());
+			CellCntrMarker marker = new CellCntrMarker(
+				(int)reg.getCenterOfMass_X(), (int)reg.getCenterOfMass_Y(), 
+					this.detectZSlice, s);
+			markers.add(marker);
+		}
+		this.detectResults = markers; 
+				
+		if (this.verbose.booleanValue())
+			System.out.println(opIdentifier + 
+				"\t -> Number of detected plastids: " + resultPlastidCount);
 
 		if (this.verbose.booleanValue())
 			System.out.println(opIdentifier + "Operations finished!");
+		
+		// post ImageJ status
+		msg = opIdentifier + "Operations finished!";	
+		this.notifyListeners(new StatusEvent(msg));
   }
 
 	@Override
@@ -154,7 +170,7 @@ public class CellCounterDetectOperatorPlastidsParticlesUWT
 	public void addValueChangeEventListener(
 	    ALDSwingValueChangeListener listener) {
 		// just hand the listener over to the configuration frame
-//		this.particleConfigureFrame.addValueChangeEventListener(listener);
+		this.particleConfigureFrame.addValueChangeEventListener(listener);
 	}
 
 	/**
