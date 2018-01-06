@@ -279,7 +279,6 @@ public class MTBRegion2D implements MTBRegionInterface {
 				this.com_x += p.getX();
 				this.com_y += p.getY();
 				this.points.addElement(p);
-				this.hookPointsUpdated();
 		}
 
 		/**
