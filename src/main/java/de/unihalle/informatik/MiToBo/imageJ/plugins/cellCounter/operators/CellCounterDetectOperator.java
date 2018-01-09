@@ -24,6 +24,7 @@
 
 package de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.operators;
 
+import java.util.HashMap;
 import java.util.Vector;
 
 import loci.common.StatusEvent;
@@ -36,6 +37,7 @@ import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarker;
+import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarkerVector;
 
 /**
  * Container base class for all detectors used in the cell counter.
@@ -64,6 +66,19 @@ public abstract class CellCounterDetectOperator extends MTBOperator
 		dataIOOrder = 2, description = "Channel index in stack.")
 	protected int detectZSlice;
 
+	/**
+	 * Set of available marker vectors.
+	 * <p>
+	 * These are passed to the operators in case that individual operators 
+	 * require access to the results of others. Note that each operator is 
+	 * responsible for acquiring the information which marker vector refers
+	 * to the markers it needs.
+	 */
+	@Parameter( label = "Marker vectors", required = true, 
+		direction = Parameter.Direction.IN,	mode = ExpertMode.STANDARD, 
+		dataIOOrder = 3, description = "Marker vectors.")
+	protected HashMap<Integer, CellCntrMarkerVector> markerVects;
+	
 	/**
 	 * Detection result.
 	 */
@@ -125,6 +140,14 @@ public abstract class CellCounterDetectOperator extends MTBOperator
 		this.detectZSlice = i;
 	}	
 
+	/**
+	 * Set currently available marker vectors.
+	 * @param v	Hashmap with marker vectors indexed by type.
+	 */
+	public void setMarkerVectors(HashMap<Integer, CellCntrMarkerVector> v) {
+		this.markerVects = v;
+	}
+	
 	/**
 	 * Method for handling over value change listener to sub-windows.
 	 * @param listener	Value change listener to notify in case of changes.
