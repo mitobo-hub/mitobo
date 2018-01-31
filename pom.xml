@@ -14,7 +14,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <YEAR>2017</YEAR>
+    <YEAR>2018</YEAR>
     <!-- define a default native directory, does not work in all cases,
 	 but avoids that Maven fails completely -->
     <native.libdir>lib64</native.libdir>
@@ -486,7 +486,7 @@
       <dependency>
 	<groupId>org.scijava</groupId>
 	<artifactId>pom-scijava</artifactId>
-	<version>17.0.0</version>
+	<version>19.2.0</version>
 	<type>pom</type>
         <scope>import</scope>
       </dependency>
