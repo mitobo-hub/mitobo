@@ -4,7 +4,7 @@
 
   <groupId>de.unihalle.informatik.MiToBo</groupId>
   <artifactId>mitobo</artifactId>
-  <version>1.8.7</version>
+  <version>1.8.8-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>mitobo</name>
@@ -18,8 +18,8 @@
     <!-- define a default native directory, does not work in all cases,
 	 but avoids that Maven fails completely -->
     <native.libdir>lib64</native.libdir>
-    <alida.version>2.7.5.1</alida.version>
-    <alida.mitobo.help.version>1.7</alida.mitobo.help.version>
+    <alida.version>2.7.6-SNAPSHOT</alida.version>
+    <alida.mitobo.help.version>1.8-SNAPSHOT</alida.mitobo.help.version>
     <mitobo.xml.version>2.1</mitobo.xml.version>
   </properties>
 
