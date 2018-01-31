@@ -5,6 +5,20 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 
 ## [Unreleased]
 ### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+## [1.8.7] - 2018-01-31
+Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
+- Released MiToBo 1.8.7
+
+### Added
 - new data type MTBLineSegment2DSet for sets of MTBLineSegment2D objects
 - support for importing sets of MTBLineSegment2D objects from ImageJ via the ROI manager
 - MTBDataIOFile: added support for loading region sets from ImageJ ROI files
@@ -15,8 +29,6 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 - DrawRegion2DSet: added parameters to specify desired size of result image directly
 - ParticleDetectorUWT2D: visibility of some internal methods updated
 
-### Deprecated
-
 ### Removed
 - obsolete class DistanceTransformPrecursorInfos, functionality is now part of DistanceTransform
 
@@ -26,11 +38,17 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 - TestDirectoryTree: fixed file separators to properly work on Windows systems
 
 ## [1.8.6.1] - 2017-10-09
+Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
+- Released MiToBo 1.8.6.1
+
 ### Changed
 - updated PaCeQuant for better handling of small, circular cells;
   lobe analysis is now only performed for cells with at least two real lobes
 
 ## [1.8.6] - 2017-09-22
+Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
+- Released MiToBo 1.8.6
+
 ### Added
 - PaCeQuant operator for pavement cell shape analysis,
   Birgit Möller, Yvonne Poeschl, Romina Plötner, Katharina Bürstenbinder,
@@ -38,14 +56,6 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
   Plant Physiology, Vol. 175, Issue 1, Sep 2017. DOI: https://doi.org/10.1104/pp.17.00961
 - new operator for drawing text strings into an image
 - MTBDataIOFile: support for reading ImageJ ROI archive files in command line mode
-
-### Changed
-
-### Deprecated
-
-### Removed
-
-### Fixed
 
 ## [1.8.5.1] - 2017-07-29
 Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
