@@ -3101,6 +3101,7 @@ public class PaCeQuant extends MTBOperator {
 				MTBImageByte spineImg = 
 						(MTBImageByte)regImg.duplicate(HidingMode.HIDDEN);
 				spineImg.fillBlack();
+				int nx, ny;
 				for (int y=1; y<regImgHeight-1; ++y) {
 					for (int x=1; x<regImgWidth-1; ++x) {
 						if (regImg.getValueInt(x, y) > 0)
@@ -3111,10 +3112,12 @@ public class PaCeQuant extends MTBOperator {
 							for (int dy=-1;dy<=1 && !closeToRegion; ++dy) {
 								if (dx==0 && dy==0)
 									continue;
-								if (   x+dx<0 || x+dx>=labelImg.getSizeX()
-										|| y+dy<0 || y+dy>=labelImg.getSizeY())
+								nx = x+dx;
+								ny = y+dy;
+								if (   nx<0 || nx>=labelImg.getSizeX()
+										|| ny<0 || ny>=labelImg.getSizeY())
 									continue;
-								if (labelImg.getValueInt(x+dx,y+dy) == label)
+								if (labelImg.getValueInt(nx, ny) == label)
 									closeToRegion = true;
 							}
 						}
@@ -3126,8 +3129,13 @@ public class PaCeQuant extends MTBOperator {
 							for (int dy=-1;dy<=1 && !foreignerFound; ++dy) {
 								if (dx==0 && dy==0)
 									continue;
-								if (   labelImg.getValueInt(x+dx,y+dy) != 0
-										&& labelImg.getValueInt(x+dx,y+dy) != label) {
+								nx = x+dx;
+								ny = y+dy;
+								if (   nx<0 || nx>=labelImg.getSizeX()
+										|| ny<0 || ny>=labelImg.getSizeY())
+									continue;
+								if (   labelImg.getValueInt(nx, ny) != 0
+										&& labelImg.getValueInt(nx, ny) != label) {
 									foreignerFound = true;
 								}
 							}
@@ -3151,7 +3159,12 @@ public class PaCeQuant extends MTBOperator {
 							for (int dy=-1; dy<=1; ++dy) {
 								if (dx==0 && dy==0)
 									continue;
-								if (spineImg.getValueInt(x+dx, y+dy) == 255)
+								nx = x+dx;
+								ny = y+dy;
+								if (   nx<0 || nx>=spineImg.getSizeX()
+										|| ny<0 || ny>=spineImg.getSizeY())
+									continue;
+								if (spineImg.getValueInt(nx, ny) == 255)
 									++neighborCount;
 							}
 						}
