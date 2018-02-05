@@ -332,9 +332,7 @@ public class LabelImageEditor extends MTBOperator
 				this.currentFile.substring(this.currentFile.lastIndexOf("/")+1);
 		String withoutEnding = 
 				withoutPath.substring(0, withoutPath.lastIndexOf("."));
-		System.out.println(withoutEnding);
 		String nf = this.internalOutputDir + "/" + withoutEnding + "-edited.tif";
-		System.out.println(nf);
 		ImageWriterMTB iw;
 		try {
 			if (this.verbose.booleanValue())
