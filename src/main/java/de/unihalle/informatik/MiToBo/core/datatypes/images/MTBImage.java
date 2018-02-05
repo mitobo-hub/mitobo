@@ -1486,6 +1486,47 @@ public abstract class MTBImage extends ALDData
   }
   
   /**
+   * Draws a 2D circle at the given z position into the x-y-plane.
+   * <p>
+   * MTBImages are 5D, but here t- and c-dimensions are ignored.
+   * @param x				Center of circle in x.
+   * @param y				Center of circle in y.
+   * @param z 			Circle position in z.
+   * @param radius 	Radius of circle.
+   * @param color 	Color of circle
+   */
+  public void drawFilledCircle2D(int x, int y, int z, int radius, int color) {
+  	int icx, icy;
+  	int squRadius = radius*radius;
+  	for (int dy=0; dy<=radius; ++dy) {
+    	for (int dx=0; dx<=radius; ++dx) {
+    		if ((dx*dx) + (dy*dy) <= squRadius) {
+    			// bottom-right
+    			icx = x+dx;
+    			icy = y+dy;
+      		if (icx < this.m_sizeX && icy < this.m_sizeY)
+      			this.putValueInt(icx, icy, z, 0, 0, color);
+      		// top-left
+    			icx = x-dx;
+    			icy = y-dy;
+      		if (icx >= 0 && icy >= 0)
+      			this.putValueInt(icx, icy, z, 0, 0, color);
+      		// bottom-left
+    			icx = x-dx;
+    			icy = y+dy;
+      		if (icx >= 0 && icy < this.m_sizeY)
+      			this.putValueInt(icx, icy, z, 0, 0, color);
+      		// top-right
+    			icx = x+dx;
+    			icy = y-dy;
+      		if (icx < this.m_sizeX && icy >= 0)
+      			this.putValueInt(icx, icy, z, 0, 0, color);
+    		}
+    	}
+  	}
+  }
+
+  /**
    * Get the slice label of the slice specified by the current slice index
    * @return	Label of current slice.
    */

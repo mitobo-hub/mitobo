@@ -5,6 +5,8 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 
 ## [Unreleased]
 ### Added
+- LabelImageEditor: a small interactive tool for removing regions from label images by mouse interactions
+- MTBImage: method to draw filled circles into an image
 
 ### Changed
 
