@@ -135,6 +135,11 @@ public class LabelImageEditor extends MTBOperator
 	private String internalOutputDir;
 
 	/**
+	 * Flag to ensure that callback only works once the operator has been called.
+	 */
+	private boolean calledFirstTime = true;
+	
+	/**
 	 * Default constructor.
 	 * @throws ALDOperatorException Thrown if construction fails.
 	 */
@@ -359,6 +364,13 @@ public class LabelImageEditor extends MTBOperator
 	@SuppressWarnings("unused")
 	private void callbackInputDir() 
 	{
+		// the first call takes place during initialization, but this call should
+		// not result in changes of the value for the output directors, thus,
+		// just ignore it
+		if (this.calledFirstTime) {
+			this.calledFirstTime = false;
+			return;
+		}
     try {
   		if (   this.outputDir == null 
   				|| this.outputDir.getDirectoryName().isEmpty()) {
