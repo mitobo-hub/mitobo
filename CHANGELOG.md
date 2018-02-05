@@ -13,6 +13,7 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 ### Removed
 
 ### Fixed
+- BinaryImageEndpointTools: added safety checks to avoid accessing pixels outside of image domain
 
 ## [1.8.7] - 2018-01-31
 Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>

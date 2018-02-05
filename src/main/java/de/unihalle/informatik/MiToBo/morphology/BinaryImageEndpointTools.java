@@ -72,53 +72,52 @@ public class BinaryImageEndpointTools {
 							if (dx == 0 && dy == 0)
 								continue;
 
-							if (   x+dx >= 0 && x+dx < width 
-									&& y+dy >= 0 && y+dy < height) {
+							if (x+dx < 0 || x+dx >= width || y+dy < 0 || y+dy >= height)
+								continue;
 								
-								/*
-								 * To check for endpoints the neighborhood is encoded
-								 * as follows. Each neighboring pixel gets a code 
-								 * according to the following scheme where X is the
-								 * pixel under consideration:
-								 * 
-								 *    128    1    2
-								 *    
-								 *     64    X    4
-								 *     
-								 *     32   16    8
-								 *     
-								 * The pixel in question is an endpoint if there is
-								 * only a single neighbor, or if there are two neighbors
-								 * located close to each other. Given the sum of the 
-								 * codes for all neigbors, an endpoint is present if the 
-								 * sum is equal to any sum of two subsequent code values
-								 * in clockwise ordering, i.e., if it is equal to 3, 6,
-								 * 12, 24, 48, 96, 192 or 129.
-								 */
-								if (img.getValueInt(x+dx, y+dy) > 0) {
-									++nCount;
-									if (dx == -1) {
-										if (dy == -1)
-											nSum += 128;
-										if (dy == 0)
-											nSum += 64;
-										if (dy == 1)
-											nSum += 32;
-									}
-									if (dx == 0) {
-										if (dy == -1)
-											nSum += 1;
-										if (dy == 1)
-											nSum += 16;
-									}
-									if (dx == 1) {
-										if (dy == -1)
-											nSum += 2;
-										if (dy == 0)
-											nSum += 4;
-										if (dy == 1)
-											nSum += 8;
-									}
+							/*
+							 * To check for endpoints the neighborhood is encoded
+							 * as follows. Each neighboring pixel gets a code 
+							 * according to the following scheme where X is the
+							 * pixel under consideration:
+							 * 
+							 *    128    1    2
+							 *    
+							 *     64    X    4
+							 *     
+							 *     32   16    8
+							 *     
+							 * The pixel in question is an endpoint if there is
+							 * only a single neighbor, or if there are two neighbors
+							 * located close to each other. Given the sum of the 
+							 * codes for all neigbors, an endpoint is present if the 
+							 * sum is equal to any sum of two subsequent code values
+							 * in clockwise ordering, i.e., if it is equal to 3, 6,
+							 * 12, 24, 48, 96, 192 or 129.
+							 */
+							if (img.getValueInt(x+dx, y+dy) > 0) {
+								++nCount;
+								if (dx == -1) {
+									if (dy == -1)
+										nSum += 128;
+									if (dy == 0)
+										nSum += 64;
+									if (dy == 1)
+										nSum += 32;
+								}
+								if (dx == 0) {
+									if (dy == -1)
+										nSum += 1;
+									if (dy == 1)
+										nSum += 16;
+								}
+								if (dx == 1) {
+									if (dy == -1)
+										nSum += 2;
+									if (dy == 0)
+										nSum += 4;
+									if (dy == 1)
+										nSum += 8;
 								}
 							}
 						}
@@ -190,12 +189,17 @@ public class BinaryImageEndpointTools {
 		branch.add(p);
 		
 		// search next neighbor on branch path
+		int nx, ny;
 		int neighborCount=0;
 		for (int dx=-1; dx<=1; ++dx) {
 			for (int dy=-1; dy<=1; ++dy) {
 				if (dx==0 && dy==0)
 					continue;
-				if (img.getValueInt((int)p.x+dx, (int)p.y+dy) == 255)
+				nx = (int)p.x+dx;
+				ny = (int)p.y+dy;
+				if (nx >= img.getSizeX() || ny >= img.getSizeY() || nx < 0 || ny < 0)
+					continue;
+				if (img.getValueInt(nx, ny) == 255)
 					++neighborCount;
 			}
 		}
@@ -205,7 +209,11 @@ public class BinaryImageEndpointTools {
 				for (int dy=-1; dy<=1; ++dy) {
 					if (dx==0 && dy==0)
 						continue;
-					if (img.getValueInt((int)p.x+dx, (int)p.y+dy) == 255)
+					nx = (int)p.x+dx;
+					ny = (int)p.y+dy;
+					if (nx >= img.getSizeX() || ny >= img.getSizeY() || nx < 0 || ny < 0)
+						continue;
+					if (img.getValueInt(nx, ny) == 255)
 						traceBranch(img, branch, new Point2D.Double(p.x+dx, p.y+dy));
 				}
 			}
