@@ -15,12 +15,25 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <YEAR>2018</YEAR>
+    <!-- specify versions of dependencies -->
+    <alida.version>2.7.6-SNAPSHOT</alida.version>
+    <alida.mitobo.help.version>1.8-SNAPSHOT</alida.mitobo.help.version>
+    <mitobo.native.version>1.2</mitobo.native.version>
+    <mitobo.xml.version>2.1</mitobo.xml.version>
+    <commons.math.version>3.6.1</commons.math.version>
+    <ejml.version>0.24</ejml.version>
+    <geopolygons.version>4.0</geopolygons.version>
+    <jama.version>1.0.3</jama.version>
+    <jfreechart.version>1.0.19</jfreechart.version>
+    <jri.version>0.9-9</jri.version>
+    <jstacs.version>2.2</jstacs.version>
+    <junit.version>4.12</junit.version>
+    <libsvm.version>3.17</libsvm.version>
+    <scijava.version>19.2.0</scijava.version>
+    <weka.version>3.9.1</weka.version>
     <!-- define a default native directory, does not work in all cases,
 	 but avoids that Maven fails completely -->
     <native.libdir>lib64</native.libdir>
-    <alida.version>2.7.6-SNAPSHOT</alida.version>
-    <alida.mitobo.help.version>1.8-SNAPSHOT</alida.mitobo.help.version>
-    <mitobo.xml.version>2.1</mitobo.xml.version>
   </properties>
 
   <licenses>
@@ -486,7 +499,7 @@
       <dependency>
 	<groupId>org.scijava</groupId>
 	<artifactId>pom-scijava</artifactId>
-	<version>19.2.0</version>
+	<version>${scijava.version}</version>
 	<type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -509,46 +522,46 @@
     <dependency>
       <groupId>gov.nist.math</groupId>
       <artifactId>jama</artifactId>
-      <version>1.0.3</version>
+      <version>${jama.version}</version>
     </dependency>
     <dependency>
       <groupId>com.googlecode.efficient-java-matrix-library</groupId>
       <artifactId>ejml</artifactId>
-      <version>0.24</version>
+      <version>${ejml.version}</version>
     </dependency>
     <dependency>
       <groupId>tw.edu.ntu.csie</groupId>
       <artifactId>libsvm</artifactId>
-      <version>3.17</version>
+      <version>${libsvm.version}</version>
     </dependency>
     <dependency>
       <groupId>org.nuiton.thirdparty</groupId>
       <artifactId>JRI</artifactId>
-      <version>0.9-9</version>
+      <version>${jri.version}</version>
     </dependency>
     <dependency>
       <!-- used for numerical calculations, e.g., in vesselness package -->
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-math3</artifactId>
-      <version>3.6.1</version>
+      <version>${commons.math.version}</version>
     </dependency>
     <dependency>
       <!-- used for clustering, e.g., in actin analysis -->
       <groupId>nz.ac.waikato.cms.weka</groupId>
       <artifactId>weka-dev</artifactId>
-      <version>3.9.1</version>
+      <version>${weka.version}</version>
     </dependency>
     <dependency>
       <!-- used for data visualization, e.g., in actin analysis -->
       <groupId>org.jfree</groupId>
       <artifactId>jfreechart</artifactId>
-      <version>1.0.19</version>
+      <version>${jfreechart.version}</version>
     </dependency>
     <dependency>
       <!-- used by MTBPolygon2D -->
       <groupId>uk.co.geolib</groupId>
       <artifactId>geopolygons</artifactId>
-      <version>4.0</version>
+      <version>${geopolygons.version}</version>
     </dependency>
     <!-- ImgLib2 dependencies -->
     <dependency>
@@ -567,7 +580,7 @@
     <dependency>
       <groupId>de</groupId>
       <artifactId>jstacs</artifactId>
-      <version>2.2</version>
+      <version>${jstacs.version}</version>
     </dependency>
     <dependency>
       <groupId>de.unihalle.informatik.MiToBo</groupId>
@@ -601,13 +614,13 @@
     <dependency>
       <groupId>de.unihalle.informatik.MiToBo.native</groupId>
       <artifactId>mitobo-native-${native.libdir}</artifactId>
-      <version>1.2</version>
+      <version>${mitobo.native.version}</version>
     </dependency>
     <!-- Testing -->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.12</version>
+      <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
