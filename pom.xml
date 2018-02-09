@@ -19,7 +19,6 @@
   </parent>
 
   <properties>
-    <mitobo.native.version>1.2</mitobo.native.version>
     <mitobo.xml.version>2.2-SNAPSHOT</mitobo.xml.version>
   </properties>
 
