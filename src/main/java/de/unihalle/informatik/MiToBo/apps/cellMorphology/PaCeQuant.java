@@ -3086,13 +3086,13 @@ public class PaCeQuant extends MTBOperator {
 				int minY = (int)(r.getMinMaxCoordinates()[1]);
 				int maxX = (int)(r.getMinMaxCoordinates()[2]);
 				int maxY = (int)(r.getMinMaxCoordinates()[3]);
-				MTBImageByte regImg = r.toMTBImageByte(null, maxX+20, maxY+20);
+				MTBImageByte regImg = r.toMTBImageByte(null, maxX+1, maxY+1);
 				int regImgWidth = regImg.getSizeX();
 				int regImgHeight = regImg.getSizeY();
 				
 				// if region touches border, just ignore
-				if (   minX == 0 || maxX == regImg.getSizeX()-1 
-						|| minY == 0 || maxY == regImg.getSizeY()-1)
+				if (   minX == 0 || maxX == this.inputImg.getSizeX()-1 
+						|| minY == 0 || maxY == this.inputImg.getSizeY()-1)
 					continue;
 				
 				int label = labelImg.getValueInt(
