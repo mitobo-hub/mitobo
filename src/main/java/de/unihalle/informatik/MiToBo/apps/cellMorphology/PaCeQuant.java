@@ -1611,6 +1611,11 @@ public class PaCeQuant extends MTBOperator {
 				this.reinitOperator();
 			} // end of catch-clause for batch processing
 		} // end of switch directive for operator mode
+		
+		// send final status message
+		this.fireOperatorExecutionProgressEvent(
+			new ALDOperatorExecutionProgressEvent(this, operatorID 
+				+ " completed calculations, all done!"));
 	}
 	
   /**
