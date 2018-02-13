@@ -996,6 +996,17 @@ public class PaCeQuant extends MTBOperator {
 					if (this.pixCalibMode.equals(PixelCalibration.AUTO)) {
 						this.pixelLengthXYinternal = this.inImg.getStepsizeX();
 						this.pixelUnitString = this.inImg.getUnitX();
+						
+						// safety check for square pixels
+						double lengthY = this.inImg.getStepsizeY();
+						if (  Math.abs(this.pixelLengthXYinternal - lengthY)
+								> 0.0000001) {
+							// write a warning to standard error and skip image
+							System.err.println(operatorID 
+								+	" --> ATTENTION! Image does not have square pixels! "
+									+ "Exiting!");
+							return;
+						}
 					}
 					else {						
 						this.pixelLengthXYinternal = this.pixelLengthXY;
@@ -1042,6 +1053,17 @@ public class PaCeQuant extends MTBOperator {
 						if (this.pixCalibMode.equals(PixelCalibration.AUTO)) {
 							this.pixelLengthXYinternal = this.inImg.getStepsizeX();
 							this.pixelUnitString = this.inImg.getUnitX();
+							
+							// safety check for square pixels
+							double lengthY = this.inImg.getStepsizeY();
+							if (  Math.abs(this.pixelLengthXYinternal - lengthY)
+									> 0.0000001) {
+								// write a warning to standard error and skip image
+								System.err.println(operatorID 
+									+	" --> ATTENTION! Image does not have square pixels! "
+										+ "Exiting!");
+								return;
+							}
 						}
 						else {						
 							this.pixelLengthXYinternal = this.pixelLengthXY;
@@ -1079,6 +1101,17 @@ public class PaCeQuant extends MTBOperator {
 						if (this.pixCalibMode.equals(PixelCalibration.AUTO)) {
 							this.pixelLengthXYinternal = this.inImg.getStepsizeX();
 							this.pixelUnitString = this.inImg.getUnitX();
+							
+							// safety check for square pixels
+							double lengthY = this.inImg.getStepsizeY();
+							if (  Math.abs(this.pixelLengthXYinternal - lengthY)
+									> 0.0000001) {
+								// write a warning to standard error and skip image
+								System.err.println(operatorID 
+									+	" --> ATTENTION! Image does not have square pixels! "
+										+ "Exiting!");
+								return;
+							}
 						}
 						else {						
 							this.pixelLengthXYinternal = this.pixelLengthXY;
@@ -1252,6 +1285,16 @@ public class PaCeQuant extends MTBOperator {
 								if (this.pixCalibMode.equals(PixelCalibration.AUTO)) {
 									this.pixelLengthXYinternal = img.getStepsizeX();
 									this.pixelUnitString = img.getUnitX();
+									
+									// safety check for square pixels
+									double lengthY = img.getStepsizeY();
+									if (Math.abs(this.pixelLengthXYinternal-lengthY)>0.0000001) {
+										// write a warning to standard error and skip image
+										System.err.println(operatorID 
+											+	" --> ATTENTION! Image does not have square pixels! "
+												+ "Skipping the image!");
+										continue;
+									}
 								}
 								else {						
 									this.pixelLengthXYinternal = this.pixelLengthXY;
@@ -1264,14 +1307,6 @@ public class PaCeQuant extends MTBOperator {
 										this.pixelUnitString = "pixels";
 										break;
 									}
-								}
-
-								// safety check for square pixels
-								double lengthY = img.getStepsizeY();
-								if (Math.abs(this.pixelLengthXY - lengthY) > 0.0000001) {
-									this.fireOperatorExecutionProgressEvent(
-											new ALDOperatorExecutionProgressEvent(this, operatorID 
-													+ " --> image does not have square pixels, exiting."));
 								}
 
 								// init some variables and init operator
@@ -1406,6 +1441,17 @@ public class PaCeQuant extends MTBOperator {
 									if (this.pixCalibMode.equals(PixelCalibration.AUTO)) {
 										this.pixelLengthXYinternal = img.getStepsizeX();
 										this.pixelUnitString = img.getUnitX();
+										
+										// safety check for square pixels
+										double lengthY = img.getStepsizeY();
+										if (  Math.abs(this.pixelLengthXYinternal - lengthY)
+												> 0.0000001) {
+											// write a warning to standard error and skip image
+											System.err.println(operatorID 
+												+	" --> ATTENTION! Image does not have square pixels! "
+													+ "Skipping the image!");
+											continue;
+										}
 									}
 									else {						
 										this.pixelLengthXYinternal = this.pixelLengthXY;
@@ -1420,14 +1466,6 @@ public class PaCeQuant extends MTBOperator {
 										}
 									}
 									
-									// safety check for square pixels
-									double lengthY = img.getStepsizeY();
-									if (  Math.abs(this.pixelLengthXYinternal - lengthY) 
-											> 0.0000001) {
-										this.fireOperatorExecutionProgressEvent(
-											new ALDOperatorExecutionProgressEvent(this, operatorID 
-												+ " --> image does not have square pixels, exiting."));
-									}
 									this.width = img.getSizeX();
 									this.height = img.getSizeY();								
 									binarySegmentationImage = img;
@@ -1454,6 +1492,17 @@ public class PaCeQuant extends MTBOperator {
 									if (this.pixCalibMode.equals(PixelCalibration.AUTO)) {
 										this.pixelLengthXYinternal = img.getStepsizeX();
 										this.pixelUnitString = img.getUnitX();
+										
+										// safety check for square pixels
+										double lengthY = img.getStepsizeY();
+										if (  Math.abs(this.pixelLengthXYinternal - lengthY)
+												> 0.0000001) {
+											// write a warning to standard error and skip image
+											System.err.println(operatorID 
+												+	" --> ATTENTION! Image does not have square pixels! "
+													+ "Skipping the image!");
+											continue;
+										}
 									}
 									else {						
 										this.pixelLengthXYinternal = this.pixelLengthXY;
@@ -1466,15 +1515,6 @@ public class PaCeQuant extends MTBOperator {
 											this.pixelUnitString = "pixels";
 											break;
 										}
-									}
-									
-									// safety check for square pixels
-									double lengthY = img.getStepsizeY();
-									if (  Math.abs(this.pixelLengthXYinternal - lengthY) 
-											> 0.0000001) {
-										this.fireOperatorExecutionProgressEvent(
-											new ALDOperatorExecutionProgressEvent(this, operatorID 
-												+ " --> image does not have square pixels, exiting."));
 									}
 									
 									this.width = img.getSizeX();
@@ -1824,6 +1864,11 @@ public class PaCeQuant extends MTBOperator {
 		
 		// initialize feature stack and visualize results
 		if (this.showResultFeatureStack) {
+			
+			this.fireOperatorExecutionProgressEvent(
+					new ALDOperatorExecutionProgressEvent(this, operatorID 
+						+ " generating feature stack..."));
+			
 			MTBImageDouble tmpStack = (MTBImageDouble)MTBImage.createMTBImage(
 					this.width, this.height, featureNum, 1, 1, MTBImageType.MTB_DOUBLE);
 			this.resultFeatureStack = (MTBImageRGB)MTBImage.createMTBImage(
@@ -1882,12 +1927,20 @@ public class PaCeQuant extends MTBOperator {
 			// convert feature images to heat maps
 			for (int c=1; c<featureNum; ++c) {
 				// convert feature value image to heatmap
-				heatmapper.setInputImage(tmpStack.getSlice(c, 0, 0));
-				heatmapper.setRangeMinimum(minVals[c]);
-				heatmapper.setRangeMaximum(maxVals[c]);
-				heatmapper.setIgnoreMask(ignoreMask);
-				heatmapper.runOp();
-				this.resultFeatureStack.setSlice(heatmapper.getHeatmapImage(),c,0,0);
+				try {
+					heatmapper.setInputImage(tmpStack.getSlice(c, 0, 0));
+					heatmapper.setRangeMinimum(minVals[c]);
+					heatmapper.setRangeMaximum(maxVals[c]);
+					heatmapper.setIgnoreMask(ignoreMask);
+					heatmapper.runOp();
+					this.resultFeatureStack.setSlice(heatmapper.getHeatmapImage(),c,0,0);
+				}
+				catch (ALDOperatorException ex) {
+					this.fireOperatorExecutionProgressEvent(
+						new ALDOperatorExecutionProgressEvent(this, operatorID 
+							+ " skipping feature " + featureTable.getColumnName(c) 
+								+ ", empty range [" +  minVals[c] + "," + maxVals[c] + "]"));
+				}
 			}
 		}
 		return featureTable;
@@ -2717,12 +2770,12 @@ public class PaCeQuant extends MTBOperator {
 							leftLength += ipc.initialSegmentPoints.get(i).distance(
 									ipc.initialSegmentPoints.get(i+1));
 						}
-						leftLength *= this.pixelLengthXY;
+						leftLength *= this.pixelLengthXYinternal;
 						for (int i=minID; i<ipc.initialSegmentPoints.size()-1; ++i) {
 							rightLength += ipc.initialSegmentPoints.get(i).distance(
 									ipc.initialSegmentPoints.get(i+1));
 						}
-						rightLength *= this.pixelLengthXY;		
+						rightLength *= this.pixelLengthXYinternal;		
 					}
 					// undefined: cell close to unsegmented background
 					else {
