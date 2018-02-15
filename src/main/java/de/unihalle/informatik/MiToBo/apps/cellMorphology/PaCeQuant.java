@@ -278,6 +278,7 @@ public class PaCeQuant extends MTBOperator {
 	@Parameter(label = "Select phases to run", required = true, 
 			direction = Parameter.Direction.IN, dataIOOrder = -10,
 			mode = ExpertMode.STANDARD, callback = "switchPhaseConfigParameters",
+			paramModificationMode = ParameterModificationMode.MODIFIES_INTERFACE,
 			description = "Choose between segmentation and/or feature extraction.")
 	private OperatorPhasesToRun phasesToRun = 
 		OperatorPhasesToRun.SEGMENTATION_AND_FEATURES;
@@ -290,6 +291,7 @@ public class PaCeQuant extends MTBOperator {
 	@Parameter(label = "   Format of external segmentation data", required = true, 
 			direction = Parameter.Direction.IN, dataIOOrder = -8,
 			mode = ExpertMode.STANDARD, callback = "switchSegmentationFormatParameter",
+			paramModificationMode = ParameterModificationMode.MODIFIES_INTERFACE,
 			description = "Segmentation data format.")
 	private SegmentationInputFormat segmentationInputFormat = 
 			SegmentationInputFormat.LABEL_IMAGE;
