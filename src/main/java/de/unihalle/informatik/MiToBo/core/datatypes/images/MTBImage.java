@@ -1406,6 +1406,44 @@ public abstract class MTBImage extends ALDData
   }
   
   /**
+   * Draws a 2D line into the current slice of the image.
+   * <p>
+   * MTBImages are 5D, but here t- and c-dimensions are ignored. 
+   * <p>
+   * This function basically relies on the Bresenham algorithm for rendering
+   * line segments as implemented in method
+   * {@link MTBLineSegment2D#getPixelsAlongSegment()} of class
+   * {@link MTBLineSegment2D}.
+   * 
+   * @param xstart	x-coordinate of start point.
+   * @param ystart	y-coordinate of start point.
+   * @param xend		x-coordinate of end point.
+   * @param yend		y-coordinate of end point.
+   * @param value		Color or gray-scale value to use for drawing the segment.
+   */
+  public void drawLine2D(int xstart, int ystart, int xend, int yend, 
+  		int xmin, int ymin, int xmax, int ymax, int z, 
+  		int t, int c, int value) {
+
+  	MTBLineSegment2D line = new MTBLineSegment2D(xstart, ystart, xend, yend);
+  	
+  	LinkedList<Point2D.Double> pixelList = line.getPixelsAlongSegment();
+
+  	int x, y;
+  	for (Point2D.Double p: pixelList) {
+  		x = (int)p.x;
+  		y = (int)p.y;
+  		
+  		if (x<xmin || x>xmax || y<ymin || y>ymax)
+  			continue;
+  		
+  		// check for pixel not falling outside of image domain
+      if (x >= 0 && x < this.getSizeX() && y >= 0 && y < this.getSizeY())
+        this.putValueInt(x, y, z, t, c, value);
+  	}  	
+  }
+
+  /**
    * Draws a point at given position into the x-y-plane.
    * <p>
    * MTBImages are 5D, but here t- and c-dimensions are ignored.
