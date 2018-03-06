@@ -9,6 +9,8 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 - MTBImage: method to draw filled circles into an image
 
 ### Changed
+- switched to management of Maven plugin and dependency artefact versions via parent POM file
+- updated JFreeChart to version 1.5.0, required minor adaptations of function calls
 
 ### Deprecated
 
@@ -16,6 +18,7 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 
 ### Fixed
 - BinaryImageEndpointTools: added safety checks to avoid accessing pixels outside of image domain
+- PaCeQuant: fixed small issue in segment length calculation for lobes, added safety checks in accessing pixels
 
 ## [1.8.7] - 2018-01-31
 Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
