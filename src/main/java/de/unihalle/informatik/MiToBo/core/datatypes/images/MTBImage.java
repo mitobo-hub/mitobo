@@ -484,7 +484,7 @@ public abstract class MTBImage extends ALDData
   /**
    * Set the physical size of a voxel (stepsize) in x-dimension
    * 
-   * @param stepsize
+   * @param stepsize	Stepsize in x dimension.
    */
   public void setStepsizeX(double stepsize) {
     this.calibration.pixelWidth = stepsize;
@@ -494,7 +494,7 @@ public abstract class MTBImage extends ALDData
   /**
    * Set the physical size of a voxel (stepsize) in y-dimension
    * 
-   * @param stepsize
+   * @param stepsize	Stepsize in y dimension.
    */
   public void setStepsizeY(double stepsize) {
 	this.calibration.pixelHeight = stepsize;
@@ -504,7 +504,7 @@ public abstract class MTBImage extends ALDData
   /**
    * Set the physical size of a voxel (stepsize) in z-dimension
    * 
-   * @param stepsize
+   * @param stepsize	Stepsize in z dimension.
    */
   public void setStepsizeZ(double stepsize) {
 	this.calibration.pixelDepth = stepsize;
@@ -514,7 +514,7 @@ public abstract class MTBImage extends ALDData
   /**
    * Set the stepsize in t-dimension (timestep)
    * 
-   * @param stepsize
+   * @param stepsize	Stepsize in t dimension.
    */
   public void setStepsizeT(double stepsize) {
     this.calibration.frameInterval = stepsize;
@@ -1405,6 +1405,45 @@ public abstract class MTBImage extends ALDData
   	}  	
   }
   
+  /**
+   * Draws a 2D line into the given slice of the image.
+   * <p>
+   * This function basically relies on the Bresenham algorithm for rendering
+   * line segments as implemented in method
+   * {@link MTBLineSegment2D#getPixelsAlongSegment()} of class
+   * {@link MTBLineSegment2D}.
+   * 
+   * @param xstart	x-coordinate of start point.
+   * @param ystart	y-coordinate of start point.
+   * @param xend		x-coordinate of end point.
+   * @param yend		y-coordinate of end point.
+   * @param z       z-coordinate of image slice. 
+   * @param t 			t-coordinate of image slice.
+   * @param c 			c-coordinate of image slice.
+   * @param value		Color or gray-scale value to use for drawing the segment.
+   */
+  public void drawLine2D(int xstart, int ystart, int xend, int yend, 
+  		int z, int t, int c, int value) {
+
+  	MTBLineSegment2D line = new MTBLineSegment2D(xstart, ystart, xend, yend);
+  	
+  	LinkedList<Point2D.Double> pixelList = line.getPixelsAlongSegment();
+
+  	int x, y;
+  	for (Point2D.Double p: pixelList) {
+  		x = (int)p.x;
+  		y = (int)p.y;
+  		
+  		// check for pixel not falling outside of image domain
+      if (   x >= 0 && x < this.getSizeX() 
+      		&& y >= 0 && y < this.getSizeY()
+      		&& z >= 0 && z < this.getSizeZ()
+      		&& t >= 0 && t < this.getSizeT()
+      		&& c >= 0 && c < this.getSizeC())
+        this.putValueInt(x, y, z, t, c, value);
+  	}  	
+  }
+
   /**
    * Draws a point at given position into the x-y-plane.
    * <p>
