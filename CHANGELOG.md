@@ -5,24 +5,21 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 
 ## [Unreleased]
 ### Added
-- LabelImageEditor: a small interactive tool for removing regions from label images by mouse interactions
-- MTBImage: method to draw filled circles into an image
+- MTBImage: new method to draw lines to arbitrary layer
 
 ### Changed
-- switched to management of Maven plugin and dependency artefact versions via parent POM file
-- updated JFreeChart to version 1.5.0, required minor adaptations of function calls
+- MTBCellCounter update: new plugin mechanism for easy integration of additional detectors / functionality for adding marker regions (not just centroids) / support for simultaneous analysis of multiple channels
 
 ### Deprecated
 
 ### Removed
 
 ### Fixed
-- BinaryImageEndpointTools: added safety checks to avoid accessing pixels outside of image domain
-- PaCeQuant: fixed small issue in segment length calculation for lobes, added safety checks in accessing pixels
 
 ## [1.8.8] - 2018-03-23
 Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
 - Released MiToBo 1.8.8
+
 ### Added
 - LabelImageEditor: a small interactive tool for removing regions from label images by mouse interactions
 - MTBImage: method to draw filled circles into an image
