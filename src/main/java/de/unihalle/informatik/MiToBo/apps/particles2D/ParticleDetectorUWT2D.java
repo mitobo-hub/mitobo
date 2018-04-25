@@ -973,7 +973,7 @@ public class ParticleDetectorUWT2D extends ParticleDetector
 	 * Transforms image with poisson noise to image with gaussian noise
 	 * J.-L. Starck et al., Multiresolution Support Applied to Image Filtering and Restoration
 	 */
-	protected static MTBImage poisson2gauss(MTBImage img) throws ALDOperatorException {
+	public static MTBImage poisson2gauss(MTBImage img) throws ALDOperatorException {
 		MTBImage imgT = img.convertType(MTBImageType.MTB_DOUBLE, false);
 
 		MTBImageArithmetics mia = new MTBImageArithmetics();

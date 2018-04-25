@@ -4,7 +4,7 @@
 
   <groupId>de.unihalle.informatik.MiToBo</groupId>
   <artifactId>mitobo</artifactId>
-  <version>1.8.7-SNAPSHOT</version>
+  <version>1.8.9-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>mitobo</name>
@@ -12,80 +12,22 @@
   <url>http://www.informatik.uni-halle.de/mitobo</url>
   <inceptionYear>2010</inceptionYear>
 
+  <parent>
+    <groupId>de.unihalle.informatik.MiToBo</groupId>
+    <artifactId>mitobo-pom</artifactId>
+    <version>1.1-SNAPSHOT</version>
+  </parent>
+
   <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <YEAR>2017</YEAR>
-    <!-- define a default native directory, does not work in all cases,
-	 but avoids that Maven fails completely -->
-    <native.libdir>lib64</native.libdir>
-    <alida.version>2.7.6-SNAPSHOT</alida.version>
-    <alida.mitobo.help.version>1.8-SNAPSHOT</alida.mitobo.help.version>
-    <mitobo.xml.version>2.1</mitobo.xml.version>
+    <mitobo.xml.version>2.3-SNAPSHOT</mitobo.xml.version>
   </properties>
-
-  <licenses>
-    <license>
-      <name>GNU General Public License version 3.0</name>
-      <url>http://www.gnu.org/licenses/gpl-3.0.html</url>
-    </license>
-  </licenses>
-
-  <organization>
-    <name>Martin Luther University Halle-Wittenberg</name>
-    <url>http://www.uni-halle.de</url>
-  </organization>
-
-  <developers>
-    <developer>
-      <id>moeller</id>
-      <email>birgit.moeller@informatik.uni-halle.de</email>
-      <name>Birgit Moeller</name>
-      <organization>Martin Luther University Halle-Wittenberg</organization>
-      <organizationUrl>http://www.informatik.uni-halle.de/moeller</organizationUrl>
-      <roles>
-	<role>Developer</role>
-      </roles>
-      <timezone>+1</timezone>
-    </developer>
-    <developer>
-      <id>posch</id>
-      <email>stefan.posch@informatik.uni-halle.de</email>
-      <name>Stefan Posch</name>
-      <organization>Martin Luther University Halle-Wittenberg</organization>
-      <organizationUrl>http://www.informatik.uni-halle.de/posch</organizationUrl>
-      <roles>
-	<role>Developer</role>
-      </roles>
-      <timezone>+1</timezone>
-    </developer>
-    <developer>
-      <id>glass</id>
-      <email>markus.glass@medizin.uni-halle.de</email>
-      <name>Markus Glass</name>
-      <organization>Martin Luther University Halle-Wittenberg</organization>
-      <roles>
-	<role>Developer</role>
-      </roles>
-      <timezone>+1</timezone>
-    </developer>
-    <developer>
-      <id>misiak</id>
-      <email>danny.misiak@informatik.uni-halle.de</email>
-      <name>Danny Misiak</name>
-      <organization>Martin Luther University Halle-Wittenberg</organization>
-      <roles>
-	<role>Developer</role>
-      </roles>
-      <timezone>+1</timezone>
-    </developer>
-  </developers>
 
   <build>
     <plugins>
+      
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-resources-plugin</artifactId>
-        <version>3.0.2</version>
       	<configuration>
 	  <includeEmptyDirs>true</includeEmptyDirs>
 	</configuration>
@@ -93,7 +35,7 @@
 	  <dependency>
 	    <groupId>org.apache.maven.shared</groupId>
 	    <artifactId>maven-filtering</artifactId>
-            <version>3.1.1</version> 
+	    <version>${maven.plugin.filtering.version}</version>
 	  </dependency>
 	</dependencies>
         <executions>
@@ -118,13 +60,13 @@
                     <include>revision-mitobo.txt</include>
 	          </includes>
 	          <filtering>true</filtering>
-                  </resource>
+                </resource>
                 <resource>
-	           <directory>src/main/resources</directory>
-	           <excludes>
-                     <exclude>revision-mitobo.txt</exclude>
-	           </excludes>
-	           <filtering>false</filtering>
+	          <directory>src/main/resources</directory>
+	          <excludes>
+                    <exclude>revision-mitobo.txt</exclude>
+	          </excludes>
+	          <filtering>false</filtering>
                 </resource>
               </resources>
             </configuration>
@@ -161,21 +103,12 @@
       <plugin>
         <groupId>de.unihalle.informatik.AlidaMiToBo.maven.plugins.help</groupId>
         <artifactId>comment-parser-maven-plugin</artifactId>
-        <version>1.6</version>
-	<executions>
-          <execution>
-            <phase>process-resources</phase>
-            <goals>
-              <goal>parse-comments</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
+
       <!-- copy dependencies incl. help jar to local folder -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
-	<version>3.0.1</version>
         <executions>
           <execution>
             <id>Copy dependency jars</id>
@@ -210,68 +143,30 @@
 	  </execution>
         </executions>
       </plugin>
+
       <!-- update helpset archive and copy files to target/classes -->
       <plugin>
         <groupId>de.unihalle.informatik.AlidaMiToBo.maven.plugins.help</groupId>
         <artifactId>helpset-file-injector-maven-plugin</artifactId>
-        <version>1.4</version>
-	<executions>
-          <execution>
-            <phase>process-resources</phase>
-            <goals>
-              <goal>update-helpset</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
 
       <plugin>
 	<groupId>org.apache.maven.plugins</groupId>
 	<artifactId>maven-compiler-plugin</artifactId>
-	<version>3.7.0</version>
-	<configuration>
-	  <source>1.8</source>
-	  <target>1.8</target>
-	  <encoding>${project.build.sourceEncoding}</encoding>
-	  <!-- Disable annotation processors during normal compilation! -->
-	  <compilerArgument>-proc:none</compilerArgument>
-	</configuration>
       </plugin>
+
       <plugin>
 	<!-- run annotation processing -->
 	<groupId>org.bsc.maven</groupId>
 	<artifactId>maven-processor-plugin</artifactId>
-	<version>3.3.1</version>
-	<executions>
-	  <execution>
-	    <id>process</id>
-	    <goals>
-	      <goal>process</goal>
-	    </goals>
-	    <phase>generate-sources</phase>
-	    <configuration>
-	      <compilerArguments>-encoding ${project.build.sourceEncoding}</compilerArguments>
-	    </configuration>
-	  </execution>
-	  <execution>
-	    <id>process-test</id>
-	    <goals>
-	      <goal>process-test</goal>
-	    </goals>
-	    <phase>generate-test-sources</phase>
-	    <configuration>
-	      <compilerArguments>-encoding ${project.build.sourceEncoding}</compilerArguments>
-	    </configuration>
-	  </execution>
-	</executions>
       </plugin>
+
       <!-- configure native resources for unit testing -->
       <plugin>
 	<groupId>org.apache.maven.plugins</groupId>
 	<artifactId>maven-surefire-plugin</artifactId>
-	<version>2.20</version>
 	<configuration>
-         <excludes>
+          <excludes>
             <exclude>**/TestMTBLevelsetFunctionPDE.java</exclude>
           </excludes>
 	  <forkMode>once</forkMode>
@@ -282,18 +177,17 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>3.0.2</version>
       </plugin>
+      
       <plugin>
 	<groupId>org.apache.maven.plugins</groupId>
 	<artifactId>maven-site-plugin</artifactId>
-	<version>3.6</version>
       </plugin>
+
       <plugin>
 	<!-- package binaries and sources into zip files;
 	     Attention: here we use our own assembly descriptors! -->
 	<artifactId>maven-assembly-plugin</artifactId>
-	<version>3.1.0</version>
 	<configuration>
 	  <descriptors>
 	    <descriptor>src/main/assembly/mitobo-bin.xml</descriptor>
@@ -310,58 +204,17 @@
 	  </execution>
 	</executions>
       </plugin>
+
       <plugin>
 	<!-- package javadocs -->
 	<groupId>org.apache.maven.plugins</groupId>
 	<artifactId>maven-javadoc-plugin</artifactId>
-	<version>2.10.4</version>
-	<configuration>
-	  <javadocVersion>1.8</javadocVersion>
-	  <stylesheet>java</stylesheet>
-          <show>private</show>
-	  <additionalparam>-Xdoclint:none</additionalparam>
-	  <taglets>
-	    <taglet>
-	      <tagletClass>latexlet.InlineLaTeXlet</tagletClass>
-	      <tagletArtifact>
-		<groupId>latexlet</groupId>
-		<artifactId>latexlet</artifactId>
-		<version>1.2f8-SNAPSHOT</version>
-	      </tagletArtifact>
-	    </taglet>
-	    <taglet>
-	      <tagletClass>latexlet.InlineBlockLaTeXlet</tagletClass>
-	      <tagletArtifact>
-		<groupId>latexlet</groupId>
-		<artifactId>latexlet</artifactId>
-		<version>1.2f8-SNAPSHOT</version>
-	      </tagletArtifact>
-	    </taglet>
-	    <taglet>
-	      <tagletClass>latexlet.BlockLaTeXlet</tagletClass>
-	      <tagletArtifact>
-		<groupId>latexlet</groupId>
-		<artifactId>latexlet</artifactId>
-		<version>1.2f8-SNAPSHOT</version>
-	      </tagletArtifact>
-	    </taglet>
-	  </taglets>
-        </configuration>
-	<executions>
-	  <execution>
-	    <id>attach-javadocs</id>
-	    <goals>
-	      <goal>jar</goal>
-	    </goals>
-	  </execution>
-	</executions>
       </plugin>
 
       <!-- configuration to run MiToBo Grappa via mvn exec:exec -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
-        <version>1.6.0</version>
         <executions>
           <execution>
             <goals>
@@ -386,54 +239,9 @@
       </plugin>
     </plugins>
 
-    <pluginManagement>
-      <plugins>
-	<!--This plugin's configuration is used to store Eclipse m2e settings only. 
-	    It has no influence on the Maven build itself.-->
-	<plugin>
-	  <groupId>org.eclipse.m2e</groupId>
-	  <artifactId>lifecycle-mapping</artifactId>
-	  <version>1.0.0</version>
-	  <configuration>
-	    <lifecycleMappingMetadata>
-	      <pluginExecutions>
-		<pluginExecution>
-		  <pluginExecutionFilter>
-		    <groupId>
-		      org.apache.maven.plugins
-		    </groupId>
-		    <artifactId>
-		      maven-dependency-plugin
-		    </artifactId>
-		    <versionRange>[2.1,)</versionRange>
-		    <goals>
-		      <goal>copy-dependencies</goal>
-		      <goal>unpack</goal>
-		    </goals>
-		  </pluginExecutionFilter>
-		  <action>
-		    <ignore></ignore>
-		  </action>
-		</pluginExecution>
-	      </pluginExecutions>
-	    </lifecycleMappingMetadata>
-	  </configuration>
-	</plugin>
-      </plugins>
-    </pluginManagement>
-
   </build>
 
   <repositories>
-    <repository>
-      <id>central</id>
-      <name>Maven Central Repository</name>
-      <url>http://repo1.maven.org/maven2</url>
-    </repository>
-    <repository>
-      <id>imagej.public</id>
-      <url>http://maven.imagej.net/content/groups/public</url>
-    </repository>
     <repository>
       <id>snapshots</id>
       <name>Archiva Public Snapshot Repository on 'moon'</name>
@@ -447,51 +255,19 @@
       <layout>default</layout>
     </repository>
   </repositories>
-
-  <pluginRepositories>
-    <pluginRepository>
-      <id>central</id>
-      <name>Maven Central Repository</name>
-      <url>http://repo1.maven.org/maven2</url>
-    </pluginRepository>
-    <pluginRepository>
-      <id>snapshots</id>
-      <name>Archiva Public Snapshot Repository on 'moon'</name>
-      <url>https://moon.informatik.uni-halle.de/archiva/repository/snapshots-pub/</url>
-      <layout>default</layout>
-    </pluginRepository>
-    <pluginRepository>
-      <id>releases</id>
-      <name>Archiva Release Repository on 'moon'</name>
-      <url>https://moon.informatik.uni-halle.de/archiva/repository/releases/</url>
-      <layout>default</layout>
-    </pluginRepository>
-  </pluginRepositories>
-
-  <distributionManagement>
-    <snapshotRepository>
-      <id>snapshots-pub</id>
-      <name>Archiva Public Snapshot Repository on 'moon'</name>
-      <url>https://moon.informatik.uni-halle.de/archiva/repository/snapshots-pub/</url>
-    </snapshotRepository>
-    <repository>
-      <id>releases</id>
-      <name>Archiva Release Repository on 'moon'</name>
-      <url>https://moon.informatik.uni-halle.de/archiva/repository/releases/</url>
-    </repository>
-  </distributionManagement>
-
+      
   <dependencyManagement>
     <dependencies>
       <dependency>
 	<groupId>org.scijava</groupId>
 	<artifactId>pom-scijava</artifactId>
-	<version>17.0.0</version>
+	<version>${scijava.version}</version>
 	<type>pom</type>
         <scope>import</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>
+
   <dependencies>
     <!-- Compile dependencies -->
     <dependency>
@@ -509,46 +285,38 @@
     <dependency>
       <groupId>gov.nist.math</groupId>
       <artifactId>jama</artifactId>
-      <version>1.0.3</version>
     </dependency>
     <dependency>
       <groupId>com.googlecode.efficient-java-matrix-library</groupId>
       <artifactId>ejml</artifactId>
-      <version>0.24</version>
     </dependency>
     <dependency>
       <groupId>tw.edu.ntu.csie</groupId>
       <artifactId>libsvm</artifactId>
-      <version>3.17</version>
     </dependency>
     <dependency>
       <groupId>org.nuiton.thirdparty</groupId>
       <artifactId>JRI</artifactId>
-      <version>0.9-9</version>
     </dependency>
     <dependency>
       <!-- used for numerical calculations, e.g., in vesselness package -->
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-math3</artifactId>
-      <version>3.6.1</version>
     </dependency>
     <dependency>
       <!-- used for clustering, e.g., in actin analysis -->
       <groupId>nz.ac.waikato.cms.weka</groupId>
       <artifactId>weka-dev</artifactId>
-      <version>3.9.1</version>
     </dependency>
     <dependency>
       <!-- used for data visualization, e.g., in actin analysis -->
       <groupId>org.jfree</groupId>
       <artifactId>jfreechart</artifactId>
-      <version>1.0.19</version>
     </dependency>
     <dependency>
       <!-- used by MTBPolygon2D -->
       <groupId>uk.co.geolib</groupId>
       <artifactId>geopolygons</artifactId>
-      <version>4.0</version>
     </dependency>
     <!-- ImgLib2 dependencies -->
     <dependency>
@@ -567,7 +335,6 @@
     <dependency>
       <groupId>de</groupId>
       <artifactId>jstacs</artifactId>
-      <version>2.2</version>
     </dependency>
     <dependency>
       <groupId>de.unihalle.informatik.MiToBo</groupId>
@@ -577,7 +344,6 @@
     <dependency>
       <groupId>de.unihalle.informatik.Alida</groupId>
       <artifactId>alida</artifactId>
-      <version>${alida.version}</version>
       <scope>compile</scope>
       <exclusions>
 	<exclusion>
@@ -589,7 +355,6 @@
     <dependency>
       <groupId>de.unihalle.informatik.AlidaMiToBo</groupId>
       <artifactId>help-resources</artifactId>
-      <version>${alida.mitobo.help.version}</version>
     </dependency>
     <!-- Runtime dependencies -->
     <dependency>
@@ -601,13 +366,11 @@
     <dependency>
       <groupId>de.unihalle.informatik.MiToBo.native</groupId>
       <artifactId>mitobo-native-${native.libdir}</artifactId>
-      <version>1.2</version>
     </dependency>
     <!-- Testing -->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.12</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -616,43 +379,6 @@
     <connection>scm:git:https://github.com/mitobo-hub/mitobo.git</connection>
     <developerConnection>scm:git:https://github.com/mitobo-hub/mitobo.git</developerConnection>
   </scm>
-
-  <profiles>
-    <!-- architecture dependent settings -->
-    <profile>
-      <id>linux-x86</id>
-      <activation>
-	<os>
-	  <arch>i386</arch>
-	</os>
-      </activation>
-      <properties>
-	<native.libdir>lib32</native.libdir>
-      </properties>
-    </profile>
-    <profile>
-      <id>linux-x64</id>
-      <activation>
-	<os>
-	  <arch>amd64</arch>
-	</os>
-      </activation>
-      <properties>
-	<native.libdir>lib64</native.libdir>
-      </properties>
-    </profile>
-    <profile>
-      <id>win32</id>
-      <activation>
-	<os>
-	  <arch>Windows</arch>
-	</os>
-      </activation>
-      <properties>
-	<native.libdir>win32</native.libdir>
-      </properties>
-    </profile>
-  </profiles>
 
   <issueManagement>
     <system>Github Issue Tracking</system>

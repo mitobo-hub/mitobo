@@ -37,7 +37,7 @@ import java.util.LinkedList;
 import java.util.Set;
 import java.util.Vector;
 
-import org.jfree.chart.ChartUtilities;
+import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 
 import de.unihalle.informatik.Alida.datatypes.ALDDirectoryString;
@@ -878,7 +878,7 @@ public class ActinAnalyzer2D extends MTBOperator {
 			String filename = "";
       try {
       	filename = this.outDir + File.separator + g + "-distributionChart.png";
-	      ChartUtilities.saveChartAsPNG(
+	      ChartUtils.saveChartAsPNG(
 	      	new File(filename), stackedBarChart, 640, 400);
       } catch (IOException e) {
       	// problem on saving the plot to file, skip plot
@@ -945,7 +945,7 @@ public class ActinAnalyzer2D extends MTBOperator {
 		String filename = "";
     try {
     	filename = this.outDir +File.separator+ "AllGroupsClusterStatsChart.png";
-      ChartUtilities.saveChartAsPNG(
+      ChartUtils.saveChartAsPNG(
       	new File(filename), boxPlotter.getChart(), 640, 400);
     } catch (IOException e) {
     	// problem on saving the plot to file, skip plot

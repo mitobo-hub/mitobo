@@ -293,7 +293,7 @@ public class BoxWhiskerChartPlotter extends MTBOperator {
   	yAxis.setAutoRangeIncludesZero(false);
   	final BoxAndWhiskerRenderer renderer = new BoxAndWhiskerRenderer();
   	renderer.setFillBox(true);
-  	renderer.setBaseToolTipGenerator(new BoxAndWhiskerToolTipGenerator());
+  	renderer.setDefaultToolTipGenerator(new BoxAndWhiskerToolTipGenerator());
 
   	// configure colors of different categories
   	if (this.categoryColors == null) {
