@@ -43,18 +43,26 @@ import ij.gui.*;
  * Image binarization based on local Niblack thresholding.
  * <p>
  * The implementation is based upon the following publications:
- * <li>
- * W. Niblack, <i>An Introduction to Digital Image Processing</i>, 
+ * <ul>
+ * <li> W. Niblack, <i>An Introduction to Digital Image Processing</i>, 
  * pp. 115-116, Prentice Hall, 1986.</li>
- * <li>
- * G. Leedham, C. Yan, et al., <i>Comparison of some thresholding 
+ * <li> G. Leedham, C. Yan, et al., <i>Comparison of some thresholding 
  * algorithms for text/background segmentation in difficult document 
  * images</i>,<br> Proc. of the Seventh International Conference on 
  * Document Analysis and Recognition. Vol. 2. 2003</li>
- * <li>
- * Z. Zhang, C.L. Tan, <i>Recovery of Distorted Document Images from 
+ * <li> Z. Zhang, C.L. Tan, <i>Recovery of Distorted Document Images from 
  * Bound Values</i>, Proc. of 6th International Conference on Document 
  * Analysis and Recognition, pp. 429-433, 2001.</li>
+ * </ul>
+ * <p>
+ * Note that the enhanced Niblack mode as proposed by Zhang et al. is quite 
+ * similar to the Sauvola local thresholding approach published in
+ * <ul>
+ * <li> Sauvola, J and Pietikainen, M (2000), 
+ * <i>Adaptive document image binarization</i>, 
+ * Pattern Recognition 33(2): 225-236
+ * </li>
+ * </ul>
  * 
  * <p>
  * This class implements various versions of the Niblack thresholding 
