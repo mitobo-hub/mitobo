@@ -88,7 +88,7 @@ public abstract class CellCounterDetectOperatorConfigWin extends ALDSwingCompone
 	/**
 	 * Title string of window.
 	 */
-	protected static String titleString =	"Configure Detector Parameters...";
+	protected String titleString =	"Configure Detector Parameters...";
 	
 	/**
 	 * Last directory visited, initially it's user's home.
