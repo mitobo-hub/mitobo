@@ -22,15 +22,6 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev$
- * $Date$
- * $Author$
- * 
- */
-
 package de.unihalle.informatik.MiToBo.segmentation.regions.filling;
 
 import java.awt.geom.Point2D;
@@ -55,12 +46,13 @@ import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
 import de.unihalle.informatik.MiToBo.segmentation.regions.labeling.LabelComponentsSequential;
 
 /**
- * Operator to fill holes in connected components of binary or label image.
+ * Operator to fill holes in connected components of binary or label images.
+ * <p>
  * If there is only a single grey value besides the background (of zero) the
  * input image is assumed to be binary, otherwise a label image.
  * <p>
  * If the input image is a label image each label is assumed to constitute
- * on connected component, i.e. one region.
+ * one connected component, i.e. one region. 
  * Otherwise the result of the operator is undefined.
  * <p>
  * If the input image is binary conncected components are detected an filled.
@@ -73,10 +65,16 @@ import de.unihalle.informatik.MiToBo.segmentation.regions.labeling.LabelComponen
 public class FillHoles2D extends MTBOperator implements StatusReporter {
 	
 	/**
+	 * Identifier for outputs in verbose mode.
+	 */
+	private final static String opIdentifier = "[FillHoles2D] ";
+
+	/**
 	 * Input image.
 	 */
 	@Parameter(label= "Input image", required = true, direction = Direction.IN,
-		mode = ExpertMode.STANDARD, dataIOOrder = 1, description = "Input image, binary or label image")
+		mode = ExpertMode.STANDARD, dataIOOrder = 1, 
+		description = "Input image, binary or label image")
 	private transient MTBImage inImg = null;
 
 	/**
@@ -91,7 +89,7 @@ public class FillHoles2D extends MTBOperator implements StatusReporter {
 
 	/**
 	 * Default constructor.
-	 * @throws ALDOperatorException
+	 * @throws ALDOperatorException	Thrown in case of failure.
 	 */
 	public FillHoles2D() throws ALDOperatorException {
 		this.m_statusListeners = new Vector<StatusListener>();
@@ -100,8 +98,8 @@ public class FillHoles2D extends MTBOperator implements StatusReporter {
 	/**
 	 * Constructor with input image.
 	 * @param img		Image to process.
-	 * @throws IllegalArgumentException
-	 * @throws ALDOperatorException
+	 * @throws IllegalArgumentException		Thrown in case of failure.
+	 * @throws ALDOperatorException				Thrown in case of failure.
 	 */
 	public FillHoles2D(MTBImage img) 
 		throws IllegalArgumentException, ALDOperatorException {
@@ -112,17 +110,18 @@ public class FillHoles2D extends MTBOperator implements StatusReporter {
 	
 	@Override
 	public 	void validateCustom() throws ALDOperatorException {
-		if (inImg.getSizeC() > 1 || inImg.getSizeT() > 1 || inImg.getSizeZ() > 1) {
+		if (   this.inImg.getSizeC() > 1 || this.inImg.getSizeT() > 1 
+				|| this.inImg.getSizeZ() > 1) {
 			throw new ALDOperatorException(OperatorExceptionType.VALIDATION_FAILED,
-				    "\n>>>>>>> FillHoles2D: validation failed!\nOnly 2D images allowed.");
+		    "\n>>>>>>> FillHoles2D: validation failed!\nOnly 2D images allowed.");
 
 		}
 
-		if (inImg.getType() != MTBImageType.MTB_BYTE && 
-				inImg.getType() != MTBImageType.MTB_SHORT &&
-				inImg.getType() != MTBImageType.MTB_INT ) {
+		if (this.inImg.getType() != MTBImageType.MTB_BYTE && 
+				this.inImg.getType() != MTBImageType.MTB_SHORT &&
+				this.inImg.getType() != MTBImageType.MTB_INT ) {
 			throw new ALDOperatorException(OperatorExceptionType.VALIDATION_FAILED,
-				    "\n>>>>>>> FillHoles2D: validation failed!\nOnly BYTE an SHORT and INT images allowed.");
+		    "\n>>>>>>> FillHoles2D: validation failed!\nOnly BYTE an SHORT and INT images allowed.");
 
 		}
 	}
@@ -133,8 +132,9 @@ public class FillHoles2D extends MTBOperator implements StatusReporter {
 	 * This function is called on an instance of this class being deserialized
 	 * from file, prior to handing the instance over to the user. It takes care
 	 * of a proper initialization of transient member variables as they are not
-	 * initialized to the default values during deserialization. 
-	 * @return
+	 * initialized to the default values during deserialization.
+	 *  
+	 * @return	Initialized object.
 	 */
 	@Override
   protected Object readResolve() {
@@ -145,6 +145,7 @@ public class FillHoles2D extends MTBOperator implements StatusReporter {
 
 	/**
 	 * Get reference to the current input image.
+	 * @return Current input image.
 	 */
 	public MTBImage getInputImage() {
 		return this.inImg;
@@ -152,6 +153,7 @@ public class FillHoles2D extends MTBOperator implements StatusReporter {
 	
 	/**
 	 * Set input image.
+	 * @param inputImage Input image to process.
 	 */
 	public void setInputImage(MTBImage inputImage) {
 		this.inImg = inputImage;
@@ -159,6 +161,7 @@ public class FillHoles2D extends MTBOperator implements StatusReporter {
 	
 	/**
 	 * Get the resulting image.
+	 * @return Result image with holes filled.
 	 */
 	public MTBImage getResultImage() {
 		return this.resultImg;
@@ -166,6 +169,7 @@ public class FillHoles2D extends MTBOperator implements StatusReporter {
 	
 	/**
 	 * Set the result image.
+	 * @param resultImage Set result image variable.
 	 */
 	protected void setResultImage(MTBImage resultImage) {
 		this.resultImg = resultImage;
@@ -175,31 +179,39 @@ public class FillHoles2D extends MTBOperator implements StatusReporter {
 	protected void operate() 
 		throws ALDOperatorException, ALDProcessingDAGException  {
 		MTBRegion2DSet regs;
-		Boolean isBinary = true;
+		boolean isBinary = true;
 		int value = 0;
 		
+		// post ImageJ status
+		String msg = opIdentifier + "checking if image is binary...";	
+		this.notifyListeners(new StatusEvent(msg));
+
 		// decide if inImg is binary
 		// find first non null grey value
 		int x, y;
-		for ( y = 0 ; y < inImg.getSizeY() ; y++) {
-			for ( x = 0 ; x < inImg.getSizeX() ; x++) {
-				if ( inImg.getValueInt(x, y) != 0) {
-					value = inImg.getValueInt(x, y);
-					break;
+		for ( y = 0 ; y < this.inImg.getSizeY() ; y++) {
+			for ( x = 0 ; x < this.inImg.getSizeX() ; x++) {
+				if ( this.inImg.getValueInt(x, y) != 0) {
+					value = this.inImg.getValueInt(x, y);
+					// break both loops
+					x = this.inImg.getSizeX();
+					y = this.inImg.getSizeY();
 				}
 			}
 		}
 		
 		// check remaining pixels
-		for ( y = 0 ; y < inImg.getSizeY() ; y++) {
-			for ( x = 0 ; x < inImg.getSizeX() ; x++) {
-				if ( inImg.getValueInt(x, y) != 0 &&
-						inImg.getValueInt(x, y) != value) {
+		for ( y = 0 ; y < this.inImg.getSizeY() && isBinary ; y++) {
+			for ( x = 0 ; x < this.inImg.getSizeX() && isBinary ; x++) {
+				if (   this.inImg.getValueInt(x, y) != 0 
+						&& this.inImg.getValueInt(x, y) != value) {
 					isBinary = false;
-					break;
 				}
 			}
 		}
+		
+		msg = opIdentifier + "extracting regions...";	
+		this.notifyListeners(new StatusEvent(msg));
 
 		if ( isBinary ) {
 			LabelComponentsSequential lcs = 
@@ -210,30 +222,126 @@ public class FillHoles2D extends MTBOperator implements StatusReporter {
 			regs = new MTBRegion2DSet(this.inImg);
 		}
 
+		msg = opIdentifier + "filling holes...";	
+		this.notifyListeners(new StatusEvent(msg));
+
 		MTBImage outImg = MTBImage.createMTBImage(this.inImg.getSizeX(), 
 												  this.inImg.getSizeY(), 
 												  this.inImg.getSizeZ(), 
 												  this.inImg.getSizeT(), 
 												  this.inImg.getSizeC(), 
-												  inImg.getType());
-		for (int i = 0; i < regs.size(); i++) {
-			this.notifyListeners(new StatusEvent(i,regs.size(),"Filling regions..."));
-			this.paintFilledRegion(regs.elementAt(i), inImg, outImg);
-		}
+												  this.inImg.getType());
 		
-		this.notifyListeners(new StatusEvent(regs.size(), regs.size(), "Filling regions done"));
+		// in case of a binary image all regions can be handled at once since 
+		// they all have the same label; all (background) regions not touching
+		// the image border are holes
+		if (isBinary) {
+			
+			// draw hole regions to output image
+			this.paintFilledRegionsBinary(this.inImg, outImg);
+			
+			// add original regions 
+			Point2D.Double pt;
+			Vector<Point2D.Double> pts;
+			for (int i = 0; i < regs.size(); i++) {
+				pts = regs.get(i).getPoints();
+				for (int j = 0; j < pts.size(); j++) {
+					pt = pts.get(j);
+					outImg.putValueInt((int)pt.getX(), (int)pt.getY(), 255);
+				}
+			}
+		}
+		else {
+			for (int i = 0; i < regs.size(); i++) {
+
+				msg = opIdentifier + "... region: " + i;	
+				this.notifyListeners(new StatusEvent(msg));
+
+				this.paintFilledRegion(regs.elementAt(i), this.inImg, outImg);
+			}
+		}
 		this.setResultImage(outImg);
 	}
 
 	/**
-	 * Draw a region to an image.
-	 * @param reg			Region to draw.
-	 * @param outImg	Image where to draw it.
-	 * @throws ALDOperatorException
-	 * @throws ALDProcessingDAGException
+	 * Close holes in binary image.
+	 * <p>
+	 * In a binary image the foreground regions are in white, while background
+	 * and holes are black. The difference between holes and background is given
+	 * by the fact that holes have to be completely enclosed by a region, thus,
+	 * never touch the image boundary.
+	 * <p>
+	 * The method first inverts the image and then labels the background and
+	 * hole components. Afterwards all regions are checked for contact with the
+	 * image boundary, and if there is no contact the region is identified as
+	 * a hole region and drawn to the output image. 
+	 * 
+	 * @param img			Binary region image with holes (in black).
+	 * @param outImg	Binary region image without holes (regions in white).
+	 * @throws ALDOperatorException				Thrown in case of failure.
+	 * @throws ALDProcessingDAGException	Thrown in case of failure.
 	 */
-	private void paintFilledRegion(MTBRegion2D reg, MTBImage inImg, MTBImage outImg) 
+	private void paintFilledRegionsBinary(MTBImage img, MTBImage outImg) 
 		throws ALDOperatorException, ALDProcessingDAGException {
+		
+		int w = img.getSizeX();
+		int h = img.getSizeY();
+		
+		// invert image so that background and holes are white
+		MTBImage invInImg = img.duplicate();
+		for (int y=0; y<h; ++y) 
+			for (int x=0; x<w; ++x)
+				if (img.getValueInt(x, y) > 0)
+					invInImg.putValueInt(x, y, 0);
+				else
+					invInImg.putValueInt(x, y, 255);
+
+		LabelComponentsSequential lcs = 
+			new LabelComponentsSequential(invInImg, false);
+		lcs.runOp(HidingMode.HIDDEN);
+		
+		MTBRegion2DSet holes = lcs.getResultingRegions();
+		
+		boolean bgRegion;
+		Vector<Point2D.Double> pts;
+		Point2D.Double pt;
+		int x,y;
+		for (int i = 0; i < holes.size(); i++) {
+			
+			pts = holes.get(i).getPoints();
+			
+			bgRegion = false;
+			
+			for (int j=0; j<pts.size() && !bgRegion; j++) {
+				pt = pts.get(j);
+				x = (int)pt.getX();
+				y = (int)pt.getY();
+				
+				if (x == 0 || x == w-1 || y == 0 || y == h-1)
+					bgRegion = true;
+			}
+			
+			if (!bgRegion) {
+				
+				for (int j = 0; j < pts.size(); j++) {
+					pt = pts.get(j);
+					outImg.putValueInt((int)pt.getX(), (int)pt.getY(), 255);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Draw a region without holes to an image.
+	 * @param reg			Region to draw.
+	 * @param img			Original input image.
+	 * @param outImg	Image where to draw it.
+	 * @throws ALDOperatorException				Thrown in case of failure.
+	 * @throws ALDProcessingDAGException	Thrown in case of failure.
+	 */
+	private void paintFilledRegion(MTBRegion2D reg, MTBImage img, MTBImage outImg) 
+			throws ALDOperatorException, ALDProcessingDAGException {
+		
 		Vector<Point2D.Double> pts = reg.getPoints();
 		Point2D pt;
 		int x, y, xmin, xmax, ymin, ymax;
@@ -246,7 +354,7 @@ public class FillHoles2D extends MTBOperator implements StatusReporter {
 		xmin = xmax = (int)pts.get(0).getX();
 		ymin = ymax = (int)pts.get(0).getY();
 
-		int value = inImg.getValueInt( xmin, ymin);
+		int value = img.getValueInt( xmin, ymin);
 		outImg.putValueInt(xmin, ymax, value);		
 
 		for (int i = 1; i < pts.size(); i++) {
@@ -292,7 +400,7 @@ public class FillHoles2D extends MTBOperator implements StatusReporter {
 			
 			bgRegion = false;
 			
-			for (int j = 0; j < pts.size(); j++) {
+			for (int j=0; j<pts.size() && !bgRegion; j++) {
 				pt = pts.get(j);
 				x = (int)pt.getX();
 				y = (int)pt.getY();
