@@ -22,6 +22,7 @@
 
 package de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes;
 
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBBorder2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2D;
 
 /**
@@ -47,6 +48,13 @@ public class CellCntrMarkerShapeRegion extends CellCntrMarkerShape {
 	
 	/**
 	 * Default constructor with region object.
+	 * <p>
+	 * Note that the border of the region is extracted in the course of object
+	 * construction which might be time-consuming if done for many regions.
+	 * In that case it might be a better idea to extract borders for all regions
+	 * externally in one run and use the other constructor to which you can pass
+	 * a border object directly. 
+	 * 
 	 * @param r	Region object.
 	 */
 	public CellCntrMarkerShapeRegion(MTBRegion2D r) {
@@ -57,7 +65,17 @@ public class CellCntrMarkerShapeRegion extends CellCntrMarkerShape {
 			System.err.println("Something went wrong extracting the border...");
 		}
 	}
-	
+
+	/**
+	 * Constructor with region and border object.
+	 * @param r	Region object.
+	 * @param b Border object.
+	 */
+	public CellCntrMarkerShapeRegion(MTBRegion2D r, MTBBorder2D b) {
+		this.mRegion = r;
+		this.mBorder = b;
+	}
+
 	/* (non-Javadoc)
 	 * @see mtb_cellcounter.CellCntrMarkerShape#getArea()
 	 */
