@@ -44,11 +44,16 @@ import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.unihalle.informatik.Alida.operator.ALDOpParameterDescriptor;
 import de.unihalle.informatik.MiToBo.apps.particles2D.ParticleDetectorUWT2D;
 import de.unihalle.informatik.MiToBo.apps.plantCells.plastids.PlastidDetector2DParticlesUWT;
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBBorder2D;
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBBorder2DSet;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2DSet;
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBBorder2D.BorderConnectivity;
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarker;
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarkerShape;
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarkerShapeRegion;
+import de.unihalle.informatik.MiToBo.segmentation.contours.extraction.BordersOnLabeledComponents;
+import de.unihalle.informatik.MiToBo.segmentation.contours.extraction.BordersOnLabeledComponents.BorderType;
 
 /**
  * Cell counter detector for detecting plastids.
@@ -117,13 +122,24 @@ public class CellCounterDetectOperatorParticlesUWT
 
 		// format results
 		Vector<CellCntrMarker> markers = new Vector<>();
-		for (MTBRegion2D reg: resultPlastidRegions) {
+		
+		// extract borders for all regions
+		BordersOnLabeledComponents blc = new BordersOnLabeledComponents(null,
+			resultPlastidRegions, BorderConnectivity.CONNECTED_8, 
+				BorderType.OUT_IN_BORDERS, 1);
+		blc.runOp(null);				
+		MTBBorder2DSet borders = blc.getResultBorders();
+
+		for (int i=0; i<resultPlastidRegions.size(); ++i) {
+			MTBRegion2D reg = resultPlastidRegions.elementAt(i);
+			MTBBorder2D bor = borders.elementAt(i);
+
 			// calculate average intensity
 			double intensity = 0; 
 			for (Point2D.Double p: reg.getPoints()) {
 				intensity += this.inputImage.getValueDouble((int)p.x, (int)p.y,	0);
 			}
-			CellCntrMarkerShape s = new CellCntrMarkerShapeRegion(reg);
+			CellCntrMarkerShape s = new CellCntrMarkerShapeRegion(reg, bor);
 			s.setAvgIntensity(intensity/reg.getArea());
 			CellCntrMarker marker = new CellCntrMarker(
 				(int)reg.getCenterOfMass_X(), (int)reg.getCenterOfMass_Y(), 
@@ -189,7 +205,7 @@ public class CellCounterDetectOperatorParticlesUWT
 		public OperatorConfigWin(ParticleDetectorUWT2D _op) 
 				throws ALDOperatorException {
 			super(_op);
-			titleString = "Configure Particle Detector Parameters...";		
+			this.titleString = "Configure Particle Detector Parameters...";		
 		}
 		
 		/**
