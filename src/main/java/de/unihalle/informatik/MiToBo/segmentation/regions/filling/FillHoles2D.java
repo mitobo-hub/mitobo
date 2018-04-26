@@ -238,7 +238,7 @@ public class FillHoles2D extends MTBOperator implements StatusReporter {
 		if (isBinary) {
 			
 			// draw hole regions to output image
-			this.paintFilledRegionsBinary(this.inImg, outImg);
+			this.paintFilledRegionsBinary(this.inImg, outImg, value);
 			
 			// add original regions 
 			Point2D.Double pt;
@@ -247,7 +247,7 @@ public class FillHoles2D extends MTBOperator implements StatusReporter {
 				pts = regs.get(i).getPoints();
 				for (int j = 0; j < pts.size(); j++) {
 					pt = pts.get(j);
-					outImg.putValueInt((int)pt.getX(), (int)pt.getY(), 255);
+					outImg.putValueInt((int)pt.getX(), (int)pt.getY(), value);
 				}
 			}
 		}
@@ -278,10 +278,11 @@ public class FillHoles2D extends MTBOperator implements StatusReporter {
 	 * 
 	 * @param img			Binary region image with holes (in black).
 	 * @param outImg	Binary region image without holes (regions in white).
+	 * @param v				Value of foreground in input/result image.
 	 * @throws ALDOperatorException				Thrown in case of failure.
 	 * @throws ALDProcessingDAGException	Thrown in case of failure.
 	 */
-	private void paintFilledRegionsBinary(MTBImage img, MTBImage outImg) 
+	private void paintFilledRegionsBinary(MTBImage img, MTBImage outImg, int v) 
 		throws ALDOperatorException, ALDProcessingDAGException {
 		
 		int w = img.getSizeX();
@@ -325,7 +326,7 @@ public class FillHoles2D extends MTBOperator implements StatusReporter {
 				
 				for (int j = 0; j < pts.size(); j++) {
 					pt = pts.get(j);
-					outImg.putValueInt((int)pt.getX(), (int)pt.getY(), 255);
+					outImg.putValueInt((int)pt.getX(), (int)pt.getY(), v);
 				}
 			}
 		}
