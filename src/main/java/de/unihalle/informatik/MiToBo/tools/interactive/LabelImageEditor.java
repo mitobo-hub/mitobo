@@ -162,7 +162,7 @@ public class LabelImageEditor extends MTBOperator
 		
 		// deactivate history mode
 		ALDOperator.setConstructionMode(
-				ALDOperator.ConstructioMode.NO_HISTORY);
+				ALDOperator.HistoryConstructionMode.NO_HISTORY);
 
 		// read input directory
 		DirectoryTree tree = 
