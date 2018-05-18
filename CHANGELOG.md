@@ -14,6 +14,16 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 
 ### Fixed
 
+## [1.8.10] - 2018-05-18
+Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
+- Released MiToBo 1.8.10
+
+### Added
+- new operators for analyzing images of biofilms
+
+### Fixed
+- minor changes due to update to Alida 2.7.7
+
 ## [1.8.9] - 2018-05-04
 Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
 - Released MiToBo 1.8.9
