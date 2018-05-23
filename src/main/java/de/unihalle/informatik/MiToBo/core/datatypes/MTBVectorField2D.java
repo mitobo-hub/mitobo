@@ -263,8 +263,10 @@ public class MTBVectorField2D extends ALDData {
 		}
 
 		/**
-		 * Get direction of the vector at position (x,y) in the vector field, relative
-		 * to the x-axis. The direction is given in radian measure, not in degrees.
+		 * Get direction of the vector at position (x,y) in the vector field.
+		 * <p>
+		 * The direction is given relative to the x-axis and in radians, 
+		 * not in degrees. The range is from 0 to 2 * pi.
 		 * 
 		 * @param x
 		 *          x-coordinate
