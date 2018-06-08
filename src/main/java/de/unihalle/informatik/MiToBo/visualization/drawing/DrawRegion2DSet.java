@@ -575,6 +575,38 @@ public class DrawRegion2DSet extends MTBOperator {
 	}
 	
 	/**
+	 * Set target image width, overwrites all other internal settings.
+	 * @param w		Desired width of target image.
+	 */
+	public void setResultImageWidth(int w) {
+		this.resultImgWidth = w;
+	}
+	
+	/**
+	 * Set target image height, overwrites all other internal settings.
+	 * @param h		Desired height of target image.
+	 */
+	public void setResultImageHeight(int h) {
+		this.resultImgHeight = h;
+	}
+
+	/**
+	 * Set desired offset for target image in x direction.
+	 * @param ox		Desired offset of target image in x.
+	 */
+	public void setResultImageOffsetX(int ox) {
+		this.resultImgOffsetX = ox;
+	}
+
+	/**
+	 * Set desired offset for target image in y direction.
+	 * @param oy		Desired offset of target image in y.
+	 */
+	public void setResultImageOffsetY(int oy) {
+		this.resultImgOffsetY = oy;
+	}
+	
+	/**
 	 * Set the resulting image.
 	 * @param image Result image.
 	 */
