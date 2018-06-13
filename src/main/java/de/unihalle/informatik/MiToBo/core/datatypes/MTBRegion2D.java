@@ -633,16 +633,29 @@ public class MTBRegion2D implements MTBRegionInterface {
 		}
 
 		/**
-		 * Calculate orientation of principal axis of the MTBRegion2D, using the atan2
-		 * function. The orientation (angle) is given in radian in a range [-pi, +pi]
+		 * Calculates the orientation of the principal axis of the 
+		 * {@link MTBRegion2D.}
 		 * <p>
+		 * The orientation is measured with regard to the horizontal x-axis.<br> 
+		 * We apply the atan2 function here:
+		 * 
 		 * {@latex.ilb %preamble{\\usepackage{amssymb,amsmath}}
 		 * \\begin{eqnarray*} 	
 		 * \\theta(R)&=& \\frac{1}{2} \\cdot 
 		 * 		atan2(2.0 \\cdot \\mu_{1,1}, \\mu_{2,0} - \\mu_{0,2} )  
 		 * \\end{eqnarray*}}
 		 * 
-		 * @return Orientation in radian.
+		 * Thus, the orientation (angle) is given in radians in a range of 
+		 * [-pi, +pi].<br>
+		 * Please note that two angles with a difference of 
+		 * 180 degrees (or pi) are equivalent and cannot be distinguished. 
+		 * E.g., axes with orientations 0 and 180 degrees are identical.
+		 * <p>
+		 * For details on the calculations and some background infos take a look
+		 * in Burger/Burge, <i>Digitale Bildverarbeitung</i>, 2nd edition, 
+		 * Springer, 2006, section "Orientierung" on pages 224 to 226.
+		 * 
+		 * @return Orientation of region main axis in radians.
 		 */
 		@SuppressWarnings("javadoc")
     public double getOrientation() {
