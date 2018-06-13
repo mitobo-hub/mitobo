@@ -22,21 +22,11 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev$
- * $Date$
- * $Author$
- * 
- */
-
 package de.unihalle.informatik.MiToBo.visualization.drawing;
 
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
+import de.unihalle.informatik.Alida.annotations.ALDAOperator.ExecutionMode;
 import de.unihalle.informatik.Alida.annotations.Parameter;
 import de.unihalle.informatik.Alida.annotations.Parameter.Direction;
 import de.unihalle.informatik.Alida.annotations.Parameter.ExpertMode;
@@ -50,29 +40,41 @@ import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
 /**
  * A class to visualize 2D polygons. 
  * <p>
- * Background is always set to 0, polygons are drawn in red.
+ * If no input image is provided, a new image is generated with the background 
+ * set to zero (black). The default drawing color is red. 
  *  
- * @author moeller
+ * @author Birgit Moeller
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
-@ALDAOperator
+@ALDAOperator(genericExecutionMode=ExecutionMode.ALL)
 public class DrawPolygon2DSet extends MTBOperator {
 	
+	/**
+	 * Set of polygons of type {@link MTBPolygon2D} to draw.
+	 */
 	@Parameter( label= "inputPolygons", required = true, 
 			direction=Direction.IN, dataIOOrder=1, mode=ExpertMode.STANDARD,
 			description = "Input polygons.")
 	private MTBPolygon2DSet inputPolys = null;
 
+	/**
+	 * Input image into which the polygons are to be drawn.
+	 */
 	@Parameter( label= "inputImage", required = false,
 			direction=Direction.IN, dataIOOrder=2, mode=ExpertMode.STANDARD,
 			description = "Optional input image.")
 	private MTBImageRGB inputImage = null;
 
+	/**
+	 * Color to be used, known colors are: red, green, blue, yellow, white
+	 */
 	@Parameter( label= "color", required = false,
 			direction=Direction.IN, dataIOOrder=3, mode=ExpertMode.STANDARD,
 			description = "Optional color.")
 	private String color = "red";
 	
+	/**
+	 * Result image.
+	 */
 	@Parameter( label= "resultImage", required = true,
 			direction=Direction.OUT, dataIOOrder=1, mode=ExpertMode.STANDARD,
 			description = "Result image")
@@ -80,20 +82,26 @@ public class DrawPolygon2DSet extends MTBOperator {
 	
 	/**
 	 * Default constructor.
+	 * @throws ALDOperatorException	Thrown in case of failure.
 	 */
 	public DrawPolygon2DSet() throws ALDOperatorException {
 		// nothing happens here
 	}
 	
 	/**
-	 * Simple constructor.
+	 * Simple constructor with polygon set.
+	 * @param ps Set of polygons to draw.
+	 * @throws ALDOperatorException	Thrown in case of failure.
 	 */
 	public DrawPolygon2DSet(MTBPolygon2DSet ps) throws ALDOperatorException {
 		this.inputPolys = ps;
 	}
 	
 	/**
-	 * Complete constructor.
+	 * Constructor with polygon set and image.
+	 * @param ps 	Set of polygons to draw.
+	 * @param img Target image to which the polygons are to be drawn.
+	 * @throws ALDOperatorException	Thrown in case of failure.
 	 */
 	public DrawPolygon2DSet(MTBPolygon2DSet ps, MTBImageRGB img) 
 		throws ALDOperatorException {
@@ -102,9 +110,19 @@ public class DrawPolygon2DSet extends MTBOperator {
 	}
 	
 	/**
+	 * Set input image into which to draw the polygons.
+	 * @param img 	Input image.
+	 */
+	public void setInputImage(MTBImageRGB img) {
+		this.inputImage = img;
+	}
+
+	/**
 	 * Specify color in which to draw the snakes.
 	 * <p>
 	 * Known colors are: red, green, blue, yellow, white
+	 * 
+	 * @param c	Color to use. 
 	 */
 	public void setColor(String c) {
 		this.color = c;
@@ -112,6 +130,7 @@ public class DrawPolygon2DSet extends MTBOperator {
 
 	/**
 	 * Get the resulting region image.
+	 * @return Result image.
 	 */
 	public MTBImage getResultImage() {
 		return this.resultImage;
