@@ -7,12 +7,14 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 ### Added
 - RoiFileToCSVConverter: operator to write ImageJ ROI data into CSV file
 - DrawRegion2DSet: added some setters to specify dimensions and offsets of target image programmatically
+- SkeletonAnalysisHelper: new class with methods useful when analyzing region skeletons
 
 ### Changed
 
 ### Deprecated
 
 ### Removed
+- Polygon2D_Cgal wrapper class for CGAL due to outdated native bindings
 
 ### Fixed
 
