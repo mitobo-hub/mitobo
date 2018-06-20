@@ -25,6 +25,8 @@
 package de.unihalle.informatik.MiToBo.filters.linear.anisotropic;
 
 import java.util.Vector;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import net.imglib2.Cursor;
 import net.imglib2.algorithm.fft2.FFTConvolution;
@@ -204,7 +206,14 @@ public abstract class OrientedFilter2D extends MTBOperator
 	    }
 
 	    // compute fourier convolution (in-place)
-	    new FFTConvolution<FloatType>( iLibImg, iLibKernel ).convolve();
+	    ExecutorService exs = FFTConvolution.createExecutorService();
+	    FFTConvolution<FloatType> fftc = 
+	    	new FFTConvolution<FloatType>( iLibImg, iLibKernel, exs );
+	    fftc.convolve();
+	    // Important: we need to terminate all threads explicitly, since 
+	    // 		automatic termination seems not work if operator is run 
+	    //    from commandline...
+	    exs.shutdown();
 
 	    // copy data to result image
 	    this.resultImg = (MTBImageDouble)MTBImage.createMTBImage(
