@@ -109,14 +109,6 @@ public class GaussPDxxFilter2D extends OrientedFilter2D {
 		super();
 	}
 	
-	/* (non-Javadoc)
-	 * @see de.unihalle.informatik.MiToBo.core.operator.MTBOperator#readResolve()
-	 */
-	@Override
-	protected Object readResolve() {
-		return super.readResolve();
-	}
-	
 	@Override
   public void validateCustom() throws ALDOperatorException {
 		if (this.height.intValue() < 3) 

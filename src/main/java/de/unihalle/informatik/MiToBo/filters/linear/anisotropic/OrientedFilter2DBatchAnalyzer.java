@@ -166,19 +166,9 @@ public class OrientedFilter2DBatchAnalyzer extends MTBOperator
 	 * @throws ALDOperatorException Thrown in case of failure.
 	 */
 	public OrientedFilter2DBatchAnalyzer() throws ALDOperatorException {
-		this.statusListeners = new Vector<StatusListener>(1);
+		this.statusListeners = new Vector<StatusListener>();
 	}
 	
-	/* (non-Javadoc)
-	 * @see de.unihalle.informatik.MiToBo.core.operator.MTBOperator#readResolve()
-	 */
-	@Override
-	protected Object readResolve() {
-		super.readResolve();
-		this.statusListeners = new Vector<StatusListener>(1);
-		return this;
-	}
-
 	/* (non-Javadoc)
 	 * @see de.unihalle.informatik.Alida.operator.ALDOperator#operate()
 	 */
