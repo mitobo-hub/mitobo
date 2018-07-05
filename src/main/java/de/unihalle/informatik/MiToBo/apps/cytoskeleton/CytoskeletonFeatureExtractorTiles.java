@@ -101,7 +101,7 @@ public abstract class CytoskeletonFeatureExtractorTiles
   				+ this.imageDir);
 		
 		DirectoryTree dirTree = 
-			new DirectoryTree(this.imageDir.getDirectoryName());
+			new DirectoryTree(this.imageDir.getDirectoryName(), false);
 		Vector<String> imageList = dirTree.getFileList();
 		for (String file : imageList) {
 			if (this.verbose.booleanValue())
