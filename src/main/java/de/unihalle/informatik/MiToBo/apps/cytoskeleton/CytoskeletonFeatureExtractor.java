@@ -34,7 +34,6 @@ import de.unihalle.informatik.Alida.operator.events.ALDOperatorExecutionProgress
 import de.unihalle.informatik.Alida.annotations.Parameter;
 import de.unihalle.informatik.Alida.annotations.Parameter.Direction;
 import de.unihalle.informatik.Alida.annotations.Parameter.ExpertMode;
-import de.unihalle.informatik.MiToBo.apps.cytoskeleton.ActinAnalyzer2D.CellMaskFormat;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2DSet;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.*;
 import de.unihalle.informatik.MiToBo.core.imageJ.RoiManagerAdapter;
@@ -54,6 +53,20 @@ import de.unihalle.informatik.MiToBo.visualization.drawing.DrawRegion2DSet.DrawT
  * @author moeller
  */
 public abstract class CytoskeletonFeatureExtractor extends MTBOperator {
+
+	/**
+	 * Format of cell segmentation data.
+	 */
+	public static enum CellMaskFormat {
+		/**
+		 * Label image, i.e., each cell has its own gray-scale label.
+		 */
+		LABEL_IMAGE,
+		/**
+		 * Set of ImageJ 1.x ROIs.
+		 */
+		IJ_ROIS
+	}
 
 	/**
 	 * Input image directory.

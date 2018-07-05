@@ -53,6 +53,7 @@ import de.unihalle.informatik.Alida.annotations.Parameter;
 import de.unihalle.informatik.Alida.annotations.Parameter.Direction;
 import de.unihalle.informatik.Alida.annotations.Parameter.ExpertMode;
 import de.unihalle.informatik.Alida.annotations.Parameter.ParameterModificationMode;
+import de.unihalle.informatik.MiToBo.apps.cytoskeleton.CytoskeletonFeatureExtractor.CellMaskFormat;
 import de.unihalle.informatik.MiToBo.clustering.KMeans;
 import de.unihalle.informatik.MiToBo.color.tools.DistinctColorListGenerator;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2DSet;
@@ -94,20 +95,6 @@ public class ActinAnalyzer2D extends MTBOperator {
 //		 */
 //		EIGEN_STRUCTURES
 //	}
-
-	/**
-	 * Format of cell segmentation data.
-	 */
-	public static enum CellMaskFormat {
-		/**
-		 * Label image, i.e., each cell has its own gray-scale label.
-		 */
-		LABEL_IMAGE,
-		/**
-		 * Set of ImageJ 1.x ROIs.
-		 */
-		IJ_ROIS
-	}
 
 	/**
 	 * Default directions for Haralick features.
