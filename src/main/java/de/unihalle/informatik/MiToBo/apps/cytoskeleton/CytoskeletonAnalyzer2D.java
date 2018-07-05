@@ -82,6 +82,10 @@ import de.unihalle.informatik.MiToBo.visualization.plots.StackedBarChartPlotter;
 	level=Level.APPLICATION, allowBatchMode=false)
 public class CytoskeletonAnalyzer2D extends MTBOperator {
 
+	/*
+	 * Mandatory parameters.
+	 */
+
 	/**
 	 * Input image directory.
 	 * <p>
@@ -92,14 +96,6 @@ public class CytoskeletonAnalyzer2D extends MTBOperator {
 		dataIOOrder = -10, direction = Direction.IN,
 		description = "Input image directory.", mode = ExpertMode.STANDARD)
 	protected ALDDirectoryString imageDir = null;
-
-	/**
-	 * Directory with (cell) boundaries.
-	 */
-	@Parameter( label= "Cell boundary file folder", required = true, 
-		dataIOOrder = -9, direction = Direction.IN, 
-		description = "Cell mask directory.",	mode = ExpertMode.STANDARD)
-	protected ALDDirectoryString maskDir = null;
 
 	/**
 	 * Format of provided cell boundaries.
@@ -187,6 +183,22 @@ public class CytoskeletonAnalyzer2D extends MTBOperator {
 		mode = ExpertMode.STANDARD,
 		description = "Enable/disable PCA prior to hierarchical clustering.")
 	protected boolean doPCA = true;
+
+	/*
+	 * Optional parameters.
+	 */
+	
+	/**
+	 * (Optional) directory with (cell) boundaries.
+	 */
+	@Parameter( label= "Cell boundary file folder", required = false, 
+		dataIOOrder = 1, direction = Direction.IN, 
+		description = "Cell mask directory.",	mode = ExpertMode.STANDARD)
+	protected ALDDirectoryString maskDir = null;
+
+	/*
+	 * Result parameters.
+	 */
 
 	/**
 	 * Resulting stacked bar plot of cluster distributions.
@@ -289,65 +301,63 @@ public class CytoskeletonAnalyzer2D extends MTBOperator {
 
 		// for each image calculate feature vectors (if requested)
 		if (this.doFeatureCalculation) {
-//			switch(this.featureType)
-//			{
-//			case HARALICK_MEASURES:
-//				ActinFeatureExtractorHaralickMeasures haralickOp =
-//					new ActinFeatureExtractorHaralickMeasures();
-//				haralickOp.setImageDir(this.imageDir);
-//				haralickOp.setMaskDir(this.maskDir);
-//				haralickOp.setMaskFormat(this.maskFormat);
-//				haralickOp.setOutputDir(this.outDir);
-//				haralickOp.setTileSizeX(this.tileSizeX);
-//				haralickOp.setTileSizeY(this.tileSizeY);
-//				haralickOp.setTileShiftX(this.tileShiftX);
-//				haralickOp.setTileShiftY(this.tileShiftY);
-//				haralickOp.setDistance(this.distance);
-//				haralickOp.setHaralickDirections(this.directions);
-//				haralickOp.setFlagIsotropicCalculations(this.isotropicCalcs);
-//				haralickOp.setVerbose(this.verbose);
-//				haralickOp.runOp();
-//				break;
-//			case EIGEN_STRUCTURES:
-//				ActinFeatureExtractorEigenStructures eigenOp =
-//					new ActinFeatureExtractorEigenStructures();
-//				eigenOp.setImageDir(this.imageDir);
-//				eigenOp.setMaskDir(this.maskDir);
-//				eigenOp.setMaskFormat(this.maskFormat);
-//				eigenOp.setOutputDir(this.outDir);
-//				eigenOp.setTileSizeX(this.tileSizeX);
-//				eigenOp.setTileSizeY(this.tileSizeY);
-//				eigenOp.setTileShiftX(this.tileShiftX);
-//				eigenOp.setTileShiftY(this.tileShiftY);
-//				eigenOp.setVerbose(this.verbose);
-//				eigenOp.runOp();
-//				break;
-//			}
 			if (this.verbose.booleanValue())
 				System.out.println("Feature extractor: "
 						+ this.featureExtractor.getName());
-			this.featureExtractor.setImageDir(this.imageDir);
-			this.featureExtractor.setMaskDir(this.maskDir);
-			this.featureExtractor.setMaskFormat(this.maskFormat);
-			this.featureExtractor.setOutputDir(this.outDir);
-			this.featureExtractor.setTileSizeX(this.tileSizeX);
-			this.featureExtractor.setTileSizeY(this.tileSizeY);
-			this.featureExtractor.setTileShiftX(this.tileShiftX);
-			this.featureExtractor.setTileShiftY(this.tileShiftY);
-			this.featureExtractor.setVerbose(this.verbose);
-			this.featureExtractor.runOp();
+			
+			String sep = File.separator;
+			
+			// get a list of sub-folders of the given image directory
+			DirectoryTree dt = 
+					new DirectoryTree(this.imageDir.getDirectoryName(), true);
+			Vector<String> subdirs = dt.getSubdirectoryList();
+			for (String d: subdirs) {
+				
+				// skip folders named "results"
+				if (d.contains("results"))
+					continue;
+				
+				System.out.println("Processing sub-folder " + d + "...");
+				
+				// get list of images
+				DirectoryTree st = new DirectoryTree(d, false);
+				Vector<String> files = st.getFileList();
+				
+				if (files != null && !files.isEmpty()) {
+					System.out.println("=> Found files: ");
+					for (String f: files)
+						System.out.println("\t" + f);
+
+					// create output folder
+					new File(d + sep + "results_features").mkdirs();
+					
+					// run the feature extraction
+					this.featureExtractor.setImageDir(new ALDDirectoryString(d));
+					this.featureExtractor.setMaskDir(
+							new ALDDirectoryString(d + sep + "results_segmentation"));
+					this.featureExtractor.setMaskFormat(this.maskFormat);
+					this.featureExtractor.setOutputDir(
+							new ALDDirectoryString(d + sep + "results_features"));
+					this.featureExtractor.setTileSizeX(this.tileSizeX);
+					this.featureExtractor.setTileSizeY(this.tileSizeY);
+					this.featureExtractor.setTileShiftX(this.tileShiftX);
+					this.featureExtractor.setTileShiftY(this.tileShiftY);
+					this.featureExtractor.setVerbose(this.verbose);
+					this.featureExtractor.runOp();
+				}
+			}
 		}
 
 		// cluster the features and analyze the distributions
-		this.cellwiseDistros = new HashMap<String, double[]>();
-		this.clusterFeatures();
+//		this.cellwiseDistros = new HashMap<String, double[]>();
+//		this.clusterFeatures();
 
 		// perform PCA
-		if (this.doPCA)
-			this.doPCA();
+//		if (this.doPCA)
+//			this.doPCA();
 
 		// calculate pairwise distances for further analysis
-		this.calculatePairwiseDistances();
+//		this.calculatePairwiseDistances();
 	}
 
 	/**
