@@ -314,6 +314,11 @@
       <artifactId>jfreechart</artifactId>
     </dependency>
     <dependency>
+      <!-- used for local binary pattern texture features -->
+      <groupId>de.lmu.ifi.dbs.jfeaturelib</groupId>
+      <artifactId>JFeatureLib</artifactId>
+    </dependency>
+    <dependency>
       <!-- used by MTBPolygon2D -->
       <groupId>uk.co.geolib</groupId>
       <artifactId>geopolygons</artifactId>
