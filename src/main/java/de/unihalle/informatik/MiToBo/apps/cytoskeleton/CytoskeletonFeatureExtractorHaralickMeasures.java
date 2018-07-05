@@ -100,7 +100,7 @@ public class CytoskeletonFeatureExtractorHaralickMeasures
 	 */
 	public CytoskeletonFeatureExtractorHaralickMeasures() 
 			throws ALDOperatorException {
-		this.operatorID = "[ActinFeatureExtractorHaralickMeasures]";
+		this.operatorID = "[CytoskeletonFeatureExtractorHaralickMeasures]";
 	}
 	
 	/**

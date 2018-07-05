@@ -74,7 +74,7 @@ public class CytoskeletonFeatureExtractorLBPs
 	 */
 	public CytoskeletonFeatureExtractorLBPs() 
 			throws ALDOperatorException {
-		this.operatorID = "[ActinFeatureExtractorLBPs]";
+		this.operatorID = "[CytoskeletonFeatureExtractorLBPs]";
 	}
 	
 	/**

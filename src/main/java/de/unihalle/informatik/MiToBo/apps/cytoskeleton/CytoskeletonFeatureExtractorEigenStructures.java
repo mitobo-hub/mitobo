@@ -58,12 +58,6 @@ import de.unihalle.informatik.MiToBo.math.statistics.PCA.ReductionMode;
 public class CytoskeletonFeatureExtractorEigenStructures 
 	extends CytoskeletonFeatureExtractor {
 
-	/**
-	 * Identifier string for this operator class.
-	 */
-	private static final String operatorID = 
-			"[ActinFeatureExtractorEigenStructures]";
-
 	/*
 	 * some helper variables
 	 */
@@ -84,7 +78,7 @@ public class CytoskeletonFeatureExtractorEigenStructures
 	 */
 	public CytoskeletonFeatureExtractorEigenStructures() 
 			throws ALDOperatorException {
-		// nothing to be done here
+		this.operatorID = "[CytoskeletonFeatureExtractorEigenStructures]";
 	}
 	
 	@Override
@@ -96,7 +90,7 @@ public class CytoskeletonFeatureExtractorEigenStructures
 		ImageWriterMTB iWrite = new ImageWriterMTB();
 
   	if (this.verbose.booleanValue())
-  		System.out.println(operatorID	+ " Calculating features...");
+  		System.out.println(this.operatorID	+ " Calculating features...");
   	this.fireOperatorExecutionProgressEvent(
      	new ALDOperatorExecutionProgressEvent(this,
      		" calculating features..."));
@@ -128,7 +122,7 @@ public class CytoskeletonFeatureExtractorEigenStructures
 				if (this.imageHeight == -1)
 					this.imageHeight = img.getSizeY();
       } catch (Exception e) {
-      	System.err.println(operatorID + " Error reading file, " + 
+      	System.err.println(this.operatorID + " Error reading file, " + 
       			"skipping " + file + "...");
       	continue;
       }
