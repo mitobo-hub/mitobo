@@ -31,8 +31,6 @@ import de.unihalle.informatik.Alida.annotations.ALDAOperator;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator.Level;
 import de.unihalle.informatik.Alida.annotations.ALDDerivedClass;
 import de.unihalle.informatik.Alida.annotations.Parameter;
-import de.unihalle.informatik.MiToBo.apps.actinAnalysis.ActinAnalyzer2D;
-import de.unihalle.informatik.MiToBo.apps.actinAnalysis.FilamentFeatureExtractorTiles;
 import de.unihalle.informatik.MiToBo.features.FeatureCalculator;
 import de.unihalle.informatik.MiToBo.features.texture.lbp.FeatureCalculatorLBP;
 import de.unihalle.informatik.MiToBo.features.texture.lbp.FeatureCalculatorLBPJFeatureLib.FeatureType;

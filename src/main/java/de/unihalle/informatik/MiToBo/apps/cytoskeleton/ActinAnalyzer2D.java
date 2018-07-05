@@ -22,7 +22,7 @@
  *
  */
 
-package de.unihalle.informatik.MiToBo.apps.actinAnalysis;
+package de.unihalle.informatik.MiToBo.apps.cytoskeleton;
 
 import java.awt.Color;
 import java.io.BufferedReader;

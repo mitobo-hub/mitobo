@@ -22,7 +22,7 @@
  *
  */
 
-package de.unihalle.informatik.MiToBo.apps.actinAnalysis;
+package de.unihalle.informatik.MiToBo.apps.cytoskeleton;
 
 import java.io.File;
 
@@ -34,7 +34,7 @@ import de.unihalle.informatik.Alida.operator.events.ALDOperatorExecutionProgress
 import de.unihalle.informatik.Alida.annotations.Parameter;
 import de.unihalle.informatik.Alida.annotations.Parameter.Direction;
 import de.unihalle.informatik.Alida.annotations.Parameter.ExpertMode;
-import de.unihalle.informatik.MiToBo.apps.actinAnalysis.ActinAnalyzer2D.CellMaskFormat;
+import de.unihalle.informatik.MiToBo.apps.cytoskeleton.ActinAnalyzer2D.CellMaskFormat;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2DSet;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.*;
 import de.unihalle.informatik.MiToBo.core.imageJ.RoiManagerAdapter;
