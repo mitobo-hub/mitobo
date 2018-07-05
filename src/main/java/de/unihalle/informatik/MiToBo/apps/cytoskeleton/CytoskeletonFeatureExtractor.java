@@ -53,7 +53,7 @@ import de.unihalle.informatik.MiToBo.visualization.drawing.DrawRegion2DSet.DrawT
  * 
  * @author moeller
  */
-public abstract class FilamentFeatureExtractor extends MTBOperator {
+public abstract class CytoskeletonFeatureExtractor extends MTBOperator {
 
 	/**
 	 * Input image directory.
@@ -152,7 +152,7 @@ public abstract class FilamentFeatureExtractor extends MTBOperator {
 	 * Default constructor.
 	 * @throws ALDOperatorException Thrown in case of failure.
 	 */
-	public FilamentFeatureExtractor() throws ALDOperatorException {
+	public CytoskeletonFeatureExtractor() throws ALDOperatorException {
 		// nothing to be done here
 	}
 	

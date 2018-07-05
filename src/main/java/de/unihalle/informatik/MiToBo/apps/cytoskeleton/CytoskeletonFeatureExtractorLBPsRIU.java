@@ -32,33 +32,31 @@ import de.unihalle.informatik.Alida.annotations.ALDAOperator.Level;
 import de.unihalle.informatik.Alida.annotations.ALDDerivedClass;
 import de.unihalle.informatik.Alida.annotations.Parameter;
 import de.unihalle.informatik.MiToBo.features.FeatureCalculator;
-import de.unihalle.informatik.MiToBo.features.texture.lbp.FeatureCalculatorLBP;
+import de.unihalle.informatik.MiToBo.features.texture.lbp.FeatureCalculatorLBPRIU;
 import de.unihalle.informatik.MiToBo.features.texture.lbp.FeatureCalculatorLBPJFeatureLib.FeatureType;
 
 /**
- * Operator for extracting LBP features for the {@link ActinAnalyzer2D}.
+ * Operator for extracting LBP RIU features for the {@link ActinAnalyzer2D}.
  * <p>
- * The operator calculates features in a multi-resolution fashion,
- * extracting a concatenation of LBP code histograms for different
- * radii R and numbers of neighborhood pixels P for each tile:
+ * The operator calculates rotation invariant uniform LBP features in a 
+ * multi-resolution fashion, extracting a concatenation of LBP code histograms 
+ * for different radii R and numbers of neighborhood pixels P for each tile:
  * <ul>
  * <li> R = 1.0, P = 8
  * <li> R = 1.5, P = 12
  * <li> R = 2.0, P = 16
  * <li> R = 3.0, P = 24
  * </ul>
- * The resulting histogram feature vectors are of dimension 4 times 
- * {@link #histBins} since each of the 4 histograms is calculated with 
- * {@link #histBins} bins. 
  * 
- * @see FeatureCalculatorLBP 
+ * @see FeatureCalculatorLBPRIU 
+ * 
  * @author moeller
  */
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.SWING,
 	level=Level.STANDARD, allowBatchMode=false)
 @ALDDerivedClass
-public class FilamentFeatureExtractorLBPs 
-	extends FilamentFeatureExtractorTiles {
+public class CytoskeletonFeatureExtractorLBPsRIU 
+	extends CytoskeletonFeatureExtractorTiles {
 
 	/**
 	 * Number of histogram bins.
@@ -69,10 +67,24 @@ public class FilamentFeatureExtractorLBPs
 	private int histBins = 8;
 	
 	/**
+	 * Scale factor for radius.
+	 * <p>
+	 * By default the operator extracts four histograms of LBPs for 
+	 * radii of 1, 1.5, 2 and 3 with pixel counts of 8, 12, 16 and 24,
+	 * respectively. By changing the scale parameter these radii can
+	 * be adapted. E.g., setting the scale to 2.0 results in LBP codes
+	 * for radii of 2, 3, 4 and 6. 
+	 */
+	@Parameter(label = "Radius Scale", required = true, 
+		direction = Parameter.Direction.IN, supplemental = false, 
+		description = "Scale for default radius values.", dataIOOrder = 6)
+	private double radiusScale = 1.0;
+
+	/**
 	 * Default constructor.
 	 * @throws ALDOperatorException Thrown in case of failure. 
 	 */
-	public FilamentFeatureExtractorLBPs() 
+	public CytoskeletonFeatureExtractorLBPsRIU() 
 			throws ALDOperatorException {
 		this.operatorID = "[ActinFeatureExtractorLBPs]";
 	}
@@ -92,37 +104,37 @@ public class FilamentFeatureExtractorLBPs
 		// initialize the feature calculators
 		Vector<FeatureCalculator> featureOps = 
 				new Vector<FeatureCalculator>();
-		FeatureCalculatorLBP fOp; 
+		FeatureCalculatorLBPRIU fOp; 
 		
 		// R = 1.0, P = 8
-		fOp = new FeatureCalculatorLBP();
+		fOp = new FeatureCalculatorLBPRIU();
 		fOp.setFeatureType(FeatureType.IMAGE_HISTO);
 		fOp.setHistBins(8);
-		fOp.setRadius(1.0);
+		fOp.setRadius(1.0 * this.radiusScale);
 		fOp.setNumberNeighbors(8);
 		featureOps.add(fOp);
 
 		// R = 1.5, P = 12
-		fOp =	new FeatureCalculatorLBP();
+		fOp =	new FeatureCalculatorLBPRIU();
 		fOp.setFeatureType(FeatureType.IMAGE_HISTO);
 		fOp.setHistBins(8);
-		fOp.setRadius(1.5);
+		fOp.setRadius(1.5 * this.radiusScale);
 		fOp.setNumberNeighbors(12);
 		featureOps.add(fOp);
 
 		// R = 2.0, P = 16
-		fOp =	new FeatureCalculatorLBP();
+		fOp =	new FeatureCalculatorLBPRIU();
 		fOp.setFeatureType(FeatureType.IMAGE_HISTO);
 		fOp.setHistBins(8);
-		fOp.setRadius(2.0);
+		fOp.setRadius(2.0 * this.radiusScale);
 		fOp.setNumberNeighbors(16);
 		featureOps.add(fOp);
 
 		// R = 3.0, P = 24
-		fOp = new FeatureCalculatorLBP();
+		fOp = new FeatureCalculatorLBPRIU();
 		fOp.setFeatureType(FeatureType.IMAGE_HISTO);
 		fOp.setHistBins(8);
-		fOp.setRadius(3.0);
+		fOp.setRadius(3.0 * this.radiusScale);
 		fOp.setNumberNeighbors(24);
 		featureOps.add(fOp);
 		

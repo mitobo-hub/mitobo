@@ -49,19 +49,19 @@ import de.unihalle.informatik.MiToBo.io.images.ImageWriterMTB;
  * The features which are to be extracted by operators extending this
  * class should be specifically dedicated to filament like structures,
  * e.g., actin fiberes or microtubuli. Compared to 
- * {@link FilamentFeatureExtractor} operators sub-classing this class 
+ * {@link CytoskeletonFeatureExtractor} operators sub-classing this class 
  * are expected to work tile-wise on the input image.
  * 
  * @author moeller
  */
-public abstract class FilamentFeatureExtractorTiles 
-	extends FilamentFeatureExtractor {
+public abstract class CytoskeletonFeatureExtractorTiles 
+	extends CytoskeletonFeatureExtractor {
 
 	/**
 	 * Default constructor.
 	 * @throws ALDOperatorException Thrown in case of failure.
 	 */
-	public FilamentFeatureExtractorTiles() throws ALDOperatorException {
+	public CytoskeletonFeatureExtractorTiles() throws ALDOperatorException {
 		// nothing to be done here
 	}
 	

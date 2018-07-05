@@ -188,8 +188,8 @@ public class ActinAnalyzer2D extends MTBOperator {
 		dataIOOrder = 1, direction = Direction.IN,
 		description = "Select type of features to apply.",
 		mode = ExpertMode.STANDARD)
-	protected FilamentFeatureExtractor featureExtractor =
-		new ActinFeatureExtractorHaralickMeasures();
+	protected CytoskeletonFeatureExtractor featureExtractor =
+		new CytoskeletonFeatureExtractorHaralickMeasures();
 
 	/**
 	 * Feature directory.

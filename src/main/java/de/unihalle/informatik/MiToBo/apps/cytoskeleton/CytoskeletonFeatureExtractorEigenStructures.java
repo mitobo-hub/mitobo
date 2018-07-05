@@ -55,8 +55,8 @@ import de.unihalle.informatik.MiToBo.math.statistics.PCA.ReductionMode;
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.SWING,
 	level=Level.STANDARD, allowBatchMode=false)
 @ALDDerivedClass
-public class ActinFeatureExtractorEigenStructures 
-	extends FilamentFeatureExtractor {
+public class CytoskeletonFeatureExtractorEigenStructures 
+	extends CytoskeletonFeatureExtractor {
 
 	/**
 	 * Identifier string for this operator class.
@@ -82,7 +82,7 @@ public class ActinFeatureExtractorEigenStructures
 	 * Default constructor.
 	 * @throws ALDOperatorException Thrown in case of failure.
 	 */
-	public ActinFeatureExtractorEigenStructures() 
+	public CytoskeletonFeatureExtractorEigenStructures() 
 			throws ALDOperatorException {
 		// nothing to be done here
 	}
