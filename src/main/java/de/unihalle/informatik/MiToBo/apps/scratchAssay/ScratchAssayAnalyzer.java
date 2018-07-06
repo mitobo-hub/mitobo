@@ -160,8 +160,11 @@ public class ScratchAssayAnalyzer extends MTBOperator
 		int sizeX = inImg.getSizeX();
 		int sizeY = inImg.getSizeY();
 		int sizeT = inImg.getSizeT();
+		
+		String title = inImg.getTitle();
 			
 		result = MTBImage.createMTBImage(sizeX, sizeY, 1, sizeT, 1, MTBImage.MTBImageType.MTB_BYTE);
+		result.setTitle(title + "_segmentation");
 			
 		IJ.showProgress(0);
 			
