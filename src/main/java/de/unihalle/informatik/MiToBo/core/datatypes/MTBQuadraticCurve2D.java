@@ -626,6 +626,71 @@ public class MTBQuadraticCurve2D {
 		}
 		return algDist;
 	}	
+	
+	/**
+	 * Returns the point on ellipse closest to given point.
+	 * <p>
+	 * The closest point on the ellipse contour is searched for by using 
+	 * Newton's method. The target point is the point on the ellipse 
+	 * which tangent vector is perpendicular to the vector between the 
+	 * given point and the closest point on the ellipse we are looking 
+	 * for. For details refer to the documentation
+	 * of {@link DistanceTargetFunction}.
+	 * <p>
+	 * Note that if the curve is not of type {@link CurveType.CT_ELLIPSE}
+	 * null is returned.
+	 * 
+	 * @see Robert Nuernberg, Imperial College London, 2006, 
+	 * 			<a href="http://www.ma.ic.ac.uk/~rn/distance2ellipse.pdf">
+	 * 			Distance from a Point to an Ellipse</a>
+	 * 
+	 * @return Euclidean distance of the point to the ellipse.
+	 * @throws Exception 
+	 * @throws EvaluationException 
+	 * @throws IOException 
+	 * @throws TerminationException 
+	 * @throws DimensionException 
+	 */
+	public Point2D.Double getClosestPointOnEllipse(Point2D.Double p) 
+			throws DimensionException, TerminationException, IOException, 
+				EvaluationException, Exception {
+		if (this.curveType != CurveType.CT_ELLIPSE)
+			return null;
+
+		// shift and rotate point relative to default ellipse at origin
+		double sx = p.x - MTBQuadraticCurve2D.this.centerX; 
+		double sy = p.y - MTBQuadraticCurve2D.this.centerY;
+		double theta = -MTBQuadraticCurve2D.this.orientation;
+		double thetaRad = theta/180.0 * Math.PI;
+		double srx = sx*Math.cos(thetaRad) - sy*Math.sin(thetaRad); 
+		double sry = sx*Math.sin(thetaRad) + sy*Math.cos(thetaRad); 
+		Point2D.Double psr = new Point2D.Double(srx, sry);
+
+		// extract initial guess
+		double initialGuess = Math.atan2(
+				MTBQuadraticCurve2D.this.semiAxisLengthA*psr.x,
+				MTBQuadraticCurve2D.this.semiAxisLengthB*psr.y);
+		double[] valueArray = new double[]{initialGuess};
+		Optimizer.optimize(Optimizer.QUASI_NEWTON_BFGS, 
+				new DistanceTargetFunction(psr), valueArray,
+				new SmallDifferenceOfFunctionEvaluationsCondition(1.0e-10), 
+				10e-3, 
+				new ConstantStartDistance(0.01), null);
+		double bestAngle = valueArray[0];
+		
+		// calculate closest point on ellipse using Newton's method
+		double epx = 
+				MTBQuadraticCurve2D.this.semiAxisLengthA*Math.cos(bestAngle);
+		double epy = 
+				MTBQuadraticCurve2D.this.semiAxisLengthB*Math.sin(bestAngle);
+		
+		// rotate and shift closest point backwards
+		double ox = epx*Math.cos(-thetaRad) - epy*Math.sin(-thetaRad);
+		double oy = epx*Math.sin(-thetaRad) + epy*Math.cos(-thetaRad); 
+		ox += MTBQuadraticCurve2D.this.centerX;
+		oy += MTBQuadraticCurve2D.this.centerY;
+		return new Point2D.Double(ox, oy);
+	}	
 
 	/**
 	 * Returns the Euclidean distance of a point to an ellipse.
@@ -669,31 +734,26 @@ public class MTBQuadraticCurve2D {
 		}
 		
 		// shift and rotate point relative to default ellipse at origin
-		double sx = p.x - MTBQuadraticCurve2D.this.centerX; 
-		double sy = p.y - MTBQuadraticCurve2D.this.centerY;
-		double theta = -MTBQuadraticCurve2D.this.orientation;
-		double thetaRad = theta/180.0 * Math.PI;
-		double srx = sx*Math.cos(thetaRad) - sy*Math.sin(thetaRad); 
-		double sry = sx*Math.sin(thetaRad) + sy*Math.cos(thetaRad); 
-		Point2D.Double psr = new Point2D.Double(srx, sry);
+//		double sx = p.x - MTBQuadraticCurve2D.this.centerX; 
+//		double sy = p.y - MTBQuadraticCurve2D.this.centerY;
+//		double theta = -MTBQuadraticCurve2D.this.orientation;
+//		double thetaRad = theta/180.0 * Math.PI;
+//		double srx = sx*Math.cos(thetaRad) - sy*Math.sin(thetaRad); 
+//		double sry = sx*Math.sin(thetaRad) + sy*Math.cos(thetaRad); 
+		Point2D.Double psr = new Point2D.Double(p.x, p.y);
 
-		// extract initial guess
-		double initialGuess = Math.atan2(
-				MTBQuadraticCurve2D.this.semiAxisLengthA*psr.x,
-				MTBQuadraticCurve2D.this.semiAxisLengthB*psr.y);
-		double[] valueArray = new double[]{initialGuess};
-		Optimizer.optimize(Optimizer.QUASI_NEWTON_BFGS, 
-				new DistanceTargetFunction(psr), valueArray,
-				new SmallDifferenceOfFunctionEvaluationsCondition(1.0e-10), 
-				10e-3, 
-				new ConstantStartDistance(0.01), null);
-		double bestAngle = valueArray[0];
-		
-		// calculate closest point on ellipse using Newton's method
-		double epx = 
-				MTBQuadraticCurve2D.this.semiAxisLengthA*Math.cos(bestAngle);
-		double epy = 
-				MTBQuadraticCurve2D.this.semiAxisLengthB*Math.sin(bestAngle);
+		// extract closest point on ellipse contour
+		Point2D.Double closestPoint = this.getClosestPointOnEllipse(p);
+
+		// shift and rotate point relative to default ellipse at origin
+		double epx = closestPoint.x;
+		double epy = closestPoint.y;
+//		sx = cpx - MTBQuadraticCurve2D.this.centerX; 
+//		sy = cpy - MTBQuadraticCurve2D.this.centerY;
+//		double epx = sx*Math.cos(thetaRad) - sy*Math.sin(thetaRad); 
+//		double epy = sx*Math.sin(thetaRad) + sy*Math.cos(thetaRad); 
+
+		// calculate Euclidean distance
 		return Math.sqrt((psr.x-epx)*(psr.x-epx) + (psr.y-epy)*(psr.y-epy));
 	}	
 	
