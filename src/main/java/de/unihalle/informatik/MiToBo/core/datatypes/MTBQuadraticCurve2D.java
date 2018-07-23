@@ -638,7 +638,7 @@ public class MTBQuadraticCurve2D {
 	 * of {@link DistanceTargetFunction}.
 	 * <p>
 	 * Note that if the curve is not of type {@link CurveType.CT_ELLIPSE}
-	 * null is returned.
+	 * <code>null</code> is returned.
 	 * 
 	 * @see Robert Nuernberg, Imperial College London, 2006, 
 	 * 			<a href="http://www.ma.ic.ac.uk/~rn/distance2ellipse.pdf">
@@ -701,7 +701,9 @@ public class MTBQuadraticCurve2D {
 	 * the point on the ellipse which tangent vector is perpendicular to 
 	 * the vector between the given point and the closest point on the 
 	 * ellipse we are looking for. For details refer to the documentation
-	 * of {@link DistanceTargetFunction}.
+	 * of {@link DistanceTargetFunction} and method 
+	 * {@link #getClosestPointOnEllipse(java.awt.geom.Point2D.Double)}
+	 * of this class which is used here.
 	 * <p>
 	 * Note that if the curve is not of type {@link CurveType.CT_ELLIPSE}
 	 * the value {@link Double.NaN} is returned.
@@ -733,28 +735,15 @@ public class MTBQuadraticCurve2D {
 					    			MTBQuadraticCurve2D.this.semiAxisLengthB;
 		}
 		
-		// shift and rotate point relative to default ellipse at origin
-//		double sx = p.x - MTBQuadraticCurve2D.this.centerX; 
-//		double sy = p.y - MTBQuadraticCurve2D.this.centerY;
-//		double theta = -MTBQuadraticCurve2D.this.orientation;
-//		double thetaRad = theta/180.0 * Math.PI;
-//		double srx = sx*Math.cos(thetaRad) - sy*Math.sin(thetaRad); 
-//		double sry = sx*Math.sin(thetaRad) + sy*Math.cos(thetaRad); 
-		Point2D.Double psr = new Point2D.Double(p.x, p.y);
-
 		// extract closest point on ellipse contour
 		Point2D.Double closestPoint = this.getClosestPointOnEllipse(p);
 
 		// shift and rotate point relative to default ellipse at origin
 		double epx = closestPoint.x;
 		double epy = closestPoint.y;
-//		sx = cpx - MTBQuadraticCurve2D.this.centerX; 
-//		sy = cpy - MTBQuadraticCurve2D.this.centerY;
-//		double epx = sx*Math.cos(thetaRad) - sy*Math.sin(thetaRad); 
-//		double epy = sx*Math.sin(thetaRad) + sy*Math.cos(thetaRad); 
 
 		// calculate Euclidean distance
-		return Math.sqrt((psr.x-epx)*(psr.x-epx) + (psr.y-epy)*(psr.y-epy));
+		return Math.sqrt((p.x-epx)*(p.x-epx) + (p.y-epy)*(p.y-epy));
 	}	
 	
 	/**
