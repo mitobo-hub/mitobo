@@ -39,6 +39,7 @@ import de.jstacs.algorithms.optimization.TerminationException;
 import de.jstacs.algorithms.optimization.termination.SmallDifferenceOfFunctionEvaluationsCondition;
 import de.unihalle.informatik.Alida.annotations.ALDClassParameter;
 import de.unihalle.informatik.Alida.annotations.ALDParametrizedClass;
+import de.unihalle.informatik.MiToBo.core.datatypes.defines.MTBConstants;
 import de.unihalle.informatik.MiToBo.math.fitting.FitEllipseToPointSet;
 
 /**
@@ -746,6 +747,94 @@ public class MTBQuadraticCurve2D {
 		return Math.sqrt((p.x-epx)*(p.x-epx) + (p.y-epy)*(p.y-epy));
 	}	
 	
+	/**
+	 * Returns the orientation of the tangent at point p on the ellipse.
+	 * <p>
+	 * The tangent orientation is calculated as the angle between the local
+	 * tangent and the x-axis. <br> The basis for this calculation is the 
+	 * following equation for the tangent line to an ellipse in point 
+	 * {@latex.inline $p = (x_0, y_0)$}:
+	 * {@latex.ilb %preamble{\\usepackage{amssymb,amsmath}} 
+	 * \\begin{equation*} 
+	 * 1 = \\frac{x \\cdot x_0}{b^2} + \\frac{y \\cdot y_0}{a^2} 
+	 * \\end{equation*}}	  
+	 * {@latex.inline $a$} and {@latex.inline $b$} denote the major and 
+	 * minor axes of the ellipse. The ellipse is assumed to be centered at 
+	 * the origin, if this is not the case a slightly different equation 
+	 * is applied:
+	 * {@latex.ilb %preamble{\\usepackage{amssymb,amsmath}} 
+	 * \\begin{equation*} 
+	 * 1 = \\frac{(x-m)\\cdot (x_0-m)}{b^2}+\\frac{(y-n)\\cdot (y_0-n)}{a^2} 
+	 * \\end{equation*}}	  
+	 * Here the point {@latex.inline $(m,n)$} is the center location of 
+	 * the ellipse.
+	 * <p>
+	 * For extracting the orientation of the tangent the above equation
+	 * is transformed to
+	 * {@latex.ilb %preamble{\\usepackage{amssymb,amsmath}} 
+	 * \\begin{equation*} 
+	 * y = \\frac{b^2}{y_0} - \\frac{b^2 x_0}{a^2 y_0} \\cdot x 
+	 * \\end{equation*}}	  
+	 * where the ascent {@latex.inline $s$} of the tangent 
+	 * {@latex.inline $y = sx + t$} is given by
+	 * {@latex.ilb %preamble{\\usepackage{amssymb,amsmath}} 
+	 * \\begin{equation*} 
+	 * s = - \\frac{b^2 \\cdot x_0}{y_0 \\cdot a^2} 
+	 * \\end{equation*}}	  
+	 * If {@latex.inline $y_0$} is close to zero {@latex.inline $s$}
+	 * tends towards infinity. Thus, this case is handled explicitly.
+	 * <p>
+	 * The value of {@latex.inline $s$} is converted into a degree value
+	 * in the range of 0 to 180 degrees. Zero degrees refer to a tangent 
+	 * parallel to the x-axis, and 90 degrees refer to a tangent parallel 
+	 * to the y-axis.<br> Note that angles are measured in upper left 
+	 * coordinates! 
+	 * <p>
+	 * If the given point {@latex.inline $p$} is not on the ellipse the 
+	 * method result is undefined.
+	 * <p>
+	 *  
+	 * @see <a href="https://www.algebra.com/algebra/homework/Quadratic-relations-and-conic-sections/Tangent-lines-to-an-ellipse.lesson">Lesson Tangent lines and normal vectors to an ellipse</a>
+	 * - for example on this website details about the calculation 
+	 * can be found.
+	 * 
+	 * @param p	Point on ellipse where to extract tangent orientation.
+	 * @return	Orientation angle of tangent at given point.
+	 */
+	public double getTangentOrientation(Point2D.Double p) {
+		
+		// shift ellipse center to origin
+		double sx = p.x - this.centerX; 
+		double sy = p.y - this.centerY;
+		// rotate ellipse parallel to coordinate system axes
+		double theta = this.orientation;
+		double thetaRad = theta/180.0 * Math.PI;
+		double srx = sx*Math.cos(-thetaRad) - sy*Math.sin(-thetaRad); 
+		double sry = sx*Math.sin(-thetaRad) + sy*Math.cos(-thetaRad); 
+
+		// check if y is greater than zero, if not, tangent is horizontal
+		double angle = Double.NaN;
+		if (Math.abs(sry) > MTBConstants.epsilon) {
+			double m = - this.semiAxisLengthB*this.semiAxisLengthB * srx	
+					/ (this.semiAxisLengthA*this.semiAxisLengthA * sry);
+			angle = Math.toDegrees(Math.atan2(m,1));
+		}
+		// horizontal tangent
+		else {
+			angle = 90;
+		}
+		
+		// recover original ellipse orientation
+		angle += theta;
+		// make sure that angle lies between 0 and 180
+		if (angle < 0)
+			angle += 180;
+		else if (angle > 180) {
+			angle -= 180;
+		}
+		return angle;
+	}
+
 	/**
 	 * Distance function for a point's distance to an ellipse.
 	 * <p>

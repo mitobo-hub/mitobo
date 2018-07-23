@@ -7,6 +7,7 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 ### Added
 - RoiFileToCSVConverter: operator to write ImageJ ROI data into CSV file
 - DrawRegion2DSet: added some setters to specify dimensions and offsets of target image programmatically
+- MTBQuadraticCurve2D: new methods to extract closest point on ellipse and to calculate tangent orientation at given position
 - SkeletonAnalysisHelper: new class with methods useful when analyzing region skeletons
 
 ### Changed
