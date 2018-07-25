@@ -431,12 +431,12 @@ public class CytoplasmAnalyzer2D extends MTBOperatorControllable {
 		// main loop, iterate until all snakes stop moving
 		//=================================================
 		int itCounter= 0;
-		this.operatorStatus= OperatorControlStatus.OP_RUN;
+		this.setControlStatus(OperatorControlStatus.OP_RUN);
 		boolean notAllSnakesTerminated= true;
 		do {
 
 			// control flow
-    	if (this.operatorStatus == OperatorControlStatus.OP_PAUSE) {
+    	if (this.getControlStatus() == OperatorControlStatus.OP_PAUSE) {
     		System.err.println("CytoplasmAnalyzer2D paused...");
     		do {
 					try {
@@ -444,10 +444,10 @@ public class CytoplasmAnalyzer2D extends MTBOperatorControllable {
           } catch (InterruptedException e) {
           	// just ignore the exception
           }
-    		} while (this.operatorStatus != OperatorControlStatus.OP_RESUME);
+    		} while (this.getControlStatus() != OperatorControlStatus.OP_RESUME);
     		System.err.println("CytoplasmAnalyzer2D running again...");
     	}
-    	else if (this.operatorStatus == OperatorControlStatus.OP_STOP) {
+    	else if (this.getControlStatus() == OperatorControlStatus.OP_STOP) {
     		// leave the for-loop
     		break;
     	}

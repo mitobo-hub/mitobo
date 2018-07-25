@@ -513,17 +513,17 @@ public abstract class SnakeOptimizer extends MTBOperatorControllable {
   	
     // counter for steps
     int steps = 0;
-    this.operatorStatus = OperatorControlStatus.OP_RUN;
+    this.setControlStatus(OperatorControlStatus.OP_RUN);
     
     // main optimization loop
     int loopCounter = 0;
     while (true) {
 
-    	if (this.operatorStatus == OperatorControlStatus.OP_STOP) {
+    	if (this.getControlStatus() == OperatorControlStatus.OP_STOP) {
     		System.err.println("Snake Optimizer... cancelled!");
     		break;
     	}
-    	else if (this.operatorStatus == OperatorControlStatus.OP_PAUSE) {
+    	else if (this.getControlStatus() == OperatorControlStatus.OP_PAUSE) {
     		System.err.println("SnakeOptimizer paused...");
     		do {
 					try {
@@ -531,18 +531,18 @@ public abstract class SnakeOptimizer extends MTBOperatorControllable {
           } catch (InterruptedException e) {
           	// just ignore the exception
           }
-    		} while (this.operatorStatus != OperatorControlStatus.OP_RESUME);
+    		} while (this.getControlStatus() != OperatorControlStatus.OP_RESUME);
     		System.err.println("SnakeOptimizer running again...");
     	}
 
-      switch (this.operatorStatus) {
+      switch (this.getControlStatus()) {
         case OP_RUN:
           if (this.stepWiseExecution) {
             if (steps == this.stepSize) {
-              this.operatorStatus = OperatorControlStatus.OP_PAUSE;
-              while (!(this.operatorStatus==OperatorControlStatus.OP_STEP)) { 
+              this.setControlStatus(OperatorControlStatus.OP_PAUSE);
+              while (!(this.getControlStatus()==OperatorControlStatus.OP_STEP)) { 
               	// just wait to continue or interrupt process
-              	if (this.operatorStatus == OperatorControlStatus.OP_STOP) {
+              	if (this.getControlStatus() == OperatorControlStatus.OP_STOP) {
               		if (this.outSnakesImg == null) 
                 		this.plotSnakesToImage();
                 	if (this.outIntermediateResultsStackWanted.booleanValue())
@@ -550,7 +550,7 @@ public abstract class SnakeOptimizer extends MTBOperatorControllable {
                 	return;
               	}
               }
-              this.operatorStatus = OperatorControlStatus.OP_RUN;
+              this.setControlStatus(OperatorControlStatus.OP_RUN);
               steps = 1;
             } else {
               steps++;
@@ -558,7 +558,7 @@ public abstract class SnakeOptimizer extends MTBOperatorControllable {
           }
           break;
         case OP_PAUSE:
-        	while (!(this.operatorStatus == OperatorControlStatus.OP_RESUME)) { 
+        	while (!(this.getControlStatus() == OperatorControlStatus.OP_RESUME)) { 
         		// just wait to continue
           }
           break;
