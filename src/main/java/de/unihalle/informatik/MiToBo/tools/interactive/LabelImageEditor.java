@@ -75,13 +75,13 @@ public class LabelImageEditor extends MTBOperator
 	private ALDDirectoryString inputDir = null;
 
 	/**
-	 * Directory to process.
+	 * Optional file filter.
 	 */
-	@Parameter(label = "File Filter", required = true, 
+	@Parameter(label = "File Filter", required = false, 
 		direction = Parameter.Direction.IN, 
 		description = "Regular expression to filter input files.",
-		dataIOOrder = 1)
-	private String inputRegExp = ".tif";
+		dataIOOrder = 0)
+	private String inputRegExp = null;
 
 	/**
 	 * Optional output directory.
@@ -90,7 +90,7 @@ public class LabelImageEditor extends MTBOperator
 	 */
 	@Parameter(label = "Output Directory", required = false, 
 		direction = Parameter.Direction.IN, description = "Output directory.",
-		dataIOOrder = 0)
+		dataIOOrder = 1)
 	private ALDDirectoryString outputDir = null;
 
 	/**
@@ -178,16 +178,20 @@ public class LabelImageEditor extends MTBOperator
 		// init file reader and iterate over all files
 		ImageReaderMTB reader = new ImageReaderMTB();
 		Vector<String> files = tree.getFileList();
-		Pattern p = Pattern.compile(this.inputRegExp);
+		Pattern p = null;
+		if (this.inputRegExp != null && !this.inputRegExp.isEmpty())
+			p = Pattern.compile(this.inputRegExp);
 		for (String f: files) {
 
 			if (this.verbose.booleanValue())
 				System.out.println("Processing image " + f + "...");
 			
 			// if file name does not match filter, skip it
-			Matcher m = p.matcher(f);
-			if (!m.find())
-				continue;
+			if (p != null) {
+				Matcher m = p.matcher(f);
+				if (!m.find())
+					continue;
+			}
 				
 			try {
 				

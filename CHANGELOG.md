@@ -11,6 +11,7 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 - SkeletonAnalysisHelper: new class with methods useful when analyzing region skeletons
 
 ### Changed
+- LabelImageEditor: file filter argument is now optional, by default (and with an empty string) all files are processed
 
 ### Deprecated
 
