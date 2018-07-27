@@ -661,5 +661,210 @@ public class TestPCA {
 		 -0.14749637241149949,   0.23324853098073020,  -0.15704935954053584,
 			0.47029741798628460,   0.35063941196595905,  -0.25602797603924565,
 		 -0.51793390069817702}};
-}
 	
+	/**
+	 * Test singular cases.
+	 */
+	@Test
+	public void testPCA_singular() {
+		
+		PCA pcaOp = null;
+		
+		boolean exceptionThrown = false;
+		try {
+	    pcaOp = new PCA();
+    } catch (ALDOperatorException e) {
+    	exceptionThrown = true;
+    }
+		assertFalse("[TestPCA] constructor threw an exception!?", exceptionThrown);
+		if (pcaOp == null)
+			return;
+
+		/*
+		 * just one vector
+		 */
+		double[][] singularData = new double[][] {
+			{1},{2},{3}
+		};
+		double[] singularDataMean = new double[] {1,2,3};
+		
+		pcaOp.setDataset(singularData);
+		pcaOp.setMeanFreeData(false);
+		exceptionThrown = false;
+		try {
+	    pcaOp.runOp();
+    } catch (ALDException e) {
+    	exceptionThrown = true;
+    }
+		assertFalse("[TestPCA] running operator failed!?", exceptionThrown);
+		
+		// check global variables
+		assertTrue("[TestPCA] sample size is 1, got " + pcaOp.sampleCount, 
+			pcaOp.sampleCount == 1);
+		assertTrue("[TestPCA] data dimension is 3, got " + pcaOp.dataDim, 
+			pcaOp.dataDim == 3);
+		assertTrue("[TestPCA] subspace dimension should be 3, got " + pcaOp.subDim, 
+			pcaOp.subDim == 3);
+		
+		// check calculation of mean vector
+		for (int i=0; i<3; ++i) {
+			assertTrue("[TestPCA] got unexpected value in mean[" + i + "] = " 
+				+  pcaOp.mean[i] + ", expected " + this.testMean[i],
+					Math.abs(pcaOp.mean[i] - singularDataMean[i]) < TestPCA.accuracy); 
+		}
+		// check calculation of mean-free data
+		for (int i=0; i<3; ++i) {
+			for (int j=0; j<1; ++j) {
+				assertTrue("[TestPCA] got unexpected value in mean-free data[" 
+					+ i + "][" + j + "]= " + pcaOp.meanfreeData[i][j] 
+						+  ", expected " + 0,
+								Math.abs(pcaOp.meanfreeData[i][j]) < TestPCA.accuracy); 
+			}
+		}
+		// check eigenvalues
+		assertTrue("[TestPCA] got unexpected number of eigenvalues, expected 0...", 	
+				Math.abs(pcaOp.eigenVals.length - 1) < TestPCA.accuracy); 
+		assertTrue("[TestPCA] got unexpected eigenvalue, expected 0...", 	
+				Math.abs(pcaOp.eigenVals[0]) < TestPCA.accuracy); 
+		double[][] resultData = pcaOp.getResultData();
+		// check transformed data
+		for (int j=0; j<1; ++j) {
+			for (int i=0; i<3; ++i) {
+				assertTrue("[TestPCA] got unexpected data item at ["+i+"]["+j+"]= " 
+					+ resultData[i][j] + ", expected " + singularData[i][j],
+								Math.abs(resultData[i][j] - singularData[i][j]) 
+							< TestPCA.accuracy); 
+			}
+		}
+		
+		/*
+		 * Check alternative mode for determining sub-space dimension.
+		 */
+		pcaOp.setDataset(singularData);
+		pcaOp.setMeanFreeData(false);
+		pcaOp.setReductionMode(ReductionMode.NUMBER_COMPONENTS);
+		pcaOp.setNumberOfComponents(2);
+		exceptionThrown = false;
+		try {
+	    pcaOp.runOp();
+    } catch (ALDException e) {
+    	exceptionThrown = true;
+    }
+		assertFalse("[TestPCA] running operator failed!?", exceptionThrown);
+		
+		// check global variables
+		assertTrue("[TestPCA] sample size is 1, got " + pcaOp.sampleCount, 
+			pcaOp.sampleCount == 1);
+		assertTrue("[TestPCA] data dimension is 3, got " + pcaOp.dataDim, 
+			pcaOp.dataDim == 3);
+		assertTrue("[TestPCA] subspace dimension should be 3, got " + pcaOp.subDim, 
+			pcaOp.subDim == 3);
+		
+		/*
+		 * two vectors
+		 */
+		singularData = new double[][] {	{1,2},{2,3},{3,4}	};
+		double[][] singularDataMeanFree = 
+				new double[][] {	{-0.5,0.5},{-0.5,0.5},{-0.5,0.5}	};
+		singularDataMean = new double[] {1.5, 2.5, 3.5};
+		
+		pcaOp.setDataset(singularData);
+		pcaOp.setMeanFreeData(false);
+		exceptionThrown = false;
+		try {
+	    pcaOp.runOp();
+    } catch (ALDException e) {
+    	exceptionThrown = true;
+    }
+		assertFalse("[TestPCA] running operator failed!?", exceptionThrown);
+		
+		// check global variables
+		assertTrue("[TestPCA] sample size is 2, got " + pcaOp.sampleCount, 
+			pcaOp.sampleCount == 2);
+		assertTrue("[TestPCA] data dimension is 3, got " + pcaOp.dataDim, 
+			pcaOp.dataDim == 3);
+		assertTrue("[TestPCA] subspace dimension should be 1, got " + pcaOp.subDim, 
+			pcaOp.subDim == 1);
+		
+		// check calculation of mean vector
+		for (int i=0; i<3; ++i) {
+			assertTrue("[TestPCA] got unexpected value in mean[" + i + "] = " 
+				+  pcaOp.mean[i] + ", expected " + this.testMean[i],
+					Math.abs(pcaOp.mean[i] - singularDataMean[i]) < TestPCA.accuracy); 
+		}
+		// check calculation of mean-free data
+		for (int i=0; i<3; ++i) {
+			for (int j=0; j<2; ++j) {
+				assertTrue("[TestPCA] got unexpected value in mean-free data[" 
+					+ i + "][" + j + "]= " + pcaOp.meanfreeData[i][j] 
+						+  ", expected " + singularDataMeanFree[i][j],
+								Math.abs(pcaOp.meanfreeData[i][j] - singularDataMeanFree[i][j]) 
+						  < TestPCA.accuracy); 
+			}
+		}
+		
+		/*
+		 * two linear-dependent vectors
+		 */
+		singularData = new double[][] {	{1,2},{2,4},{3,6}	};
+		singularDataMeanFree = new double[][] {	{-0.5,0.5},{-1,1},{-1.5,1.5}	};
+		singularDataMean = new double[] {1.5, 3, 4.5};
+		
+		pcaOp.setDataset(singularData);
+		pcaOp.setMeanFreeData(false);
+		pcaOp.setReductionMode(ReductionMode.PERCENTAGE_VARIANCE);
+		exceptionThrown = false;
+		try {
+	    pcaOp.runOp();
+    } catch (ALDException e) {
+    	exceptionThrown = true;
+    }
+		assertFalse("[TestPCA] running operator failed!?", exceptionThrown);
+		
+		// check global variables
+		assertTrue("[TestPCA] sample size is 2, got " + pcaOp.sampleCount, 
+			pcaOp.sampleCount == 2);
+		assertTrue("[TestPCA] data dimension is 3, got " + pcaOp.dataDim, 
+			pcaOp.dataDim == 3);
+		assertTrue("[TestPCA] subspace dimension should be 3, got " + pcaOp.subDim, 
+			pcaOp.subDim == 3);
+		
+		// check calculation of mean vector
+		for (int i=0; i<3; ++i) {
+			assertTrue("[TestPCA] got unexpected value in mean[" + i + "] = " 
+				+  pcaOp.mean[i] + ", expected " + this.testMean[i],
+					Math.abs(pcaOp.mean[i] - singularDataMean[i]) < TestPCA.accuracy); 
+		}
+		// check calculation of mean-free data
+		for (int i=0; i<3; ++i) {
+			for (int j=0; j<2; ++j) {
+				assertTrue("[TestPCA] got unexpected value in mean-free data[" 
+					+ i + "][" + j + "]= " + pcaOp.meanfreeData[i][j] 
+						+  ", expected " + singularDataMeanFree[i][j],
+								Math.abs(pcaOp.meanfreeData[i][j] - singularDataMeanFree[i][j]) 
+						  < TestPCA.accuracy); 
+			}
+		}
+		
+		pcaOp.setDataset(singularData);
+		pcaOp.setMeanFreeData(false);
+		pcaOp.setReductionMode(ReductionMode.NUMBER_COMPONENTS);
+		pcaOp.setNumberOfComponents(2);
+		exceptionThrown = false;
+		try {
+	    pcaOp.runOp();
+    } catch (ALDException e) {
+    	exceptionThrown = true;
+    }
+		assertFalse("[TestPCA] running operator failed!?", exceptionThrown);
+		
+		// check global variables
+		assertTrue("[TestPCA] sample size is 2, got " + pcaOp.sampleCount, 
+			pcaOp.sampleCount == 2);
+		assertTrue("[TestPCA] data dimension is 3, got " + pcaOp.dataDim, 
+			pcaOp.dataDim == 3);
+		assertTrue("[TestPCA] subspace dimension should be 1, got " + pcaOp.subDim, 
+			pcaOp.subDim == 1);
+	}
+
+}

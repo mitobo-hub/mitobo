@@ -403,14 +403,14 @@ public class ParticleDetectorUWT2D extends ParticleDetector
 			System.out.println(opIdentifier + "done.");
 
 		// check if operator has been paused or interrupted
-		if (this.operatorStatus == OperatorControlStatus.OP_STOP) {
+		if (this.getControlStatus() == OperatorControlStatus.OP_STOP) {
 			this.operatorExecStatus = 
 				OperatorExecutionStatus.OP_EXEC_TERMINATED;
 			if (this.verbose.booleanValue())
 				System.err.println(opIdentifier + "stopped!");
 			return;
  		}
-		if (this.operatorStatus == OperatorControlStatus.OP_PAUSE) {
+		if (this.getControlStatus() == OperatorControlStatus.OP_PAUSE) {
 			System.err.println(opIdentifier+"paused, waiting to continue...");
 			this.operatorExecStatus = OperatorExecutionStatus.OP_EXEC_PAUSED;
 			// post ImageJ status
@@ -422,7 +422,7 @@ public class ParticleDetectorUWT2D extends ParticleDetector
 				} catch (InterruptedException e) {
 					// just ignore the exception
 				}
-			} while (this.operatorStatus != OperatorControlStatus.OP_RESUME);
+			} while (this.getControlStatus() != OperatorControlStatus.OP_RESUME);
 			this.operatorExecStatus = OperatorExecutionStatus.OP_EXEC_RUNNING;
 			System.err.println(opIdentifier + "running again...");
 		}
@@ -488,14 +488,14 @@ public class ParticleDetectorUWT2D extends ParticleDetector
 			System.out.println("done.");
 
 		// check if operator has been paused or interrupted
-		if (this.operatorStatus == OperatorControlStatus.OP_STOP) {
+		if (this.getControlStatus() == OperatorControlStatus.OP_STOP) {
 			this.operatorExecStatus = 
 				OperatorExecutionStatus.OP_EXEC_TERMINATED;
 			if (this.verbose.booleanValue())
 				System.err.println(opIdentifier + "stopped!");
 			return;
  		}
-		if (this.operatorStatus == OperatorControlStatus.OP_PAUSE) {
+		if (this.getControlStatus() == OperatorControlStatus.OP_PAUSE) {
 			System.err.println(opIdentifier+"paused, waiting to continue...");
 			this.operatorExecStatus = OperatorExecutionStatus.OP_EXEC_PAUSED;
 			// post ImageJ status
@@ -507,7 +507,7 @@ public class ParticleDetectorUWT2D extends ParticleDetector
 				} catch (InterruptedException e) {
 					// just ignore the exception
 				}
-			} while (this.operatorStatus != OperatorControlStatus.OP_RESUME);
+			} while (this.getControlStatus() != OperatorControlStatus.OP_RESUME);
 			this.operatorExecStatus = OperatorExecutionStatus.OP_EXEC_RUNNING;
 			System.err.println(opIdentifier + "running again...");
 		}
@@ -863,10 +863,10 @@ public class ParticleDetectorUWT2D extends ParticleDetector
 		do {
 			try {
         Thread.sleep(500);
-        if (this.operatorStatus == OperatorControlStatus.OP_STOP)
+        if (this.getControlStatus() == OperatorControlStatus.OP_STOP)
         	uwt.handleALDControlEvent(
         		new ALDControlEvent(this, ALDControlEventType.STOP_EVENT));
-    		if (this.operatorStatus == OperatorControlStatus.OP_PAUSE) {
+    		if (this.getControlStatus() == OperatorControlStatus.OP_PAUSE) {
     			System.err.println(opIdentifier 
     				+ "paused, waiting to continue...");
     			this.operatorExecStatus = 
@@ -882,7 +882,7 @@ public class ParticleDetectorUWT2D extends ParticleDetector
     				} catch (InterruptedException e) {
     					// just ignore the exception
     				}
-    			} while (   this.operatorStatus 
+    			} while (   this.getControlStatus() 
     					     != OperatorControlStatus.OP_RESUME);
     			this.operatorExecStatus = 
     				OperatorExecutionStatus.OP_EXEC_RUNNING;
@@ -901,14 +901,14 @@ public class ParticleDetectorUWT2D extends ParticleDetector
 			System.out.println(opIdentifier + "done.");
 
 		// check if operator has been paused or interrupted
-		if (this.operatorStatus == OperatorControlStatus.OP_STOP) {
+		if (this.getControlStatus() == OperatorControlStatus.OP_STOP) {
 			this.operatorExecStatus = 
 				OperatorExecutionStatus.OP_EXEC_TERMINATED;
 			if (this.verbose.booleanValue())
 				System.err.println(opIdentifier + "stopped!");
 			return corrImgs;
  		}
-		if (this.operatorStatus == OperatorControlStatus.OP_PAUSE) {
+		if (this.getControlStatus() == OperatorControlStatus.OP_PAUSE) {
 			System.err.println(opIdentifier+"paused, waiting to continue...");
 			this.operatorExecStatus = OperatorExecutionStatus.OP_EXEC_PAUSED;
 			do {
@@ -920,7 +920,7 @@ public class ParticleDetectorUWT2D extends ParticleDetector
 				} catch (InterruptedException e) {
 					// just ignore the exception
 				}
-			} while (this.operatorStatus != OperatorControlStatus.OP_RESUME);
+			} while (this.getControlStatus() != OperatorControlStatus.OP_RESUME);
 			this.operatorExecStatus = OperatorExecutionStatus.OP_EXEC_RUNNING;
 			System.err.println(opIdentifier + "running again...");
 		}
