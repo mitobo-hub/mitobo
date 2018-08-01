@@ -19,6 +19,7 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 - Polygon2D_Cgal wrapper class for CGAL due to outdated native bindings
 
 ### Fixed
+- MTBImage, ImageDimensionReducer: preserve calibration information of original images
 - OrientedFilter2D: explicitly shutdown ExecutorService of libimg2 in FFT mode, otherwise operator does not terminate when called from commandline
 
 ## [1.8.10] - 2018-05-18

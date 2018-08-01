@@ -1258,30 +1258,33 @@ public abstract class MTBImage extends ALDData
    * @throws IllegalArgumentException if z, c or t do not match the image size
    */
   public MTBImage getSlice(
-  		@SuppressWarnings("unused") MTBOperator callingOperator, 
+ 		@SuppressWarnings("unused") MTBOperator callingOperator, 
   		int z, int t, int c) throws IllegalArgumentException {
 	  
-	  if (z < 0 || z >= this.m_sizeZ || t < 0 || t >= this.m_sizeT || c < 0 || c >= this.m_sizeC)
-		  throw new IllegalArgumentException("Invalid slice coordinate. (z,t,c)=("+z+","+t+","+c+") is outside the image domain.");
-	  
-  	  MTBImageFactory factory = null;
+	  if (   z < 0 || z >= this.m_sizeZ 
+	  		|| t < 0 || t >= this.m_sizeT 
+	  		|| c < 0 || c >= this.m_sizeC)
+		  throw new IllegalArgumentException("Invalid slice coordinate. " 
+	  		+ "(z,t,c)=("+z+","+t+","+c+") is outside the image domain.");
+
+	  MTBImageFactory factory = null;
 	  MTBImage newImg = null;
-	  
+
 	  try {
-		  
-		factory = new MTBImageFactory(this, z, t, c);
-		
-		factory.runOp(null);
-		
-		newImg = factory.getResultImg();
-		
+
+	  	factory = new MTBImageFactory(this, z, t, c);
+
+	  	factory.runOp(null);
+
+	  	newImg = factory.getResultImg();
+
 	  } catch (ALDOperatorException e) {
-		e.printStackTrace();
+	  	e.printStackTrace();
 	  } catch (ALDProcessingDAGException e) {
-		e.printStackTrace();
+	  	e.printStackTrace();
 	  }
 
-      return newImg;
+	  return newImg;
   }
   
   /**
@@ -2521,7 +2524,7 @@ public abstract class MTBImage extends ALDData
   		
   		MTBImage newImg = null;
   		
-  		if (img.getType() == MTBImageType.MTB_INT
+  		if (   img.getType() == MTBImageType.MTB_INT
   				|| img.getType() == MTBImageType.MTB_DOUBLE
   				|| img.getType() == MTBImageType.MTB_RGB) {
   			
@@ -2531,10 +2534,10 @@ public abstract class MTBImage extends ALDData
   		}
   		else {
   			
-  		// duplicate MTBImages which are based on ImagePlus
+  			// duplicate MTBImages which are based on ImagePlus
   			newImg = this.duplicateImageJType(img);
   		}
-  		
+
   		return newImg;
   	}
   	
@@ -2559,7 +2562,6 @@ public abstract class MTBImage extends ALDData
 		newImP.setPosition(img.m_img.getCurrentSlice());
 		newImP.setDisplayRange(img.m_img.getDisplayRangeMin(), img.m_img.getDisplayRangeMax());
 		
-
 		newImP.setTitle(MTBImage.getTitleRunning(img.m_title));
 		
 		MTBImage newImg = MTBImage.createMTBImage(newImP);
@@ -2786,36 +2788,38 @@ public abstract class MTBImage extends ALDData
             "MTBImage.getImagePart(..): Specified coordinate exceeds the image boundaries.");
       } else {
 
-        MTBImage imgPart = MTBImage.createMTBImage(sizeX, sizeY, sizeZ, sizeT,
-            sizeC, img.m_type);
+      	MTBImage imgPart = MTBImage.createMTBImage(sizeX, sizeY, sizeZ, sizeT,
+      			sizeC, img.m_type);
 
-        for (int cc = 0; cc < sizeC; cc++) {
-          for (int tt = 0; tt < sizeT; tt++) {
-            for (int zz = 0; zz < sizeZ; zz++) {
-              for (int yy = 0; yy < sizeY; yy++) {
-                for (int xx = 0; xx < sizeX; xx++) {
-                  imgPart.putValueDouble(xx, yy, zz, tt, cc, img.getValueDouble(
-                      x + xx, y + yy, z + zz, t + tt, c + cc));
-                }
-              }
-            }
-          }
-        }
+      	for (int cc = 0; cc < sizeC; cc++) {
+      		for (int tt = 0; tt < sizeT; tt++) {
+      			for (int zz = 0; zz < sizeZ; zz++) {
+      				for (int yy = 0; yy < sizeY; yy++) {
+      					for (int xx = 0; xx < sizeX; xx++) {
+      						imgPart.putValueDouble(xx, yy, zz, tt, cc, img.getValueDouble(
+      								x + xx, y + yy, z + zz, t + tt, c + cc));
+      					}
+      				}
+      			}
+      		}
+      	}
 
-        imgPart.m_title = MTBImage.getTitleRunning(img.m_title);
+      	imgPart.m_title = MTBImage.getTitleRunning(img.m_title);
 
-        // copy calibration object
-		imgPart.calibration = img.calibration.copy();
+      	// copy calibration object
+      	imgPart.calibration = img.calibration.copy();
+      	imgPart.copyPhysicalProperties(img);
+      	imgPart.getImagePlus().setCalibration(imgPart.calibration);
 
-		// update origin
-		imgPart.calibration.xOrigin = img.calibration.xOrigin + x;
-		imgPart.calibration.yOrigin = img.calibration.yOrigin + y;
-		imgPart.calibration.zOrigin = img.calibration.zOrigin + z;
+      	// update origin
+      	imgPart.calibration.xOrigin = img.calibration.xOrigin + x;
+      	imgPart.calibration.yOrigin = img.calibration.yOrigin + y;
+      	imgPart.calibration.zOrigin = img.calibration.zOrigin + z;
 
-		if (img.xml != null)
-			imgPart.setXML(MTBImage.this.xml);
-		
-        return imgPart;
+      	if (img.xml != null)
+      		imgPart.setXML(MTBImage.this.xml);
+
+      	return imgPart;
       }
     }
     
