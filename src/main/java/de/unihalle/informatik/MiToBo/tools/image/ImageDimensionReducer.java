@@ -191,9 +191,8 @@ public class ImageDimensionReducer extends MTBOperator {
 	/**
 	 * Method which implements the dimension reduction.
 	 * @return	Dimension-reduced image.
-	 * @throws ALDOperatorException	Thrown in case of failure.
 	 */
-	private MTBImage reduce() throws ALDOperatorException {
+	private MTBImage reduce() {
 		
 		MTBImage img = this.inImg;
 		
@@ -275,6 +274,13 @@ public class ImageDimensionReducer extends MTBOperator {
 					MTBImageType.MTB_DOUBLE);
 			result.fillBlack();
 		}
+
+		// keep real physical pixel sizes and other meta data
+		if (img.getCalibration() != null) {
+			result.setCalibration(img.getCalibration());
+			result.getImagePlus().setCalibration(img.getCalibration());
+		}
+		result.copyPhysicalProperties(img);
 		
 		if (this.projMode == ReducerMethod.MIN) {
 			
@@ -471,10 +477,9 @@ public class ImageDimensionReducer extends MTBOperator {
 		/**
 		 * Constructor.
 		 */
-		private IntObject() {
+		public IntObject() {
 			this.i = 0;
 		}
 	}
-	
 	
 }
