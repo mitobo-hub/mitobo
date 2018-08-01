@@ -333,6 +333,8 @@ public class CytoskeletonAnalyzer2D extends MTBOperator {
 					
 					// run the feature extraction
 					this.featureExtractor.setImageDir(new ALDDirectoryString(d));
+					this.featureExtractor.setCytoskeletonChannel(
+							this.cytoSkelChannel);
 					this.featureExtractor.setMaskDir(
 							new ALDDirectoryString(d + sep + "results_segmentation"));
 					this.featureExtractor.setMaskFormat(this.maskFormat);

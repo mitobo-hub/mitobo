@@ -40,7 +40,6 @@ import de.unihalle.informatik.MiToBo.features.FeatureCalculator;
 import de.unihalle.informatik.MiToBo.features.TileFeatureCalculator;
 import de.unihalle.informatik.MiToBo.gui.MTBTableModel;
 import de.unihalle.informatik.MiToBo.io.dirs.DirectoryTree;
-import de.unihalle.informatik.MiToBo.io.images.ImageReaderMTB;
 import de.unihalle.informatik.MiToBo.io.images.ImageWriterMTB;
 
 /**
@@ -78,7 +77,6 @@ public abstract class CytoskeletonFeatureExtractorTiles
 		throws ALDOperatorException, ALDProcessingDAGException {
 		
 		MTBImage img;
-		ImageReaderMTB iRead = new ImageReaderMTB();
 		ImageWriterMTB iWrite = new ImageWriterMTB();
 
   	if (this.verbose.booleanValue())
@@ -112,9 +110,7 @@ public abstract class CytoskeletonFeatureExtractorTiles
 			String basename = ALDFilePathManipulator.getFileName(file);
 
 			try {
-        iRead.setFileName(file);
-				iRead.runOp(HidingMode.HIDDEN);
-				img = iRead.getResultMTBImage(); 
+				img = this.readInputImageMaxProjectChannel(file);
 				if (this.imageWidth == -1)
 					this.imageWidth = img.getSizeX();
 				if (this.imageHeight == -1)

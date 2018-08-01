@@ -28,6 +28,7 @@ import java.io.File;
 
 import de.unihalle.informatik.Alida.datatypes.ALDDirectoryString;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
+import de.unihalle.informatik.Alida.exceptions.ALDOperatorException.OperatorExceptionType;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.unihalle.informatik.Alida.operator.ALDOperator;
 import de.unihalle.informatik.Alida.operator.events.ALDOperatorExecutionProgressEvent;
@@ -40,6 +41,8 @@ import de.unihalle.informatik.MiToBo.core.imageJ.RoiManagerAdapter;
 import de.unihalle.informatik.MiToBo.core.operator.*;
 import de.unihalle.informatik.MiToBo.io.images.ImageReaderMTB;
 import de.unihalle.informatik.MiToBo.io.images.ImageWriterMTB;
+import de.unihalle.informatik.MiToBo.tools.image.ImageDimensionReducer;
+import de.unihalle.informatik.MiToBo.tools.image.ImageDimensionReducer.ReducerMethod;
 import de.unihalle.informatik.MiToBo.visualization.drawing.DrawRegion2DSet;
 import de.unihalle.informatik.MiToBo.visualization.drawing.DrawRegion2DSet.DrawType;
 
@@ -76,10 +79,18 @@ public abstract class CytoskeletonFeatureExtractor extends MTBOperator {
 	 * is skipped. 
 	 */
 	@Parameter( label= "Image directory", required = true, 
-		dataIOOrder = -10, direction = Direction.IN, 
+		dataIOOrder = -11, direction = Direction.IN, 
 		description = "Input image directory.", mode = ExpertMode.STANDARD)
 	protected ALDDirectoryString imageDir = null;
 
+	/**
+	 * Channel of input image containing stained cytoskeleton.
+	 */
+	@Parameter(label = "Cytoskeleton Channel", required = true, 
+		direction = Parameter.Direction.IN, dataIOOrder = -10, 
+		description = "Cytoskeleton channel, e.g., 1, 2 and so on.")
+	private int cytoChannel = 1;
+	
 	/**
 	 * Directory with (cell) masks.
 	 */
@@ -160,6 +171,10 @@ public abstract class CytoskeletonFeatureExtractor extends MTBOperator {
 	 */
 	protected transient int imageHeight = -1;
 
+	/**
+	 * Operator for reading image files from disk.
+	 */
+	protected ImageReaderMTB iRead = new ImageReaderMTB();
 
 	/**
 	 * Default constructor.
@@ -175,6 +190,14 @@ public abstract class CytoskeletonFeatureExtractor extends MTBOperator {
 	 */
 	public void setImageDir(ALDDirectoryString iDir) {
 		this.imageDir = iDir;
+	}
+	
+	/**
+	 * Specify channel with stained cytoskeleton.
+	 * @param c		ID of channel with stained cytoskeleton.
+	 */
+	public void setCytoskeletonChannel(int c) {
+		this.cytoChannel = c;
 	}
 	
 	/**
@@ -270,6 +293,40 @@ public abstract class CytoskeletonFeatureExtractor extends MTBOperator {
 		throws ALDOperatorException, ALDProcessingDAGException;
 	
 	/**
+	 * Read image from file, do optional max projection and extract 
+	 * selected cytoskeleton channel.
+	 * 
+	 * @param f Name of image file to read.
+	 * @return	Channel of provided image file containing cytoskeleton.
+	 * @throws ALDOperatorException 			Thrown in case of failure.
+	 * @throws ALDProcessingDAGException  Thrown in case of failure.
+	 */
+	protected MTBImage readInputImageMaxProjectChannel(String f) 
+		throws ALDOperatorException, ALDProcessingDAGException {
+		try {
+			MTBImage maxProjImg;
+			this.iRead.setFileName(f);
+			this.iRead.runOp(HidingMode.HIDDEN);
+			MTBImage img = this.iRead.getResultMTBImage();
+			maxProjImg = img;
+			// check if a maximum projection is required
+			if (img.getSizeZ() > 1) {
+				ImageDimensionReducer reduce = new ImageDimensionReducer(img, 
+						false, false, true, false, false, ReducerMethod.MAX);
+				reduce.runOp();
+				maxProjImg = reduce.getResultImg();
+			}
+			// extract cytoskeleton channel
+			return maxProjImg.getSlice(0, 0, this.cytoChannel-1);
+		} catch (ALDProcessingDAGException apex) {
+			throw apex;
+		} catch (Exception ex) {
+			throw new ALDOperatorException(OperatorExceptionType.OPERATE_FAILED,
+				this.operatorID + " Could not read file " + f + "...");
+		}
+	}
+	
+	/**
 	 * Read mask data from disk if available.
 	 * <p>
 	 * The method reads segmentation data from file. It considers the 
@@ -288,12 +345,9 @@ public abstract class CytoskeletonFeatureExtractor extends MTBOperator {
 	 * 							i.e. image height - 1.
 	 * 
 	 * @return	Mask image, null if appropriate file could not be found.
-	 * @throws ALDOperatorException Thrown in case of failure.
 	 */
 	 protected MTBImage readMaskImage(String basename, 
-				double xmin, double ymin,	double xmax, double ymax) 
-			throws ALDOperatorException {
-		ImageReaderMTB iRead = new ImageReaderMTB();
+				double xmin, double ymin,	double xmax, double ymax) {
 		MTBImage maskImage = null;
 		String maskName = "";
 		if (this.maskDir != null) {
@@ -310,9 +364,9 @@ public abstract class CytoskeletonFeatureExtractor extends MTBOperator {
 
 				if ((new File(maskName)).exists()) {
 					try {
-						iRead.setFileName(maskName);
-						iRead.runOp();
-						maskImage = iRead.getResultMTBImage();
+						this.iRead.setFileName(maskName);
+						this.iRead.runOp();
+						maskImage = this.iRead.getResultMTBImage();
 						if (this.verbose.booleanValue())
 							System.out.println("found!");
 						fireOperatorExecutionProgressEvent(
