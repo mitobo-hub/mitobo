@@ -31,12 +31,10 @@ import loci.common.StatusEvent;
 import loci.common.StatusListener;
 import loci.common.StatusReporter;
 import de.unihalle.informatik.Alida.annotations.Parameter;
-import de.unihalle.informatik.Alida.annotations.Parameter.ExpertMode;
 import de.unihalle.informatik.Alida.dataio.provider.swing.events.ALDSwingValueChangeListener;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.operator.ALDOperatorCollectionElement;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
-import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarker;
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarkerVector;
 
@@ -55,17 +53,17 @@ public abstract class CellCounterDetectOperator
 	/**
 	 * Input image to process.
 	 */
-	@Parameter( label = "Input image", required = true, 
-		direction = Parameter.Direction.IN,	mode = ExpertMode.STANDARD, 
-		dataIOOrder = 1, description = "Input image.")
+//	@Parameter( label = "Input image", required = true, 
+//		direction = Parameter.Direction.IN,	mode = ExpertMode.STANDARD, 
+//		dataIOOrder = 1, description = "Input image.")
 	protected transient MTBImage inputImage = null;
 
 	/**
 	 * Index of input image slice if z-stack is provided as input.
 	 */
-	@Parameter( label = "Channel index", required = true, 
-		direction = Parameter.Direction.IN,	mode = ExpertMode.STANDARD, 
-		dataIOOrder = 2, description = "Channel index in stack.")
+//	@Parameter( label = "Channel index", required = true, 
+//		direction = Parameter.Direction.IN,	mode = ExpertMode.STANDARD, 
+//		dataIOOrder = 2, description = "Channel index in stack.")
 	protected int detectZSlice;
 
 	/**
@@ -76,9 +74,9 @@ public abstract class CellCounterDetectOperator
 	 * responsible for acquiring the information which marker vector refers
 	 * to the markers it needs.
 	 */
-	@Parameter( label = "Marker vectors", required = true, 
-		direction = Parameter.Direction.IN,	mode = ExpertMode.STANDARD, 
-		dataIOOrder = 3, description = "Marker vectors.")
+//	@Parameter( label = "Marker vectors", required = true, 
+//		direction = Parameter.Direction.IN,	mode = ExpertMode.STANDARD, 
+//		dataIOOrder = 3, description = "Marker vectors.")
 	protected HashMap<Integer, CellCntrMarkerVector> markerVects;
 	
 	/**
@@ -154,13 +152,13 @@ public abstract class CellCounterDetectOperator
 	 * Method for handling over value change listener to sub-windows.
 	 * @param listener	Value change listener to notify in case of changes.
 	 */
-	public abstract void addValueChangeEventListener(
-			ALDSwingValueChangeListener listener);
+//	public abstract void addValueChangeEventListener(
+//			ALDSwingValueChangeListener listener);
 
 	/**
 	 * Method is to be called for cleaning-up the operator resources.
 	 */
-	public abstract void dispose(); 
+//	public abstract void dispose(); 
 	
 	@Override
   public void addStatusListener(StatusListener statListener) {
