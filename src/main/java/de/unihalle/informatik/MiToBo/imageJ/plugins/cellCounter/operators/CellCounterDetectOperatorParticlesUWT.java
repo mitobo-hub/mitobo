@@ -164,16 +164,21 @@ public class CellCounterDetectOperatorParticlesUWT
 	public String getShortName() {
 		return "Particles with UWT";
 	}
-	
+
 	@Override
-	public void openConfigFrame() {
-		this.particleConfigureFrame.setVisible(true);
+	public String getUniqueClassID() {
+		return "ParticlesUWT";
 	}
-	
-	@Override
-	public void closeConfigFrame() {
-		this.particleConfigureFrame.setVisible(false);
-	}
+
+//	@Override
+//	public void openConfigFrame() {
+//		this.particleConfigureFrame.setVisible(true);
+//	}
+//	
+//	@Override
+//	public void closeConfigFrame() {
+//		this.particleConfigureFrame.setVisible(false);
+//	}
 
 
 	@Override

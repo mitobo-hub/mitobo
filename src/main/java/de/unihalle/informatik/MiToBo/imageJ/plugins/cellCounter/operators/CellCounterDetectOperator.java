@@ -34,6 +34,7 @@ import de.unihalle.informatik.Alida.annotations.Parameter;
 import de.unihalle.informatik.Alida.annotations.Parameter.ExpertMode;
 import de.unihalle.informatik.Alida.dataio.provider.swing.events.ALDSwingValueChangeListener;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
+import de.unihalle.informatik.Alida.operator.ALDOperatorCollectionElement;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarker;
@@ -47,7 +48,8 @@ import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCn
  *  
  * @author Birgit Moeller
  */
-public abstract class CellCounterDetectOperator extends MTBOperator
+public abstract class CellCounterDetectOperator 
+		extends ALDOperatorCollectionElement
 	implements StatusListener, StatusReporter {
 	
 	/**
@@ -92,15 +94,15 @@ public abstract class CellCounterDetectOperator extends MTBOperator
 	 */
 	public abstract String getShortName();
 	
-	/**
-	 * Open the configuration frame.
-	 */
-	public abstract void openConfigFrame();
-	
-	/**
-	 * Close the configuration frame.
-	 */
-	public abstract void closeConfigFrame();
+//	/**
+//	 * Open the configuration frame.
+//	 */
+//	public abstract void openConfigFrame();
+//	
+//	/**
+//	 * Close the configuration frame.
+//	 */
+//	public abstract void closeConfigFrame();
 	
 	/**
 	 * Get the detection results.
