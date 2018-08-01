@@ -22,21 +22,10 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev$
- * $Date$
- * $Author$
- * 
- */
-
 package de.unihalle.informatik.MiToBo.tools.image;
 
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException.OperatorExceptionType;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator.Level;
 import de.unihalle.informatik.Alida.annotations.Parameter;
@@ -45,94 +34,136 @@ import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType;
 import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
 
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
-@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL,level=Level.STANDARD)
+/**
+ * Operator to reduce image dimension by projecting  multi-dimensional 
+ * images along selected dimensions.
+ * <p>
+ * This operator can for example be applied to generate a maximum 
+ * projection of a z-stack, or to project images row- or columnwise.
+ * 
+ * @author gress
+ * @author moeller
+ */
+@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL,
+	level=Level.STANDARD)
 public class ImageDimensionReducer extends MTBOperator {
 	
-
-	@Parameter( label= "reduceX", required = true, direction = Parameter.Direction.IN, 
-			 mode=ExpertMode.STANDARD, dataIOOrder=3,
-	                        description = "Set true reduction in/along x-dimension")
-	private Boolean reduceX = false;
-
-	@Parameter( label= "reduceY", required = true, direction = Parameter.Direction.IN, 
-			 mode=ExpertMode.STANDARD, dataIOOrder=4,
-	                        description = "Set true reduction in/along y-dimension")
-	private Boolean reduceY = false;
+	/**
+	 * Methods for dimension reduction/projection. 
+	 */
+	public static enum ReducerMethod {
+		/**
+		 * Computes the mean value along the specified dimension(s).
+		 */
+		MEAN, 
+		/**
+		 * Finds the minimum value along the specified dimension(s).
+		 */
+		MIN, 
+		/**
+		 * Finds the maximum value along the specified dimension(s).
+		 */
+		MAX, 
+		/**
+		 * Computes the sum along the specified dimension(s).
+		 */
+		SUM, 
+		/**
+		 * Computes the normalized sum along the specified dimension(s).
+		 * <p>
+		 * The resulting image values sum up to 1, i.e. refer to a discrete
+		 * probability density function.
+		 */
+		NORM_SUM 
+	}
 	
-	@Parameter( label= "reduceZ", required = true, direction = Parameter.Direction.IN, 
-			 mode=ExpertMode.STANDARD, dataIOOrder=5,
-	                        description = "Set true reduction in/along z-dimension")
-	private Boolean reduceZ = false;
-
-	@Parameter( label= "reduceT", required = true, direction = Parameter.Direction.IN, 
-			 mode=ExpertMode.STANDARD, dataIOOrder=6,
-	                        description = "Set true reduction in/along t-dimension")
-	private Boolean reduceT = false;
-	
-	@Parameter( label= "reduceC", required = true, direction = Parameter.Direction.IN, 
-			 mode=ExpertMode.STANDARD, dataIOOrder=7,
-	                        description = "Set true reduction in/along c-dimension")
-	private Boolean reduceC = false;
-
-
-	@Parameter( label= "reducerMethod", required = true, direction = Parameter.Direction.IN, 
-			 mode=ExpertMode.STANDARD, dataIOOrder=2,
-	                        description = "Reduction method along the specified axes")
-	private ReducerMethod reducerMethod = null;
-
-	
-	@Parameter( label= "inImg", required = true, direction = Parameter.Direction.IN, 
-			 mode=ExpertMode.STANDARD, dataIOOrder=1,
-	                        description = "Input image")
+	/**
+	 * Multi-dimensional input image or input stack.
+	 */
+	@Parameter( label= "Input image", required = true, dataIOOrder = -1,
+		direction = Parameter.Direction.IN, mode=ExpertMode.STANDARD,
+		description = "Input image to reduce in dimension.")
 	private MTBImage inImg = null;
 
-	@Parameter( label= "resultImg", required = true, direction = Parameter.Direction.OUT, 
-			 mode=ExpertMode.STANDARD, dataIOOrder=1,
-	                        description = "Result image")
-	                        
+	/**
+	 * Projection mode.
+	 */
+	@Parameter( label= "Reduction Mode", required = true,
+		direction = Parameter.Direction.IN,	mode=ExpertMode.STANDARD, 
+		dataIOOrder=0, description = "Reduction mode.")
+	private ReducerMethod projMode = ReducerMethod.MAX;
+
+	/**
+	 * Enables/disables projection along x-dimension.
+	 */
+	@Parameter( label= "Project along x", required = true, dataIOOrder = 1,
+		direction = Parameter.Direction.IN, mode=ExpertMode.STANDARD, 
+		description = "Select for projection along x-dimension.")
+	private boolean projectAlongX = false;
+
+	/**
+	 * Enables/disables projection along y-dimension.
+	 */
+	@Parameter( label= "Project along y", required = true, dataIOOrder = 2,
+		direction = Parameter.Direction.IN, mode=ExpertMode.STANDARD, 
+		description = "Select for projection along y-dimension.")
+	private boolean projectAlongY = false;
+	
+	/**
+	 * Enables/disables projection along z-dimension.
+	 */
+	@Parameter( label= "Project along z", required = true, dataIOOrder = 3,
+		direction = Parameter.Direction.IN, mode=ExpertMode.STANDARD,
+		description = "Select for projection along z-dimension.")
+	private boolean projectAlongZ = false;
+
+	/**
+	 * Enables/disables projection along t-dimension.
+	 */
+	@Parameter( label= "Project along t", required = true, dataIOOrder = 4,
+		direction = Parameter.Direction.IN, mode=ExpertMode.STANDARD,
+		description = "Select for projection along t-dimension.")
+	private boolean projectAlongT = false;
+	
+	/**
+	 * Enables/disables projection along c-dimension.
+	 */
+	@Parameter( label= "Project along c", required = true, dataIOOrder = 5,
+		direction = Parameter.Direction.IN, mode=ExpertMode.STANDARD,
+		description = "Select for projection along c-dimension.")
+	private boolean projectAlongC = false;
+
+	/**
+	 * Result image (stack).
+	 */
+	@Parameter( label= "Result image", dataIOOrder = 0,
+		direction = Parameter.Direction.OUT, mode=ExpertMode.STANDARD, 
+		description = "Resulting dimension-reduced image.")
 	private MTBImage resultImg = null;
 
 	/**
-	 * Methods for dimension reduction. A dimension can be reduced (eliminated from the image) by the following methods:
-	 * MEAN:            compute the mean value along the specified dimension(s)
-	 * MIN:             find the minimum value along the specified dimension(s)
-	 * MAX:             find the maximum value along the specified dimension(s)
-	 * PROJECTION:      compute the projection along the specified dimension(s)
-	 * NORM_PROJECTION: compute the normalized projection along the specified dimension(s) (resulting image values sum up to 1 -> discrete pdf)
-	 * 
-	 * @author gress
-	 *
-	 */
-	public enum ReducerMethod {
-		MEAN, MIN, MAX, PROJECTION, NORM_PROJECTION 
-	}
-	
-	
-	/**
-	 * Constructor 
+	 * Constructor. 
+	 * @throws ALDOperatorException Thrown in case of failure.
 	 */
 	public ImageDimensionReducer() throws ALDOperatorException {
-		
+		// nothing to do here
 	}
 	
 	/**
-	 * Constructor
-	 * @param img input image
-	 * @param reduceX flag for x-dimension reduction
-	 * @param reduceY flag for y-dimension reduction
-	 * @param reduceZ flag for z-dimension reduction
-	 * @param reduceT flag for t-dimension reduction
-	 * @param reduceC flag for c-dimension reduction
-	 * @param method reduction method
+	 * Constructor with arguments.
+	 * @param img 		Input image.
+	 * @param reduceX Flag for x-dimension reduction.
+	 * @param reduceY Flag for y-dimension reduction.
+	 * @param reduceZ Flag for z-dimension reduction.
+	 * @param reduceT Flag for t-dimension reduction.
+	 * @param reduceC Flag for c-dimension reduction.
+	 * @param method 	Reduction method.
+	 * @throws ALDOperatorException Thrown in case of failure.
 	 */
-	public ImageDimensionReducer(MTBImage img,
-									boolean reduceX,
-									boolean reduceY,
-									boolean reduceZ,
-									boolean reduceT,
-									boolean reduceC,
-									ReducerMethod method) throws ALDOperatorException {
+	public ImageDimensionReducer(MTBImage img, boolean reduceX,
+		boolean reduceY, boolean reduceZ,	boolean reduceT,
+			boolean reduceC, ReducerMethod method) 
+		throws ALDOperatorException {
 		
 		this.setInImg(img);
 		this.setReduceX(reduceX);
@@ -140,33 +171,30 @@ public class ImageDimensionReducer extends MTBOperator {
 		this.setReduceZ(reduceZ);
 		this.setReduceT(reduceT);
 		this.setReduceC(reduceC);
-		this.setReducerMethod(method);
+		this.setReductionMode(method);
 	}
 	
-
 	@Override
 	protected void operate() throws ALDOperatorException {
 		
+		this.resultImg = this.reduce();
 		
-		MTBImage resultImg = this.reduce();
-		
-		if (resultImg != null) {
-			
-			this.setResultImg(resultImg);
-		}
-		else {
-			throw new ALDOperatorException(OperatorExceptionType.OPERATE_FAILED, "ImageDimensionReducer.operate() failed: Result image is 'null'");
+		if (this.resultImg == null) {
+			throw new ALDOperatorException(
+				OperatorExceptionType.OPERATE_FAILED, 
+					"ImageDimensionReducer.operate() failed: " 
+						+ "Result image is 'null'");
 		}
 	}
 	
 
 	/**
-	 * Method which implements the reduction
-	 * @return
-	 * @throws ALDOperatorException
+	 * Method which implements the dimension reduction.
+	 * @return	Dimension-reduced image.
 	 */
-	private MTBImage reduce() throws ALDOperatorException {
-		MTBImage img = this.getInImg();
+	private MTBImage reduce() {
+		
+		MTBImage img = this.inImg;
 		
 		int isizeX = img.getSizeX();
 		int isizeY = img.getSizeY();
@@ -174,14 +202,15 @@ public class ImageDimensionReducer extends MTBOperator {
 		int isizeT = img.getSizeT();
 		int isizeC = img.getSizeC();
 
-		IntObject c = new IntObject(), t = new IntObject(), z = new IntObject(), y = new IntObject(), x = new IntObject();
+		IntObject c = new IntObject(), t = new IntObject(), 
+				z = new IntObject(), y = new IntObject(), x = new IntObject();
 		
 		int sizeX, sizeY, sizeZ, sizeT, sizeC;
 		IntObject xx, yy, zz, tt, cc;
 		
 		int reducedDimSize = 1;
 		
-		if (this.getReduceX()) {
+		if (this.projectAlongX) {
 			reducedDimSize *= isizeX;
 			sizeX = 1;
 			xx = new IntObject();
@@ -191,7 +220,7 @@ public class ImageDimensionReducer extends MTBOperator {
 			xx = x;
 		}
 		
-		if (this.getReduceY()) {
+		if (this.projectAlongY) {
 			reducedDimSize *= isizeY;
 			sizeY = 1;
 			yy = new IntObject();
@@ -201,7 +230,7 @@ public class ImageDimensionReducer extends MTBOperator {
 			yy = y;
 		}
 		
-		if (this.getReduceZ()) {
+		if (this.projectAlongZ) {
 			reducedDimSize *= isizeZ;
 			sizeZ = 1;
 			zz = new IntObject();
@@ -211,7 +240,7 @@ public class ImageDimensionReducer extends MTBOperator {
 			zz = z;
 		}
 		
-		if (this.getReduceT()) {
+		if (this.projectAlongT) {
 			reducedDimSize *= isizeT;
 			sizeT = 1;
 			tt = new IntObject();
@@ -221,7 +250,7 @@ public class ImageDimensionReducer extends MTBOperator {
 			tt = t;
 		}
 		
-		if (this.getReduceC()) {
+		if (this.projectAlongC) {
 			reducedDimSize *= isizeC;
 			sizeC = 1;
 			cc = new IntObject();
@@ -233,18 +262,27 @@ public class ImageDimensionReducer extends MTBOperator {
 		
 		MTBImage result = null;
 		
-		if (this.getReducerMethod() == ReducerMethod.MIN
-				|| this.getReducerMethod() == ReducerMethod.MAX) {
+		if (   this.projMode == ReducerMethod.MIN
+				|| this.projMode == ReducerMethod.MAX) {
 			
-			result = MTBImage.createMTBImage(sizeX, sizeY, sizeZ, sizeT, sizeC, img.getType());
+			result = MTBImage.createMTBImage(sizeX, sizeY, sizeZ, sizeT, sizeC, 
+					img.getType());
 			
 		}
 		else {	
-			result = MTBImage.createMTBImage(sizeX, sizeY, sizeZ, sizeT, sizeC, MTBImageType.MTB_DOUBLE);
+			result = MTBImage.createMTBImage(sizeX, sizeY, sizeZ, sizeT, sizeC, 
+					MTBImageType.MTB_DOUBLE);
 			result.fillBlack();
 		}
+
+		// keep real physical pixel sizes and other meta data
+		if (img.getCalibration() != null) {
+			result.setCalibration(img.getCalibration());
+			result.getImagePlus().setCalibration(img.getCalibration());
+		}
+		result.copyPhysicalProperties(img);
 		
-		if (this.getReducerMethod() == ReducerMethod.MIN) {
+		if (this.projMode == ReducerMethod.MIN) {
 			
 			for (t.i = 0; t.i < isizeT; t.i++) {
 				for (z.i = 0; z.i < isizeZ; z.i++) {
@@ -252,12 +290,16 @@ public class ImageDimensionReducer extends MTBOperator {
 						for (y.i = 0; y.i < isizeY; y.i++) {
 							for (x.i = 0; x.i < isizeX; x.i++) {
 								
-								if (x.i == xx.i && y.i == yy.i && z.i == zz.i && t.i == tt.i && c.i == cc.i) {
-									result.putValueDouble(xx.i, yy.i, zz.i, tt.i, cc.i, img.getValueDouble(x.i, y.i, z.i, t.i, c.i));
+								if (   x.i == xx.i && y.i == yy.i && z.i == zz.i 
+										&& t.i == tt.i && c.i == cc.i) {
+									result.putValueDouble(xx.i, yy.i, zz.i, tt.i, cc.i, 
+											img.getValueDouble(x.i, y.i, z.i, t.i, c.i));
 								}
 								else {
-									if (result.getValueDouble(xx.i, yy.i, zz.i, tt.i, cc.i) > img.getValueDouble(x.i, y.i, z.i, t.i, c.i)) {
-										result.putValueDouble(xx.i, yy.i, zz.i, tt.i, cc.i, img.getValueDouble(x.i, y.i, z.i, t.i, c.i));
+									if (result.getValueDouble(xx.i, yy.i, zz.i, tt.i, cc.i) 
+											> img.getValueDouble(x.i, y.i, z.i, t.i, c.i)) {
+										result.putValueDouble(xx.i, yy.i, zz.i, tt.i, cc.i, 
+												img.getValueDouble(x.i, y.i, z.i, t.i, c.i));
 									}
 								}
 							}
@@ -267,7 +309,7 @@ public class ImageDimensionReducer extends MTBOperator {
 			}
 			
 		}
-		else if (this.getReducerMethod() == ReducerMethod.MAX) {
+		else if (this.projMode == ReducerMethod.MAX) {
 			
 			for (t.i = 0; t.i < isizeT; t.i++) {
 				for (z.i = 0; z.i < isizeZ; z.i++) {
@@ -275,12 +317,16 @@ public class ImageDimensionReducer extends MTBOperator {
 						for (y.i = 0; y.i < isizeY; y.i++) {
 							for (x.i = 0; x.i < isizeX; x.i++) {
 								
-								if (x.i == xx.i && y.i == yy.i && z.i == zz.i && t.i == tt.i && c.i == cc.i) {
-									result.putValueDouble(xx.i, yy.i, zz.i, tt.i, cc.i, img.getValueDouble(x.i, y.i, z.i, t.i, c.i));
+								if (   x.i == xx.i && y.i == yy.i && z.i == zz.i 
+										&& t.i == tt.i && c.i == cc.i) {
+									result.putValueDouble(xx.i, yy.i, zz.i, tt.i, cc.i, 
+											img.getValueDouble(x.i, y.i, z.i, t.i, c.i));
 								}
 								else {
-									if (result.getValueDouble(xx.i, yy.i, zz.i, tt.i, cc.i) < img.getValueDouble(x.i, y.i, z.i, t.i, c.i)) {
-										result.putValueDouble(xx.i, yy.i, zz.i, tt.i, cc.i, img.getValueDouble(x.i, y.i, z.i, t.i, c.i));
+									if (result.getValueDouble(xx.i, yy.i, zz.i, tt.i, cc.i) 
+											< img.getValueDouble(x.i, y.i, z.i, t.i, c.i)) {
+										result.putValueDouble(xx.i, yy.i, zz.i, tt.i, cc.i, 
+												img.getValueDouble(x.i, y.i, z.i, t.i, c.i));
 									}
 								}
 							}
@@ -298,7 +344,9 @@ public class ImageDimensionReducer extends MTBOperator {
 						for (y.i = 0; y.i < isizeY; y.i++) {
 							for (x.i = 0; x.i < isizeX; x.i++) {
 								
-								result.putValueDouble(xx.i, yy.i, zz.i, tt.i, cc.i, result.getValueDouble(xx.i, yy.i, zz.i, tt.i, cc.i) + img.getValueDouble(x.i, y.i, z.i, t.i, c.i));
+								result.putValueDouble(xx.i, yy.i, zz.i, tt.i, cc.i, 
+									result.getValueDouble(xx.i, yy.i, zz.i, tt.i, cc.i) 
+										+ img.getValueDouble(x.i, y.i, z.i, t.i, c.i));
 			
 							}
 						}
@@ -306,20 +354,21 @@ public class ImageDimensionReducer extends MTBOperator {
 				}
 			}
 	
-			if (this.getReducerMethod() == ReducerMethod.MEAN) {
+			if (this.projMode == ReducerMethod.MEAN) {
 				// compute mean
 				int ss = result.getSizeStack();
 				for (int i = 0; i < ss; i++) {
 					result.setCurrentSliceIndex(i);
 					for (int iy = 0; iy < sizeY; iy++) {
 						for (int ix = 0; ix < sizeX; ix++) {
-							result.putValueDouble(ix, iy, result.getValueDouble(ix, iy)/(double)reducedDimSize);
+							result.putValueDouble(ix, iy, 
+								result.getValueDouble(ix, iy)/reducedDimSize);
 						}
 					}
 				}
 				result.setCurrentSliceIndex(0);
 			}
-			else if (this.getReducerMethod() == ReducerMethod.NORM_PROJECTION) {
+			else if (this.projMode == ReducerMethod.NORM_SUM) {
 				
 				// compute normalizer
 				int ss = result.getSizeStack();
@@ -338,7 +387,8 @@ public class ImageDimensionReducer extends MTBOperator {
 					result.setCurrentSliceIndex(i);
 					for (int iy = 0; iy < sizeY; iy++) {
 						for (int ix = 0; ix < sizeX; ix++) {
-							result.putValueDouble(ix, iy, result.getValueDouble(ix, iy)/n);
+							result.putValueDouble(ix, iy, 
+								result.getValueDouble(ix, iy)/n);
 						}
 					}
 				}
@@ -350,127 +400,86 @@ public class ImageDimensionReducer extends MTBOperator {
 		return result;
 	}
 	
-	/** Get value of Parameter argument reduceZ.
-	  * @return value of reduceZ
-	  */
-	public Boolean getReduceZ() {
-		return this.reduceZ;
-	}
-	
-	/** Set value of Parameter argument reduceZ.
-	  * @param value New value for reduceZ
-	  */
+	/** 
+	 * Enable/disable projection along z-dimension.
+	 * @param value 	If true, projection along z is enabled.
+	 */
 	public void setReduceZ( boolean value ) {
-		 this.reduceZ = value;
+		 this.projectAlongZ = value;
 	}
 
-	/** Get value of Parameter argument reduceC.
-	  * @return value of reduceC
-	  */
-	public Boolean getReduceC() {
-		return this.reduceC;
-	}
-	
-	/** Set value of Parameter argument reduceC.
-	  * @param value New value for reduceC
-	  */
+	/** 
+	 * Enable/disable projection along c-dimension.
+	 * @param value 	If true, projection along c is enabled.
+	 */
 	public void setReduceC( boolean value ) {
-		 this.reduceC = value;
+		 this.projectAlongC = value;
 	}
 
-	/** Get value of Parameter argument reduceY.
-	  * @return value of reduceY
-	  */
-	public Boolean getReduceY() {
-		return this.reduceY;
-	}
-	
-	/** Set value of Parameter argument reduceY.
-	  * @param value New value for reduceY
-	  */
+	/** 
+	 * Enable/disable projection along y-dimension.
+	 * @param value 	If true, projection along y is enabled.
+	 */
 	public void setReduceY( boolean value ) {
-		 this.reduceY = value;
+		 this.projectAlongY = value;
 	}
 
-	/** Get value of Parameter argument reduceX.
-	  * @return value of reduceX
-	  */
-	public Boolean getReduceX() {
-		return this.reduceX;
-	}
-	
-	/** Set value of Parameter argument reduceX.
-	  * @param value New value for reduceX
-	  */
+	/** 
+	 * Enable/disable projection along x-dimension.
+	 * @param value 	If true, projection along x is enabled.
+	 */
 	public void setReduceX( boolean value ) {
-		 this.reduceX = value;
+		 this.projectAlongX = value;
 	}
 
-	/** Get value of Parameter argument reduceT.
-	  * @return value of reduceT
-	  */
-	public Boolean getReduceT() {
-		return this.reduceT;
-	}
-	
-	/** Set value of Parameter argument reduceT.
-	  * @param value New value for reduceT
-	  */
+	/** 
+	 * Enable/disable projection along t-dimension.
+	 * @param value 	If true, projection along t is enabled.
+	 */
 	protected void setReduceT( boolean value ) {
-		 this.reduceT = value;
+		 this.projectAlongT = value;
 	}
 
-	/** Get value of Parameter argument reducerMethod.
-	  * @return value of reducerMethod
-	  */
-	public ReducerMethod getReducerMethod() {
-		return this.reducerMethod;
-	}
-	
-	/** Set value of Parameter argument reducerMethod.
-	  * @param value New value for reducerMethod
-	  */
-	public void setReducerMethod( ReducerMethod value ) {
-		 this.reducerMethod = value;
+	/** 
+	 * Specify projection mode.
+	 * @param value 	Mode to apply.
+	 */
+	public void setReductionMode( ReducerMethod value ) {
+		 this.projMode = value;
 	}
 
-	/** Get value of Input argument inImg.
-	  * @return value of inImg
-	  */
-	public MTBImage getInImg() throws ALDOperatorException {
-		return this.inImg;
-	}
-	
-	/** Set value of Input argument inImg.
-	  * @param value New value for inImg
-	  */
+	/** 
+	 * Set input image.
+	 * @param img 	Image to process.
+	 */
 	public void setInImg( MTBImage img ) {
 		 this.inImg = img;
 	}
 
-	/** Get value of Output argument resultImg.
-	  * @return value of resultImg
-	  */
+	/** 
+	 * Get result image.
+	 * @return Result image.
+	 */
 	public MTBImage getResultImg() {
 		return this.resultImg;
 	}
 	
-	/** Set value of Output argument resultImg.
-	  * @param value New value for resultImg
-	  */
-	protected void setResultImg( MTBImage img ) {
-		 this.resultImg = img;
-	}
-
-	
+	/**
+	 * Internal helper class for iterating over an image dimension.
+	 */
 	private class IntObject {
 		
+		/**
+		 * Internal position counter.
+		 */
 		public int i;
 		
-		private IntObject() {
-			i = 0;
+		/**
+		 * Constructor.
+		 */
+		public IntObject() {
+			this.i = 0;
 		}
 	}
-	
 	
 }

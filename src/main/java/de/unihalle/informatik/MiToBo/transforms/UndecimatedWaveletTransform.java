@@ -341,14 +341,14 @@ public class UndecimatedWaveletTransform
 		for (int j = 1; j <= _Jmax; j++) {
 
 			// check if operator has been paused or interrupted
-			if (this.operatorStatus == OperatorControlStatus.OP_STOP) {
+			if (this.getControlStatus() == OperatorControlStatus.OP_STOP) {
 				this.operatorExecStatus = 
 					OperatorExecutionStatus.OP_EXEC_TERMINATED;
 				if (this.verbose.booleanValue())
 					System.err.println(opIdentifier + "stopped!");
 				return null;
 	 		}
-			if (this.operatorStatus == OperatorControlStatus.OP_PAUSE) {
+			if (this.getControlStatus() == OperatorControlStatus.OP_PAUSE) {
 				System.err.println(opIdentifier+"paused, waiting to continue...");
 				this.operatorExecStatus = OperatorExecutionStatus.OP_EXEC_PAUSED;
 				do {
@@ -357,7 +357,7 @@ public class UndecimatedWaveletTransform
 					} catch (InterruptedException e) {
 						// just ignore the exception
 					}
-				} while (this.operatorStatus != OperatorControlStatus.OP_RESUME);
+				} while (this.getControlStatus() != OperatorControlStatus.OP_RESUME);
 				this.operatorExecStatus = OperatorExecutionStatus.OP_EXEC_RUNNING;
 				System.err.println(opIdentifier + "running again...");
 			}

@@ -1223,7 +1223,7 @@ public class PaCeQuant extends MTBOperator {
 				for (String dir : allDirs) {
 
 					// skip result directories
-					if (dir.equals("results"))
+					if (dir.contains("results"))
 						continue;
 
 					// get files of current directory

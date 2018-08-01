@@ -73,6 +73,10 @@ import Jama.Matrix;
  * can be used to calculate the eigenvectors 
  * {@latex.inline $\\vec{v} = A \\cdot \\vec{w}$} of the covariance matrix 
  * without need for explicitly solving the problem for the larger matrix.
+ * <p>
+ * Note that if no proper sub-space can be determined, e.g., because only a
+ * single data item is provided, no transformation is applied and the output
+ * data is identical to the input data.
  * 
  * @author moeller
  */
@@ -411,6 +415,7 @@ public class PCA extends MTBOperator {
 		// extract eigenvalues and eigenvectors of C
 		EigenvalueDecomposition eigenOp = new EigenvalueDecomposition(this.C);
 		this.eigenVals = eigenOp.getRealEigenvalues();
+		
 		if (this.sampleCount > this.dataDim) {
 			this.eigenVects = eigenOp.getV();
 		}
@@ -451,8 +456,18 @@ public class PCA extends MTBOperator {
 		{
 		case NUMBER_COMPONENTS:
 			this.subDim = this.componentNum;
-			if (this.subDim > this.eigenVals.length)
-				this.subDim = this.eigenVals.length;
+			if (this.subDim >= this.eigenVals.length) {
+				int i = this.eigenVals.length - 1;
+				int nonZeroVals = 0;
+				while (i >= 0 && this.eigenVals[i] != 0.0) {
+					++nonZeroVals;
+					--i;
+				}
+				if (nonZeroVals == 0)
+					this.subDim = this.dataDim;
+				else
+					this.subDim = nonZeroVals;
+			}
 			break;
 		case PERCENTAGE_VARIANCE:
 			double varSum = 0.0;
@@ -474,6 +489,19 @@ public class PCA extends MTBOperator {
 	 * Does the actual dimension reduction by data projection into sub-space.
 	 */
 	protected void doDimensionReduction() {
+		
+		// check if there has been a dimension reduction, 
+		// if not, keep input data
+		if (this.subDim == this.dataDim) {
+			this.resultData = new double[this.subDim][this.sampleCount];
+			for (int s = 0; s < this.subDim; ++s) {
+				for (int t = 0; t < this.sampleCount; ++t) {
+					this.resultData[s][t] = this.dataset[s][t];
+				}
+			}
+			return;
+		}
+		
 		// create projection matrix
 		this.P_t = new Matrix(this.subDim, this.dataDim);
 		if (this.sampleCount > this.dataDim) {
@@ -483,7 +511,7 @@ public class PCA extends MTBOperator {
 			}
 		}
 		else {
-			for (int s=this.sampleCount-1; s>=this.sampleCount-this.subDim; --s) {
+			for (int s = this.sampleCount-1; s >= this.sampleCount-this.subDim; --s) {
 				for (int d=0; d<this.dataDim; ++d) {
 					this.P_t.set(this.sampleCount - s - 1, d, this.eigenVects.get(d, s));
 				}

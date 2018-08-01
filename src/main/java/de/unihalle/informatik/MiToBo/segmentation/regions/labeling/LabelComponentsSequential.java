@@ -68,7 +68,7 @@ import ij.process.ImageProcessor;
  *
  */
 @ALDAOperator(genericExecutionMode=ExecutionMode.ALL,
-	level=Level.STANDARD)
+	level=Level.APPLICATION)
 public class LabelComponentsSequential extends MTBOperator {
 	
 	/**

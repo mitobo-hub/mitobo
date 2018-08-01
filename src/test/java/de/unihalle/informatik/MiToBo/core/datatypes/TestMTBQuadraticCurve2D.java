@@ -63,6 +63,7 @@ public class TestMTBQuadraticCurve2D {
 	}
 	
 	@SuppressWarnings("javadoc")
+  @Test
   public void testDetermineCurveType() {
 
 		/*
@@ -190,6 +191,7 @@ public class TestMTBQuadraticCurve2D {
 	}
 	
 	@SuppressWarnings("javadoc")
+  @Test
   public void testPointToEllipseDistance() {
 		boolean caughtException = false;
 		try {
@@ -239,6 +241,68 @@ public class TestMTBQuadraticCurve2D {
 			assertTrue("Distance should be 1.0, but is " + distance, 
 					Math.abs(distance-1.0)<1.0e-10);
 
+		} catch(Exception e) {
+			caughtException = true;
+		}
+		assertFalse("Caught an exception during distance calculation!",
+				caughtException);
+	}
+	
+	@SuppressWarnings("javadoc")
+  @Test
+  public void testTangentOrientation() {
+		boolean caughtException = false;
+		try {
+			
+			Point2D.Double p;
+			double orientation;
+			
+			// circle centered at origin and default orientation
+			double[] params= new double[]{0.0, 0.0, 1.0, 1.0, 0};
+			this.curve = new MTBQuadraticCurve2D(params, false);
+
+			p = new Point2D.Double(1.0, 0);
+			orientation = this.curve.getTangentOrientation(p);
+			assertTrue("Orientation should be 90, but is " + orientation, 
+					Math.abs(orientation - 90) < 1.0e-10);
+			p = new Point2D.Double(0, 1.0);
+			orientation = this.curve.getTangentOrientation(p);
+			assertTrue("Orientation should be 0, but is " + orientation, 
+					Math.abs(orientation - 0) < 1.0e-10);
+			p = 
+				new Point2D.Double(Math.cos(Math.PI/4.0), Math.sin(Math.PI/4.0));
+			orientation = this.curve.getTangentOrientation(p);
+			assertTrue("Orientation should be 135, but is " + orientation, 
+					Math.abs(orientation - 135) < 1.0e-10);
+			p = 
+				new Point2D.Double(-Math.cos(Math.PI/4.0), Math.sin(Math.PI/4.0));
+			orientation = this.curve.getTangentOrientation(p);
+			assertTrue("Orientation should be 45, but is " + orientation, 
+					Math.abs(orientation - 45) < 1.0e-10);
+			
+			// ellipse centered at origin and rotated by 45 degrees
+			params= new double[]{0.0, 0.0, 2.0, 1.0, 45.0};
+			this.curve = new MTBQuadraticCurve2D(params, false);
+			
+			// rotate point (2,0)
+			double nx = 2.0*Math.cos(Math.PI/4.0);
+			double ny = 2.0*Math.sin(Math.PI/4.0);
+			p = new Point2D.Double(nx, ny);
+			orientation = this.curve.getTangentOrientation(p);
+			assertTrue("Orientation should be 135, but is " + orientation, 
+					Math.abs(orientation - 135) < 1.0e-10);
+			
+			// rotate point at x = 0.5
+			double y = Math.sqrt(1.0 - (0.5*0.5)/4.0);
+			double a = Math.toRadians(45.0);
+			nx = 0.5*Math.cos(a) - y*Math.sin(a);
+			ny = 0.5*Math.sin(a) + y*Math.cos(a);
+			p = new Point2D.Double(nx, ny);
+			orientation = this.curve.getTangentOrientation(p);
+			assertTrue("Orientation should be approx. 37.644, " 
+				+ "but is " + orientation, 
+					Math.abs(orientation - 37.64383419410547) < 1.0e-10);
+			
 		} catch(Exception e) {
 			caughtException = true;
 		}
