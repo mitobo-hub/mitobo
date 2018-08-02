@@ -52,17 +52,11 @@ public abstract class CellCounterDetectOperator
 	/**
 	 * Input image to process.
 	 */
-//	@Parameter( label = "Input image", required = true, 
-//		direction = Parameter.Direction.IN,	mode = ExpertMode.STANDARD, 
-//		dataIOOrder = 1, description = "Input image.")
 	protected transient MTBImage inputImage = null;
 
 	/**
 	 * Index of input image slice if z-stack is provided as input.
 	 */
-//	@Parameter( label = "Channel index", required = true, 
-//		direction = Parameter.Direction.IN,	mode = ExpertMode.STANDARD, 
-//		dataIOOrder = 2, description = "Channel index in stack.")
 	protected int detectZSlice;
 
 	/**
@@ -73,9 +67,6 @@ public abstract class CellCounterDetectOperator
 	 * responsible for acquiring the information which marker vector refers
 	 * to the markers it needs.
 	 */
-//	@Parameter( label = "Marker vectors", required = true, 
-//		direction = Parameter.Direction.IN,	mode = ExpertMode.STANDARD, 
-//		dataIOOrder = 3, description = "Marker vectors.")
 	protected HashMap<Integer, CellCntrMarkerVector> markerVects;
 	
 	/**
