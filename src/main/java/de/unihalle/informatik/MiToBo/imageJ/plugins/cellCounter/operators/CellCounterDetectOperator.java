@@ -31,7 +31,6 @@ import loci.common.StatusEvent;
 import loci.common.StatusListener;
 import loci.common.StatusReporter;
 import de.unihalle.informatik.Alida.annotations.Parameter;
-import de.unihalle.informatik.Alida.dataio.provider.swing.events.ALDSwingValueChangeListener;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.operator.ALDOperatorCollectionElement;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
@@ -91,16 +90,6 @@ public abstract class CellCounterDetectOperator
 	 * @return	Name of operator.
 	 */
 	public abstract String getShortName();
-	
-//	/**
-//	 * Open the configuration frame.
-//	 */
-//	public abstract void openConfigFrame();
-//	
-//	/**
-//	 * Close the configuration frame.
-//	 */
-//	public abstract void closeConfigFrame();
 	
 	/**
 	 * Get the detection results.
