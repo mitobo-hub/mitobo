@@ -24,12 +24,8 @@
 
 package de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.operators;
 
-import java.awt.FlowLayout;
 import java.awt.geom.Point2D;
 import java.util.Vector;
-
-import javax.swing.JLabel;
-import javax.swing.JPanel;
 
 import loci.common.StatusEvent;
 import loci.common.StatusListener;
@@ -37,13 +33,8 @@ import de.unihalle.informatik.Alida.annotations.ALDAOperator;
 import de.unihalle.informatik.Alida.annotations.ALDDerivedClass;
 import de.unihalle.informatik.Alida.annotations.Parameter;
 import de.unihalle.informatik.Alida.annotations.Parameter.ExpertMode;
-import de.unihalle.informatik.Alida.dataio.ALDDataIOManagerSwing;
-import de.unihalle.informatik.Alida.dataio.provider.swing.components.ALDSwingComponent;
-import de.unihalle.informatik.Alida.dataio.provider.swing.events.ALDSwingValueChangeListener;
-import de.unihalle.informatik.Alida.exceptions.ALDException;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
-import de.unihalle.informatik.Alida.operator.ALDOpParameterDescriptor;
 import de.unihalle.informatik.MiToBo.apps.particles2D.ParticleDetectorUWT2D;
 import de.unihalle.informatik.MiToBo.apps.plantCells.plastids.PlastidDetector2DParticlesUWT;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBBorder2D;
@@ -71,11 +62,6 @@ public class CellCounterDetectOperatorParticlesUWT
 	 * Identifier for outputs in verbose mode.
 	 */
 	private final static String opIdentifier = "[Particles with UWT] ";
-
-	@Parameter( label= "array", required = true, 
-			direction = Parameter.Direction.IN, mode = ExpertMode.STANDARD, 
-			dataIOOrder = 2, description = "Minimum scale index.")
-	private int[] array = null;
 
 	/**
 	 * Minimal scale to consider.
