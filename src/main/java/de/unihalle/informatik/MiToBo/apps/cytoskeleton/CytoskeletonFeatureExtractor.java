@@ -31,12 +31,12 @@ import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException.OperatorExceptionType;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.unihalle.informatik.Alida.operator.ALDOperator;
-import de.unihalle.informatik.Alida.operator.events.ALDOperatorExecutionProgressEvent;
 import de.unihalle.informatik.Alida.annotations.Parameter;
 import de.unihalle.informatik.Alida.annotations.Parameter.Direction;
 import de.unihalle.informatik.Alida.annotations.Parameter.ExpertMode;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2DSet;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.*;
+import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType;
 import de.unihalle.informatik.MiToBo.core.imageJ.RoiManagerAdapter;
 import de.unihalle.informatik.MiToBo.core.operator.*;
 import de.unihalle.informatik.MiToBo.io.images.ImageReaderMTB;
@@ -174,7 +174,7 @@ public abstract class CytoskeletonFeatureExtractor extends MTBOperator {
 	/**
 	 * Operator for reading image files from disk.
 	 */
-	protected ImageReaderMTB iRead = new ImageReaderMTB();
+	protected static ImageReaderMTB iRead = null;
 
 	/**
 	 * Default constructor.
@@ -305,9 +305,11 @@ public abstract class CytoskeletonFeatureExtractor extends MTBOperator {
 		throws ALDOperatorException, ALDProcessingDAGException {
 		try {
 			MTBImage maxProjImg;
-			this.iRead.setFileName(f);
-			this.iRead.runOp(HidingMode.HIDDEN);
-			MTBImage img = this.iRead.getResultMTBImage();
+			if (iRead == null)
+				iRead = new ImageReaderMTB();
+			iRead.setFileName(f);
+			iRead.runOp(HidingMode.HIDDEN);
+			MTBImage img = iRead.getResultMTBImage();
 			maxProjImg = img;
 			// check if a maximum projection is required
 			if (img.getSizeZ() > 1) {
@@ -336,116 +338,122 @@ public abstract class CytoskeletonFeatureExtractor extends MTBOperator {
 	 * region, and files ending with '.roi' which contain exactly a single 
 	 * region.
 	 * 
+	 * @param maskDir			Directory where to search for the mask images.
 	 * @param basename		Basename of the corresponding image file.
+	 * @param maskFormat	Format of the mask data file.
 	 * @param xmin Minimum x-value of input image domain.
 	 * @param ymin Minimum y-value of input image domain.
 	 * @param xmax Maximum x-value of input image domain, 
 	 * 							i.e. image width - 1.
 	 * @param ymax Maximum y-value of input image domain, 
 	 * 							i.e. image height - 1.
+	 * @param verbose			If true, additional information is printed.
 	 * 
 	 * @return	Mask image, null if appropriate file could not be found.
 	 */
-	 protected MTBImage readMaskImage(String basename, 
-				double xmin, double ymin,	double xmax, double ymax) {
+	 public static MTBImage readMaskImage(String maskDir, String basename,
+			 CellMaskFormat maskFormat,
+				double xmin, double ymin,	double xmax, double ymax, boolean verbose) {
 		MTBImage maskImage = null;
 		String maskName = "";
-		if (this.maskDir != null) {
-			switch(this.maskFormat)
+		if (maskDir != null) {
+			switch(maskFormat)
 			{
 			case LABEL_IMAGE:
-				maskName= this.maskDir.getDirectoryName() + File.separator 
-					+ basename + "-mask.tif";
-				if (this.verbose.booleanValue())
+				maskName= maskDir + File.separator + basename + "-mask.tif";
+				if (verbose)
 					System.out.print("\t\t - searching mask " + maskName + "...");
-				fireOperatorExecutionProgressEvent(
-						new ALDOperatorExecutionProgressEvent(this,
-								" searching mask " + maskName + "..."));
+//				fireOperatorExecutionProgressEvent(
+//						new ALDOperatorExecutionProgressEvent(this,
+//								" searching mask " + maskName + "..."));
 
 				if ((new File(maskName)).exists()) {
 					try {
-						this.iRead.setFileName(maskName);
-						this.iRead.runOp();
-						maskImage = this.iRead.getResultMTBImage();
-						if (this.verbose.booleanValue())
+						if (iRead == null)
+							iRead = new ImageReaderMTB();
+						iRead.setFileName(maskName);
+						iRead.runOp();
+						// get mask, make sure to convert it to byte type
+						maskImage = iRead.getResultMTBImage().convertType(
+								MTBImageType.MTB_BYTE, true);
+						if (verbose)
 							System.out.println("found!");
-						fireOperatorExecutionProgressEvent(
-								new ALDOperatorExecutionProgressEvent(
-										this,	" ... found!"));
+//						fireOperatorExecutionProgressEvent(
+//								new ALDOperatorExecutionProgressEvent(
+//										this,	" ... found!"));
 					} catch (Exception e) {
-						if (this.verbose.booleanValue())
+						if (verbose)
 							System.out.println("not found!");
-						System.err.println("[ActinAnalyzer2D] Error reading mask " + 
-								maskName + ", ignoring mask...");
-						fireOperatorExecutionProgressEvent(
-								new ALDOperatorExecutionProgressEvent(
-										this," ... not found!"));
+						System.err.println("[CytoskeletonFeatureExtractor] " + 
+							" Error reading mask " + maskName + ", ignoring mask...");
+//						fireOperatorExecutionProgressEvent(
+//								new ALDOperatorExecutionProgressEvent(
+//										this," ... not found!"));
 					}
 				}
 				else {
-					if (this.verbose.booleanValue())
+					if (verbose)
 						System.out.println("mask not found!");
-					fireOperatorExecutionProgressEvent(
-							new ALDOperatorExecutionProgressEvent(this,
-									" ... mask not found!"));
+//					fireOperatorExecutionProgressEvent(
+//							new ALDOperatorExecutionProgressEvent(this,
+//									" ... mask not found!"));
 				}
 				break;
 			case IJ_ROIS:
-				String maskName_A= this.maskDir.getDirectoryName() 
-					+ File.separator + basename + "-mask.zip";
-				String maskName_B= this.maskDir.getDirectoryName() 
-					+ File.separator + basename + "-mask.roi";
+				String maskName_A= maskDir + File.separator + basename + "-mask.zip";
+				String maskName_B= maskDir + File.separator + basename + "-mask.roi";
 				maskName = null;
 				if ((new File(maskName_A)).exists()) 
 					maskName = maskName_A;
 				else 
 					if ((new File(maskName_B)).exists())
 						maskName = maskName_B;
-				if (this.verbose.booleanValue())
+				if (verbose)
 					System.out.print("\t\t - searching IJ ROI file " 
 							+ maskName + "...");
-				fireOperatorExecutionProgressEvent(
-						new ALDOperatorExecutionProgressEvent(this,
-								" searching IJ ROI file " + maskName + "..."));
+//				fireOperatorExecutionProgressEvent(
+//						new ALDOperatorExecutionProgressEvent(this,
+//								" searching IJ ROI file " + maskName + "..."));
 
 				if (maskName != null) {
 					try {
 						MTBRegion2DSet regions = 
 							RoiManagerAdapter.getInstance().getRegionSetFromRoiFile(
 								maskName, xmin, ymin, xmax, ymax);
-						if (this.verbose.booleanValue())
+						if (verbose)
 							System.out.println("found!");
-						fireOperatorExecutionProgressEvent(
-							new ALDOperatorExecutionProgressEvent(
-									this,	" ... found!"));
+//						fireOperatorExecutionProgressEvent(
+//							new ALDOperatorExecutionProgressEvent(
+//									this,	" ... found!"));
 						// convert region set to label image
 						DrawRegion2DSet regionDrawOp = new DrawRegion2DSet(
 							DrawType.LABEL_IMAGE, regions);
 						regionDrawOp.runOp(HidingMode.HIDDEN);
 						maskImage = regionDrawOp.getResultImage();
 						// save the label image to the output directory
-						String outMaskName= this.outDir.getDirectoryName() 
+						String outMaskName= maskDir 
 							+ File.separator + basename + "-mask.tif";
 						ImageWriterMTB imgWriter = 
 							new ImageWriterMTB(maskImage, outMaskName);
 						imgWriter.setOverwrite(true);
 						imgWriter.runOp(HidingMode.HIDDEN);
 					} catch (Exception e) {
-						if (this.verbose.booleanValue())
+						if (verbose)
 							System.out.println("not found!");
-						System.err.println("[ActinAnalyzer2D] Error reading IJ ROIs " 
-							+	maskName + ", ignoring segmentation...");
-						fireOperatorExecutionProgressEvent(
-							new ALDOperatorExecutionProgressEvent(
-									this," ... not found!"));
+						System.err.println("[CytoskeletonFeatureExtractor] " 
+							+ "Error reading IJ ROIs " +	maskName 
+								+ ", ignoring segmentation...");
+//						fireOperatorExecutionProgressEvent(
+//							new ALDOperatorExecutionProgressEvent(
+//									this," ... not found!"));
 					}
 				}
 				else {
-					if (this.verbose.booleanValue())
+					if (verbose)
 						System.out.println("mask / ROIs not found!");
-					fireOperatorExecutionProgressEvent(
-							new ALDOperatorExecutionProgressEvent(this,
-									" ... mask / ROIs not found!"));
+//					fireOperatorExecutionProgressEvent(
+//							new ALDOperatorExecutionProgressEvent(this,
+//									" ... mask / ROIs not found!"));
 				}
 				break;
 			}

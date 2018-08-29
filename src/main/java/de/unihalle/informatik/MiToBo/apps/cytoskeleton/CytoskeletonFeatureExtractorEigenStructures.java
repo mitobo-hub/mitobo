@@ -125,8 +125,9 @@ public class CytoskeletonFeatureExtractorEigenStructures
 
 			// check if mask available
 			MTBImage maskImage = null;
-			maskImage = this.readMaskImage(basename, 
-				0, 0, this.imageWidth-1, this.imageHeight-1);
+			maskImage = readMaskImage(this.maskDir.getDirectoryName(), basename,
+				this.maskFormat, 0, 0, this.imageWidth-1, this.imageHeight-1,
+					this.verbose.booleanValue());
 			if (maskImage != null)
 				maskNames.add(maskImage.getProperty("Filename"));
 			else

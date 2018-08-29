@@ -124,8 +124,9 @@ public abstract class CytoskeletonFeatureExtractorTiles
 			// check if mask available
 			MTBImage maskImage = null;
 			String maskName = "undefined";
-			maskImage = this.readMaskImage(basename, 
-				0, 0, this.imageWidth-1, this.imageHeight-1);
+			maskImage = readMaskImage(this.maskDir.getDirectoryName(), basename, 
+				this.maskFormat, 0, 0, this.imageWidth-1, this.imageHeight-1, 
+					this.verbose.booleanValue());
 			if (maskImage != null)
 				maskName = maskImage.getProperty("Filename");
 			
