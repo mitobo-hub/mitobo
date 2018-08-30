@@ -286,6 +286,11 @@ public class CytoskeletonAnalyzer2D extends MTBOperator {
 	private transient double[][] distroData;
 
 	/**
+	 * Group names linked to entries in {@link #distroData}.
+	 */
+	private transient String[] distroDataGroups;
+
+	/**
 	 * Dimension-reduced cluster distribution data.
 	 */
 	private transient double[][] subspaceData;
@@ -361,7 +366,7 @@ public class CytoskeletonAnalyzer2D extends MTBOperator {
 			this.doPCA();
 
 		// calculate pairwise distances for further analysis
-		this.calculatePairwiseDistances();
+		this.calculateDistanceMatrices();
 	}
 
 	/**
@@ -852,12 +857,16 @@ public class CytoskeletonAnalyzer2D extends MTBOperator {
       ++i;
 		}
 
-		// create distribution dataset
+		// create distribution datasets
 		this.distroData =	new double[this.clusterNum][this.cellwiseDistros.size()];
+		this.distroDataGroups = new String[this.cellwiseDistros.size()];
 		i = 0;
 		for (String k: this.cellwiseDistros.keySet()) {
-			for (int n = 0; n<this.clusterNum; ++n)
+			groupName = k.split("_")[0];
+			this.distroDataGroups[i] = groupName;
+			for (int n = 0; n<this.clusterNum; ++n) {
 				this.distroData[n][i] = this.cellwiseDistros.get(k)[n];
+			}
 			++i;
 		}
 
@@ -926,7 +935,7 @@ public class CytoskeletonAnalyzer2D extends MTBOperator {
 	 * <p>
 	 * The subspace dimension is chosen so that at least 95% of the data
 	 * variance is represented within the resulting feature subspace.
-	 * The result is saved to the file "AllCellsPCASubspaceStats.txt".
+	 * The result is saved to the file {@code AllCellsPCASubspaceStats.txt}.
 	 */
 	private void doPCA() {
 
@@ -995,25 +1004,29 @@ public class CytoskeletonAnalyzer2D extends MTBOperator {
 	}
 
 	/**
-	 * Calculates pairwise Euclidean distances between all feature vectors.
+	 * Calculates pairwise Euclidean distances between all feature vectors and
+	 * also between average vectors of all groups.
 	 * <p>
 	 * If PCA is enabled for stage II the distances are calculated from the
 	 * subspace feature data as extracted by the PCA. If PCA is not enabled
 	 * the cluster distribution data is used directly as base for the
 	 * calculations.
 	 * <p>
-	 * The resulting distance matrix is saved to a file with name
-	 * {@code AllCellsDistanceData.txt} in the output directory.
+	 * The resulting distance matrices are saved to files with names
+	 * {@code AllCellsDistanceData.txt} and {@code AllGroupsDistanceData.txt}
+	 * in the root directory.
 	 */
-	private void calculatePairwiseDistances() {
+	private void calculateDistanceMatrices() {
 
 		if (this.verbose.booleanValue())
 			System.out.println(operatorID 
-				+	" Calculating pairwise Euclidean feature distances...");
+				+	" Calculating pair- and groupwise Euclidean feature distances...");
 		this.fireOperatorExecutionProgressEvent(
 			new ALDOperatorExecutionProgressEvent(this,
-				" calculating pairwise Euclidean feature distances..."));
+				" calculating pair- and groupwise Euclidean feature distances..."));
 
+		int c, d, r;
+		double squareSum = 0.0;
 		double[][] featureData;
 
 		// select feature set (depends on PCA being enabled or disabled)
@@ -1025,74 +1038,41 @@ public class CytoskeletonAnalyzer2D extends MTBOperator {
 		// get dimensionality of feature space
 		int featureSpaceDim = featureData.length;
 
-//		String globalStatFile =	this.imageDir.getDirectoryName() + File.separator 
-//				+ "AllCellsPCASubspaceStats.txt";
-//		BufferedWriter gWriter = null;
-//		try {
-//			gWriter= new BufferedWriter(new FileWriter(globalStatFile));
-//			gWriter.write("# Data directory: " + this.imageDir + "\n");
-//			gWriter.write("# Image\tCell-ID");
-//			for (int j=0; j<subspaceDim; ++j) {
-//				gWriter.write("\tc-" + j);
-//			}
-//			gWriter.write("\n");
-//
-//			// save result to file
-//			int j = 0;
-//			for (String k: this.cellwiseDistros.keySet()) {
-//				gWriter.write(k);
-//				for (int n = 0; n<subspaceDim; ++n) {
-//					gWriter.write("\t" + featureData[n][j]);
-//				}
-//				gWriter.write("\n");
-//				++j;
-//			}
-//			gWriter.close();
-//		} catch (IOException e1) {
-//			// reset writer, if initialization was not successful
-//			if (gWriter != null)
-//				try {
-//					gWriter.close();
-//				} catch (IOException e) {
-//					// nothing to do here
-//				}
-//			gWriter = null;
-//		}
-
 		// calculate matrix with pairwise Euclidean distances
 		int sampleCount = featureData[0].length;
 		double[][] distMatrix = new double[sampleCount][sampleCount];
 		// diagonal is 0
-		for (int r = 0; r < sampleCount; ++r)
-			for (int c = 0; c < sampleCount; ++c)
+		for (r = 0; r < sampleCount; ++r)
+			for (c = 0; c < sampleCount; ++c)
 				distMatrix[r][c] = 0;
 		// matrix is symmetric, i.e., calculate only lower triangle
-		for (int r = 1; r < sampleCount; ++r) {
-			for (int c = 0; c < r; ++c) {
-				double squareSum = 0.0;
-				for (int d=0; d<featureSpaceDim; ++d)
+		for (r = 1; r < sampleCount; ++r) {
+			for (c = 0; c < r; ++c) {
+				squareSum = 0.0;
+				for (d = 0; d < featureSpaceDim; ++d)
 					squareSum += (featureData[d][r] - featureData[d][c])
 						* (featureData[d][r] - featureData[d][c]);
 				distMatrix[r][c] = Math.sqrt(squareSum);
 				distMatrix[c][r] = distMatrix[r][c];
 			}
 		}
-
+		
 		// save matrix to file
-		String multiDendroFile = this.imageDir.getDirectoryName() + File.separator
-				+ "AllCellsDistanceData.txt";
+		String cellDistMatrixFile = this.imageDir.getDirectoryName() 
+				+ File.separator + "AllCellsDistanceData.txt";
 		BufferedWriter mWriter = null;
 		try {
-			mWriter= new BufferedWriter(new FileWriter(multiDendroFile));
-			int r = 0;
-			for (String k: this.cellwiseDistros.keySet()) {
-				mWriter.write(k);
-				for (int c = 0; c < sampleCount; ++c) {
+			mWriter= new BufferedWriter(new FileWriter(cellDistMatrixFile));
+			r = 0;
+			for (String key: this.cellwiseDistros.keySet()) {
+				mWriter.write(key);
+				for (c = 0; c < sampleCount; ++c) {
 					mWriter.write("\t" + distMatrix[r][c]);
 				}
 				++r;
 				mWriter.write("\n");
 			}
+			mWriter.flush();
 			mWriter.close();
 		} catch (IOException e) {
 			System.err.println(operatorID + " something went wrong writing "
@@ -1105,6 +1085,91 @@ public class CytoskeletonAnalyzer2D extends MTBOperator {
 					// nothing to do here
 				}
 		}
+		
+		// average vectors per group
+		HashMap<String, double[]> groupAverageVectors = new HashMap<>();
+		double data[];
+		String gName;
+		for (r = 0; r < sampleCount; ++r) {
+			gName = this.distroDataGroups[r];
+			if (groupAverageVectors.get(gName) == null) {
+				data = new double[featureSpaceDim+1];
+				groupAverageVectors.put(gName, data);
+			}
+			else
+				data = groupAverageVectors.get(gName);
+			for (d = 0; d < featureSpaceDim; ++d) {
+				data[d] += featureData[d][r];
+			}
+			++data[featureSpaceDim];
+		}
+		
+		Set<String> gKeys = groupAverageVectors.keySet();
+		int groupDistMatrixDim = gKeys.size();
+		for (String key: gKeys) {
+			data = groupAverageVectors.get(key);
+			for (d = 0; d < featureSpaceDim; ++d) {
+				data[d] /= data[featureSpaceDim];
+			}			
+		}
+		
+		String gNames[] = new String[groupDistMatrixDim];
+		int i=0;
+		for (String key: gKeys) {
+			gNames[i] = key;
+			++i;
+		}
+		java.util.Arrays.sort(gNames);
+		
+		double dc[], dr[];
+		double[][] groupDistMatrix = 
+				new double[groupDistMatrixDim][groupDistMatrixDim];
+		// diagonal is 0
+		for (r = 0; r < groupDistMatrixDim; ++r)
+			for (c = 0; c < groupDistMatrixDim; ++c)
+				groupDistMatrix[r][c] = 0;
+		// matrix is symmetric, i.e., calculate only lower triangle
+		for (r = 1; r < groupDistMatrixDim; ++r) {
+			dr = groupAverageVectors.get(gNames[r]);
+			for (c = 0; c < r; ++c) {
+				dc = groupAverageVectors.get(gNames[c]);
+				squareSum = 0.0;
+				for (d = 0; d < featureSpaceDim; ++d)
+					squareSum += (dr[d] - dc[d]) * (dr[d] - dc[d]);
+				groupDistMatrix[r][c] = Math.sqrt(squareSum);
+				groupDistMatrix[c][r] = groupDistMatrix[r][c];
+			}
+		}
+
+		// save matrix to file
+		String groupDistMatrixFile = this.imageDir.getDirectoryName() 
+				+ File.separator + "AllGroupsDistanceData.txt";
+		mWriter = null;
+		try {
+			mWriter= new BufferedWriter(new FileWriter(groupDistMatrixFile));
+			r = 0;
+			for (String k: gNames) {
+				mWriter.write(k);
+				for (c = 0; c < groupDistMatrixDim; ++c) {
+					mWriter.write("\t" + groupDistMatrix[r][c]);
+				}
+				++r;
+				mWriter.write("\n");
+			}
+			mWriter.flush();
+			mWriter.close();
+		} catch (IOException e) {
+			System.err.println(operatorID + " something went wrong writing "
+				+ "group distance file, skipping...!");
+			e.printStackTrace();
+			if (mWriter != null)
+				try {
+					mWriter.close();
+				} catch (IOException e1) {
+					// nothing to do here
+				}
+		}
+		
 	}
 
 	/**
@@ -1125,7 +1190,6 @@ public class CytoskeletonAnalyzer2D extends MTBOperator {
 			}
 			// add logging messages (FATAL) as soon as logj4 is configured
 		} catch (SecurityException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (ALDOperatorException e) {
 			e.printStackTrace();
@@ -1149,13 +1213,11 @@ cells.
 <ul>
 <li><p><b>input:</b>
 <ul>
-<li><p><i>Image directory</i>:<br> directory where the images are read from,
-	all files ending on ".tif" are considered;<br> please refer to the webpage for
-	further information on how the file names should be formatted </p></li>
-<li><p><i>Mask directory</i>:<br> directory where the segmentation information for
-	the images is read from; the directory can be identical to the
-	image directory</p></li>
-<li><p><i>Mask format</i>:<br> expected format of the segmentation data files
+<li><p><i>Image file folder</i>:<br> directory where the images are read from,
+	all files in a format supported by the Bioformats library are considered
+	</p></li>
+<li><p><i>Boundary file format</i>:<br> expected format of the contour 
+	data files
 	<ul>
 	<li>LABEL_IMAGE:<br> a gray-scale image is expected where the area of each
 		cell is marked with a single unique gray-scale value;<br>
@@ -1165,18 +1227,27 @@ cells.
 		the files should share the names of the input image files and have the
 		ending "-mask.zip" or "-mask.roi"
 	</ul>
-<li><p><i>Output and working directory</i>:<br> directory for intermediate and
-	final results
-<li><p><i>Calculate features?</i><br> by disabeling this option the time-consuming
-	feature calculation can be omitted, however, in this case the feature
-	directory is expected to already contain the feature files
-<li><p><i>Feature directory</i>:<br> directory where the calculated features are
-	saved to and from where they are read if feature calculations are omitted
+<li><p><i>Cytoskeleton channel</i><br> if image stacks are provided you need
+	to specify in which channel of the images the cytoskeleton information is 
+	located; indices start with 1</p></li>
+<li><p><i>Calculate features?</i><br> by disabeling this option the 
+	time-consuming feature calculation can be omitted, however, in this case a
+	sub-folder 'results_features' is expected to already contain the feature 
+	files</p></li>
+<li><p><i>Feature extractor</i>:<br> operator used for quantifying texture
+	</p></li>
+<li><p><i>Tile size x/y and Tile shift x/y</i>:<br> global configuration of
+	texture quantification stage, i.e., size of sliding window and size of
+	shifts; if shifts are smaller than tile size window positions are overlapping 
+	</p></li>
 <li><p><i>Number of feature clusters</i>:<br> number of clusters to be used for
 	feature vector clustering, should approximately refer to the expected number
-	of structural patterns appearing in the cells
+	of structural patterns appearing in the cells</p></li>
 <li><p><i>Do PCA in stage II?</i><br> enable or disable the PCA prior to the
-	pairwise distance calculations in stage II of the approach
+	pairwise distance calculations in stage II of the approach</p></li>
+<li><p><i>Optional: Cell boundary file folder</i><br> if the contour data is
+	not stored in group-wise sub-folders named 'results_segmentation' you can
+	specify alternative locations via this parameter</p></li>
 </ul>
 
 <li><p><b>output:</b>
@@ -1188,18 +1259,19 @@ cells.
 </ul>
 In addition to the output data directly displayed on termination of the operator
 some more result data files are written to the output directory. In particular,
-a file with the pairwise Euclidean distances between distribution vectors can
-be found there which can be further analyzed, e.g., with
-<a href="http://deim.urv.cat/~sgomez/multidendrograms.php">MultiDendrograms</a>.
-Also images visualizing the cluster distributions for each input image and
-each cell, respectively, are available.
+a file with the pairwise Euclidean distances between distribution vectors as 
+well as between average vectors of the groups can be found there which can be 
+further analyzed, e.g., with
+<a href="http://deim.urv.cat/~sgomez/multidendrograms.php">MultiDendrograms</a>
+or our R script provided for that purpose. Also images visualizing the cluster 
+distributions for each input image and each cell, respectively, are available.
 
 </ul>
 
 <p>
 For more details about the operator and additional information on the parameters
 refer to its webpage:
-<a href="http://www2.informatik.uni-halle.de/agprbio/mitobo/index.php/Applications/ActinAnalyzer2D">
-http://www2.informatik.uni-halle.de/agprbio/mitobo/index.php/Applications/ActinAnalyzer2D</a>.
+<a href="http://mitobo.informatik.uni-halle.de/index.php/Applications/CytoskeletonAnalyzer2D">
+http://mitobo.informatik.uni-halle.de/index.php/Applications/CytoskeletonAnalyzer2D</a>.
 
 END_MITOBO_ONLINE_HELP*/
