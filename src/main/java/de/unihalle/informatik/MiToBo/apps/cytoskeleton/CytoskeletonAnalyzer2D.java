@@ -1004,8 +1004,13 @@ public class CytoskeletonAnalyzer2D extends MTBOperator {
 	}
 
 	/**
+	 * Calculates pairwise distance matrices and similarity network data.
+	 * <p> 
 	 * Calculates pairwise Euclidean distances between all feature vectors and
-	 * also between average vectors of all groups.
+	 * also between average vectors of all groups. In addition, for all groups
+	 * a similarity network is constructed with each group forming a node and 
+	 * the edges representing the similarity between the groups. The bigger the
+	 * weight of an edge the larger the similarity between two groups.
 	 * <p>
 	 * If PCA is enabled for stage II the distances are calculated from the
 	 * subspace feature data as extracted by the PCA. If PCA is not enabled
@@ -1014,7 +1019,8 @@ public class CytoskeletonAnalyzer2D extends MTBOperator {
 	 * <p>
 	 * The resulting distance matrices are saved to files with names
 	 * {@code AllCellsDistanceData.txt} and {@code AllGroupsDistanceData.txt}
-	 * in the root directory.
+	 * in the root directory. The similarity network data is stored in a file 
+	 * named {@code AllGroupsSimilarityNetworkData.txt}.
 	 */
 	private void calculateDistanceMatrices() {
 
@@ -1121,6 +1127,7 @@ public class CytoskeletonAnalyzer2D extends MTBOperator {
 		}
 		java.util.Arrays.sort(gNames);
 		
+		double groupDistMax = 0;
 		double dc[], dr[];
 		double[][] groupDistMatrix = 
 				new double[groupDistMatrixDim][groupDistMatrixDim];
@@ -1138,10 +1145,13 @@ public class CytoskeletonAnalyzer2D extends MTBOperator {
 					squareSum += (dr[d] - dc[d]) * (dr[d] - dc[d]);
 				groupDistMatrix[r][c] = Math.sqrt(squareSum);
 				groupDistMatrix[c][r] = groupDistMatrix[r][c];
+				// search for maximum
+				if (groupDistMatrix[r][c] > groupDistMax)
+					groupDistMax = groupDistMatrix[r][c];
 			}
 		}
 
-		// save matrix to file
+		// save group distance matrix to file
 		String groupDistMatrixFile = this.imageDir.getDirectoryName() 
 				+ File.separator + "AllGroupsDistanceData.txt";
 		mWriter = null;
@@ -1170,6 +1180,36 @@ public class CytoskeletonAnalyzer2D extends MTBOperator {
 				}
 		}
 		
+		// save group similarity network to file
+		String groupSimilarityNetworkFile = this.imageDir.getDirectoryName() 
+				+ File.separator + "AllGroupsSimilarityNetworkData.txt";
+		mWriter = null;
+		try {
+			mWriter= new BufferedWriter(new FileWriter(groupSimilarityNetworkFile));
+			mWriter.write("node1" + "\t" + "node2" + "\t" + "value" + "\n");
+			double weight;
+			String node1, node2;
+			for (r = 0; r < groupDistMatrixDim; ++r) {
+				node1 = gNames[r];
+				for (c = r+1; c < groupDistMatrixDim; ++c) {
+					node2 = gNames[c];
+					weight = 1.0 - groupDistMatrix[r][c] / groupDistMax;
+					mWriter.write(node1 + "\t" + node2 + "\t" + weight + "\n");
+				}
+			}
+			mWriter.flush();
+			mWriter.close();
+		} catch (IOException e) {
+			System.err.println(operatorID + " something went wrong writing "
+				+ "group similarity network file, skipping...!");
+			e.printStackTrace();
+			if (mWriter != null)
+				try {
+					mWriter.close();
+				} catch (IOException e1) {
+					// nothing to do here
+				}
+		}
 	}
 
 	/**
