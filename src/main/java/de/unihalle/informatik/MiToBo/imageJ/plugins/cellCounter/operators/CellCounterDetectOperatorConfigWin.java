@@ -51,6 +51,7 @@ import de.unihalle.informatik.MiToBo.core.helpers.MTBIcon;
  *  
  * @author Birgit Moeller
  */
+@Deprecated
 public abstract class CellCounterDetectOperatorConfigWin extends ALDSwingComponent 
 	implements ActionListener, ALDSwingValueChangeListener {
 
