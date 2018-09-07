@@ -5,6 +5,20 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 
 ## [Unreleased]
 ### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+## [1.8.11] - 2018-09-07
+Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
+- Released MiToBo 1.8.11
+
+### Added
 - AwtPoint2dDataIOCmdline/AwtPoint2dDataIOXmlbeans: new commandline and XML providers for Point2D.Double objects
 - RoiFileToCSVConverter: operator to write ImageJ ROI data into CSV file
 - DrawPolygon2DSet: new setter for input image
@@ -17,8 +31,6 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 ### Changed
 - MTBCellCounter: detect operator handling now being based on operator collection
 - LabelImageEditor: file filter argument is now optional, by default (and with an empty string) all files are processed
-
-### Deprecated
 
 ### Removed
 - Polygon2D_Cgal wrapper class for CGAL due to outdated native bindings
