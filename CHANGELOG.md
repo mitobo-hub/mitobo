@@ -5,22 +5,40 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 
 ## [Unreleased]
 ### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+## [1.8.11] - 2018-09-07
+Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
+- Released MiToBo 1.8.11
+
+### Added
+- AwtPoint2dDataIOCmdline/AwtPoint2dDataIOXmlbeans: new commandline and XML providers for Point2D.Double objects
 - RoiFileToCSVConverter: operator to write ImageJ ROI data into CSV file
+- DrawPolygon2DSet: new setter for input image
 - DrawRegion2DSet: added some setters to specify dimensions and offsets of target image programmatically
+- MTBOperatorCollection: new subclass for handling collections of MTBOperators (with MiToBo specific configuration windows)
 - MTBQuadraticCurve2D: new methods to extract closest point on ellipse and to calculate tangent orientation at given position
+- RootSegmentationOperator: new abstract basis class for root detection operators
 - SkeletonAnalysisHelper: new class with methods useful when analyzing region skeletons
 
 ### Changed
+- MTBCellCounter: detect operator handling now being based on operator collection
 - LabelImageEditor: file filter argument is now optional, by default (and with an empty string) all files are processed
-
-### Deprecated
 
 ### Removed
 - Polygon2D_Cgal wrapper class for CGAL due to outdated native bindings
 
 ### Fixed
-- MTBImage, ImageDimensionReducer: preserve calibration information of original images
+- MTBImage, ImageDimensionReducer: preserve calibration information of original images for newly generated images
 - OrientedFilter2D: explicitly shutdown ExecutorService of libimg2 in FFT mode, otherwise operator does not terminate when called from commandline
+- PCA: added additional checks for singular configurations
 
 ## [1.8.10] - 2018-05-18
 Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
