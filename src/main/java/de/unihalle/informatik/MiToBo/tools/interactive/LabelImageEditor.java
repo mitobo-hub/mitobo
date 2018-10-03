@@ -25,10 +25,13 @@
 package de.unihalle.informatik.MiToBo.tools.interactive;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.geom.Point2D;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -56,6 +59,7 @@ import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
 import de.unihalle.informatik.MiToBo.io.dirs.DirectoryTree;
 import de.unihalle.informatik.MiToBo.io.images.ImageReaderMTB;
 import de.unihalle.informatik.MiToBo.io.images.ImageWriterMTB;
+import de.unihalle.informatik.MiToBo.segmentation.regions.labeling.LabelComponentsSequential;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.ImageCanvas;
@@ -70,7 +74,7 @@ import ij.process.ImageProcessor;
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.SWING, 
 	level=Level.APPLICATION, allowBatchMode = false)
 public class LabelImageEditor extends MTBOperator 
-		implements MouseListener, ActionListener {
+		implements MouseListener, MouseMotionListener, ActionListener {
 
 	/**
 	 * Directory to process.
@@ -157,6 +161,9 @@ public class LabelImageEditor extends MTBOperator
 	private boolean memoryMode = false;
 	private int lastLabel;
 	
+	private boolean scanPath = false;
+	private Point2D.Double lastPathPoint;
+	
 	/**
 	 * Default constructor.
 	 * @throws ALDOperatorException Thrown if construction fails.
@@ -238,6 +245,10 @@ public class LabelImageEditor extends MTBOperator
 					boundaries.addActionListener(this);
 					boundaries.setActionCommand("boundaries");
 					buttons.add(boundaries);
+					JButton relabel = new JButton("Relabel");
+					relabel.addActionListener(this);
+					relabel.setActionCommand("relabel");
+					buttons.add(relabel);
 					JButton undo = new JButton("Undo");
 					undo.addActionListener(this);
 					undo.setActionCommand("undo");
@@ -254,6 +265,7 @@ public class LabelImageEditor extends MTBOperator
 					this.ic = this.activePlus.getCanvas();
 					this.activePlus.hide();
 					this.ic.addMouseListener(this);
+					this.ic.addMouseMotionListener(this);
 					
 					canvas.add(this.ic);
 					this.mainFrame.add(canvas, BorderLayout.CENTER);
@@ -373,14 +385,22 @@ public class LabelImageEditor extends MTBOperator
 
 	@Override
 	public void mousePressed(MouseEvent e) {
-		// TODO Auto-generated method stub
 		
+		// back-up for undo function
+		this.lastProcessor = this.activeProcessor.duplicate();
+
+		// get mouse position in image 
+		int mx = this.ic.offScreenX(e.getX());
+		int my = this.ic.offScreenY(e.getY());
+
+		this.scanPath = true;
+		this.lastPathPoint = new Point2D.Double(mx, my);
+	
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
+		this.scanPath = false;
 	}
 
 	@Override
@@ -393,6 +413,34 @@ public class LabelImageEditor extends MTBOperator
 	public void mouseExited(MouseEvent e) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public void mouseDragged(MouseEvent e) {
+		if (this.scanPath) {
+			
+			this.activeProcessor.setColor(Color.BLACK);
+
+			// get mouse position in image 
+			int mx = this.ic.offScreenX(e.getX());
+			int my = this.ic.offScreenY(e.getY());
+			
+			this.activeProcessor.drawLine(
+					(int)this.lastPathPoint.x, (int)this.lastPathPoint.y, mx, my);
+			this.lastPathPoint.x = mx;
+			this.lastPathPoint.y = my;
+			
+			this.activePlus.setProcessor(this.activeProcessor);
+			this.activePlus.updateAndDraw();
+			this.ic.setImageUpdated();
+			this.ic.repaint();
+
+		}
+	}
+
+	@Override
+	public void mouseMoved(MouseEvent e) {
+		// TODO Auto-generated method stub
 	}
 
 	@Override
@@ -410,45 +458,8 @@ public class LabelImageEditor extends MTBOperator
 			
 			this.lastProcessor = this.activeProcessor.duplicate();
 
-			// count labels
-			TreeSet<Integer> labels = new TreeSet<>();
-			for (int y=0; y<this.activeProcessor.getHeight();++y) {
-				for (int x=0; x<this.activeProcessor.getWidth();++x) {
-					labels.add(new Integer(this.activeProcessor.getPixel(x, y)));
-				}
-			}
-			LinkedList<Integer> sortedLabels = new LinkedList<>();
-			for (Integer i: labels) {
-				sortedLabels.add(i);
-			}
-			Collections.sort(sortedLabels);
-			// remove the background
-			sortedLabels.removeFirst();
-			Collections.reverse(sortedLabels);
-			
-			HashMap<Integer, Integer> labelMap = new HashMap<>();
-			
-			// check range of available intensity values
-			int max = (int)this.activeImage.getTypeMax();
-			int min = (int)(max * 2.0 / 3.0);			
-			int step = (max - min) / labels.size();
+			this.optimizeContrast(this.activeProcessor);
 
-			int n = 0, newLabel;
-			for (Integer i: sortedLabels) {
-				newLabel = max - n * step;
-				labelMap.put(i, new Integer(newLabel));
-				++n;
-			}
-			
-			for (int y=0; y<this.activeProcessor.getHeight();++y) {
-				for (int x=0; x<this.activeProcessor.getWidth();++x) {
-					int label = this.activeProcessor.getPixel(x, y);
-					if (label == 0)
-						continue;
-					newLabel = labelMap.get(new Integer(label));
-					this.activeProcessor.putPixel(x, y, newLabel);
-				}
-			}
 			this.activePlus.setProcessor(this.activeProcessor);
 			this.activePlus.updateAndDraw();
 			this.ic.setImageUpdated();
@@ -458,7 +469,7 @@ public class LabelImageEditor extends MTBOperator
 		if (c.equals("boundaries")) {
 			
 			this.lastProcessor = this.activeProcessor.duplicate();
-
+			
 			int nLabel;
 			TreeSet<Integer> labels = new TreeSet<>();
 
@@ -508,6 +519,46 @@ public class LabelImageEditor extends MTBOperator
 			this.ic.setImageUpdated();
 			this.ic.repaint();
 		}
+		// relabel image
+		else if (c.equals("relabel")) {
+			
+			MTBImageByte binImage = 
+					(MTBImageByte)this.activeImage.duplicate().convertType(
+							MTBImageType.MTB_BYTE, true);
+			binImage.fillBlack();
+			for (int y=0; y<this.activeProcessor.getHeight();++y) {
+				for (int x=0; x<this.activeProcessor.getWidth();++x) {
+					if (this.activeProcessor.getPixel(x, y) > 0)
+						binImage.putValueInt(x, y, 255);
+				}
+			}
+			try {
+				LabelComponentsSequential lop = 
+						new LabelComponentsSequential(binImage, false);
+				lop.runOp();
+				
+				// back-up old image version before doing modifications
+				this.lastProcessor = this.activeProcessor.duplicate();
+
+				for (int y=0; y<this.activeProcessor.getHeight();++y) {
+					for (int x=0; x<this.activeProcessor.getWidth();++x) {
+						this.activeProcessor.putPixel(x, y, 
+							lop.getLabelImage().getValueInt(x, y));
+					}
+				}
+				
+				this.optimizeContrast(this.activeProcessor);
+				
+				this.activePlus.setProcessor(this.activeProcessor);
+				this.activePlus.updateAndDraw();
+				this.ic.setImageUpdated();
+				this.ic.repaint();
+			} catch (Exception e1) {
+				// just ignore
+				e1.printStackTrace();
+				return;
+			}
+		}
 		// undo last operation
 		else if (c.equals("undo")) {
 			this.activeProcessor = this.lastProcessor;
@@ -523,6 +574,49 @@ public class LabelImageEditor extends MTBOperator
 			this.mainFrame.setVisible(false);
 			this.mainFrame.dispose();
 			this.finished = true;
+		}
+	}
+	
+	private void optimizeContrast(ImageProcessor ip) {
+
+		// count labels
+		TreeSet<Integer> labels = new TreeSet<>();
+		for (int y=0; y<ip.getHeight();++y) {
+			for (int x=0; x<ip.getWidth();++x) {
+				labels.add(new Integer(ip.getPixel(x, y)));
+			}
+		}
+		LinkedList<Integer> sortedLabels = new LinkedList<>();
+		for (Integer i: labels) {
+			sortedLabels.add(i);
+		}
+		Collections.sort(sortedLabels);
+		// remove the background
+		sortedLabels.removeFirst();
+		Collections.reverse(sortedLabels);
+		
+		HashMap<Integer, Integer> labelMap = new HashMap<>();
+		
+		// check range of available intensity values
+		int max = (int)this.activeImage.getTypeMax();
+		int min = (int)(max * 2.0 / 3.0);			
+		int step = (max - min) / labels.size();
+
+		int n = 0, newLabel;
+		for (Integer i: sortedLabels) {
+			newLabel = max - n * step;
+			labelMap.put(i, new Integer(newLabel));
+			++n;
+		}
+		
+		for (int y=0; y<ip.getHeight();++y) {
+			for (int x=0; x<ip.getWidth();++x) {
+				int label = ip.getPixel(x, y);
+				if (label == 0)
+					continue;
+				newLabel = labelMap.get(new Integer(label));
+				ip.putPixel(x, y, newLabel);
+			}
 		}
 	}
 	
