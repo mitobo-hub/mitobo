@@ -29,6 +29,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.TreeSet;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -46,10 +50,13 @@ import de.unihalle.informatik.Alida.datatypes.ALDDirectoryString;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.operator.ALDOperator;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
+import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType;
+import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageByte;
 import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
 import de.unihalle.informatik.MiToBo.io.dirs.DirectoryTree;
 import de.unihalle.informatik.MiToBo.io.images.ImageReaderMTB;
 import de.unihalle.informatik.MiToBo.io.images.ImageWriterMTB;
+import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.ImageCanvas;
 import ij.process.ImageProcessor;
@@ -103,6 +110,8 @@ public class LabelImageEditor extends MTBOperator
 	 */
 	private ImageCanvas ic;
 	
+	private MTBImageByte activeImage;
+	
 	/**
 	 * Reference to currently active image.
 	 */
@@ -114,6 +123,12 @@ public class LabelImageEditor extends MTBOperator
 	 */
 	private ImageProcessor activeProcessor;
 	
+	/**
+	 * Reference to last processor before last action. 
+	 * {@link LabelImageEditor#activePlus}.
+	 */
+	private ImageProcessor lastProcessor;
+
 	/**
 	 * Flag to indicate if process is still active.
 	 */
@@ -138,6 +153,9 @@ public class LabelImageEditor extends MTBOperator
 	 * Flag to ensure that callback only works once the operator has been called.
 	 */
 	private boolean calledFirstTime = true;
+	
+	private boolean memoryMode = false;
+	private int lastLabel;
 	
 	/**
 	 * Default constructor.
@@ -198,7 +216,9 @@ public class LabelImageEditor extends MTBOperator
 				// read input image
 				reader.setFileName(f);
 				reader.runOp();
-				MTBImage image = reader.getResultMTBImage();
+				this.activeImage = 
+						(MTBImageByte)reader.getResultMTBImage().convertType(
+								MTBImageType.MTB_BYTE, true);
 				
 				// init frame with first image
 				if (this.activePlus == null) {
@@ -210,6 +230,18 @@ public class LabelImageEditor extends MTBOperator
 					next.addActionListener(this);
 					next.setActionCommand("next");
 					buttons.add(next);
+					JButton contrast = new JButton("Optimize Contrast");
+					contrast.addActionListener(this);
+					contrast.setActionCommand("contrast");
+					buttons.add(contrast);
+					JButton boundaries = new JButton("Fix Boundaries");
+					boundaries.addActionListener(this);
+					boundaries.setActionCommand("boundaries");
+					buttons.add(boundaries);
+					JButton undo = new JButton("Undo");
+					undo.addActionListener(this);
+					undo.setActionCommand("undo");
+					buttons.add(undo);
 					JButton quit = new JButton("Quit");
 					quit.addActionListener(this);
 					quit.setActionCommand("quit");
@@ -217,7 +249,7 @@ public class LabelImageEditor extends MTBOperator
 					this.mainFrame.add(buttons,BorderLayout.NORTH);
 					JPanel canvas = new JPanel();
 					
-					this.activePlus = image.getImagePlus();
+					this.activePlus = this.activeImage.getImagePlus();
 					this.activePlus.show();
 					this.ic = this.activePlus.getCanvas();
 					this.activePlus.hide();
@@ -229,8 +261,8 @@ public class LabelImageEditor extends MTBOperator
 					this.mainFrame.setVisible(true);
 				}
 				
-				this.mainFrame.setTitle(image.getTitle());
-				this.activeProcessor = image.getImagePlus().getProcessor();
+				this.mainFrame.setTitle(this.activeImage.getTitle());
+				this.activeProcessor = this.activeImage.getImagePlus().getProcessor();
 				this.currentFile = f;
 				
 				this.activePlus.setProcessor(this.activeProcessor);
@@ -271,15 +303,66 @@ public class LabelImageEditor extends MTBOperator
 		// get label at click position
 		int label = this.activeProcessor.getPixel(mx, my);
 		
-		// ignore clicks to the background
-		if (label == 0)
+		// ignore clicks to the background except in memory mode
+		// => filling in background regions is allowed
+		if (label == 0 && !memoryMode)
 			return;
 		
+		if (IJ.shiftKeyDown()) {
+			this.memoryMode = true;
+			this.lastLabel = label;
+			return;
+		}
+
+		boolean newLabel = false;
+		if (IJ.controlKeyDown()) {
+			newLabel = true;
+		}
+		
 		// set all pixels with identical label to background
-		for (int y=0; y<this.activeProcessor.getHeight();++y) {
-			for (int x=0; x<this.activeProcessor.getWidth();++x) {
-				if (this.activeProcessor.getPixel(x, y) == label)
-					this.activeProcessor.putPixel(x, y, 0);
+		this.lastProcessor = this.activeProcessor.duplicate();
+		if (this.memoryMode) {
+			for (int y=0; y<this.activeProcessor.getHeight();++y) {
+				for (int x=0; x<this.activeProcessor.getWidth();++x) {
+					if (this.activeProcessor.getPixel(x, y) == label) {
+						this.activeProcessor.putPixel(x, y, lastLabel);
+					}
+				}
+			}
+			this.memoryMode = false;
+		}
+		else if (newLabel) {
+			int clabel;
+			int maxLabel = 0;
+			TreeSet<Integer> labels = new TreeSet<>();
+			for (int y=0; y<this.activeProcessor.getHeight();++y) {
+				for (int x=0; x<this.activeProcessor.getWidth();++x) {
+					clabel = this.activeProcessor.getPixel(x, y);
+					labels.add(new Integer(clabel));
+					if (clabel > maxLabel)
+						maxLabel = clabel;
+				}
+			}
+			for (int nl = maxLabel; nl > 0; --nl) {
+				if (labels.contains(new Integer(nl)))
+					continue;
+				for (int y=0; y<this.activeProcessor.getHeight();++y) {
+					for (int x=0; x<this.activeProcessor.getWidth();++x) {
+						if (this.activeProcessor.getPixel(x, y) == label) {
+							this.activeProcessor.putPixel(x, y, nl);
+						}
+					}
+				}				
+			}
+			newLabel = false;
+		}
+		else {
+			for (int y=0; y<this.activeProcessor.getHeight();++y) {
+				for (int x=0; x<this.activeProcessor.getWidth();++x) {
+					if (this.activeProcessor.getPixel(x, y) == label) {
+						this.activeProcessor.putPixel(x, y, 0);
+					}
+				}
 			}
 		}
 		this.activePlus.setProcessor(this.activeProcessor);
@@ -321,6 +404,117 @@ public class LabelImageEditor extends MTBOperator
 		if (c.equals("next")) {
 			this.saveFile();
 			this.stillActive = false; 
+		}
+		// optimize contrast
+		if (c.equals("contrast")) {
+			
+			this.lastProcessor = this.activeProcessor.duplicate();
+
+			// count labels
+			TreeSet<Integer> labels = new TreeSet<>();
+			for (int y=0; y<this.activeProcessor.getHeight();++y) {
+				for (int x=0; x<this.activeProcessor.getWidth();++x) {
+					labels.add(new Integer(this.activeProcessor.getPixel(x, y)));
+				}
+			}
+			LinkedList<Integer> sortedLabels = new LinkedList<>();
+			for (Integer i: labels) {
+				sortedLabels.add(i);
+			}
+			Collections.sort(sortedLabels);
+			// remove the background
+			sortedLabels.removeFirst();
+			Collections.reverse(sortedLabels);
+			
+			HashMap<Integer, Integer> labelMap = new HashMap<>();
+			
+			// check range of available intensity values
+			int max = (int)this.activeImage.getTypeMax();
+			int min = (int)(max * 2.0 / 3.0);			
+			int step = (max - min) / labels.size();
+
+			int n = 0, newLabel;
+			for (Integer i: sortedLabels) {
+				newLabel = max - n * step;
+				labelMap.put(i, new Integer(newLabel));
+				++n;
+			}
+			
+			for (int y=0; y<this.activeProcessor.getHeight();++y) {
+				for (int x=0; x<this.activeProcessor.getWidth();++x) {
+					int label = this.activeProcessor.getPixel(x, y);
+					if (label == 0)
+						continue;
+					newLabel = labelMap.get(new Integer(label));
+					this.activeProcessor.putPixel(x, y, newLabel);
+				}
+			}
+			this.activePlus.setProcessor(this.activeProcessor);
+			this.activePlus.updateAndDraw();
+			this.ic.setImageUpdated();
+			this.ic.repaint();
+		}
+		// delete obsolete boundaries
+		if (c.equals("boundaries")) {
+			
+			this.lastProcessor = this.activeProcessor.duplicate();
+
+			int nLabel;
+			TreeSet<Integer> labels = new TreeSet<>();
+
+			// run over the image and search for background pixels having two or 
+			// more components with the same label in their neighborhood
+			for (int y=0; y<this.activeProcessor.getHeight();++y) {
+				for (int x=0; x<this.activeProcessor.getWidth();++x) {
+					int label = this.activeProcessor.getPixel(x, y);
+					if (label != 0)
+						continue;
+
+					labels.clear();
+					for (int dy = -1; dy <= 1; ++dy) {
+						for (int dx = -1; dx <= 1; ++dx) {
+							if (dx == 0 && dy == 0)
+								continue;
+							if (   x+dx >= 0 && x+dx < this.activeImage.getSizeX()
+									&& y+dy >= 0 && y+dy < this.activeImage.getSizeY()) {
+								nLabel = this.activeProcessor.getPixel(x+dx,  y+dy);
+								if (nLabel == 0)
+									continue;
+								labels.add(new Integer(nLabel));
+							}						
+						}
+					}
+					if (labels.size() == 1) {
+						int count = 0;
+						label = labels.first().intValue();
+						for (int dy = -1; dy <= 1; ++dy) {
+							for (int dx = -1; dx <= 1; ++dx) {
+								if (dx == 0 && dy == 0)
+									continue;
+								if (   x+dx >= 0 && x+dx < this.activeImage.getSizeX()
+										&& y+dy >= 0 && y+dy < this.activeImage.getSizeY()) {
+									if (this.activeProcessor.getPixel(x+dx,  y+dy) == label)
+										++count;
+								}
+							}
+						}
+						if (count > 4) 
+							this.activeProcessor.putPixel(x, y, label);
+					}
+				}
+			}
+			this.activePlus.setProcessor(this.activeProcessor);
+			this.activePlus.updateAndDraw();
+			this.ic.setImageUpdated();
+			this.ic.repaint();
+		}
+		// undo last operation
+		else if (c.equals("undo")) {
+			this.activeProcessor = this.lastProcessor;
+			this.activePlus.setProcessor(this.lastProcessor);
+			this.activePlus.updateAndDraw();
+			this.ic.setImageUpdated();
+			this.ic.repaint();
 		}
 		// save the current processing result and close the frame
 		else if (c.equals("quit")) {
