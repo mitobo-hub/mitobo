@@ -32,6 +32,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Set;
@@ -254,6 +255,11 @@ public class CytoskeletonAnalyzer2D extends MTBOperator {
 	 */
 	private transient HashMap<String, double[]> cellwiseDistros =
 		new HashMap<String, double[]>();
+	
+	/**
+	 * Sorted list of keys in {@link #cellwiseDistros} once it is filled.
+	 */
+	private LinkedList<String> cellwiseDistroKeys;
 
   /**
    * Group-wise cell distribution data, for each group the vector
@@ -857,11 +863,19 @@ public class CytoskeletonAnalyzer2D extends MTBOperator {
       ++i;
 		}
 
+		// remember (sorted!) keys of cellwise distributions
+		Set<String> keys = this.cellwiseDistros.keySet();
+		this.cellwiseDistroKeys = new LinkedList<>();
+		for (String k: keys) {
+			this.cellwiseDistroKeys.add(k);
+		}
+		Collections.sort(this.cellwiseDistroKeys);
+		
 		// create distribution datasets
 		this.distroData =	new double[this.clusterNum][this.cellwiseDistros.size()];
 		this.distroDataGroups = new String[this.cellwiseDistros.size()];
 		i = 0;
-		for (String k: this.cellwiseDistros.keySet()) {
+		for (String k: this.cellwiseDistroKeys) {
 			groupName = k.split("_")[0];
 			this.distroDataGroups[i] = groupName;
 			for (int n = 0; n<this.clusterNum; ++n) {
@@ -880,7 +894,7 @@ public class CytoskeletonAnalyzer2D extends MTBOperator {
 		// for each indicator (here: cluster ID) and each category (here:
 		// cell group) generate list of distribution data
 		String group;
-		for (String k: this.cellwiseDistros.keySet()) {
+		for (String k: this.cellwiseDistroKeys) {
 			double[] cellDistro = this.cellwiseDistros.get(k);
 
 			// figure out to which group the cell belongs
@@ -981,7 +995,7 @@ public class CytoskeletonAnalyzer2D extends MTBOperator {
 
 				// save result to file
 				int j = 0;
-				for (String k: this.cellwiseDistros.keySet()) {
+				for (String k: this.cellwiseDistroKeys) {
 					gWriter.write(k);
 					for (int n = 0; n<subspaceDim; ++n) {
 						gWriter.write("\t" + this.subspaceData[n][j]);
@@ -1070,7 +1084,7 @@ public class CytoskeletonAnalyzer2D extends MTBOperator {
 		try {
 			mWriter= new BufferedWriter(new FileWriter(cellDistMatrixFile));
 			r = 0;
-			for (String key: this.cellwiseDistros.keySet()) {
+			for (String key: this.cellwiseDistroKeys) {
 				mWriter.write(key);
 				for (c = 0; c < sampleCount; ++c) {
 					mWriter.write("\t" + distMatrix[r][c]);
