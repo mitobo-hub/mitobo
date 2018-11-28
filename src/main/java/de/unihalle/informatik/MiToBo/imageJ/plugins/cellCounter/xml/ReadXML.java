@@ -57,6 +57,7 @@ import org.xml.sax.SAXException;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBPolygon2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2D;
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarker;
+import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarkerShapeLine;
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarkerShapePolygon;
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarkerShapeRegion;
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarkerVector;
@@ -201,6 +202,24 @@ public class ReadXML {
 							Integer.parseInt(readValue(markerXNodeList,0)),
 								Integer.parseInt(readValue(markerYNodeList,0)),
 									Integer.parseInt(readValue(markerZNodeList,0)), cp);
+						markerVector.addMarker(marker);					
+					}
+					else if (type.equals("line")) {
+						Vector<Point2D.Double> pList = new Vector<>();
+						NodeList points = shapeElement.getElementsByTagName("mit:point");
+						for(int l=0; l<points.getLength(); l++){
+							Element pointElement = getElement(points, l);
+							NodeList px = pointElement.getElementsByTagName("mit:x");
+							NodeList py = pointElement.getElementsByTagName("mit:y");
+							pList.add(new Point2D.Double(Double.parseDouble(readValue(px,0)),
+									Double.parseDouble(readValue(py,0))));
+						}
+						CellCntrMarkerShapeLine cl = new CellCntrMarkerShapeLine(
+							pList.firstElement(), pList.lastElement());
+						CellCntrMarker marker = new CellCntrMarker(
+							Integer.parseInt(readValue(markerXNodeList,0)),
+								Integer.parseInt(readValue(markerYNodeList,0)),
+									Integer.parseInt(readValue(markerZNodeList,0)), cl);
 						markerVector.addMarker(marker);					
 					}
 				}
