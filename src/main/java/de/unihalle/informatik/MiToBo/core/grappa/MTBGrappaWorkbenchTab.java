@@ -102,8 +102,9 @@ public class MTBGrappaWorkbenchTab extends ALDGrappaWorkbenchTab {
 				mxCell node = this.graphNodes.get(nodeID);
 				this.configWindows.put(node, confWin);
 				// initially configuration windows always show only standard
-				// parameters
+				// parameters and results are not shown immediately. 
 				this.nodeConfigShowAllParameters.put(node,new Boolean(false));
+				this.nodeConfigShowResultsAtOnce.put(node,new Boolean(false));
 				// fire a parameter change event, this is the first time when the
 				// listener can react on that
 				confWin.fireALDOpParameterUpdateEvent(new ALDOpParameterUpdateEvent(
