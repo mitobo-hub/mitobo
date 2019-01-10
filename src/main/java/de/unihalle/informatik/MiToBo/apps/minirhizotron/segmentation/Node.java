@@ -6,6 +6,8 @@ public class Node
 	private double x;
 	private double y;
 	private double radius;
+	private double nx;
+	private double ny;
 	
 	// constructors
 	public Node()
@@ -58,6 +60,16 @@ public class Node
 		return this.radius;
 	}
 	
+	public double getNx()
+	{
+		return this.nx;
+	}
+	
+	public double getNy()
+	{
+		return this.ny;
+	}
+	
 	// setter
 	public void setPredecessor(int predecessor)
 	{
@@ -77,5 +89,15 @@ public class Node
 	public void setRadius(double radius)
 	{
 		this.radius = radius;
+	}
+	
+	public void setNx(double nx)
+	{
+		this.nx = nx;
+	}
+	
+	public void setNy(double ny)
+	{
+		this.ny = ny;
 	}
 }
