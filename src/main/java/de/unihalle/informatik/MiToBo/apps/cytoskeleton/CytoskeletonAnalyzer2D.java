@@ -22,7 +22,7 @@
  *
  */
 
-package de.unihalle.informatik.MiToBo.apps.actinAnalysis;
+package de.unihalle.informatik.MiToBo.apps.cytoskeleton;
 
 import java.awt.Color;
 import java.io.BufferedReader;
@@ -32,9 +32,11 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.Vector;
 
 import org.jfree.chart.ChartUtils;
@@ -44,7 +46,6 @@ import de.unihalle.informatik.Alida.datatypes.ALDDirectoryString;
 import de.unihalle.informatik.Alida.exceptions.ALDException;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
-import de.unihalle.informatik.Alida.exceptions.ALDOperatorException.OperatorExceptionType;
 import de.unihalle.informatik.Alida.helpers.ALDFilePathManipulator;
 import de.unihalle.informatik.Alida.operator.events.ALDOperatorExecutionProgressEvent;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
@@ -53,76 +54,37 @@ import de.unihalle.informatik.Alida.annotations.Parameter;
 import de.unihalle.informatik.Alida.annotations.Parameter.Direction;
 import de.unihalle.informatik.Alida.annotations.Parameter.ExpertMode;
 import de.unihalle.informatik.Alida.annotations.Parameter.ParameterModificationMode;
+import de.unihalle.informatik.MiToBo.apps.cytoskeleton.CytoskeletonFeatureExtractor.CellMaskFormat;
 import de.unihalle.informatik.MiToBo.clustering.KMeans;
 import de.unihalle.informatik.MiToBo.color.tools.DistinctColorListGenerator;
-import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2DSet;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.*;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType;
-import de.unihalle.informatik.MiToBo.core.imageJ.RoiManagerAdapter;
 import de.unihalle.informatik.MiToBo.core.operator.*;
 import de.unihalle.informatik.MiToBo.gui.MTBTableModel;
 import de.unihalle.informatik.MiToBo.io.dirs.DirectoryTree;
-import de.unihalle.informatik.MiToBo.io.images.ImageReaderMTB;
 import de.unihalle.informatik.MiToBo.io.images.ImageWriterMTB;
 import de.unihalle.informatik.MiToBo.math.statistics.PCA;
 import de.unihalle.informatik.MiToBo.math.statistics.PCA.ReductionMode;
-import de.unihalle.informatik.MiToBo.tools.strings.StringAnalysis;
-import de.unihalle.informatik.MiToBo.visualization.drawing.DrawRegion2DSet;
-import de.unihalle.informatik.MiToBo.visualization.drawing.DrawRegion2DSet.DrawType;
 import de.unihalle.informatik.MiToBo.visualization.plots.BoxWhiskerChartPlotter;
 import de.unihalle.informatik.MiToBo.visualization.plots.StackedBarChartPlotter;
 
 /**
- * Operator for analyzing actin filament structures in 2D images.
+ * Operator for extracting quantative global features of the cytoskeleton.
  *
  * @author moeller
  */
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL,
 	level=Level.APPLICATION, allowBatchMode=false)
-public class ActinAnalyzer2D extends MTBOperator {
+public class CytoskeletonAnalyzer2D extends MTBOperator {
 
 	/**
-	 * Type of features to characterize local structure.
+	 * Identifier string for this operator class.
 	 */
-//	public static enum FeatureType {
-//		/**
-//		 * Use Haralick features as structure measures.
-//		 */
-//		HARALICK_MEASURES,
-//		/**
-//		 * Use Eigen structures as structure measures.
-//		 */
-//		EIGEN_STRUCTURES
-//	}
-
-	/**
-	 * Format of cell segmentation data.
+	private static final String operatorID = "[CytoskeletonAnalyzer2D]";
+	
+	/*
+	 * Mandatory parameters.
 	 */
-	public static enum CellMaskFormat {
-		/**
-		 * Label image, i.e., each cell has its own gray-scale label.
-		 */
-		LABEL_IMAGE,
-		/**
-		 * Set of ImageJ 1.x ROIs.
-		 */
-		IJ_ROIS
-	}
-
-	/**
-	 * Default directions for Haralick features.
-	 */
-//	private static Vector<HaralickDirection> defaultDirections;
-
-	// this initialization block is necessary to set default directions
-//	static {
-//		defaultDirections =
-//			new Vector<FeatureCalculatorHaralickMeasures.HaralickDirection>();
-//		defaultDirections.add(HaralickDirection.EAST);
-//		defaultDirections.add(HaralickDirection.NORTH_EAST);
-//		defaultDirections.add(HaralickDirection.NORTH);
-//		defaultDirections.add(HaralickDirection.NORTH_WEST);
-//	}
 
 	/**
 	 * Input image directory.
@@ -130,40 +92,31 @@ public class ActinAnalyzer2D extends MTBOperator {
 	 * All files in the directory are considered. If a file cannot be opened
 	 * (e.g. because it is not an image) it is skipped.
 	 */
-	@Parameter( label= "Image directory", required = true,
+	@Parameter( label= "Image file folder", required = true,
 		dataIOOrder = -10, direction = Direction.IN,
 		description = "Input image directory.", mode = ExpertMode.STANDARD)
 	protected ALDDirectoryString imageDir = null;
 
 	/**
-	 * Directory with (cell) masks.
+	 * Format of provided cell boundaries.
 	 */
-	@Parameter( label= "Mask directory", required = true, dataIOOrder = -9,
-		direction = Direction.IN, description = "Cell mask directory.",
-		mode = ExpertMode.STANDARD)
-	protected ALDDirectoryString maskDir = null;
-
-	/**
-	 * Format of provided cell masks.
-	 */
-	@Parameter( label= "Mask format", required = true, dataIOOrder = -8,
-		direction = Direction.IN, description = "Format of cell masks.",
+	@Parameter( label= "Boundary file format", required = true, dataIOOrder = -8,
+		direction = Direction.IN, description = "Format of cell boundary files.",
 		mode = ExpertMode.STANDARD)
 	protected CellMaskFormat maskFormat = CellMaskFormat.LABEL_IMAGE;
 
 	/**
-	 * Output and working directory.
+	 * Channel of input image containing stained cytoskeleton.
 	 */
-	@Parameter( label= "Output and working directory", required = true,
-		dataIOOrder = -7, direction = Direction.IN,
-		description = "Output and working directory.", mode = ExpertMode.STANDARD)
-	protected ALDDirectoryString outDir = null;
+	@Parameter(label = "Cytoskeleton channel", required = true, 
+		direction = Parameter.Direction.IN, dataIOOrder = -7, 
+		description = "Channel with stained cytoskeleton, e.g., 1, 2 and so on.")
+	private int cytoSkelChannel = 1;
 
 	/**
 	 * Flag for calculating features.
 	 * <p>
-	 * If set to false, the name of a directory containing the features
-	 * must be provided.
+	 * If false, features are assumed to be available already.
 	 */
 	@Parameter( label= "Calculate features?", required = true,
 		dataIOOrder = 0, direction = Direction.IN,
@@ -173,31 +126,14 @@ public class ActinAnalyzer2D extends MTBOperator {
 	protected boolean doFeatureCalculation = true;
 
 	/**
-	 * Type of features to apply.
-	 */
-//	@Parameter( label= "Type of features", required = true,
-//		dataIOOrder = 1, direction = Direction.IN,
-//		description = "Select type of features to apply.",
-//		mode = ExpertMode.STANDARD)
-//	protected FeatureType featureType = FeatureType.HARALICK_MEASURES;
-
-	/**
 	 * Feature extractor to apply.
 	 */
 	@Parameter( label= "Feature Extractor", required = true,
 		dataIOOrder = 1, direction = Direction.IN,
 		description = "Select type of features to apply.",
 		mode = ExpertMode.STANDARD)
-	protected FilamentFeatureExtractor featureExtractor =
-		new ActinFeatureExtractorHaralickMeasures();
-
-	/**
-	 * Feature directory.
-	 */
-	@Parameter( label= "Feature Input Directory", required = true,
-		dataIOOrder = 2, direction = Direction.IN, mode = ExpertMode.STANDARD,
-		description = "Feature directory, may be the same as output directory.")
-	protected ALDDirectoryString featureDir = null;
+	protected CytoskeletonFeatureExtractor featureExtractor =
+		new CytoskeletonFeatureExtractorLBPsRIU();
 
 	/**
 	 * Tile size in x-direction.
@@ -220,7 +156,7 @@ public class ActinAnalyzer2D extends MTBOperator {
 	 */
 	@Parameter( label= "Tile shift x", required = true,
 		dataIOOrder = 5, direction = Parameter.Direction.IN,
-		mode = ExpertMode.ADVANCED, description = "Tile shift in x-direction.")
+		mode = ExpertMode.STANDARD, description = "Tile shift in x-direction.")
 	protected int tileShiftX = 32;
 
 	/**
@@ -228,44 +164,15 @@ public class ActinAnalyzer2D extends MTBOperator {
 	 */
 	@Parameter( label= "Tile shift y", required = true,
 		dataIOOrder = 6, direction = Parameter.Direction.IN,
-		mode = ExpertMode.ADVANCED, description = "Tile shift in y-direction.")
+		mode = ExpertMode.STANDARD, description = "Tile shift in y-direction.")
 	protected int tileShiftY = 32;
-
-	/**
-	 * Distance.
-	 */
-//	@Parameter( label= "Haralick distance", required = true,
-//		direction = Parameter.Direction.IN, dataIOOrder=7,
-//		mode=ExpertMode.STANDARD, description = "Desired distance.")
-//	protected int distance= 4;
-
-	/**
-	 * Set of directions.
-	 */
-//	@Parameter( label= "Set of directions", required = true,
-//		direction = Parameter.Direction.IN, dataIOOrder=8,
-//		mode=ExpertMode.STANDARD, description = "Desired directions.")
-//	protected Vector<HaralickDirection> directions = defaultDirections;
-
-	/**
-	 * Flag for isotropic calculations.
-	 * <p>
-	 * If flag is true the average of each feature for the four directions EAST,
-	 * NORTH_EAST, NORTH and NORTH_WEST is taken as result. But, note that this
-	 * causes the computation time to be increased by a factor of four as well.
-	 */
-//	@Parameter( label= "Isotropic calculations", required = true,
-//		direction = Parameter.Direction.IN, dataIOOrder=9,
-//		description = "Flag to enable isotropic calculations.",
-//		mode=ExpertMode.ADVANCED)
-//	protected boolean isotropicCalcs = false;
 
 	/**
 	 * Number of clusters to be used in feature clustering.
 	 */
 	@Parameter( label= "Number of feature clusters", required = true,
 		dataIOOrder = 10, direction = Parameter.Direction.IN,
-		mode = ExpertMode.ADVANCED, description = "Number of feature clusters.")
+		mode = ExpertMode.STANDARD, description = "Number of feature clusters.")
 	protected int clusterNum = 6;
 
 	/**
@@ -273,9 +180,25 @@ public class ActinAnalyzer2D extends MTBOperator {
 	 */
 	@Parameter( label= "Do PCA in stage II?", required = true,
 		dataIOOrder = 11, direction = Parameter.Direction.IN,
-		mode = ExpertMode.ADVANCED,
+		mode = ExpertMode.STANDARD,
 		description = "Enable/disable PCA prior to hierarchical clustering.")
 	protected boolean doPCA = true;
+
+	/*
+	 * Optional parameters.
+	 */
+	
+	/**
+	 * (Optional) directory with (cell) boundaries.
+	 */
+	@Parameter( label= "Cell boundary file folder", required = false, 
+		dataIOOrder = 1, direction = Direction.IN, 
+		description = "Cell mask directory.",	mode = ExpertMode.STANDARD)
+	protected ALDDirectoryString maskDir = null;
+
+	/*
+	 * Result parameters.
+	 */
 
 	/**
 	 * Resulting stacked bar plot of cluster distributions.
@@ -297,6 +220,15 @@ public class ActinAnalyzer2D extends MTBOperator {
 	 * some helper variables
 	 */
 
+	/// ***************************************
+	/// Just temporarily! Will be removed soon!
+	
+//	protected ALDDirectoryString outDir = null;
+//	protected ALDDirectoryString featureDir = null;
+
+	/// Just temporarily! Will be removed soon!
+	/// ***************************************
+	
 	/**
 	 * Width of the images taking first image as reference.
 	 */
@@ -308,9 +240,14 @@ public class ActinAnalyzer2D extends MTBOperator {
 	private transient int imageHeight = -1;
 
 	/**
+	 * File separator character, operating system dependent.
+	 */
+	private static String fileSep = File.separator;
+	
+	/**
 	 * List of group names, filled in {@link #clusterFeatures()}.
 	 */
-	private transient Vector<String> cellGroupNames;
+	private transient TreeSet<String> cellGroupNames;
 
 	/**
 	 * Map of cluster distributions per cell, filled in
@@ -318,6 +255,11 @@ public class ActinAnalyzer2D extends MTBOperator {
 	 */
 	private transient HashMap<String, double[]> cellwiseDistros =
 		new HashMap<String, double[]>();
+	
+	/**
+	 * Sorted list of keys in {@link #cellwiseDistros} once it is filled.
+	 */
+	private LinkedList<String> cellwiseDistroKeys;
 
   /**
    * Group-wise cell distribution data, for each group the vector
@@ -350,6 +292,11 @@ public class ActinAnalyzer2D extends MTBOperator {
 	private transient double[][] distroData;
 
 	/**
+	 * Group names linked to entries in {@link #distroData}.
+	 */
+	private transient String[] distroDataGroups;
+
+	/**
 	 * Dimension-reduced cluster distribution data.
 	 */
 	private transient double[][] subspaceData;
@@ -358,9 +305,9 @@ public class ActinAnalyzer2D extends MTBOperator {
 	 * Default constructor.
 	 * @throws ALDOperatorException Thrown in case of failure.
 	 */
-	public ActinAnalyzer2D() throws ALDOperatorException {
+	public CytoskeletonAnalyzer2D() throws ALDOperatorException {
 		// configure operator to calculate features by default
-		this.setParameter("doFeatureCalculation", true);
+		this.setParameter("doFeatureCalculation", new Boolean(true));
 	}
 
 	@Override
@@ -369,53 +316,51 @@ public class ActinAnalyzer2D extends MTBOperator {
 
 		// for each image calculate feature vectors (if requested)
 		if (this.doFeatureCalculation) {
-//			switch(this.featureType)
-//			{
-//			case HARALICK_MEASURES:
-//				ActinFeatureExtractorHaralickMeasures haralickOp =
-//					new ActinFeatureExtractorHaralickMeasures();
-//				haralickOp.setImageDir(this.imageDir);
-//				haralickOp.setMaskDir(this.maskDir);
-//				haralickOp.setMaskFormat(this.maskFormat);
-//				haralickOp.setOutputDir(this.outDir);
-//				haralickOp.setTileSizeX(this.tileSizeX);
-//				haralickOp.setTileSizeY(this.tileSizeY);
-//				haralickOp.setTileShiftX(this.tileShiftX);
-//				haralickOp.setTileShiftY(this.tileShiftY);
-//				haralickOp.setDistance(this.distance);
-//				haralickOp.setHaralickDirections(this.directions);
-//				haralickOp.setFlagIsotropicCalculations(this.isotropicCalcs);
-//				haralickOp.setVerbose(this.verbose);
-//				haralickOp.runOp();
-//				break;
-//			case EIGEN_STRUCTURES:
-//				ActinFeatureExtractorEigenStructures eigenOp =
-//					new ActinFeatureExtractorEigenStructures();
-//				eigenOp.setImageDir(this.imageDir);
-//				eigenOp.setMaskDir(this.maskDir);
-//				eigenOp.setMaskFormat(this.maskFormat);
-//				eigenOp.setOutputDir(this.outDir);
-//				eigenOp.setTileSizeX(this.tileSizeX);
-//				eigenOp.setTileSizeY(this.tileSizeY);
-//				eigenOp.setTileShiftX(this.tileShiftX);
-//				eigenOp.setTileShiftY(this.tileShiftY);
-//				eigenOp.setVerbose(this.verbose);
-//				eigenOp.runOp();
-//				break;
-//			}
 			if (this.verbose.booleanValue())
 				System.out.println("Feature extractor: "
 						+ this.featureExtractor.getName());
-			this.featureExtractor.setImageDir(this.imageDir);
-			this.featureExtractor.setMaskDir(this.maskDir);
-			this.featureExtractor.setMaskFormat(this.maskFormat);
-			this.featureExtractor.setOutputDir(this.outDir);
-			this.featureExtractor.setTileSizeX(this.tileSizeX);
-			this.featureExtractor.setTileSizeY(this.tileSizeY);
-			this.featureExtractor.setTileShiftX(this.tileShiftX);
-			this.featureExtractor.setTileShiftY(this.tileShiftY);
-			this.featureExtractor.setVerbose(this.verbose);
-			this.featureExtractor.runOp();
+			
+			// get a list of sub-folders of the given image directory
+			DirectoryTree dt = 
+					new DirectoryTree(this.imageDir.getDirectoryName(), true);
+			Vector<String> subdirs = dt.getSubdirectoryList();
+			for (String d: subdirs) {
+				
+				// skip folders named "results"
+				if (d.contains("results"))
+					continue;
+				
+				System.out.println("Processing sub-folder " + d + "...");
+				
+				// get list of images
+				DirectoryTree st = new DirectoryTree(d, false);
+				Vector<String> files = st.getFileList();
+				
+				if (files != null && !files.isEmpty()) {
+					System.out.println("=> Found files: ");
+					for (String f: files)
+						System.out.println("\t" + f);
+
+					// create output folder
+					new File(d + fileSep + "results_features").mkdirs();
+					
+					// run the feature extraction
+					this.featureExtractor.setImageDir(new ALDDirectoryString(d));
+					this.featureExtractor.setCytoskeletonChannel(
+							this.cytoSkelChannel);
+					this.featureExtractor.setMaskDir(
+							new ALDDirectoryString(d + fileSep + "results_segmentation"));
+					this.featureExtractor.setMaskFormat(this.maskFormat);
+					this.featureExtractor.setOutputDir(
+							new ALDDirectoryString(d + fileSep + "results_features"));
+					this.featureExtractor.setTileSizeX(this.tileSizeX);
+					this.featureExtractor.setTileSizeY(this.tileSizeY);
+					this.featureExtractor.setTileShiftX(this.tileShiftX);
+					this.featureExtractor.setTileShiftY(this.tileShiftY);
+					this.featureExtractor.setVerbose(this.verbose);
+					this.featureExtractor.runOp();
+				}
+			}
 		}
 
 		// cluster the features and analyze the distributions
@@ -427,7 +372,7 @@ public class ActinAnalyzer2D extends MTBOperator {
 			this.doPCA();
 
 		// calculate pairwise distances for further analysis
-		this.calculatePairwiseDistances();
+		this.calculateDistanceMatrices();
 	}
 
 	/**
@@ -459,7 +404,7 @@ public class ActinAnalyzer2D extends MTBOperator {
 
 		// cluster feature data
 		if (this.verbose.booleanValue())
-			System.out.println("[ActinAnalyzer2D] Reading feature files...");
+			System.out.println(operatorID + " Reading feature files...");
 		this.fireOperatorExecutionProgressEvent(
      	new ALDOperatorExecutionProgressEvent(this,
      		" reading features files..."));
@@ -469,123 +414,144 @@ public class ActinAnalyzer2D extends MTBOperator {
 		int tileSizeXFromFile = -1, tileSizeYFromFile = -1;
 		int tileShiftXFromFile = -1, tileShiftYFromFile = -1;
 
-		String fDir = (this.doFeatureCalculation ?
-				this.outDir : this.featureDir).getDirectoryName();
-		DirectoryTree dirTree = new DirectoryTree(fDir);
-		Vector<String> imageList = dirTree.getFileList();
+		// get a list of sub-folders of the given image directory
+		DirectoryTree dt = 
+				new DirectoryTree(this.imageDir.getDirectoryName(), true);
+		Vector<String> subdirs = dt.getSubdirectoryList();
+		Vector<String> featureFileList = new Vector<String>();
 		Vector<String> lines = new Vector<String>();
 		String[] heads = null;
-		Vector<String> featureFileList = new Vector<String>();
-		for (String file : imageList) {
-
-			// only process files with ending .txt
-			if (!file.endsWith("features.txt"))
+		for (String d: subdirs) {
+			
+			// skip irrelevant folders
+			if (!d.contains("results_features"))
 				continue;
+			
+			System.out.println("Processing sub-folder " + d + "...");
+			
+			// get list of files
+			DirectoryTree st = new DirectoryTree(d, false);
+			Vector<String> files = st.getFileList();
+			
+			if (files != null && !files.isEmpty()) {
+				System.out.println("=> Found files: ");
+				for (String f: files)
+					System.out.println("\t" + f);
 
-			if (this.verbose.booleanValue())
-				System.out.println("\t Processing feature file " + file + "...");
-			this.fireOperatorExecutionProgressEvent(
-      	new ALDOperatorExecutionProgressEvent(this,
-      		" processing feature file " + file + "..."));
+				for (String file : files) {
 
-			// read feature data and fill table
-			featureFileList.add(file);
-			try {
-				BufferedReader fRead =
-						new BufferedReader(new FileReader(new File(file)));
-				String line;
-				// header of file contains some information we need:
-				//
-				// # filename: ...
-	      // # maskfile: ...
-				// # tileSizeX: ...
-	      // # tileSizeY: ...
-	      // # tileShiftX: ...
-				// # tileShiftY: ...
-	      // # tileCountX: ...
-				// # tileCountY: ...
-				// # tileCountTotal: ...
-				// # invalidTiles: ...
-				// # feature identifier: ...
-				//
+					// only process files with ending .txt
+					if (!file.endsWith("features.txt"))
+						continue;
 
-				// skip filename and maskfile
-				fRead.readLine();
-				fRead.readLine();
-				// read tile sizes
-				line = fRead.readLine();
-				int sizeX = Integer.valueOf(line.split(" ")[2]).intValue();
-				if (tileSizeXFromFile == -1)
-					tileSizeXFromFile = sizeX;
-				else
-					if (tileSizeXFromFile != sizeX)
-						System.err.println("[ActinAnalyzer2D] "
-							+ "tile sizes in x of different images do not match!");
-				line = fRead.readLine();
-				int sizeY = Integer.valueOf(line.split(" ")[2]).intValue();
-				if (tileSizeYFromFile == -1)
-					tileSizeYFromFile = sizeX;
-				else
-					if (tileSizeYFromFile != sizeY)
-						System.err.println("[ActinAnalyzer2D] "
-							+ "tile sizes in y of different images do not match!");
-				// skip tile shifts
-				line = fRead.readLine();
-				tileShiftXFromFile =
-						Integer.valueOf(line.split(" ")[2]).intValue();
-				line = fRead.readLine();
-				tileShiftYFromFile =
-						Integer.valueOf(line.split(" ")[2]).intValue();
-				// get count in x
-				line = fRead.readLine();
-				tileCountX = Integer.valueOf(line.split(" ")[2]).intValue();
-				// get count in y
-				line = fRead.readLine();
-				tileCountY = Integer.valueOf(line.split(" ")[2]).intValue();
-				// get total count
-				line = fRead.readLine();
-				tileCountTotal = Integer.valueOf(line.split(" ")[2]).intValue();
-				// get invalid tile count
-				line = fRead.readLine();
-				invalidTiles = Integer.valueOf(line.split(" ")[2]).intValue();
-				// read headers, should be same for all files, so do it just once
-				if (heads == null)
-					heads = fRead.readLine().split("\t");
-				else
-					// skip first line
-					fRead.readLine();
-				int counter = -1;
-				int validTiles = 0;
-				while ((line = fRead.readLine()) != null) {
-					++counter;
-					// skip lines containing NaNs and very homogeneous tiles
-					if (   !line.contains("NaN") ) {
-						lines.add(file + "\t" + counter + "\t" + line);
-						++validTiles;
+					if (this.verbose.booleanValue())
+						System.out.println("\t Processing feature file " + file + "...");
+					this.fireOperatorExecutionProgressEvent(
+							new ALDOperatorExecutionProgressEvent(this,
+									" processing feature file " + file + "..."));
+
+					// read feature data and fill table
+					featureFileList.add(file);
+					try {
+						BufferedReader fRead =
+								new BufferedReader(new FileReader(new File(file)));
+						String line;
+						// header of file contains some information we need:
+						//
+						// # filename: ...
+						// # maskfile: ...
+						// # tileSizeX: ...
+						// # tileSizeY: ...
+						// # tileShiftX: ...
+						// # tileShiftY: ...
+						// # tileCountX: ...
+						// # tileCountY: ...
+						// # tileCountTotal: ...
+						// # invalidTiles: ...
+						// # feature identifier: ...
+						//
+
+						// skip filename and maskfile
+						fRead.readLine();
+						fRead.readLine();
+						// read tile sizes
+						line = fRead.readLine();
+						int sizeX = Integer.valueOf(line.split(" ")[2]).intValue();
+						if (tileSizeXFromFile == -1)
+							tileSizeXFromFile = sizeX;
+						else
+							if (tileSizeXFromFile != sizeX)
+								System.err.println(operatorID + 
+										" tile sizes in x of different images do not match!");
+						line = fRead.readLine();
+						int sizeY = Integer.valueOf(line.split(" ")[2]).intValue();
+						if (tileSizeYFromFile == -1)
+							tileSizeYFromFile = sizeX;
+						else
+							if (tileSizeYFromFile != sizeY)
+								System.err.println(operatorID +
+										" tile sizes in y of different images do not match!");
+						// skip tile shifts
+						line = fRead.readLine();
+						tileShiftXFromFile =
+								Integer.valueOf(line.split(" ")[2]).intValue();
+						line = fRead.readLine();
+						tileShiftYFromFile =
+								Integer.valueOf(line.split(" ")[2]).intValue();
+						// get count in x
+						line = fRead.readLine();
+						tileCountX = Integer.valueOf(line.split(" ")[2]).intValue();
+						// get count in y
+						line = fRead.readLine();
+						tileCountY = Integer.valueOf(line.split(" ")[2]).intValue();
+						// get total count
+						line = fRead.readLine();
+						tileCountTotal = Integer.valueOf(line.split(" ")[2]).intValue();
+						// get invalid tile count
+						line = fRead.readLine();
+						invalidTiles = Integer.valueOf(line.split(" ")[2]).intValue();
+						// read headers, should be same for all files, so do it just once
+						if (heads == null)
+							heads = fRead.readLine().split("\t");
+						else
+							// skip first line
+							fRead.readLine();
+						int counter = -1;
+						int validTiles = 0;
+						while ((line = fRead.readLine()) != null) {
+							++counter;
+							// skip lines containing NaNs and very homogeneous tiles
+							if (   !line.contains("NaN") ) {
+								lines.add(file + "\t" + counter + "\t" + line);
+								++validTiles;
+							}
+						}
+						fRead.close();
+
+						// safety check
+						if (validTiles != tileCountTotal - invalidTiles)
+							System.err.println(operatorID + " number of feature vectors "
+								+ "does not match number of valid tiles, expected "
+									+ (tileCountTotal-invalidTiles) 
+										+ ", got " + validTiles + "...");
+					} catch (FileNotFoundException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
 				}
-				fRead.close();
-
-				// safety check
-				if (validTiles != tileCountTotal - invalidTiles)
-					System.err.println("[ActinAnalyzer2D] number of feature vectors "
-						+ "does not match number of valid tiles, expected "
-							+ (tileCountTotal-invalidTiles) + ", got " + validTiles + "...");
-			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			}
 		}
 
 		if (this.verbose.booleanValue())
 			System.out.println("\t Found " + lines.size() + " feature vectors.");
 		this.fireOperatorExecutionProgressEvent(
-     	new ALDOperatorExecutionProgressEvent(this,
-     		" found " + lines.size() + " feature vectors."));
+				new ALDOperatorExecutionProgressEvent(this,
+						" found " + lines.size() + " feature vectors in total."));
 
+		@SuppressWarnings("null")
 		MTBTableModel dataSet = new MTBTableModel(lines.size(), heads.length+1);
 		dataSet.setColumnName(0, "Index");
 		for (int i=0;i<heads.length;++i) {
@@ -602,9 +568,9 @@ public class ActinAnalyzer2D extends MTBOperator {
 		// do clustering
 		if (this.verbose.booleanValue())
 			System.out.println("\t Running k-means with " + this.clusterNum
-				+ " clusters...");
+					+ " clusters...");
 		this.fireOperatorExecutionProgressEvent(
-     	new ALDOperatorExecutionProgressEvent(this, " running k-means..."));
+				new ALDOperatorExecutionProgressEvent(this, " running k-means..."));
 
 		KMeans clusterer = new KMeans();
 		clusterer.setInputData(dataSet);
@@ -621,7 +587,7 @@ public class ActinAnalyzer2D extends MTBOperator {
 		Color[] clusterColors = cGen.getColorList();
 
 		if (this.verbose.booleanValue())
-			System.out.println("[ActinAnalyzer2D] Visualizing cluster assignments...");
+			System.out.println(operatorID + " Visualizing cluster assignments...");
 		this.fireOperatorExecutionProgressEvent(
 			new ALDOperatorExecutionProgressEvent(this,
 				" visualizing cluster assignments..."));
@@ -631,14 +597,14 @@ public class ActinAnalyzer2D extends MTBOperator {
 		ImageWriterMTB iWriter = new ImageWriterMTB();
 		for (String file : featureFileList) {
 
-			String basename = ALDFilePathManipulator.getFileName(file);
+			String basename = ALDFilePathManipulator.removeExtension(file);
 			basename = basename.replaceAll("-features", "");
 
 			if (this.verbose.booleanValue())
 				System.out.println("\t Processing feature file " + file + "...");
 			this.fireOperatorExecutionProgressEvent(
 				new ALDOperatorExecutionProgressEvent(this,
-					"	processing feature file \"" + basename + "\"..."));
+					"	processing feature file \"" + file + "\"..."));
 
 			MTBImageRGB clusterImage = (MTBImageRGB)MTBImage.createMTBImage(
 				tileCountX, tileCountY, 1, 1, 1, MTBImageType.MTB_RGB);
@@ -661,8 +627,7 @@ public class ActinAnalyzer2D extends MTBOperator {
 			}	while (true);
 
 			// save the cluster images
-			iWriter.setFileName(this.outDir + File.separator
-					+ basename + "-clusters.tif");
+			iWriter.setFileName(basename + "-clusters.tif");
 			iWriter.setInputMTBImage(clusterImage);
 			iWriter.runOp();
 			clusterImage = null;
@@ -670,15 +635,15 @@ public class ActinAnalyzer2D extends MTBOperator {
 
 		// calculate percental cluster distribution per image and per cell
 		if (this.verbose.booleanValue())
-			System.out.println("[ActinAnalyzer2D] "
-				+ "Calculating cluster distributions...");
+			System.out.println(operatorID + 
+					" Calculating cluster distributions...");
 		this.fireOperatorExecutionProgressEvent(
 			new ALDOperatorExecutionProgressEvent(this,
 				" calculating cluster distributions..."));
 
 		// init file for global cluster statistics
-		String globalStatFile =
-			this.outDir + File.separator + "AllImagesClusterStatistics.txt";
+		String globalStatFile =	this.imageDir.getDirectoryName() 
+				+ File.separator + "AllCellsClusterStats.txt";
 		BufferedWriter gWriter = null;
 		try {
 	    gWriter= new BufferedWriter(new FileWriter(globalStatFile));
@@ -690,59 +655,63 @@ public class ActinAnalyzer2D extends MTBOperator {
 	    gWriter.write("\n");
 		} catch (IOException e1) {
 			// reset writer, if initialization was not successful
+			try {
+				if (gWriter != null)
+					gWriter.close();
+			} catch (IOException e) {
+				// nothing to do here
+			}
 			gWriter = null;
     }
 
-  	// identify cell groups
-  	Vector<String> basenames =  new Vector<String>();
-		for (String file : featureFileList) {
-			// remove suffix added before
-			String prefix =
-				ALDFilePathManipulator.getFileName(file).replaceAll("-features", "");
-			// search for underscore as identifier, part in front of it is group name
-			String[] splitName = prefix.split("_");
-			if (splitName.length != 2)
-				throw new ALDOperatorException(OperatorExceptionType.OPERATE_FAILED,
-					"[ActinAnalyzer2D] can't identify cell groups, no underscore found!");
-			basenames.add(splitName[0]);
-		}
-		// extract an unordered list of cell group names, i.e., image prefixes
-		this.cellGroupNames =
-				StringAnalysis.getLongestCommonPrefixes(basenames);
-		// check if all names belong to one equivalence group
-		for (String filename: basenames) {
-			boolean groupFound = false;
-			for (String group: this.cellGroupNames) {
-				if (filename.startsWith(group)) {
-					groupFound = true;
-					break;
-				}
-			}
-			if (!groupFound)
-				this.cellGroupNames.add(filename);
-		}
+		// identify group names -> identical to sub-directories
+		int lastSlash;
+		String gName;
+		this.cellGroupNames =  new TreeSet<String>();
+		for (String dir : subdirs) {
+			
+			// skip irrelevant folders
+			if (!dir.contains("results_features"))
+				continue;
 
+			gName = dir.replace(File.separator + "results_features", "");
+			lastSlash = gName.lastIndexOf(File.separator);
+			gName = gName.substring(lastSlash+1, gName.length());
+			this.cellGroupNames.add(gName);
+		}
+		
 		this.cellGroups =	new Vector<HashMap<String,HashMap<String,Double>>>();
 		for (int i= 0; i < this.cellGroupNames.size(); ++i)
 			this.cellGroups.add(new HashMap<String, HashMap<String,Double>>());
 
 		int label = 0, absCount = 0;
 		double absWeight = 0;
+		String baseName, groupName, maskFolder;
 		lineID = 0;
 		for (String file : featureFileList) {
 
-			String basename = ALDFilePathManipulator.getFileName(file);
-			basename = basename.replaceAll("-features", "");
+			baseName = ALDFilePathManipulator.getFileName(file);
+			baseName = baseName.replaceAll("-features", "");
+			
+			groupName = ALDFilePathManipulator.getPath(file);
+			groupName = groupName.replaceAll(File.separator + "results_features", "");
+			lastSlash = groupName.lastIndexOf(File.separator);
+			groupName = groupName.substring(lastSlash+1, groupName.length());
 
 			if (this.verbose.booleanValue())
 				System.out.println("\t Processing feature file " + file + "...");
 			this.fireOperatorExecutionProgressEvent(
 				new ALDOperatorExecutionProgressEvent(this,
-					"	processing feature file \"" + basename + "\"..."));
+					"	processing feature file \"" + file + "\"..."));
 
 			// read mask for cell-wise calculations
-			MTBImage maskImage = this.readMaskImage(basename,
-				0, 0,	this.imageWidth-1, this.imageHeight-1);
+			maskFolder = file.replace("features", "segmentation");
+			lastSlash = maskFolder.lastIndexOf(File.separator);
+			maskFolder = maskFolder.substring(0, lastSlash);
+			MTBImage maskImage = CytoskeletonFeatureExtractor.readMaskImage(
+				maskFolder,	baseName,	this.maskFormat, 
+					0, 0,	this.imageWidth-1, this.imageHeight-1, 
+						this.verbose.booleanValue());
 
 			// contains cluster distribution per cell, the key refers to the cell ID
 			// in the image, the double array contains the relative frequencies
@@ -779,12 +748,11 @@ public class ActinAnalyzer2D extends MTBOperator {
 				++lineID;
 			}	while(true);
 
-			String outfile = this.outDir + File.separator
-					+ basename + "-clusterDistro.txt";
+			String outfile = file.replaceAll("-features", "-clusterDistro");
 			try {
 				BufferedWriter fWriter = new BufferedWriter(new FileWriter(outfile));
 				fWriter.write("# Directory = " + this.imageDir + "\n");
-				fWriter.write("# File = " + basename + "\n");
+				fWriter.write("# File = " + baseName + "\n");
 				fWriter.write("# Tiles total = " + tileCountTotal + "\n");
 				fWriter.write("# Tiles valid = " + absCount + "\n");
 
@@ -808,7 +776,7 @@ public class ActinAnalyzer2D extends MTBOperator {
 
 					// add data to global statistics file
 					if (gWriter != null)
-						gWriter.write(basename + "\t" + key);
+						gWriter.write(baseName + "\t" + key);
 
 					// generate stacked bar plots for each group of cells
 					// (assumption: longest prefixes shared by more than one file
@@ -827,14 +795,15 @@ public class ActinAnalyzer2D extends MTBOperator {
 					}
 
 					// store distribution for later PCA and box-whisker plot
-					this.cellwiseDistros.put(basename + "-" + key, distro);
+					this.cellwiseDistros.put(
+							groupName + "_" + baseName + "-" + key, distro);
 
 					// add hash to correct group
 					int j =0;
 					for (String g: this.cellGroupNames) {
-						if (basename.startsWith(g)) {
+						if (groupName.equals(g)) {
 							this.cellGroups.get(j).put(
-								basename.replace(g + "_", "") + "-" + key, hash);
+									groupName + "_" + baseName + "-" + key, hash);
 							break;
 						}
 						++j;
@@ -846,7 +815,7 @@ public class ActinAnalyzer2D extends MTBOperator {
 				}
 				fWriter.close();
 			} catch (IOException e) {
-				System.err.println("[ActinAnalyzer2D] Something went wrong writing " +
+				System.err.println(operatorID + " Something went wrong writing " +
 						"cluster distribution " + outfile + ", skipping file...");
 				continue;
 			}
@@ -877,12 +846,15 @@ public class ActinAnalyzer2D extends MTBOperator {
 			// save the plot also to a file
 			String filename = "";
       try {
-      	filename = this.outDir + File.separator + g + "-distributionChart.png";
+      	filename = this.imageDir.getDirectoryName() + File.separator + g 
+      		+ File.separator + "results_features" + File.separator 
+      			+ g + "-distributionChart.png";
+      	System.out.println(filename);
 	      ChartUtils.saveChartAsPNG(
 	      	new File(filename), stackedBarChart, 640, 400);
       } catch (IOException e) {
       	// problem on saving the plot to file, skip plot
-      	System.err.println("[ActinAnalyzer2D] saving plot for "
+      	System.err.println(operatorID + " saving plot for "
       		+ "\"" + g + "\" to \"" + filename + "\"" + " failed, skipping!");
       	this.fireOperatorExecutionProgressEvent(
     			new ALDOperatorExecutionProgressEvent(this,
@@ -891,12 +863,24 @@ public class ActinAnalyzer2D extends MTBOperator {
       ++i;
 		}
 
-		// create distribution dataset
+		// remember (sorted!) keys of cellwise distributions
+		Set<String> keys = this.cellwiseDistros.keySet();
+		this.cellwiseDistroKeys = new LinkedList<>();
+		for (String k: keys) {
+			this.cellwiseDistroKeys.add(k);
+		}
+		Collections.sort(this.cellwiseDistroKeys);
+		
+		// create distribution datasets
 		this.distroData =	new double[this.clusterNum][this.cellwiseDistros.size()];
+		this.distroDataGroups = new String[this.cellwiseDistros.size()];
 		i = 0;
-		for (String k: this.cellwiseDistros.keySet()) {
-			for (int n = 0; n<this.clusterNum; ++n)
+		for (String k: this.cellwiseDistroKeys) {
+			groupName = k.split("_")[0];
+			this.distroDataGroups[i] = groupName;
+			for (int n = 0; n<this.clusterNum; ++n) {
 				this.distroData[n][i] = this.cellwiseDistros.get(k)[n];
+			}
 			++i;
 		}
 
@@ -910,7 +894,7 @@ public class ActinAnalyzer2D extends MTBOperator {
 		// for each indicator (here: cluster ID) and each category (here:
 		// cell group) generate list of distribution data
 		String group;
-		for (String k: this.cellwiseDistros.keySet()) {
+		for (String k: this.cellwiseDistroKeys) {
 			double[] cellDistro = this.cellwiseDistros.get(k);
 
 			// figure out to which group the cell belongs
@@ -944,17 +928,18 @@ public class ActinAnalyzer2D extends MTBOperator {
 		// save the plot also to a file
 		String filename = "";
     try {
-    	filename = this.outDir +File.separator+ "AllGroupsClusterStatsChart.png";
+    	filename = this.imageDir.getDirectoryName() + File.separator 
+    			+ "AllCellsClusterDistributionChart.png";
       ChartUtils.saveChartAsPNG(
       	new File(filename), boxPlotter.getChart(), 640, 400);
     } catch (IOException e) {
     	// problem on saving the plot to file, skip plot
-    	System.err.println("[ActinAnalyzer2D] saving plot "
-    		+ "\"AllGroupsClusterStatsChart.png\" to \"" + filename + "\""
+    	System.err.println(operatorID + " saving plot "
+    		+ "\"AllCellsClusterDistributionChart.png\" to \"" + filename + "\""
     			+ " failed, skipping!");
     	this.fireOperatorExecutionProgressEvent(
   			new ALDOperatorExecutionProgressEvent(this,
-  				"	WARNING! Saving plot \"AllGroupsClusterStatsChart.png\""
+  				"	WARNING! Saving plot \"AllCellsClusterDistributionChart.png\""
   					+ " failed, skipping!"));
     }
 	}
@@ -964,13 +949,13 @@ public class ActinAnalyzer2D extends MTBOperator {
 	 * <p>
 	 * The subspace dimension is chosen so that at least 95% of the data
 	 * variance is represented within the resulting feature subspace.
-	 * The result is saved to the file "AllImagesSubspaceFeatures.txt".
+	 * The result is saved to the file {@code AllCellsPCASubspaceStats.txt}.
 	 */
 	private void doPCA() {
 
 		if (this.verbose.booleanValue())
-			System.out.println("[ActinAnalyzer2D] " +
-				"Performing PCA on cluster distributions...");
+			System.out.println(operatorID + 
+				" Performing PCA on cluster distributions...");
 		this.fireOperatorExecutionProgressEvent(
 			new ALDOperatorExecutionProgressEvent(this,
 				" performing PCA on cluster distributions..."));
@@ -987,7 +972,7 @@ public class ActinAnalyzer2D extends MTBOperator {
 			pcaOp.runOp();
 			this.subspaceData = pcaOp.getResultData();
 		} catch (ALDException e) {
-			System.err.println("[ActinAnalyzer2D] something went wrong during PCA..");
+			System.err.println(operatorID + " something went wrong during PCA..");
 		}
 
 		if (this.subspaceData != null) {
@@ -996,7 +981,8 @@ public class ActinAnalyzer2D extends MTBOperator {
 			int subspaceDim = this.subspaceData.length;
 
 			String globalStatFile =
-				this.outDir + File.separator + "AllImagesSubspaceFeatures.txt";
+				this.imageDir.getDirectoryName() + File.separator 
+					+ "AllCellsPCASubspaceStats.txt";
 			BufferedWriter gWriter = null;
 			try {
 				gWriter= new BufferedWriter(new FileWriter(globalStatFile));
@@ -1009,7 +995,7 @@ public class ActinAnalyzer2D extends MTBOperator {
 
 				// save result to file
 				int j = 0;
-				for (String k: this.cellwiseDistros.keySet()) {
+				for (String k: this.cellwiseDistroKeys) {
 					gWriter.write(k);
 					for (int n = 0; n<subspaceDim; ++n) {
 						gWriter.write("\t" + this.subspaceData[n][j]);
@@ -1020,31 +1006,47 @@ public class ActinAnalyzer2D extends MTBOperator {
 				gWriter.close();
 			} catch (IOException e1) {
 				// reset writer, if initialization was not successful
+				if (gWriter != null)
+					try {
+						gWriter.close();
+					} catch (IOException e) {
+						// nothing to do here
+					}
 				gWriter = null;
 			}
 		}
 	}
 
 	/**
-	 * Calculates pairwise Euclidean distances between all feature vectors.
+	 * Calculates pairwise distance matrices and similarity network data.
+	 * <p> 
+	 * Calculates pairwise Euclidean distances between all feature vectors and
+	 * also between average vectors of all groups. In addition, for all groups
+	 * a similarity network is constructed with each group forming a node and 
+	 * the edges representing the similarity between the groups. The bigger the
+	 * weight of an edge the larger the similarity between two groups.
 	 * <p>
 	 * If PCA is enabled for stage II the distances are calculated from the
 	 * subspace feature data as extracted by the PCA. If PCA is not enabled
 	 * the cluster distribution data is used directly as base for the
 	 * calculations.
 	 * <p>
-	 * The resulting distance matrix is saved to a file with name
-	 * {@code AllImagesSubspaceFeatures.txt} in the given output directory.
+	 * The resulting distance matrices are saved to files with names
+	 * {@code AllCellsDistanceData.txt} and {@code AllGroupsDistanceData.txt}
+	 * in the root directory. The similarity network data is stored in a file 
+	 * named {@code AllGroupsSimilarityNetworkData.txt}.
 	 */
-	private void calculatePairwiseDistances() {
+	private void calculateDistanceMatrices() {
 
 		if (this.verbose.booleanValue())
-			System.out.println("[ActinAnalyzer2D] " +
-				"Calculating pairwise Euclidean feature distances...");
+			System.out.println(operatorID 
+				+	" Calculating pair- and groupwise Euclidean feature distances...");
 		this.fireOperatorExecutionProgressEvent(
 			new ALDOperatorExecutionProgressEvent(this,
-				" calculating pairwise Euclidean feature distances..."));
+				" calculating pair- and groupwise Euclidean feature distances..."));
 
+		int c, d, r;
+		double squareSum = 0.0;
 		double[][] featureData;
 
 		// select feature set (depends on PCA being enabled or disabled)
@@ -1054,212 +1056,184 @@ public class ActinAnalyzer2D extends MTBOperator {
 			featureData = this.distroData;
 
 		// get dimensionality of feature space
-		int subspaceDim = featureData.length;
-
-		String globalStatFile =
-				this.outDir + File.separator + "AllImagesSubspaceFeatures.txt";
-		BufferedWriter gWriter = null;
-		try {
-			gWriter= new BufferedWriter(new FileWriter(globalStatFile));
-			gWriter.write("# Data directory: " + this.imageDir + "\n");
-			gWriter.write("# Image\tCell-ID");
-			for (int j=0; j<subspaceDim; ++j) {
-				gWriter.write("\tc-" + j);
-			}
-			gWriter.write("\n");
-
-			// save result to file
-			int j = 0;
-			for (String k: this.cellwiseDistros.keySet()) {
-				gWriter.write(k);
-				for (int n = 0; n<subspaceDim; ++n) {
-					gWriter.write("\t" + featureData[n][j]);
-				}
-				gWriter.write("\n");
-				++j;
-			}
-			gWriter.close();
-		} catch (IOException e1) {
-			// reset writer, if initialization was not successful
-			gWriter = null;
-		}
+		int featureSpaceDim = featureData.length;
 
 		// calculate matrix with pairwise Euclidean distances
 		int sampleCount = featureData[0].length;
 		double[][] distMatrix = new double[sampleCount][sampleCount];
 		// diagonal is 0
-		for (int r = 0; r < sampleCount; ++r)
-			for (int c = 0; c < sampleCount; ++c)
+		for (r = 0; r < sampleCount; ++r)
+			for (c = 0; c < sampleCount; ++c)
 				distMatrix[r][c] = 0;
 		// matrix is symmetric, i.e., calculate only lower triangle
-		for (int r = 1; r < sampleCount; ++r) {
-			for (int c = 0; c < r; ++c) {
-				double squareSum = 0.0;
-				for (int d=0; d<subspaceDim; ++d)
+		for (r = 1; r < sampleCount; ++r) {
+			for (c = 0; c < r; ++c) {
+				squareSum = 0.0;
+				for (d = 0; d < featureSpaceDim; ++d)
 					squareSum += (featureData[d][r] - featureData[d][c])
 						* (featureData[d][r] - featureData[d][c]);
 				distMatrix[r][c] = Math.sqrt(squareSum);
 				distMatrix[c][r] = distMatrix[r][c];
 			}
 		}
-
+		
 		// save matrix to file
-		String multiDendroFile =
-				this.outDir + File.separator + "AllImagesPairwiseDistanceData.txt";
+		String cellDistMatrixFile = this.imageDir.getDirectoryName() 
+				+ File.separator + "AllCellsDistanceData.txt";
 		BufferedWriter mWriter = null;
 		try {
-			mWriter= new BufferedWriter(new FileWriter(multiDendroFile));
-			int r = 0;
-			for (String k: this.cellwiseDistros.keySet()) {
-				mWriter.write(k);
-				for (int c = 0; c < sampleCount; ++c) {
+			mWriter= new BufferedWriter(new FileWriter(cellDistMatrixFile));
+			r = 0;
+			for (String key: this.cellwiseDistroKeys) {
+				mWriter.write(key);
+				for (c = 0; c < sampleCount; ++c) {
 					mWriter.write("\t" + distMatrix[r][c]);
 				}
 				++r;
 				mWriter.write("\n");
 			}
+			mWriter.flush();
 			mWriter.close();
 		} catch (IOException e) {
-			System.err.println("[ActinAnalyzer] something went wrong writing "
+			System.err.println(operatorID + " something went wrong writing "
 				+ "distance file, skipping...!");
 			e.printStackTrace();
+			if (mWriter != null)
+				try {
+					mWriter.close();
+				} catch (IOException e1) {
+					// nothing to do here
+				}
 		}
-	}
-
-	/**
-	 * Read mask data from disk if available.
-	 * <p>
-	 * The method reads segmentation data from file. It considers the specified
-	 * mask format, i.e., if a label image is to be read or ImageJ 1.x ROIs. In
-	 * the latter case it automatically differentiates between files ending with
-	 * '.zip', i.e., containing more than one region, and files ending with
-	 * '.roi' which contain exactly a single region.
-	 *
-	 * @param basename		Basename of the corresponding image file.
-	 * @param xmin	Minimum x-value of input image domain.
-	 * @param ymin Minimum y-value of input image domain.
-	 * @param xmax Maximum x-value of input image domain, i.e. image width - 1.
-	 * @param ymax Maximum y-value of input image domain, i.e. image height - 1.
-	 * @return	Mask image, null if appropriate file could not be found.
-	 * @throws ALDOperatorException
-	 */
-	private MTBImage readMaskImage(String basename,
-				double xmin, double ymin,	double xmax, double ymax)
-			throws ALDOperatorException {
-		ImageReaderMTB iRead = new ImageReaderMTB();
-		MTBImage maskImage = null;
-		String maskName = "";
-		if (this.maskDir != null) {
-			switch(this.maskFormat)
-			{
-			case LABEL_IMAGE:
-				maskName= this.maskDir.getDirectoryName() + File.separator
-					+ basename + "-mask.tif";
-				if (this.verbose.booleanValue())
-					System.out.print("\t\t - searching mask " + maskName + "...");
-				fireOperatorExecutionProgressEvent(
-						new ALDOperatorExecutionProgressEvent(this,
-								" searching mask " + maskName + "..."));
-
-				if ((new File(maskName)).exists()) {
-					try {
-						iRead.setFileName(maskName);
-						iRead.runOp();
-						maskImage = iRead.getResultMTBImage();
-						if (this.verbose.booleanValue())
-							System.out.println("found!");
-						fireOperatorExecutionProgressEvent(
-								new ALDOperatorExecutionProgressEvent(this,	" ... found!"));
-					} catch (Exception e) {
-						if (this.verbose.booleanValue())
-							System.out.println("not found!");
-						System.err.println("[ActinAnalyzer2D] Error reading mask " +
-								maskName + ", ignoring mask...");
-						fireOperatorExecutionProgressEvent(
-								new ALDOperatorExecutionProgressEvent(this," ... not found!"));
-					}
-				}
-				else {
-					if (this.verbose.booleanValue())
-						System.out.println("mask not found!");
-					fireOperatorExecutionProgressEvent(
-							new ALDOperatorExecutionProgressEvent(this,
-									" ... mask not found!"));
-				}
-				break;
-			case IJ_ROIS:
-				String maskName_A= this.maskDir.getDirectoryName() + File.separator
-					+ basename + "-mask.zip";
-				String maskName_B= this.maskDir.getDirectoryName() + File.separator
-						+ basename + "-mask.roi";
-				maskName = null;
-				if ((new File(maskName_A)).exists())
-					maskName = maskName_A;
-				else
-					if ((new File(maskName_B)).exists())
-						maskName = maskName_B;
-				if (this.verbose.booleanValue())
-					System.out.print("\t\t - searching IJ ROI file " + maskName + "...");
-				fireOperatorExecutionProgressEvent(
-						new ALDOperatorExecutionProgressEvent(this,
-								" searching IJ ROI file " + maskName + "..."));
-
-				if (maskName != null) {
-					try {
-						MTBRegion2DSet regions =
-							RoiManagerAdapter.getInstance().getRegionSetFromRoiFile(
-								maskName, xmin, ymin, xmax, ymax);
-						if (this.verbose.booleanValue())
-							System.out.println("found!");
-						fireOperatorExecutionProgressEvent(
-							new ALDOperatorExecutionProgressEvent(this,	" ... found!"));
-						// convert region set to label image
-						DrawRegion2DSet regionDrawOp = new DrawRegion2DSet(
-							DrawType.LABEL_IMAGE, regions);
-						regionDrawOp.runOp();
-						maskImage = regionDrawOp.getResultImage();
-						// save the label image to the output directory
-						String outMaskName= this.outDir.getDirectoryName() + File.separator
-							+ basename + "-mask.tif";
-						ImageWriterMTB imgWriter =
-							new ImageWriterMTB(maskImage, outMaskName);
-						imgWriter.setOverwrite(true);
-						imgWriter.runOp();
-					} catch (Exception e) {
-						if (this.verbose.booleanValue())
-							System.out.println("not found!");
-						System.err.println("[ActinAnalyzer2D] Error reading IJ ROIs " +
-							maskName + ", ignoring segmentation...");
-						fireOperatorExecutionProgressEvent(
-							new ALDOperatorExecutionProgressEvent(this," ... not found!"));
-					}
-				}
-				else {
-					if (this.verbose.booleanValue())
-						System.out.println("mask / ROIs not found!");
-					fireOperatorExecutionProgressEvent(
-							new ALDOperatorExecutionProgressEvent(this,
-									" ... mask / ROIs not found!"));
-				}
-				break;
+		
+		// average vectors per group
+		HashMap<String, double[]> groupAverageVectors = new HashMap<>();
+		double data[];
+		String gName;
+		for (r = 0; r < sampleCount; ++r) {
+			gName = this.distroDataGroups[r];
+			if (groupAverageVectors.get(gName) == null) {
+				data = new double[featureSpaceDim+1];
+				groupAverageVectors.put(gName, data);
+			}
+			else
+				data = groupAverageVectors.get(gName);
+			for (d = 0; d < featureSpaceDim; ++d) {
+				data[d] += featureData[d][r];
+			}
+			++data[featureSpaceDim];
+		}
+		
+		Set<String> gKeys = groupAverageVectors.keySet();
+		int groupDistMatrixDim = gKeys.size();
+		for (String key: gKeys) {
+			data = groupAverageVectors.get(key);
+			for (d = 0; d < featureSpaceDim; ++d) {
+				data[d] /= data[featureSpaceDim];
+			}			
+		}
+		
+		String gNames[] = new String[groupDistMatrixDim];
+		int i=0;
+		for (String key: gKeys) {
+			gNames[i] = key;
+			++i;
+		}
+		java.util.Arrays.sort(gNames);
+		
+		double groupDistMax = 0;
+		double dc[], dr[];
+		double[][] groupDistMatrix = 
+				new double[groupDistMatrixDim][groupDistMatrixDim];
+		// diagonal is 0
+		for (r = 0; r < groupDistMatrixDim; ++r)
+			for (c = 0; c < groupDistMatrixDim; ++c)
+				groupDistMatrix[r][c] = 0;
+		// matrix is symmetric, i.e., calculate only lower triangle
+		for (r = 1; r < groupDistMatrixDim; ++r) {
+			dr = groupAverageVectors.get(gNames[r]);
+			for (c = 0; c < r; ++c) {
+				dc = groupAverageVectors.get(gNames[c]);
+				squareSum = 0.0;
+				for (d = 0; d < featureSpaceDim; ++d)
+					squareSum += (dr[d] - dc[d]) * (dr[d] - dc[d]);
+				groupDistMatrix[r][c] = Math.sqrt(squareSum);
+				groupDistMatrix[c][r] = groupDistMatrix[r][c];
+				// search for maximum
+				if (groupDistMatrix[r][c] > groupDistMax)
+					groupDistMax = groupDistMatrix[r][c];
 			}
 		}
-		if (maskImage != null)
-			maskImage.setProperty("Filename", maskName);
-		return maskImage;
+
+		// save group distance matrix to file
+		String groupDistMatrixFile = this.imageDir.getDirectoryName() 
+				+ File.separator + "AllGroupsDistanceData.txt";
+		mWriter = null;
+		try {
+			mWriter= new BufferedWriter(new FileWriter(groupDistMatrixFile));
+			r = 0;
+			for (String k: gNames) {
+				mWriter.write(k);
+				for (c = 0; c < groupDistMatrixDim; ++c) {
+					mWriter.write("\t" + groupDistMatrix[r][c]);
+				}
+				++r;
+				mWriter.write("\n");
+			}
+			mWriter.flush();
+			mWriter.close();
+		} catch (IOException e) {
+			System.err.println(operatorID + " something went wrong writing "
+				+ "group distance file, skipping...!");
+			e.printStackTrace();
+			if (mWriter != null)
+				try {
+					mWriter.close();
+				} catch (IOException e1) {
+					// nothing to do here
+				}
+		}
+		
+		// save group similarity network to file
+		String groupSimilarityNetworkFile = this.imageDir.getDirectoryName() 
+				+ File.separator + "AllGroupsSimilarityNetworkData.txt";
+		mWriter = null;
+		try {
+			mWriter= new BufferedWriter(new FileWriter(groupSimilarityNetworkFile));
+			mWriter.write("node1" + "\t" + "node2" + "\t" + "value" + "\n");
+			double weight;
+			String node1, node2;
+			for (r = 0; r < groupDistMatrixDim; ++r) {
+				node1 = gNames[r];
+				for (c = r+1; c < groupDistMatrixDim; ++c) {
+					node2 = gNames[c];
+					weight = 1.0 - groupDistMatrix[r][c] / groupDistMax;
+					mWriter.write(node1 + "\t" + node2 + "\t" + weight + "\n");
+				}
+			}
+			mWriter.flush();
+			mWriter.close();
+		} catch (IOException e) {
+			System.err.println(operatorID + " something went wrong writing "
+				+ "group similarity network file, skipping...!");
+			e.printStackTrace();
+			if (mWriter != null)
+				try {
+					mWriter.close();
+				} catch (IOException e1) {
+					// nothing to do here
+				}
+		}
 	}
 
 	/**
-	 * Callback routine to change parameters on change of flag for enable/disable feature calculation.
+	 * Callback routine to change parameters on change of flag for 
+	 * enable/disable feature calculation.
 	 */
 	@SuppressWarnings("unused")
 	private void calcFeatureFlagChanged() {
 		try {
 			if (this.doFeatureCalculation) {
-				if (this.hasParameter("featureDir")) {
-					this.removeParameter("featureDir");
-				}
-
 				if (!this.hasParameter("featureExtractor")) {
 					this.addParameter("featureExtractor");
 				}
@@ -1267,14 +1241,9 @@ public class ActinAnalyzer2D extends MTBOperator {
 				if (this.hasParameter("featureExtractor")) {
 					this.removeParameter("featureExtractor");
 				}
-
-				if (!this.hasParameter("featureDir")) {
-					this.addParameter("featureDir");
-				}
 			}
 			// add logging messages (FATAL) as soon as logj4 is configured
 		} catch (SecurityException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (ALDOperatorException e) {
 			e.printStackTrace();
@@ -1298,13 +1267,11 @@ cells.
 <ul>
 <li><p><b>input:</b>
 <ul>
-<li><p><i>Image directory</i>:<br> directory where the images are read from,
-	all files ending on ".tif" are considered;<br> please refer to the webpage for
-	further information on how the file names should be formatted </p></li>
-<li><p><i>Mask directory</i>:<br> directory where the segmentation information for
-	the images is read from; the directory can be identical to the
-	image directory</p></li>
-<li><p><i>Mask format</i>:<br> expected format of the segmentation data files
+<li><p><i>Image file folder</i>:<br> directory where the images are read from,
+	all files in a format supported by the Bioformats library are considered
+	</p></li>
+<li><p><i>Boundary file format</i>:<br> expected format of the contour 
+	data files
 	<ul>
 	<li>LABEL_IMAGE:<br> a gray-scale image is expected where the area of each
 		cell is marked with a single unique gray-scale value;<br>
@@ -1314,18 +1281,27 @@ cells.
 		the files should share the names of the input image files and have the
 		ending "-mask.zip" or "-mask.roi"
 	</ul>
-<li><p><i>Output and working directory</i>:<br> directory for intermediate and
-	final results
-<li><p><i>Calculate features?</i><br> by disabeling this option the time-consuming
-	feature calculation can be omitted, however, in this case the feature
-	directory is expected to already contain the feature files
-<li><p><i>Feature directory</i>:<br> directory where the calculated features are
-	saved to and from where they are read if feature calculations are omitted
+<li><p><i>Cytoskeleton channel</i><br> if image stacks are provided you need
+	to specify in which channel of the images the cytoskeleton information is 
+	located; indices start with 1</p></li>
+<li><p><i>Calculate features?</i><br> by disabeling this option the 
+	time-consuming feature calculation can be omitted, however, in this case a
+	sub-folder 'results_features' is expected to already contain the feature 
+	files</p></li>
+<li><p><i>Feature extractor</i>:<br> operator used for quantifying texture
+	</p></li>
+<li><p><i>Tile size x/y and Tile shift x/y</i>:<br> global configuration of
+	texture quantification stage, i.e., size of sliding window and size of
+	shifts; if shifts are smaller than tile size window positions are overlapping 
+	</p></li>
 <li><p><i>Number of feature clusters</i>:<br> number of clusters to be used for
 	feature vector clustering, should approximately refer to the expected number
-	of structural patterns appearing in the cells
+	of structural patterns appearing in the cells</p></li>
 <li><p><i>Do PCA in stage II?</i><br> enable or disable the PCA prior to the
-	pairwise distance calculations in stage II of the approach
+	pairwise distance calculations in stage II of the approach</p></li>
+<li><p><i>Optional: Cell boundary file folder</i><br> if the contour data is
+	not stored in group-wise sub-folders named 'results_segmentation' you can
+	specify alternative locations via this parameter</p></li>
 </ul>
 
 <li><p><b>output:</b>
@@ -1337,18 +1313,19 @@ cells.
 </ul>
 In addition to the output data directly displayed on termination of the operator
 some more result data files are written to the output directory. In particular,
-a file with the pairwise Euclidean distances between distribution vectors can
-be found there which can be further analyzed, e.g., with
-<a href="http://deim.urv.cat/~sgomez/multidendrograms.php">MultiDendrograms</a>.
-Also images visualizing the cluster distributions for each input image and
-each cell, respectively, are available.
+a file with the pairwise Euclidean distances between distribution vectors as 
+well as between average vectors of the groups can be found there which can be 
+further analyzed, e.g., with
+<a href="http://deim.urv.cat/~sgomez/multidendrograms.php">MultiDendrograms</a>
+or our R script provided for that purpose. Also images visualizing the cluster 
+distributions for each input image and each cell, respectively, are available.
 
 </ul>
 
 <p>
 For more details about the operator and additional information on the parameters
 refer to its webpage:
-<a href="http://www2.informatik.uni-halle.de/agprbio/mitobo/index.php/Applications/ActinAnalyzer2D">
-http://www2.informatik.uni-halle.de/agprbio/mitobo/index.php/Applications/ActinAnalyzer2D</a>.
+<a href="http://mitobo.informatik.uni-halle.de/index.php/Applications/CytoskeletonAnalyzer2D">
+http://mitobo.informatik.uni-halle.de/index.php/Applications/CytoskeletonAnalyzer2D</a>.
 
 END_MITOBO_ONLINE_HELP*/

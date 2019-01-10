@@ -22,7 +22,7 @@
  *
  */
 
-package de.unihalle.informatik.MiToBo.apps.actinAnalysis;
+package de.unihalle.informatik.MiToBo.apps.cytoskeleton;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -41,7 +41,6 @@ import de.unihalle.informatik.Alida.annotations.ALDDerivedClass;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.*;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType;
 import de.unihalle.informatik.MiToBo.io.dirs.DirectoryTree;
-import de.unihalle.informatik.MiToBo.io.images.ImageReaderMTB;
 import de.unihalle.informatik.MiToBo.io.images.ImageWriterMTB;
 import de.unihalle.informatik.MiToBo.math.statistics.PCA;
 import de.unihalle.informatik.MiToBo.math.statistics.PCA.ReductionMode;
@@ -55,14 +54,8 @@ import de.unihalle.informatik.MiToBo.math.statistics.PCA.ReductionMode;
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.SWING,
 	level=Level.STANDARD, allowBatchMode=false)
 @ALDDerivedClass
-public class ActinFeatureExtractorEigenStructures 
-	extends FilamentFeatureExtractor {
-
-	/**
-	 * Identifier string for this operator class.
-	 */
-	private static final String operatorID = 
-			"[ActinFeatureExtractorEigenStructures]";
+public class CytoskeletonFeatureExtractorEigenStructures 
+	extends CytoskeletonFeatureExtractor {
 
 	/*
 	 * some helper variables
@@ -82,9 +75,9 @@ public class ActinFeatureExtractorEigenStructures
 	 * Default constructor.
 	 * @throws ALDOperatorException Thrown in case of failure.
 	 */
-	public ActinFeatureExtractorEigenStructures() 
+	public CytoskeletonFeatureExtractorEigenStructures() 
 			throws ALDOperatorException {
-		// nothing to be done here
+		this.operatorID = "[CytoskeletonFeatureExtractorEigenStructures]";
 	}
 	
 	@Override
@@ -92,11 +85,10 @@ public class ActinFeatureExtractorEigenStructures
 		throws ALDOperatorException, ALDProcessingDAGException {
 		
 		MTBImage img;
-		ImageReaderMTB iRead = new ImageReaderMTB();
 		ImageWriterMTB iWrite = new ImageWriterMTB();
 
   	if (this.verbose.booleanValue())
-  		System.out.println(operatorID	+ " Calculating features...");
+  		System.out.println(this.operatorID	+ " Calculating features...");
   	this.fireOperatorExecutionProgressEvent(
      	new ALDOperatorExecutionProgressEvent(this,
      		" calculating features..."));
@@ -120,23 +112,22 @@ public class ActinFeatureExtractorEigenStructures
   		fileBasenames.add(basename);
 
 			try {
-        iRead.setFileName(file);
-				iRead.runOp(HidingMode.HIDDEN);
-				img = iRead.getResultMTBImage(); 
+				img = this.readInputImageMaxProjectChannel(file);
 				if (this.imageWidth == -1)
 					this.imageWidth = img.getSizeX();
 				if (this.imageHeight == -1)
 					this.imageHeight = img.getSizeY();
       } catch (Exception e) {
-      	System.err.println(operatorID + " Error reading file, " + 
+      	System.err.println(this.operatorID + " Error reading file, " + 
       			"skipping " + file + "...");
       	continue;
       }
 
 			// check if mask available
 			MTBImage maskImage = null;
-			maskImage = this.readMaskImage(basename, 
-				0, 0, this.imageWidth-1, this.imageHeight-1);
+			maskImage = readMaskImage(this.maskDir.getDirectoryName(), basename,
+				this.maskFormat, 0, 0, this.imageWidth-1, this.imageHeight-1,
+					this.verbose.booleanValue());
 			if (maskImage != null)
 				maskNames.add(maskImage.getProperty("Filename"));
 			else

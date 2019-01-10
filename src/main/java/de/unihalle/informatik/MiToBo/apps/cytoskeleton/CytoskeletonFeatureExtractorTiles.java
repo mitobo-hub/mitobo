@@ -22,7 +22,7 @@
  *
  */
 
-package de.unihalle.informatik.MiToBo.apps.actinAnalysis;
+package de.unihalle.informatik.MiToBo.apps.cytoskeleton;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -40,7 +40,6 @@ import de.unihalle.informatik.MiToBo.features.FeatureCalculator;
 import de.unihalle.informatik.MiToBo.features.TileFeatureCalculator;
 import de.unihalle.informatik.MiToBo.gui.MTBTableModel;
 import de.unihalle.informatik.MiToBo.io.dirs.DirectoryTree;
-import de.unihalle.informatik.MiToBo.io.images.ImageReaderMTB;
 import de.unihalle.informatik.MiToBo.io.images.ImageWriterMTB;
 
 /**
@@ -49,19 +48,19 @@ import de.unihalle.informatik.MiToBo.io.images.ImageWriterMTB;
  * The features which are to be extracted by operators extending this
  * class should be specifically dedicated to filament like structures,
  * e.g., actin fiberes or microtubuli. Compared to 
- * {@link FilamentFeatureExtractor} operators sub-classing this class 
+ * {@link CytoskeletonFeatureExtractor} operators sub-classing this class 
  * are expected to work tile-wise on the input image.
  * 
  * @author moeller
  */
-public abstract class FilamentFeatureExtractorTiles 
-	extends FilamentFeatureExtractor {
+public abstract class CytoskeletonFeatureExtractorTiles 
+	extends CytoskeletonFeatureExtractor {
 
 	/**
 	 * Default constructor.
 	 * @throws ALDOperatorException Thrown in case of failure.
 	 */
-	public FilamentFeatureExtractorTiles() throws ALDOperatorException {
+	public CytoskeletonFeatureExtractorTiles() throws ALDOperatorException {
 		// nothing to be done here
 	}
 	
@@ -78,7 +77,6 @@ public abstract class FilamentFeatureExtractorTiles
 		throws ALDOperatorException, ALDProcessingDAGException {
 		
 		MTBImage img;
-		ImageReaderMTB iRead = new ImageReaderMTB();
 		ImageWriterMTB iWrite = new ImageWriterMTB();
 
   	if (this.verbose.booleanValue())
@@ -101,7 +99,7 @@ public abstract class FilamentFeatureExtractorTiles
   				+ this.imageDir);
 		
 		DirectoryTree dirTree = 
-			new DirectoryTree(this.imageDir.getDirectoryName());
+			new DirectoryTree(this.imageDir.getDirectoryName(), false);
 		Vector<String> imageList = dirTree.getFileList();
 		for (String file : imageList) {
 			if (this.verbose.booleanValue())
@@ -112,9 +110,7 @@ public abstract class FilamentFeatureExtractorTiles
 			String basename = ALDFilePathManipulator.getFileName(file);
 
 			try {
-        iRead.setFileName(file);
-				iRead.runOp(HidingMode.HIDDEN);
-				img = iRead.getResultMTBImage(); 
+				img = this.readInputImageMaxProjectChannel(file);
 				if (this.imageWidth == -1)
 					this.imageWidth = img.getSizeX();
 				if (this.imageHeight == -1)
@@ -128,8 +124,9 @@ public abstract class FilamentFeatureExtractorTiles
 			// check if mask available
 			MTBImage maskImage = null;
 			String maskName = "undefined";
-			maskImage = this.readMaskImage(basename, 
-				0, 0, this.imageWidth-1, this.imageHeight-1);
+			maskImage = readMaskImage(this.maskDir.getDirectoryName(), basename, 
+				this.maskFormat, 0, 0, this.imageWidth-1, this.imageHeight-1, 
+					this.verbose.booleanValue());
 			if (maskImage != null)
 				maskName = maskImage.getProperty("Filename");
 			
