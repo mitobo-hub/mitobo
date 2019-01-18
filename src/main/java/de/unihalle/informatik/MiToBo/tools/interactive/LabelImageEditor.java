@@ -1,7 +1,7 @@
 /*
  * This file is part of MiToBo, the Microscope Image Analysis Toolbox.
  *
- * Copyright (C) 2010 - 2014
+ * Copyright (C) 2010 - @YEAR@
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -52,6 +53,7 @@ import de.unihalle.informatik.Alida.annotations.ALDAOperator.Level;
 import de.unihalle.informatik.Alida.datatypes.ALDDirectoryString;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.operator.ALDOperator;
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageByte;
@@ -59,6 +61,8 @@ import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
 import de.unihalle.informatik.MiToBo.io.dirs.DirectoryTree;
 import de.unihalle.informatik.MiToBo.io.images.ImageReaderMTB;
 import de.unihalle.informatik.MiToBo.io.images.ImageWriterMTB;
+import de.unihalle.informatik.MiToBo.morphology.BasicMorphology;
+import de.unihalle.informatik.MiToBo.morphology.BasicMorphology.opMode;
 import de.unihalle.informatik.MiToBo.segmentation.regions.labeling.LabelComponentsSequential;
 import ij.IJ;
 import ij.ImagePlus;
@@ -66,10 +70,19 @@ import ij.gui.ImageCanvas;
 import ij.process.ImageProcessor;
 
 /**
- * A small interactive tool for deleting regions from a label image 
- * by mouse-clicks.
+ * A small interactive tool for editing label images by mouse-clicks.
+ * <p>
+ * The editor supports removing regions by one-click operations. Images can 
+ * be relabeled and open contour branches be removed. Also holes within 
+ * regions, i.e., background sections and small regions completely surrounded
+ * by another region, can be eliminated.<br>
+ * Short gaps in boundaries can be closed by drawing free-hand lines 
+ * by mouse.<br> 
+ * To enhance the display of an image the contrast of region labels can be 
+ * improved by shifting dark labels into a higher interval of gray-scale 
+ * values increasing the difference (contrast) to the black background. 
  * 
- * @author moeller
+ * @author Birgit Moeller
  */
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.SWING, 
 	level=Level.APPLICATION, allowBatchMode = false)
@@ -77,7 +90,7 @@ public class LabelImageEditor extends MTBOperator
 		implements MouseListener, MouseMotionListener, ActionListener {
 
 	/**
-	 * Directory to process.
+	 * Image directory to process.
 	 */
 	@Parameter(label = "Input Directory", required = true, 
 		direction = Parameter.Direction.IN, description = "Input directory.",
@@ -114,6 +127,9 @@ public class LabelImageEditor extends MTBOperator
 	 */
 	private ImageCanvas ic;
 	
+	/**
+	 * Image currently under processing.
+	 */
 	private MTBImageByte activeImage;
 	
 	/**
@@ -158,10 +174,26 @@ public class LabelImageEditor extends MTBOperator
 	 */
 	private boolean calledFirstTime = true;
 	
+	/**
+	 * In memory mode labels can be transferred from one region to another.
+	 */
 	private boolean memoryMode = false;
+	
+	/**
+	 * Stores the last clicked label for transfer in memory mode.
+	 */
 	private int lastLabel;
 	
+	/**
+	 * Local flag to indicate if we are currently tracing a path 
+	 * for a new piece of boundary.
+	 */
 	private boolean scanPath = false;
+	
+	/**
+	 * Local helper variable in drawing new boundaries, 
+	 * stores last point of current path.
+	 */
 	private Point2D.Double lastPathPoint;
 	
 	/**
@@ -229,48 +261,7 @@ public class LabelImageEditor extends MTBOperator
 				
 				// init frame with first image
 				if (this.activePlus == null) {
-
-					this.mainFrame = new JFrame();
-					this.mainFrame.setLayout(new BorderLayout());
-					JPanel buttons = new JPanel();
-					JButton next = new JButton("Next");
-					next.addActionListener(this);
-					next.setActionCommand("next");
-					buttons.add(next);
-					JButton contrast = new JButton("Optimize Contrast");
-					contrast.addActionListener(this);
-					contrast.setActionCommand("contrast");
-					buttons.add(contrast);
-					JButton boundaries = new JButton("Fix Boundaries");
-					boundaries.addActionListener(this);
-					boundaries.setActionCommand("boundaries");
-					buttons.add(boundaries);
-					JButton relabel = new JButton("Relabel");
-					relabel.addActionListener(this);
-					relabel.setActionCommand("relabel");
-					buttons.add(relabel);
-					JButton undo = new JButton("Undo");
-					undo.addActionListener(this);
-					undo.setActionCommand("undo");
-					buttons.add(undo);
-					JButton quit = new JButton("Quit");
-					quit.addActionListener(this);
-					quit.setActionCommand("quit");
-					buttons.add(quit);
-					this.mainFrame.add(buttons,BorderLayout.NORTH);
-					JPanel canvas = new JPanel();
-					
-					this.activePlus = this.activeImage.getImagePlus();
-					this.activePlus.show();
-					this.ic = this.activePlus.getCanvas();
-					this.activePlus.hide();
-					this.ic.addMouseListener(this);
-					this.ic.addMouseMotionListener(this);
-					
-					canvas.add(this.ic);
-					this.mainFrame.add(canvas, BorderLayout.CENTER);
-					this.mainFrame.setSize(1200, 1200);
-					this.mainFrame.setVisible(true);
+					this.initMainFrame();
 				}
 				
 				this.mainFrame.setTitle(this.activeImage.getTitle());
@@ -317,7 +308,7 @@ public class LabelImageEditor extends MTBOperator
 		
 		// ignore clicks to the background except in memory mode
 		// => filling in background regions is allowed
-		if (label == 0 && !memoryMode)
+		if (label == 0 && !this.memoryMode)
 			return;
 		
 		if (IJ.shiftKeyDown()) {
@@ -337,7 +328,7 @@ public class LabelImageEditor extends MTBOperator
 			for (int y=0; y<this.activeProcessor.getHeight();++y) {
 				for (int x=0; x<this.activeProcessor.getWidth();++x) {
 					if (this.activeProcessor.getPixel(x, y) == label) {
-						this.activeProcessor.putPixel(x, y, lastLabel);
+						this.activeProcessor.putPixel(x, y, this.lastLabel);
 					}
 				}
 			}
@@ -453,8 +444,12 @@ public class LabelImageEditor extends MTBOperator
 			this.saveFile();
 			this.stillActive = false; 
 		}
+		// proceed without doing any changes to the current image
+		else if (c.equals("skip")) {
+			this.stillActive = false; 
+		}
 		// optimize contrast
-		if (c.equals("contrast")) {
+		else if (c.equals("contrast")) {
 			
 			this.lastProcessor = this.activeProcessor.duplicate();
 
@@ -466,7 +461,7 @@ public class LabelImageEditor extends MTBOperator
 			this.ic.repaint();
 		}
 		// delete obsolete boundaries
-		if (c.equals("boundaries")) {
+		else if (c.equals("boundaries")) {
 			
 			this.lastProcessor = this.activeProcessor.duplicate();
 			
@@ -559,6 +554,82 @@ public class LabelImageEditor extends MTBOperator
 				return;
 			}
 		}
+		// fill holes in regions
+		else if (c.equals("holes")) {
+			try {
+				// back-up old image version before doing modifications
+				this.lastProcessor = this.activeProcessor.duplicate();
+
+				int height = this.activeProcessor.getHeight();
+				int width = this.activeProcessor.getWidth();
+				
+				// background image with boundaries and holes in white
+				MTBImageByte backImage = 
+					(MTBImageByte)this.activeImage.duplicate();
+				backImage.fillBlack();
+				for (int y=0; y<height;++y) {
+					for (int x=0; x<width;++x) {
+						if (this.activeProcessor.getPixel(x, y) == 0)
+							backImage.putValueInt(x, y, 255);
+					}
+				}
+
+				// eliminate one-pixel wide boundaries -> holes remaining
+				BasicMorphology bm = new BasicMorphology();
+				bm.setInImg(backImage);
+				bm.setMask(BasicMorphology.maskShape.CIRCLE, 1);
+				bm.setMode(opMode.ERODE);
+				bm.runOp();
+				backImage = (MTBImageByte)bm.getResultImage();
+				bm.setInImg(backImage);
+				bm.setMask(BasicMorphology.maskShape.CIRCLE, 1);
+				bm.setMode(opMode.DILATE);
+				bm.runOp();
+				backImage = (MTBImageByte)bm.getResultImage();
+				
+				// label hole regions
+				LabelComponentsSequential lop = 
+						new LabelComponentsSequential(backImage, false);
+				lop.runOp();
+				
+				// check the labels in the neighborhood of each region
+				// => if only one, than region is obviously a hole
+				int x, y, val;
+				TreeSet<Integer> neighborLabels = new TreeSet<Integer>();
+				for (MTBRegion2D reg: lop.getResultingRegions()) {
+					neighborLabels.clear();
+					for (Point2D.Double p: reg.getPoints()) {
+						for (int dy = -2; dy <= 2; ++dy) {
+							for (int dx = -2; dx <= 2; ++dx) {
+								x = (int)(p.x+dx);
+								y = (int)(p.y+dy);
+								if (x >= 0 && x < width && y>= 0 && y < height) {
+									if (this.activeProcessor.getPixelValue(x, y) > 0)
+										neighborLabels.add(new Integer(
+											(int)this.activeProcessor.getPixelValue(x, y)));
+								}
+							}							
+						}
+					}
+					if (neighborLabels.size() == 1) {
+						// label of surrounding region
+						val = neighborLabels.first().intValue();
+						// fill hole region
+						for (Point2D.Double p: reg.getPoints()) {
+							this.activeProcessor.putPixel((int)p.x, (int)p.y, val);
+						}					
+					}
+				}				
+				this.activePlus.setProcessor(this.activeProcessor);
+				this.activePlus.updateAndDraw();
+				this.ic.setImageUpdated();
+				this.ic.repaint();
+			} catch (Exception e1) {
+				// just ignore
+				e1.printStackTrace();
+				return;
+			}
+		}
 		// undo last operation
 		else if (c.equals("undo")) {
 			this.activeProcessor = this.lastProcessor;
@@ -577,6 +648,90 @@ public class LabelImageEditor extends MTBOperator
 		}
 	}
 	
+	/**
+	 * Initialize the main window on opening the first image.
+	 */
+	private void initMainFrame() {
+		
+		// main window
+		this.mainFrame = new JFrame();
+		this.mainFrame.setLayout(new BorderLayout());
+		
+		// buttons
+		JPanel buttons = new JPanel();
+		JButton next = new JButton("Next");
+		next.addActionListener(this);
+		next.setToolTipText("Save changes and proceed with next image.");
+		next.setActionCommand("next");
+		next.setMnemonic(KeyEvent.VK_N);
+		buttons.add(next);
+		JButton skip = new JButton("Skip");
+		skip.addActionListener(this);
+		skip.setToolTipText("Ignore all changes and skip image.");
+		skip.setActionCommand("skip");
+		skip.setMnemonic(KeyEvent.VK_S);
+		buttons.add(skip);
+		JButton contrast = new JButton("Contrast");
+		contrast.addActionListener(this);
+		contrast.setToolTipText("Improve visibility by shifting labels " 
+			+ "to brighter values.");
+		contrast.setActionCommand("contrast");
+		contrast.setMnemonic(KeyEvent.VK_C);
+		buttons.add(contrast);
+		JButton relabel = new JButton("Relabel");
+		relabel.addActionListener(this);
+		relabel.setToolTipText("Relabel the image, unify labels.");
+		relabel.setActionCommand("relabel");
+		relabel.setMnemonic(KeyEvent.VK_R);
+		buttons.add(relabel);
+		JButton boundaries = new JButton("Fix Borders");
+		boundaries.addActionListener(this);
+		boundaries.setToolTipText("Remove open boundary branches and " 
+			+ "obsolete pieces of boundaries inside regions.");
+		boundaries.setActionCommand("boundaries");
+		boundaries.setMnemonic(KeyEvent.VK_B);
+		buttons.add(boundaries);
+		JButton holes = new JButton("Fill Holes");
+		holes.addActionListener(this);
+		holes.setToolTipText("Fill holes inside regions.");
+		holes.setActionCommand("holes");
+		holes.setMnemonic(KeyEvent.VK_H);
+		buttons.add(holes);
+		JButton undo = new JButton("Undo");
+		undo.addActionListener(this);
+		undo.setToolTipText("Undo last action.");
+		undo.setActionCommand("undo");
+		undo.setMnemonic(KeyEvent.VK_U);
+		buttons.add(undo);
+		JButton quit = new JButton("Quit");
+		quit.addActionListener(this);
+		quit.setToolTipText("Save current image and quit the editor.");
+		quit.setActionCommand("quit");
+		quit.setMnemonic(KeyEvent.VK_Q);
+		buttons.add(quit);
+		this.mainFrame.add(buttons,BorderLayout.NORTH);
+		JPanel canvas = new JPanel();
+		
+		this.activePlus = this.activeImage.getImagePlus();
+		this.activePlus.show();
+		this.ic = this.activePlus.getCanvas();
+		this.activePlus.hide();
+		this.ic.addMouseListener(this);
+		this.ic.addMouseMotionListener(this);
+		
+		canvas.add(this.ic);
+		this.mainFrame.add(canvas, BorderLayout.CENTER);
+		this.mainFrame.setSize(1200, 1200);
+		this.mainFrame.setVisible(true);
+		
+	}
+	
+	/**
+	 * Optimize visibility by shifting labels into 
+	 * upper part of gray-scale range.
+	 * 
+	 * @param ip	Image processor to process.
+	 */
 	private void optimizeContrast(ImageProcessor ip) {
 
 		// count labels
@@ -614,7 +769,7 @@ public class LabelImageEditor extends MTBOperator
 				int label = ip.getPixel(x, y);
 				if (label == 0)
 					continue;
-				newLabel = labelMap.get(new Integer(label));
+				newLabel = labelMap.get(new Integer(label)).intValue();
 				ip.putPixel(x, y, newLabel);
 			}
 		}
