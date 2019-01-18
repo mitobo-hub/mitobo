@@ -411,7 +411,7 @@ public class PaCeQuant extends MTBOperator {
 	 * Mode for closing gaps.
 	 */
 	@Parameter(label = "Heuristic for Gap Closing", required = true, 
-			direction = Parameter.Direction.IN, dataIOOrder = 5,
+			direction = Parameter.Direction.IN, dataIOOrder = 6,
 			description = "Choose mode for closing gaps.", 
 			callback = "switchGapCloseMode",
 			paramModificationMode = ParameterModificationMode.MODIFIES_INTERFACE)
@@ -421,7 +421,7 @@ public class PaCeQuant extends MTBOperator {
 	 * Maximal distance of gaps in naive mode to be closed.
 	 */
 	@Parameter(label = "  End-point distance for naive heuristic", 
-			required = true, direction = Parameter.Direction.IN, dataIOOrder = 6,
+			required = true, direction = Parameter.Direction.IN, dataIOOrder = 7,
 			description = "Maximal distance of end-points to be linked.")
 	private int naiveGapThreshold = 20;
 	
@@ -429,7 +429,7 @@ public class PaCeQuant extends MTBOperator {
 	 * Units for size thresholds.
 	 */
 	@Parameter(label = "Unit for Size Thresholds", required = true, 
-			direction = Parameter.Direction.IN, dataIOOrder = 7,
+			direction = Parameter.Direction.IN, dataIOOrder = 8,
 			description = "Unit of specified size thresholds.")
 	private MeasurementUnits thresholdUnits = MeasurementUnits.PIXELS;
 	
@@ -479,6 +479,15 @@ public class PaCeQuant extends MTBOperator {
 	private boolean classifyLobes = false;
 
 	/**
+	 * Niblack threshold.
+	 */
+	@Parameter(label = "Niblack threshold", required = false, 
+		direction = Parameter.Direction.IN,	dataIOOrder = -5,
+		mode = ExpertMode.ADVANCED,
+		description = "Threshold for variance check in Niblack binarization.")
+	public double niblackVarianceThresh = 4.0; 
+
+	/**
 	 * Info string for segmentation phase configuration parameters.
 	 */
 	@Parameter(label = "Configure result data:", required = false,
@@ -490,7 +499,7 @@ public class PaCeQuant extends MTBOperator {
 	 * Flag to enable/disable drawing region IDs.
 	 */
 	@Parameter(label = "Draw region IDs to output images?", 
-			required = false,	direction = Parameter.Direction.IN,	dataIOOrder = 1, 
+			required = false,	direction = Parameter.Direction.IN,	dataIOOrder = 10, 
 			mode = ExpertMode.STANDARD,
 			description = "Enable/disable drawing of region IDs.")
 	private boolean drawRegionIDsToOutputImages = false;
@@ -2039,7 +2048,8 @@ public class PaCeQuant extends MTBOperator {
 		
 		// binarize vesselness image, cell boundaries become foreground
 		ImgThreshNiblack niblackThresholder = new ImgThreshNiblack(
-				this.vesselImg, Mode.STD_LOCVARCHECK, 0.0, -1.0, 25, 25, 4.0, null);
+			this.vesselImg, Mode.STD_LOCVARCHECK, 0.0, -1.0, 25, 25, 
+				this.niblackVarianceThresh, null);
 		niblackThresholder.runOp(HidingMode.HIDE_CHILDREN);
 		MTBImageByte binVesselImg = niblackThresholder.getResultImage();
 		binVesselImg.setTitle("Binarized vesselness image");

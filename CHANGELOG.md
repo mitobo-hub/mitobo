@@ -14,6 +14,24 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 
 ### Fixed
 
+## [1.8.13] - 2018-12-18
+Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
+- Released MiToBo 1.8.13
+
+### Added
+- CytoSkeletonAnalyzer2D: released new operator for texture analysis of cytoskeleton structural patterns
+- MTBCellCounter: added line segments as new type of annotation object
+
+### Fixed
+- Grappa: fixed initialization of internal node management data structures after reloading a workflow
+
+## [1.8.12] - 2018-10-17
+Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
+- Released MiToBo 1.8.12
+
+### Added
+- PaCeQuant: new parameter for configuration of Niblack thresholding available in GUI
+
 ## [1.8.11] - 2018-09-07
 Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
 - Released MiToBo 1.8.11

@@ -38,6 +38,7 @@
 
 package de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.xml;
 
+import java.awt.geom.Point2D;
 import java.io.BufferedOutputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -53,10 +54,13 @@ import de.unihalle.informatik.MiToBo.core.datatypes.MTBPolygon2DSet;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2D;
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarker;
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarkerShape;
+import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarkerShapeLine;
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarkerShapePolygon;
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarkerShapeRegion;
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarkerVector;
+import de.unihalle.informatik.MiToBo_xml.MTBXMLPoint2DDoubleType;
 import de.unihalle.informatik.MiToBo_xml.MTBXMLPoint2DType;
+import de.unihalle.informatik.MiToBo_xml.MTBXMLPointVectorType;
 import de.unihalle.informatik.MiToBo_xml.MTBXMLPolygon2DType;
 import de.unihalle.informatik.MiToBo_xml.MTBXMLRegion2DSetType;
 import de.unihalle.informatik.MiToBo_xml.MTBXMLRegion2DType;
@@ -131,6 +135,26 @@ public class WriteXML{
 							MTBPolygon2D p = sp.getPolygon();
 							MTBXMLPolygon2DType pxml = p.toXMLType(null);
 							this.out.write(pxml.toString());
+						}
+						else if (s.getClass().equals(CellCntrMarkerShapeLine.class)) {
+							this.out.write("             <MarkerShape>line</MarkerShape>\r\n");
+							CellCntrMarkerShapeLine sp = (CellCntrMarkerShapeLine)s;
+							MTBXMLPoint2DDoubleType spt = 
+									MTBXMLPoint2DDoubleType.Factory.newInstance();
+							spt.setX(sp.getStartPoint().x);
+							spt.setY(sp.getStartPoint().y);
+							MTBXMLPoint2DDoubleType ept = 
+									MTBXMLPoint2DDoubleType.Factory.newInstance();
+							ept.setX(sp.getEndPoint().x);
+							ept.setY(sp.getEndPoint().y);
+							// put both points in a vector
+							MTBXMLPoint2DDoubleType[] ptA = new MTBXMLPoint2DDoubleType[2];
+							ptA[0] = spt;
+							ptA[1] = ept;
+							MTBXMLPointVectorType pts = 
+									MTBXMLPointVectorType.Factory.newInstance();
+							pts.setPointArray(ptA);
+							this.out.write(pts.toString());
 						}
 						this.out.write("\r\n");
 					}

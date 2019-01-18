@@ -22,7 +22,7 @@
  *
  */
 
-package de.unihalle.informatik.MiToBo.apps.actinAnalysis;
+package de.unihalle.informatik.MiToBo.apps.cytoskeleton;
 
 import java.util.Vector;
 
@@ -46,8 +46,8 @@ import de.unihalle.informatik.MiToBo.features.texture.FeatureCalculatorHaralickM
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.SWING,
 	level=Level.STANDARD, allowBatchMode=false)
 @ALDDerivedClass
-public class ActinFeatureExtractorHaralickMeasures 
-	extends FilamentFeatureExtractorTiles {
+public class CytoskeletonFeatureExtractorHaralickMeasures 
+	extends CytoskeletonFeatureExtractorTiles {
 
 	/**
 	 * Default directions for Haralick features.
@@ -98,9 +98,9 @@ public class ActinFeatureExtractorHaralickMeasures
 	 * Default constructor.
 	 * @throws ALDOperatorException Thrown in case of failure. 
 	 */
-	public ActinFeatureExtractorHaralickMeasures() 
+	public CytoskeletonFeatureExtractorHaralickMeasures() 
 			throws ALDOperatorException {
-		this.operatorID = "[ActinFeatureExtractorHaralickMeasures]";
+		this.operatorID = "[CytoskeletonFeatureExtractorHaralickMeasures]";
 	}
 	
 	/**

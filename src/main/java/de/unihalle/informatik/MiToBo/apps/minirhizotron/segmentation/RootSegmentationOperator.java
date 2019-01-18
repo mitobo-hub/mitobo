@@ -27,21 +27,41 @@ package de.unihalle.informatik.MiToBo.apps.minirhizotron.segmentation;
 
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.operator.ALDOperatorCollectionElement;
+import ij.ImagePlus;
 
 /**
  * 
  * @author schreck
  */
 public abstract class RootSegmentationOperator 
-	extends ALDOperatorCollectionElement {
-
+	extends ALDOperatorCollectionElement 
+{
+	private static ImagePlus image;
+	
 	/**
 	 * Default constructor.
 	 * @throws ALDOperatorException Thrown in case of failure.
 	 */
-	public RootSegmentationOperator() throws ALDOperatorException {
+	public RootSegmentationOperator() throws ALDOperatorException 
+	{
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
+	/**
+	 * Setter for the input image.
+	 * @param img - ImagePlus
+	 */
+	public void setImage(ImagePlus img)
+	{
+		image = img;
+	}
+	
+	/**
+	 * Getter for the input image.
+	 * @return the image as an ImagePlus
+	 */
+	public static ImagePlus getImage()
+	{
+		return image;
+	}
 }
