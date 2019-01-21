@@ -323,6 +323,11 @@
       <groupId>uk.co.geolib</groupId>
       <artifactId>geopolygons</artifactId>
     </dependency>
+    <dependency>
+      <!-- graph algorithms, e.g., used for Dijkstra gap closing -->
+      <groupId>org.jgrapht</groupId>
+      <artifactId>jgrapht-core</artifactId>
+    </dependency>
     <!-- ImgLib2 dependencies -->
     <dependency>
       <groupId>net.imglib2</groupId>
