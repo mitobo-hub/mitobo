@@ -14,6 +14,14 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 
 ### Fixed
 
+## [1.8.13.1] - 2019-01-22
+Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
+- Released MiToBo 1.8.13.1
+
+### Added
+- CellBoundaryExtractor2D: a new operator to extract cell boundaries using vesselness enhancement filters
+- LabelImageEditor: added new functionality, e.g., to merge regions, draw free-hand lines, fill holes or undo actions
+
 ## [1.8.13] - 2018-12-18
 Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
 - Released MiToBo 1.8.13
