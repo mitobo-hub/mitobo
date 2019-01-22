@@ -661,7 +661,7 @@ public class CellBoundaryExtractor2D extends MTBOperator {
 			throws ALDOperatorException, ALDProcessingDAGException {
 
 		ImgThreshNiblack niblackThresholder = new ImgThreshNiblack(
-				img, Mode.STD_LOCVARCHECK, 0.0, -0.2, 21, 21, 7.0, null);
+				img, Mode.STD_LOCVARCHECK, 0.0, -1.0, 21, 21, 3.0, null);
 		niblackThresholder.runOp(HidingMode.HIDE_CHILDREN);
 		this.binVesselImg = niblackThresholder.getResultImage();
 		this.binVesselImg.setTitle("Binarized vesselness image");
@@ -669,7 +669,7 @@ public class CellBoundaryExtractor2D extends MTBOperator {
 		ComponentPostprocess cp =	new ComponentPostprocess(this.binVesselImg, 
 				ProcessMode.ERASE_SMALL_COMPS);
 		cp.setDiagonalNeighbors(true);
-		cp.setMinimalComponentSize(250);
+		cp.setMinimalComponentSize(200);
 		cp.runOp();
 		this.binFilteredImg = (MTBImageByte)cp.getResultImage();
 
@@ -906,7 +906,7 @@ public class CellBoundaryExtractor2D extends MTBOperator {
 
 		// remove remaining spines
 		sp.setInputImage(this.skelImg);
-		sp.setMaximalSpineLength(200);
+		sp.setMaximalSpineLength(100);
 		sp.runOp(HidingMode.HIDE_CHILDREN);
 		this.skelImg = sp.getResultImage();
 		
