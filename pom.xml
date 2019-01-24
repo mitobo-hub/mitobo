@@ -385,6 +385,13 @@
     </dependency>
   </dependencies>
 
+  <mailingLists>
+    <mailingList>
+      <name>Image.sc Forum</name>
+      <archive>https://forum.image.sc/</archive>
+    </mailingList>
+  </mailingLists>
+
   <scm>
     <connection>scm:git:https://github.com/mitobo-hub/mitobo.git</connection>
     <developerConnection>scm:git:https://github.com/mitobo-hub/mitobo.git</developerConnection>
