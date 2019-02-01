@@ -24,10 +24,11 @@
 
 package de.unihalle.informatik.MiToBo.apps.plantCells.stromules;
 
-import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
-import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.biomedical_imaging.ij.steger.Line;
 import de.biomedical_imaging.ij.steger.Lines;
+
+import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
+import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
 import de.unihalle.informatik.Alida.annotations .ALDAOperator.Level;
 import de.unihalle.informatik.Alida.annotations.Parameter;
@@ -59,8 +60,8 @@ import de.unihalle.informatik.MiToBo.visualization.drawing.DrawRegion2DSet;
 import de.unihalle.informatik.MiToBo.visualization.drawing.DrawRegion2DSet.DrawType;
 import de.unihalle.informatik.MiToBo.filters.linear.anisotropic.GaussPDxxFilter2D;
 import de.unihalle.informatik.MiToBo.filters.linear.anisotropic.OrientedFilter2DBatchAnalyzer;
-import de.unihalle.informatik.MiToBo.filters.vesselness.StegerRidgeDetection2D;
-import de.unihalle.informatik.MiToBo.math.MathGeometry;
+import de.unihalle.informatik.MiToBo.filters.vesselness.StegerRidgeDetection2DWrapper;
+import de.unihalle.informatik.MiToBo.math.MathXGeom;
 
 import ij.IJ;
 
@@ -744,7 +745,7 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 		this.notifyListeners(new StatusEvent(msg));
 
 		// detect ridge lines
-		StegerRidgeDetection2D stegerOp = new StegerRidgeDetection2D();
+		StegerRidgeDetection2DWrapper stegerOp = new StegerRidgeDetection2DWrapper();
 		stegerOp.setInputImage(this.inImg);
 		stegerOp.setLineWidth(this.lineWidth);
 		stegerOp.setLowContrast(this.lowContrast);
@@ -774,7 +775,7 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 					resultImgStegerLines.putValueB(x, y, this.inImg.getValueInt(x, y));
 				}
 			}
-			StegerRidgeDetection2D.drawResultsToImage(resultImgStegerLines, 
+			StegerRidgeDetection2DWrapper.drawResultsToImage(resultImgStegerLines, 
 					lines, null, false, false);
 			resultImgStegerLines.setTitle(
 					"Intermediate result image: line detection result");
@@ -971,7 +972,7 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 					
 					// rotate line point relative to region main axis
 					Point2D.Double rp = 
-							MathGeometry.rotatePoint2D(px-cx, py-cy, -regionAngle);
+							MathXGeom.rotatePoint2D(px-cx, py-cy, -regionAngle);
 					
 					// calculate stromuli probability
 //					stromuliProb += Math.exp(-8.0*angleDiff) 
@@ -1007,7 +1008,7 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 					Point2D.Double p = new Point2D.Double(px,py);
 
 					Point2D.Double rp = 
-							MathGeometry.rotatePoint2D(px-cx, py-cy, -regionAngle);
+							MathXGeom.rotatePoint2D(px-cx, py-cy, -regionAngle);
 
 					double ec = (rp.x)*(rp.x)/(a*a) + (rp.y)*(rp.y)/(b*b);
 
