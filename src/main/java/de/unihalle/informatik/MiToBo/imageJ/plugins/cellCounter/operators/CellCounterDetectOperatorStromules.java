@@ -42,6 +42,7 @@ import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2DSet;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageByte;
+import de.unihalle.informatik.MiToBo.filters.vesselness.StegerRidgeDetection2DWrapper;
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarker;
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarkerShape;
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarkerShapePolygon;
@@ -50,9 +51,32 @@ import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCn
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.operators.CellCounterDetectOperator;
 
 /**
- * Detector for detection of stromuli given plastid regions. 
+ * Detector wrapper for detection of stromules from given plastid regions. 
+ * <p>
+ * This wrapper makes the stromule detector functionality of the
+ * {@link StromulesDetector2D} accessible from within the 
+ * <a href="http://mitobo.informatik.uni-halle.de/index.php/Applications/MTBCellCounter">
+ * MTBCellCounter plugin</a> - a plugin for semi-automatic counting of small,
+ * mainly spot-like structures in microscopy images.
+ * <p>
+ * For further details on the plugin and the methodology of the detector refer 
+ * to 
+ * <ul>
+ * <li> B. Möller and M. Schattat, <i>Quantification of Stromule Frequencies 
+ * in Microscope Images of Plastids combining Ridge Detection and Geometric 
+ * Criteria</i>, <br>in Proc. of 6th Int. Conf. on Bioimaging (BIOIMAGING '19), 
+ * Prague, Czech Republic, February 2019.
+ * <li> L. Franke, B. Storbeck, J. L. Erickson, D. Rödel, D. Schröter, 
+ * B. Möller, and M. H. Schattat, <i>The 'MTB Cell Counter' a versatile tool 
+ * for the semi-automated quantification of sub-cellular phenotypes in 
+ * fluorescence microscopy images. A case study on plastids, nuclei and 
+ * peroxisomes</i>, in Journal of Endocytobiosis and Cell Research, 
+ * 26:31-42, 2015.
+ * </ul>
  *  
  * @author Birgit Moeller
+ * @see StegerRidgeDetection2DWrapper
+ * @see StromulesDetector2D
  */
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.NONE)
 @ALDDerivedClass
@@ -63,13 +87,13 @@ public class CellCounterDetectOperatorStromules
 	 * Identifier for outputs in verbose mode.
 	 */
 	private final static String opIdentifier = 
-			"[CellCounterDetectOperatorStromuli] ";
+			"[CellCounterDetectOperatorStromules] ";
 
 	/**
 	 * Type of plastid markers.
 	 */
 	@Parameter(label = "Plastid Marker Type", required = true, dataIOOrder = 1,
-			direction = Parameter.Direction.IN, description = "Plastid marker type.")
+		direction = Parameter.Direction.IN, description = "Plastid marker type.")
 	private int plastidMarkerType = 1;
 	
 	/**
@@ -79,7 +103,7 @@ public class CellCounterDetectOperatorStromules
 		required = true, dataIOOrder = 11,
 		direction= Parameter.Direction.IN, mode=ExpertMode.STANDARD, 
 	  description = "Checks if a potential stromuli line intersects a region " 
-	  		+ "at least twice, then it might be a reflection")
+	  	+ "at least twice, then it might be a reflection")
 	protected boolean useMultiIntersectionCheck = false;
 
 	/**
@@ -94,8 +118,9 @@ public class CellCounterDetectOperatorStromules
 	/**
 	 * Maximal distance between contact points along ellipse contour.
 	 */
-	@Parameter(label = "Ellipse distance threshold", required = true, dataIOOrder = 13,
-			direction = Parameter.Direction.IN, description = "Ellipse distance.")
+	@Parameter(label = "Ellipse distance threshold", required = true, 
+		dataIOOrder = 13, direction = Parameter.Direction.IN, 
+		description = "Ellipse distance.")
 	private double ellipseDistThresh = 3.0;
 
 	/**
@@ -130,11 +155,6 @@ public class CellCounterDetectOperatorStromules
 	 */
 	private StromulesDetector2D stromuliOp;
 	
-//	/**
-//	 * Configuration frame for stromuli detector.
-//	 */
-//	private OperatorConfigWin stromuliConfigureFrame;
-
 	/**
 	 * Constructor.	
 	 * @throws ALDOperatorException Thrown in case of initialization error.
@@ -142,7 +162,6 @@ public class CellCounterDetectOperatorStromules
 	public CellCounterDetectOperatorStromules() 
 			throws ALDOperatorException {
 		this.stromuliOp = new StromulesDetector2D();
-//		this.stromuliConfigureFrame = new OperatorConfigWin(this.stromuliOp);
 		this.m_statusListeners = new Vector<StatusListener>(1);
 	}
 
@@ -151,12 +170,12 @@ public class CellCounterDetectOperatorStromules
   		throws ALDOperatorException, ALDProcessingDAGException {
 		
 		// post ImageJ status
-		String msg = opIdentifier + "running stromuli detection...";	
+		String msg = opIdentifier + "running stromules detection...";	
 		this.notifyListeners(new StatusEvent(msg));
 
 		if (this.verbose.booleanValue())
 			System.out.println(opIdentifier 
-				+ "running stromuli detection...");
+				+ "running stromules detection...");
 
 		int xSize = this.inputImage.getSizeX();
 		int ySize = this.inputImage.getSizeY();
@@ -253,180 +272,12 @@ public class CellCounterDetectOperatorStromules
 	
 	@Override
 	public String getShortName() {
-		return "Test - Stromulis (plastids required!)";
+		return "Stromules (plastid regions required!)";
 	}
 	
 	@Override
 	public String getUniqueClassIdentifier() {
-		return "StromulisSteger";
+		return "StromulesRidgeDetect";
 	}
 	
-//	/**
-//	 * Frame to configure this operator in context of MiToBo CellCounter.
-//	 * 
-//	 * @author Birgit Moeller
-//	 */
-//	private class OperatorConfigWin	
-//		extends CellCounterDetectOperatorConfigWin {
-//
-//		/** 
-//		 * Constructs a control frame for an operator object.
-//		 * @param _op Operator to be associated with this frame object.
-//		 * @throws ALDOperatorException Thrown in case of failure.
-//		 */
-//		public OperatorConfigWin(StromuliDetector2Dv2 _op) 
-//				throws ALDOperatorException {
-//			super(_op);
-//			this.titleString = "Configure Stromuli Detector Parameters...";		
-//		}
-//		
-//		/**
-//		 * Adds the input fields for all relevant parameters.
-//		 */
-//		@Override
-//		protected void addParameterInputFields(JPanel parentPanel) {
-//			try {
-//				// index of plastid type
-//				JPanel paramPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
-//				JLabel nameLabel = new JLabel("Plastid marker type: ");
-//				nameLabel.setToolTipText("Type of plastid markers.");
-//				paramPanel.add(nameLabel);
-//				ALDOpParameterDescriptor descr = 
-//					CellCounterDetectOperatorStromuli.this.getParameterDescriptor(
-//						"plastidMarkerType");
-//				Object value = CellCounterDetectOperatorStromuli.this.getParameter(
-//						"plastidMarkerType");
-//				ALDSwingComponent aldElement = 
-//					ALDDataIOManagerSwing.getInstance().createGUIElement(descr.getField(),	
-//						descr.getMyclass(),	value, descr);
-//				aldElement.addValueChangeEventListener(this);
-////				this.guiElements.put("plastidMarkerType", aldElement);
-//				paramPanel.add(aldElement.getJComponent());
-//				parentPanel.add(paramPanel);
-//
-//				// ellipse distance threshold
-//				paramPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
-//				nameLabel = new JLabel("Apply ellipse distance threshold?");
-//				//				nameLabel.setToolTipText("Largest scale on which to detect particles," 
-//				//						+ " must be >= min. scale.");
-//				paramPanel.add(nameLabel);
-//				descr = this.op.getParameterDescriptor("useEllipseDistThreshold");
-//				value = this.op.getParameter("useEllipseDistThreshold");
-//				aldElement = ALDDataIOManagerSwing.getInstance().createGUIElement(
-//						descr.getField(),	descr.getMyclass(),	value, descr);
-//				aldElement.addValueChangeEventListener(this);
-//				this.guiElements.put("useEllipseDistThreshold", aldElement);
-//				paramPanel.add(aldElement.getJComponent());
-//				parentPanel.add(paramPanel);
-//
-//				// ellipse distance threshold
-//				paramPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
-//				nameLabel = new JLabel("Ellipse distance threshold: ");
-//				//			nameLabel.setToolTipText("Largest scale on which to detect particles," 
-//				//					+ " must be >= min. scale.");
-//				paramPanel.add(nameLabel);
-//				descr = this.op.getParameterDescriptor("ellipseDistThresh");
-//				value = this.op.getParameter("ellipseDistThresh");
-//				aldElement = ALDDataIOManagerSwing.getInstance().createGUIElement(
-//						descr.getField(),	descr.getMyclass(),	value, descr);
-//				aldElement.addValueChangeEventListener(this);
-//				this.guiElements.put("ellipseDistThresh", aldElement);
-//				paramPanel.add(aldElement.getJComponent());
-//				parentPanel.add(paramPanel);
-//
-//				paramPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
-//				nameLabel = new JLabel("Apply angle criterion?");
-//				//				nameLabel.setToolTipText("Largest scale on which to detect particles," 
-//				//						+ " must be >= min. scale.");
-//				paramPanel.add(nameLabel);
-//				descr = this.op.getParameterDescriptor("useAngleCriterion");
-//				value = this.op.getParameter("useAngleCriterion");
-//				aldElement = ALDDataIOManagerSwing.getInstance().createGUIElement(
-//						descr.getField(),	descr.getMyclass(),	value, descr);
-//				aldElement.addValueChangeEventListener(this);
-//				this.guiElements.put("useAngleCriterion", aldElement);
-//				paramPanel.add(aldElement.getJComponent());
-//				parentPanel.add(paramPanel);
-//
-//				// ellipse distance threshold
-//				paramPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
-//				nameLabel = new JLabel("Stromuli angle threshold: ");
-//				//			nameLabel.setToolTipText("Largest scale on which to detect particles," 
-//				//					+ " must be >= min. scale.");
-//				paramPanel.add(nameLabel);
-//				descr = this.op.getParameterDescriptor("stromuliAngleThreshold");
-//				value = this.op.getParameter("stromuliAngleThreshold");
-//				aldElement = ALDDataIOManagerSwing.getInstance().createGUIElement(
-//						descr.getField(),	descr.getMyclass(),	value, descr);
-//				aldElement.addValueChangeEventListener(this);
-//				this.guiElements.put("stromuliAngleThreshold", aldElement);
-//				paramPanel.add(aldElement.getJComponent());
-//				parentPanel.add(paramPanel);
-//
-////				// stromuli width
-////				paramPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
-////				nameLabel = new JLabel("Expected stromuli width: ");
-//////				nameLabel.setToolTipText("Smallest scale on which to detect particles," 
-//////						+ " must be >= 1.");
-////				paramPanel.add(nameLabel);
-////				descr = this.op.getParameterDescriptor("lineWidth");
-////				value = this.op.getParameter("lineWidth");
-////				aldElement = ALDDataIOManagerSwing.getInstance().createGUIElement(
-////						descr.getField(),	descr.getMyclass(),	value, descr);
-////				aldElement.addValueChangeEventListener(this);
-////				this.guiElements.put("lineWidth", aldElement);
-////				paramPanel.add(aldElement.getJComponent());
-////				parentPanel.add(paramPanel);
-////
-////				// lower threshold
-////				paramPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
-////				nameLabel = new JLabel("Lower contrast threshold: ");
-//////				nameLabel.setToolTipText("Largest scale on which to detect particles," 
-//////						+ " must be >= min. scale.");
-////				paramPanel.add(nameLabel);
-////				descr = this.op.getParameterDescriptor("lowContrast");
-////				value = this.op.getParameter("lowContrast");
-////				aldElement = ALDDataIOManagerSwing.getInstance().createGUIElement(
-////						descr.getField(),	descr.getMyclass(),	value, descr);
-////				aldElement.addValueChangeEventListener(this);
-////				this.guiElements.put("lowContrast", aldElement);
-////				paramPanel.add(aldElement.getJComponent());
-////				parentPanel.add(paramPanel);
-////
-////				// upper threshold
-////				paramPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
-////				nameLabel = new JLabel("Upper contrast threshold: ");
-//////				nameLabel.setToolTipText("Largest scale on which to detect particles," 
-//////						+ " must be >= min. scale.");
-////				paramPanel.add(nameLabel);
-////				descr = this.op.getParameterDescriptor("highContrast");
-////				value = this.op.getParameter("highContrast");
-////				aldElement = ALDDataIOManagerSwing.getInstance().createGUIElement(
-////						descr.getField(),	descr.getMyclass(),	value, descr);
-////				aldElement.addValueChangeEventListener(this);
-////				this.guiElements.put("highContrast", aldElement);
-////				paramPanel.add(aldElement.getJComponent());
-////				parentPanel.add(paramPanel);
-//
-////				// maximal region size
-////				paramPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
-////				nameLabel = new JLabel("Maximum Region Size: ");
-////				nameLabel.setToolTipText("Regions larger than given threshold on " 
-////					+ "the size will be ignored.");
-////				paramPanel.add(nameLabel);
-////				descr = this.op.getParameterDescriptor("maxRegionSize");
-////				value = this.op.getParameter("maxRegionSize");
-////				aldElement = ALDDataIOManagerSwing.getInstance().createGUIElement(
-////					descr.getField(),	descr.getMyclass(),	value, descr);
-////				aldElement.addValueChangeEventListener(this);
-////				this.guiElements.put("maxRegionSize", aldElement);
-////				paramPanel.add(aldElement.getJComponent());
-////				parentPanel.add(paramPanel);
-//
-//			} catch (ALDException exp) {
-//				exp.printStackTrace();
-//			}
-//		}
-//	}
-
 }

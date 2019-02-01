@@ -86,19 +86,21 @@ import ij.gui.TextRoi;
 import ij.process.FloatPolygon;
 
 /**
- * Wrapper for Ridge Detection plugin by C. Steger (and Thorsten Wagner).
+ * Wrapper for Ridge Detection plugin by Carsten Steger (and Thorsten Wagner).
  * <p>
- * Related publication:<br>
- * Steger, C., 1998. An unbiased detector of curvilinear structures. 
- * IEEE Transactions on Pattern Analysis and Machine Intelligence, 
- * 20(2), pp.113–125.
- * <p>
- * For details on parameters and functionality take a look at
+ * Related publication:
  * <ul>
- * <li> plugin website: 
+ * <li> C. Steger, <i>An unbiased detector of curvilinear structures</i>, in  
+ * IEEE Transactions on Pattern Analysis and Machine Intelligence, 
+ * 20(2), pp.113–125, 1998
+ * </ul>
+ * <p>
+ * For details on parameters and functionality take a look at ...
+ * <ul>
+ * <li> the website of the corresponding ImageJ plugin: 
  * 			<a href="http://imagej.net/Ridge_Detection">
  * 			         http://imagej.net/Ridge_Detection</a>
- * <li> Github page: 
+ * <li> the Github page with the source code: 
  * 			<a href="https://github.com/thorstenwagner/ij-ridgedetection">
  *               https://github.com/thorstenwagner/ij-ridgedetection</a>
  * </ul>

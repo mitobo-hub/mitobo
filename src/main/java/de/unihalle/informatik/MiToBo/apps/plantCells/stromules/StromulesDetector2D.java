@@ -48,13 +48,11 @@ import de.unihalle.informatik.MiToBo.morphology.SkeletonAnalysisHelper;
 import de.unihalle.informatik.MiToBo.morphology.SkeletonExtractor;
 import de.unihalle.informatik.MiToBo.segmentation.regions.labeling.LabelAreasToRegions;
 import de.unihalle.informatik.MiToBo.segmentation.regions.labeling.LabelComponentsSequential;
-import de.unihalle.informatik.MiToBo.core.datatypes.MTBContour2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBPolygon2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBPolygon2DSet;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBQuadraticCurve2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2DSet;
-import de.unihalle.informatik.MiToBo.segmentation.thresholds.ImgThreshNiblack;
 import de.unihalle.informatik.MiToBo.visualization.drawing.DrawEllipse;
 import de.unihalle.informatik.MiToBo.visualization.drawing.DrawRegion2DSet;
 import de.unihalle.informatik.MiToBo.visualization.drawing.DrawRegion2DSet.DrawType;
@@ -68,7 +66,6 @@ import ij.IJ;
 import java.awt.Color;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Set;
@@ -80,9 +77,28 @@ import loci.common.StatusListener;
 import loci.common.StatusReporter;
 
 /**
- * Operator to detect stromuli in microscope images of plastids.
+ * Operator to detect stromules in microscope images of plastids.
+ * <p>
+ * Given plastid regions, the basic idea of this operator is to search for 
+ * evidence of stromules in the vicinity of each plastid region. 
+ * To this end short curvilinear segments are localized applying 
+ * <a href="https://imagej.net/Ridge_Detection">Steger's ridge detection</a>
+ * approach. Subsequently various geometric criteria are applied to validate
+ * if a curvilinear segment is likely to refer to a stromule or not.
+ * <p>
+ * For further details on the methodology refer to 
+ * <ul>
+ * <li> B. Moeller and M. Schattat, <i>Quantification of Stromule Frequencies 
+ * in Microscope Images of Plastids combining Ridge Detection and Geometric 
+ * Criteria</i>, in Proc. of 6th Int. Conf. on Bioimaging (BIOIMAGING '19), 
+ * Prague, Czech Republic, February 2019
+ * <li> C. Steger, <i>An unbiased detector of curvilinear structures</i>, in  
+ * IEEE Transactions on Pattern Analysis and Machine Intelligence, 
+ * 20(2), pp.113–125, 1998
+ * </ul>
  * 
  * @author Birgit Moeller
+ * @see StegerRidgeDetection2DWrapper
  */
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL,
 		level=Level.APPLICATION)
@@ -91,7 +107,7 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 	/**
 	 * Identifier for outputs in verbose mode.
 	 */
-	private final static String opIdentifier = "[StromuliDetector2D] ";
+	private final static String opIdentifier = "[StromulesDetector2D] ";
 
 	/**
 	 * Heuristic to use for detecting stromuli.
@@ -100,11 +116,14 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 		/**
 		 * Detection based on morphological analysis of stromuli/plastid region.
 		 */
-		DETECT_MORPHOLOGY,
+//		DETECT_MORPHOLOGY,
 		/**
 		 * Detection based on combining various statistical cues.
 		 */
 		DETECT_MULTICUE,
+		/**
+		 * Detection based on local ridge detection using Steger's approach.
+		 */
 		DETECT_RIDGE
 	}
 	
@@ -232,10 +251,6 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 	  description = "Enables display of additional result images.")
 	protected boolean showAdditionalResults = false;
 
-	//@Parameter( label= "minWidth", required = true, dataIOOrder = 2,
-	//direction = Parameter.Direction.IN, description = "minWidth")
-	int minW = 1;
-	
 	/**
 	 * Set of detected plastid regions with stromuli.
 	 */
@@ -273,18 +288,50 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 	 */
 	private int cSize;
 
+	/**
+	 * Sampling step size for vesselness enhancement filtering.
+	 */
 	private int degSampling = 10;
 	
+	/**
+	 * List of x-coordinates of centers of mass of plastid regions.
+	 */
 	private double[] comXs;
+	/**
+	 * List of y-coordinates of centers of mass of plastid regions.
+	 */
 	private double[] comYs;
+	/**
+	 * List of orientations of plastid regions.
+	 */
 	private double[] orient;
+	/**
+	 * List of minimal axis lengths of plastid regions.
+	 */
 	private double[] minAxisLengths;
+	/**
+	 * List of maximal axis lengths of plastid regions.
+	 */
 	private double[] maxAxisLengths;
 	
+	/**
+	 * Estimated width of linear structures in vesselness enhancement filtering.
+	 */
+	private int minW = 1;
+	
+	/**
+	 * List of validated plastid regions with stromules.
+	 */
 	private Vector<MTBRegion2D> identifiedRegions = new Vector<>();
 	
+	/**
+	 * List of stromule candidate regions.
+	 */
 	private MTBRegion2DSet candidateRegions;
 	
+	/**
+	 * Debug image with intermediate result data.
+	 */
 	private MTBImageRGB resultImgIntermediate = null;
 
 	/** 
@@ -333,15 +380,6 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 			}
 		}
 
-//		MTBImageByte plastidImg = 
-//				(MTBImageByte)MTBImage.createMTBImage(this.xSize, this.ySize, this.zSize, 
-//						this.tSize,	this.cSize, MTBImageType.MTB_BYTE);
-//		this.resultLabelImage = (MTBImageShort)MTBImage.createMTBImage(
-//			this.xSize, this.ySize, this.zSize, this.tSize,	this.cSize, 
-//				MTBImageType.MTB_SHORT);
-		
-//		this.plastidMask.show();
-		
 		// if no label plastid regions are given, label binary plastid region image
 		if (this.plastidRegions == null) {
 			LabelComponentsSequential lableOp = 
@@ -367,9 +405,6 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 			drs.runOp();
 		}
 		
-		MTBImageShort centerImg = (MTBImageShort)MTBImage.createMTBImage(
-			this.xSize, this.ySize, this.zSize, this.tSize, this.cSize, 
-				MTBImageType.MTB_SHORT);
 		int rc = 0;
 		this.comXs = new double[this.candidateRegions.size()];
 		this.comYs = new double[this.candidateRegions.size()];
@@ -377,20 +412,11 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 		this.minAxisLengths = new double[this.candidateRegions.size()];
 		this.maxAxisLengths = new double[this.candidateRegions.size()];
 		for (MTBRegion2D r: this.candidateRegions) {
-//			for (int y=-1; y<=1; ++y) {
-//				for (int x=-1; x<=1; ++x) {
-//					int dx = (int)r.getCenterOfMass_X() + x;
-//					int dy = (int)r.getCenterOfMass_Y() + y;
-//					if (dx<0 || dx>=this.xSize || dy<0 || dy>=this.ySize)
-//						continue;
-//					centerImg.putValueInt(dx, dy, rc+1);
-					this.comXs[rc] = r.getCenterOfMass_X();
-					this.comYs[rc] = r.getCenterOfMass_Y();
-					this.orient[rc] = r.getOrientation();
-					this.minAxisLengths[rc] = r.getMinorAxisLength();
-					this.maxAxisLengths[rc] = r.getMajorAxisLength();
-//				}
-//			}
+			this.comXs[rc] = r.getCenterOfMass_X();
+			this.comYs[rc] = r.getCenterOfMass_Y();
+			this.orient[rc] = r.getOrientation();
+			this.minAxisLengths[rc] = r.getMinorAxisLength();
+			this.maxAxisLengths[rc] = r.getMajorAxisLength();
 			++rc;
 		}
 		
@@ -419,90 +445,43 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 		MTBRegion2DSet plastidRegionsDilated = 
 				LabelAreasToRegions.getRegions(plastidRegionImageDilated, 0);
 		
-//		plastidRegionImage.show();
-		//centerImg.setTitle("Image with plastid centers");
-		
-		// somehow the labels are not consistent, check explicitly...
-//		for (MTBRegion2D r: this.plastidRegions) {
-//			double dx = r.getCenterOfMass_X();
-//			double dy = r.getCenterOfMass_Y();
-//			int x = (int)dx;
-//			int y = (int)dy;
-//			int label = centerImg.getValueInt(x, y);
-//			comXs[label-1] = dx;
-//			comYs[label-1] = dy;
-//		}
-
 		msg = opIdentifier + "filtering ROIs for vessel-like structures...";	
 		this.notifyListeners(new StatusEvent(msg));
 
-		//2.0 Erstellen des Vesselbildes ###(ALT)###
-		/*MPMFFilter2D vessel_filter = new MPMFFilter2D ();
-		vessel_filter.setParameter("inputImg", inCopy_g);
-		vessel_filter.setParameter("minWidth",minW);
-		vessel_filter.setParameter("maxWidth",maxW);
-		vessel_filter.setParameter("mode",MPMFFilter2D.VesselMode.valueOf("BRIGHT_ON_DARK_BACKGROUND"));
-		vessel_filter.setVerbose(true);
-		vessel_filter.runOp();*/
-		//2.0 Erstellen des Vesselbildes ###(NEU)###
-//		result_img.show();
-		
-//		for (int y=0; y<this.ySize; ++y) {
-//			for (int x=0; x<this.xSize; ++x) {
-//				if (plastidRegionImage.getValueInt(x, y)==0) {
-//					plastidRegionImage.putValueDouble(x, y, 
-//						result_img.getValueDouble(x, y));
-//				}
-//			}
-//		}
-//		plastidRegionImage.show();
-				
-//		double normFactor = Math.pow(sigma*sigma, 3.0/4.0);
-//		double normFactor = 1.0;
-//		for (int y=0; y<result_img.getSizeY(); ++y) 
-//		{
-//			for (int x=0; x<result_img.getSizeY(); ++x) 
-//			{
-//				result_img.putValueDouble(x, y, result_img.getValueDouble(x, y) * normFactor);
-//			}
-//		}
-		
-
-		/* BM end */
-
-		msg = opIdentifier + "extracting stromuli candidates...";	
+		msg = opIdentifier + "extracting stromule candidates...";	
 		this.notifyListeners(new StatusEvent(msg));
 
+		GaussPDxxFilter2D xxFilter = new GaussPDxxFilter2D();
+		OrientedFilter2DBatchAnalyzer bOp = new OrientedFilter2DBatchAnalyzer();
+		double sigma = this.minW/ 2.0;
+		MTBImage result_img;
+		MTBImage result_stack;
 		switch(this.mode) 
 		{
-		case DETECT_MORPHOLOGY:
-			GaussPDxxFilter2D xxFilter = new GaussPDxxFilter2D();
-			xxFilter.setInvertMask(true);
-			xxFilter.setHeight(13);
-			xxFilter.setInputImage(this.inImg);
-			OrientedFilter2DBatchAnalyzer bOp = 
-					new OrientedFilter2DBatchAnalyzer();
-			double sigma = this.minW/ 2.0;
-			xxFilter.setStandardDeviation(sigma);
-			bOp.setInputImage(this.inImg);
-			bOp.setOrientedFilter(xxFilter);
-			bOp.setAngleSampling(this.degSampling);
-			bOp.runOp();
-			MTBImage result_img = bOp.getResultImage();
-			MTBImage result_stack = bOp.getFilterResponseStack();
-			for (int i=0;i<this.comXs.length;++i) {
-				for (int y=-1; y<=1; ++y) {
-					for (int x=-1; x<=1; ++x) {
-						int dx = (int)this.comXs[i] + x;
-						int dy = (int)this.comYs[i] + y;
-						if (dx<0 || dx>=this.xSize || dy<0 || dy>=this.ySize)
-							continue;
-						result_img.putValueInt(dx, dy, i+1);
-					}
-				}
-			}
-			this.detectStromuliMorphology(result_img);
-			break;
+//		case DETECT_MORPHOLOGY:
+//			xxFilter.setInvertMask(true);
+//			xxFilter.setHeight(13);
+//			xxFilter.setInputImage(this.inImg);
+//			xxFilter.setStandardDeviation(sigma);
+//			bOp.setInputImage(this.inImg);
+//			bOp.setOrientedFilter(xxFilter);
+//			bOp.setAngleSampling(this.degSampling);
+//			bOp.runOp();
+//			result_img = bOp.getResultImage();
+//			result_stack = bOp.getFilterResponseStack();
+//			for (int i=0;i<this.comXs.length;++i) {
+//				for (int y=-1; y<=1; ++y) {
+//					for (int x=-1; x<=1; ++x) {
+//						int dx = (int)this.comXs[i] + x;
+//						int dy = (int)this.comYs[i] + y;
+//						if (dx<0 || dx>=this.xSize || dy<0 || dy>=this.ySize)
+//							continue;
+//						result_img.putValueInt(dx, dy, i+1);
+//					}
+//				}
+//			}
+//			this.detectStromuliMorphology(result_img);
+//			break;
 		case DETECT_MULTICUE:
 			xxFilter = new GaussPDxxFilter2D();
 			xxFilter.setInvertMask(true);
@@ -528,11 +507,12 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 					}
 				}
 			}
-			this.detectStromuliStatisticalModel(plastidRegionImageDilated, result_stack, this.comXs, this.comYs, this.orient);
+			this.detectStromuliStatisticalModel(plastidRegionImageDilated, 
+					result_stack, this.comXs, this.comYs, this.orient);
 			break;
 		case DETECT_RIDGE:
-			this.detectStromuliRidgeModel(plastidRegionImage, 
-					plastidRegionImageDilated, plastidRegionsDilated);
+			this.detectStromuliRidgeModel(plastidRegionImageDilated, 
+					plastidRegionsDilated);
 			break;
 		}
 		
@@ -558,6 +538,14 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 		this.notifyListeners(new StatusEvent(msg));
 	}
 	
+	/**
+	 * Pre-filtering of plastid regions to find regions accidentally including
+	 * already a stromule.
+	 * 
+	 * @return	Set of valid plastid regions (not filtered out).
+	 * @throws ALDOperatorException				Thrown in case of failure.
+	 * @throws ALDProcessingDAGException	Thrown in case of failure.
+	 */
 	private MTBRegion2DSet preprocessPlastidRegions() 
 			throws ALDOperatorException, ALDProcessingDAGException {
 
@@ -589,43 +577,15 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 			convexHullPolys.add(poly);
 		}
 		
-//		MTBImage mask = this.inImg.duplicate();
-//		mask.fillBlack();
-//		DrawRegion2DSet drawer = new DrawRegion2DSet(DrawType.MASK_IMAGE, particleRegions);
-//		drawer.setTargetImage(mask);
-//		drawer.runOp();
-//		drawer.getResultImage().show();
-
-//		MTBImage resImg = this.inImg.duplicate();
-//		DrawRegion2DSet drawer = new DrawRegion2DSet(DrawType.LABEL_IMAGE, this.plastidRegions);
-//		drawer.setTargetImage(resImg);
-//		drawer.runOp();
-//		resImg = drawer.getResultImage();
-
-//		DrawPolygon2DSet draw = new DrawPolygon2DSet(convexHullPolys);
-//		draw.setInputImage((MTBImageRGB)resImg.convertType(MTBImageType.MTB_RGB, true));
-//		draw.setColor("red");
-//		draw.runOp();
-//		MTBImageRGB resImgRGB = (MTBImageRGB)draw.getResultImage(); 
-
 		MTBRegion2DSet remainingRegions = new MTBRegion2DSet();
 		
 		MTBImage processed = this.inImg.duplicate();
 		processed.fillBlack();
 		
-		int smallDistCount, skelPixNum, id = 1;
+		int smallDistCount, id = 1;
 		double solidity, convexHullArea, regionArea = 0;
 		MTBPolygon2D regionPolygon;
 		for (MTBRegion2D reg: this.plastidRegions) {
-//			drawStringToImage(resImgRGB, Integer.toString(id), 255, 0, 0, 
-//					(int)reg.getCenterOfMass_X(), (int)reg.getCenterOfMass_Y());
-
-			double cx = reg.getCenterOfMass_X();
-			double cy = reg.getCenterOfMass_Y();
-
-//			double a = reg.getMajorAxisLength();
-//			double b = reg.getMinorAxisLength();
-//			double c = reg.getCircularity();
 
 			regionPolygon = new MTBPolygon2D(reg.getContour().getPoints(), true);
 			regionArea = Math.abs(regionPolygon.getSignedArea());
@@ -634,36 +594,9 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 					Math.abs(convexHullPolys.elementAt(id-1).getSignedArea());
 			solidity = regionArea / convexHullArea; 
 
-//			int min = Integer.MAX_VALUE;
-//			int max = 0;
-//			double mean = 0;
-//			for (Point2D.Double p: reg.getPoints()) {
-//				int val = this.inImg.getValueInt((int)p.x, (int)p.y); 
-//				if (val < min)
-//					min = val;
-//				if (val > max)
-//					max = val;
-//				mean += val;
-//			}
-//			mean /= reg.getPoints().size();
-//			double var = 0;
-//			for (Point2D.Double p: reg.getPoints()) {
-//				int val = this.inImg.getValueInt((int)p.x, (int)p.y);
-//				var += (val - mean) * (val - mean);
-//			}
-//			var /= reg.getPoints().size();
-//
-//			System.out.println(id + "\t" + cx + "\t" + cy + "\t" +regionArea + "\t"
-//					+ areaCoeff + "\t" + polyArea + "\t" 
-//					+ convHullCoeff + "\t"
-//					+ ellHullCoeff + "\t" + min + "\t" + max + "\t" + mean + "\t" 
-//					+ var + "\t" + a + "\t" + b + "\t" + c);			
-
 			Vector<Point2D.Double> endPoints = new Vector<>();
 			
 			smallDistCount = 0;
-			skelPixNum = 0;
-//			System.out.println("Checking " + cx + " / " + cy + " , solidity = " + solidity);
 			if (solidity < 0.85) {
 				
 				for (Point2D.Double p: reg.getPoints()) {
@@ -671,7 +604,6 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 					int py = (int)p.y;
 					if (skelImg.getValueInt(px, py) == 0)
 						continue;
-					++skelPixNum;
 					int neighbors = 0;
 					for (int dx=-1;dx<=1;++dx) {
 						for (int dy=-1;dy<=1;++dy) {
@@ -724,16 +656,22 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 			else {
 				remainingRegions.add(reg);
 			}
-			
-			
+
 			++id;
 		}
-//		resImgRGB.show();		
 		return remainingRegions;
 	}
 
-	private void detectStromuliRidgeModel(MTBImageShort roiImg, 
-		MTBImageShort roiImgDilated, MTBRegion2DSet dilatedROIs) 
+	/**
+	 * Detect stromule candidates applying Steger operator.
+	 * 
+	 * @param roiImgDilated		Image with dilated ROIs.
+	 * @param dilatedROIs			Set of dilated ROIs.
+	 * @throws ALDOperatorException				Thrown in case of failure.
+	 * @throws ALDProcessingDAGException	Thrown in case of failure.
+	 */
+	private void detectStromuliRidgeModel(MTBImageShort roiImgDilated, 
+			MTBRegion2DSet dilatedROIs) 
 		throws ALDOperatorException, ALDProcessingDAGException {
 
 		if (this.inImg.getImagePlus().isInvertedLut()) {
@@ -745,7 +683,8 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 		this.notifyListeners(new StatusEvent(msg));
 
 		// detect ridge lines
-		StegerRidgeDetection2DWrapper stegerOp = new StegerRidgeDetection2DWrapper();
+		StegerRidgeDetection2DWrapper stegerOp = 
+				new StegerRidgeDetection2DWrapper();
 		stegerOp.setInputImage(this.inImg);
 		stegerOp.setLineWidth(this.lineWidth);
 		stegerOp.setLowContrast(this.lowContrast);
@@ -796,16 +735,10 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 		}
 
 		Line l;
-		boolean found = true;
 		double px, py;
 		float xc[], yc[], lineAngles[], widthL[], widthR[];
 		int label, np;
 
-
-		double minP = Double.MAX_VALUE;
-		double maxP = 0.0;
-		double stromuliProb = 0;
-		double radDiff = Math.toRadians(30.0);
 
 		msg = opIdentifier + " -> mapping lines to regions...";	
 		this.notifyListeners(new StatusEvent(msg));
@@ -821,9 +754,6 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 			xc = l.getXCoordinates();
 			yc = l.getYCoordinates();
 
-//			System.out.println("Checking " + xc[0] + " , " + yc[0] + " -> " 
-//					+ xc[np-1] + " , " + yc[np-1] + "...");					
-			
 			for (int j=0; j<np; j++) {
 				px = xc[j];
 				py = yc[j];
@@ -832,19 +762,13 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 					regionIDsToLineIDs.get(new Integer(label)).add(new Integer(i));
 					cx = this.comXs[label-1];
 					cy = this.comYs[label-1];
-//					System.out.println(" => overlapping region " + cx + " , " + cy);
 				}
 			}
 		}
 
-		// list of "stromuli" lines
-		Lines validLines = new Lines(0);
-
-		
 		// process each region, check for lines and their characteristics
 		boolean stromuliRegion = false;
 		boolean stromuli = false;
-		MTBRegion2DSet final_regions = new MTBRegion2DSet();
 		Set<Integer> regionIDs = regionIDsToLineIDs.keySet();
 		
 		DrawEllipse de = null;
@@ -860,10 +784,14 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 			stromuliRegion = false;
 			cx = this.comXs[regionIndex-1];
 			cy = this.comYs[regionIndex-1];
-			ex = (int)(cx + 0.5*this.maxAxisLengths[regionIndex-1] * Math.cos(this.orient[regionIndex-1]));
-			ey = (int)(cy + 0.5*this.maxAxisLengths[regionIndex-1] * Math.sin(this.orient[regionIndex-1]));
-			eex = (int)(cx - 0.5*this.maxAxisLengths[regionIndex-1] * Math.cos(this.orient[regionIndex-1]));
-			eey = (int)(cy - 0.5*this.maxAxisLengths[regionIndex-1] * Math.sin(this.orient[regionIndex-1]));
+			ex = (int)(cx + 0.5*this.maxAxisLengths[regionIndex-1] 
+					* Math.cos(this.orient[regionIndex-1]));
+			ey = (int)(cy + 0.5*this.maxAxisLengths[regionIndex-1] 
+					* Math.sin(this.orient[regionIndex-1]));
+			eex = (int)(cx - 0.5*this.maxAxisLengths[regionIndex-1] 
+					* Math.cos(this.orient[regionIndex-1]));
+			eey = (int)(cy - 0.5*this.maxAxisLengths[regionIndex-1] 
+					* Math.sin(this.orient[regionIndex-1]));
 			double regionAngle = this.orient[regionIndex-1];			
 			if (regionAngle < 0)
 				regionAngle += Math.PI;
@@ -881,10 +809,7 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 				de = new DrawEllipse();
 				de.setInputImage(this.resultImgIntermediate);
 				de.setEllipse(ell);
-//				if (stromuliRegion)
-//					de.setColor(Color.GREEN);
-//				else
-					de.setColor(Color.WHITE);
+				de.setColor(Color.WHITE);
 				de.runOp();
 				this.resultImgIntermediate = (MTBImageRGB)de.getResultImage();
 			}
@@ -902,13 +827,6 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 				xc = l.getXCoordinates();
 				yc = l.getYCoordinates();
 
-//				System.out.println();
-//				System.out.println("--- next line ---");
-//				System.out.println(" region: " + cx + " , " + cy + " , angle = " + regionAngle);
-//						
-//				System.out.println(" - Line " + l.getID() + " : " 
-//						+ xc[0] + " , " + yc[0] + " -> " + xc[np-1] + " , " + yc[np-1]);					
-
 				// skip lines shorter than 5 pixels
 				if (np < 5) {
 					continue;
@@ -916,20 +834,12 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 				
 				widthL = l.getLineWidthL();
 				widthR = l.getLineWidthR();
-				float[] assyms = l.getAsymmetry();
-				
-				float meanAssym = 0;
-				
 				int[] widthConsistencies = new int[np];
 				for (int j=0; j<np; j++) {
 					if (Math.abs(widthL[j] - widthR[j]) > 0.5)
 						widthConsistencies[j] = 0;
 					else	
 						widthConsistencies[j] = 1;
-//					if (assyms[j] > 0.1)
-//						widthConsistencies[j] = 0;
-//					else
-//						widthConsistencies[j] = 1;
 				}
 				
 				// find longest run
@@ -946,7 +856,6 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 				// horizontally aligned
 				lineAngles = l.getAngle();
 				
-				stromuliProb = 0;
 				double minAngle = Double.MAX_VALUE;
 				double maxAngle = 0;
 				for (int j=0; j<np; j++) {
@@ -961,33 +870,9 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 					if (lAng > maxAngle)
 						maxAngle = lAng;
 					if (lAng < minAngle)
-						minAngle = lAng;
-					
-					double angleDiff = 
-							Math.abs(Math.PI/2.0 - Math.abs(lAng - regionAngle)); 
-
-//					System.out.println(String.format( "%.2f", px ) 
-//						+ " , " + String.format( "%.2f", py ) + ":\t" 
-//							+ lineAngles[j] + ",\t" + lAng + ",\t diff = " + angleDiff);
-					
-					// rotate line point relative to region main axis
-					Point2D.Double rp = 
-							MathXGeom.rotatePoint2D(px-cx, py-cy, -regionAngle);
-					
-					// calculate stromuli probability
-//					stromuliProb += Math.exp(-8.0*angleDiff) 
-//							* 2.0/Math.PI*Math.atan2(Math.abs(rp.y), Math.abs(rp.x));					
-					stromuliProb += angleDiff;					
+						minAngle = lAng;					
 				}
 				
-				stromuliProb /= np;
-				
-//				System.out.println(xc[0] + " , " + yc[0] + " -> " + stromuliProb);					
-
-//				if (stromuliProb < radDiff) {
-					
-//					System.out.println(xc[0] + " , " + yc[0] + " -> " + stromuliProb);					
-
 				boolean[] outPoint = new boolean[np];
 				double a = 0.5*this.maxAxisLengths[regionIndex-1];
 				double b = 0.5*this.minAxisLengths[regionIndex-1];
@@ -1072,18 +957,13 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 					// line segment too far away
 					continue;
 				
-//				System.out.println();
-//				System.out.println("=================================");
-//				System.out.println("CP line index = " + closestPointLineIndex);
-//				System.out.println("CPL = " + closestPointLine);
-//				System.out.println("CPE = " + closestPointEllipse);
-				
 				if (this.showAdditionalResults) {
 					int cplx = (int)closestPointLine.x;
 					int cply = (int)closestPointLine.y;
 					int cpex = (int)closestPointEllipse.x;
 					int cpey = (int)closestPointEllipse.y;
-					if (cplx >= 0 && cplx < this.resultImgIntermediate.getSizeX() && cply >= 0 && cply < this.resultImgIntermediate.getSizeY()) {
+					if (   cplx >= 0 && cplx < this.resultImgIntermediate.getSizeX() 
+							&& cply >= 0 && cply < this.resultImgIntermediate.getSizeY()) {
 						this.resultImgIntermediate.putValueR(cplx, cply, 0); 
 						this.resultImgIntermediate.putValueG(cplx, cply, 0); 
 						this.resultImgIntermediate.putValueB(cplx, cply, 255);
@@ -1096,9 +976,6 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 					}
 				}
 				
-				// check length of runs in both directions
-				int r_rb = -1;
-				int l_rb = -1;
 				boolean a_run = false;
 				boolean d_run = false;
 				
@@ -1160,13 +1037,9 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 								(stromuliOrientation > 180) ? 
 										stromuliOrientation - 180 : stromuliOrientation;
 
-//						System.out.println("LA = " + stromuliOrientation);
-//						System.out.println("TA = " + tangentOrientation);
-
 						// check if line and tangent are more or less orthogonal 
 						if (  Math.abs(tangentOrientation - stromuliOrientation) 
 								> this.stromuliAngleThreshold) {
-//							System.out.println("Diff = " + Math.abs(tangentOrientation - stromuliOrientation));
 							angleOK = true;
 						}
 					}
@@ -1179,36 +1052,16 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 					Point2D.Double ep = new Point2D.Double(eex, eey);
 					double maxDist = this.ellipseDistThresh;
 				
-//					double ellipseRatio = 2.0/3.0;
-//					if (b/a > ellipseRatio) { 
-//						double aDist = (b/a - ellipseRatio) / ellipseRatio 
-//								* (Math.sqrt(a*a + b*b) - 3 ) + 3;
-//						if(aDist > maxDist) 
-//							maxDist = aDist;
-//					}
-//				
-////				System.out.println("\t -> maxDist = " + maxDist + " , a = " + a + " , b = " + b);
-//				
-////				double minDist = Double.MAX_VALUE;
-				
 					for (int j=0; j<np && !stromuli; j++) {
 
 						if (outPoint[j]) {
 							px = xc[j];
 							py = yc[j];
 						
-						// calculate distance to ellipse end-points
-//						if (sp.distance(px, py) < minDist)
-//							minDist = sp.distance(px, py);
-//						if (ep.distance(px, py) < minDist)
-//							minDist = ep.distance(px, py);
-						
+							// calculate distance to ellipse end-points
 							if (   sp.distance(px, py) < maxDist 
 									|| ep.distance(px, py) < maxDist) {
 							
-//							System.out.println("\t\t => found " + px + " , " + py + " = " 
-//									+ sp.distance(px, py) + " / " + ep.distance(px, py));
-
 								// determine length of run: 
 								// as there is no fixed point order check both directions
 								dj = j+1;
@@ -1256,25 +1109,11 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 				}
 				else {
 					if (this.showAdditionalResults) {
-//						for (int j=0; j<np; j++) {
-//							px = xc[j];
-//							py = yc[j];
-//							if (outPoint[j] && this.resultImgIntermediate.getValueB((int)px, (int)py) != 255) {
-//								this.resultImgIntermediate.putValueR((int)px, (int)py, 255);
-//								this.resultImgIntermediate.putValueG((int)px, (int)py, 0);
-//								this.resultImgIntermediate.putValueB((int)px, (int)py, 0);
-//							}
-//							else if (this.resultImgIntermediate.getValueB((int)px, (int)py) != 255) {
-//								this.resultImgIntermediate.putValueR((int)px, (int)py, 255);
-//								this.resultImgIntermediate.putValueG((int)px, (int)py, 0);
-//								this.resultImgIntermediate.putValueB((int)px, (int)py, 0);							
-//							}
-//						}
 						int red = (((255 & 0xff) << 16)	+ ((0 & 0xff) << 8) + (0 & 0xff));
 
 						px = xc[0];
 						py = yc[0];
-						if (this.resultImgIntermediate.getValueB((int)px, (int)py) != 255) {
+						if (this.resultImgIntermediate.getValueB((int)px,(int)py)!=255) {
 							this.resultImgIntermediate.putValueR((int)px, (int)py, 255);
 							this.resultImgIntermediate.putValueG((int)px, (int)py, 0);
 							this.resultImgIntermediate.putValueB((int)px, (int)py, 0);
@@ -1284,7 +1123,7 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 							int ppy = (int)yc[j-1];
 							px = xc[j];
 							py = yc[j];
-							if (this.resultImgIntermediate.getValueB((int)px, (int)py) != 255) {
+							if (this.resultImgIntermediate.getValueB((int)px,(int)py)!=255) {
 								this.resultImgIntermediate.drawLine2D(ppx, ppy, (int)px, (int)py, 
 										0, 0, 0, red);
 							}						
@@ -1294,18 +1133,6 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 
 			} // all lines
 			
-			// draw ellipse here...
-//			cx = this.comXs[regionIndex-1];
-//			cy = this.comYs[regionIndex-1];
-//			ex = (int)(cx + 0.5*this.maxAxisLengths[regionIndex-1] * Math.cos(this.orient[regionIndex-1]));
-//			ey = (int)(cy + 0.5*this.maxAxisLengths[regionIndex-1] * Math.sin(this.orient[regionIndex-1]));
-//			eex = (int)(cx - 0.5*this.maxAxisLengths[regionIndex-1] * Math.cos(this.orient[regionIndex-1]));
-//			eey = (int)(cy - 0.5*this.maxAxisLengths[regionIndex-1] * Math.sin(this.orient[regionIndex-1]));
-			int nx = (int)(cx - 0.5*this.minAxisLengths[regionIndex-1] * Math.sin(this.orient[regionIndex-1]));
-			int ny = (int)(cy + 0.5*this.minAxisLengths[regionIndex-1] * Math.cos(this.orient[regionIndex-1]));
-//			res.drawLine2D((int)cx, (int)cy, ex, ey, 0xffffff);
-//			res.drawLine2D((int)cx, (int)cy, nx, ny, 0xffffff);
-					
 			if (this.showAdditionalResults) {
 				
 				if (stromuliRegion) {
@@ -1316,7 +1143,8 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 					this.resultImgIntermediate = (MTBImageRGB)de.getResultImage();
 				}
 
-				if (ex >= 0 && ex < this.resultImgIntermediate.getSizeX() && ey >= 0 && ey < this.resultImgIntermediate.getSizeY()) {
+				if (   ex >= 0 && ex < this.resultImgIntermediate.getSizeX() 
+						&& ey >= 0 && ey < this.resultImgIntermediate.getSizeY()) {
 					this.resultImgIntermediate.putValueR(ex, ey, 251); 
 					this.resultImgIntermediate.putValueG(ex, ey, 147); 
 					this.resultImgIntermediate.putValueB(ex, ey,  13);
@@ -1377,11 +1205,21 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 		this.notifyListeners(new StatusEvent(msg));
 
 		if (this.showAdditionalResults) {
-			this.resultImgIntermediate.setTitle("Intermediate result image: stromuli criteria checks");
+			this.resultImgIntermediate.setTitle("Intermediate result image: " 
+					+ "stromules criteria checks");
 			this.resultImgIntermediate.show();
 		}
 	}
 	
+	/**
+	 * Detect stromules applying a statistical model.
+	 * 
+	 * @param roiImg				ROI image.
+	 * @param result_stack	Result stack.
+	 * @param comXs					Center of mass x-coordinates.
+	 * @param comYs					Center of mass y-coordinates.
+	 * @param orient				Orientations.
+	 */
 	private void detectStromuliStatisticalModel(MTBImageShort roiImg,
 			MTBImage result_stack, double[] comXs, double[] comYs, double[] orient) {
 
@@ -1409,10 +1247,6 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 		
 		System.out.println("min = " + stackMin + " , max = " + stackMax);
 		
-		
-//		MTBImageByte dirImage = (MTBImageByte)MTBImage.createMTBImage(
-//				xSize, ySize, zSize, tSize, cSize, MTBImageType.MTB_BYTE);
-
 		double weightSigma = 0.5;
 		double[] weights = new double[(int)(2*weightSigma) + 1];
 		for (int s=0; s<weights.length; ++s) {
@@ -1461,8 +1295,6 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 			}
 		}
 
-//		System.out.println("After probs: min = " + result_stack.getMinMaxDouble()[0] + " , max = " + result_stack.getMinMaxDouble()[1]);
-
 		System.out.println("Applying weighting...");
 		
 		for (int y=0; y<this.ySize; ++y) {
@@ -1510,8 +1342,6 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 				int refDir = ((int)((angleDeg+deg2)/this.degSampling) 
 						+ 180/this.degSampling/2)%degBins;
 
-//				System.out.println(x + " , " + y + " -> " + label + " : " + comX + " , " + comY + " , a = " + angleDeg + ", r=" + (refDir*degSampling+90));
-
 				// iterate over all directions in the result stack,
 				// i = 0 refers to structures with orientation 90 degrees
 //				for (int i=0; i<degBins; ++i) {
@@ -1530,12 +1360,12 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 			}
 		}
 		
-		System.out.println("After weights: min = " + result_stack.getMinMaxDouble()[0] + " , max = " + result_stack.getMinMaxDouble()[1]);
+		System.out.println("After weights: min = " 
+				+ result_stack.getMinMaxDouble()[0] + " , max = " 
+					+ result_stack.getMinMaxDouble()[1]);
 
 		System.out.println("Showing result stack...");
 		
-//		dirImage.setTitle("Direction image");
-//		dirImage.show();
 		result_stack.show();
 		MTBImageDouble res = (MTBImageDouble)MTBImage.createMTBImage(
 			this.xSize, this.ySize, this.zSize, this.tSize, this.cSize, 
@@ -1555,7 +1385,6 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 					// sum
 					sum += result_stack.getValueDouble(x, y, 0, 0, i);
 				}
-//				System.out.println(sum);
 				res.putValueDouble(x, y, sum);
 			}
 		}
@@ -1580,328 +1409,328 @@ public class StromulesDetector2D extends MTBOperator implements StatusReporter {
 //		this.stromuliRegions = null;
 	}
 	
-	/**
-	 * Stromuli detection method based on analyzing the morphological shape
-	 * of the joined region of plastid and stromuli.
-	 * 
-	 * @param maxFilterResult						Image of maximal vessel filter responses.
-	 * @throws ALDOperatorException				Thrown in case of failure.
-	 * @throws ALDProcessingDAGException	Thrown in case of failure.
-	 */
-	private void detectStromuliMorphology(MTBImage maxFilterResult) 
-			throws ALDOperatorException, ALDProcessingDAGException {
-
-		MTBImageByte plastidStromuliImg = (MTBImageByte)MTBImage.createMTBImage(
-				this.xSize, this.ySize, this.zSize, this.tSize,	this.cSize, 
-					MTBImageType.MTB_BYTE);
-
-		//2.1 Niblack-Filter auf Vesselbild
-		
-		//MTBImage firstslice = vessel_filter.getResponseStack().getCurrentSlice();
-		ImgThreshNiblack nibl = new ImgThreshNiblack();
-		
-		//nibl.setInputImage(firstslice);
-		//outImg3 = vessel_filter.getResponseStack();
-		
-		MTBImage result_img = maxFilterResult;
-		double mm[] = result_img.getMinMaxDouble();
-		for (int y=0; y<result_img.getSizeY(); ++y) {
-			for (int x=0; x<result_img.getSizeX(); ++x) {
-				result_img.putValueDouble(x, y, 
-						result_img.getValueDouble(x, y) * 255.0/mm[1]);
-			}
-		}
-		
-		nibl.setInputImage(result_img);
-		
-		nibl.setParameter("processMode",
-				ImgThreshNiblack.Mode.valueOf("STD_LOCVARCHECK"));
-		nibl.setParameter("enhanceR", new Double(-1.0));
-		nibl.setParameter("scalingK", new Double(0.5));
-		nibl.setParameter("winSize", new Integer(25));
-		nibl.setParameter("varCheckNB", new Integer(20));
-		nibl.setParameter("varCheckThresh", new Double(23));
-		
-		nibl.runOp();
-		MTBImageByte vessels = nibl.getResultImage();
-		vessels.setTitle("Vessel-Detektion");
-//		vessels.show();
-		
-		//2.2 Erstellung Vessel_Regions
-		LabelComponentsSequential labler = new LabelComponentsSequential(vessels,true);
-		labler.runOp();
-		MTBImageInt vessels_regions = (MTBImageInt)labler.getLabelImage();
-//		MTBRegion2DSet vessels_RSet = labler.getResultingRegions();
-		
-		//3.0 Verschmelzung 2.2 mit 1.1
-		boolean [] greenlight = 
-				new boolean [vessels.getSizeX()*vessels.getSizeY()];
-			for (int y=0; y<vessels.getSizeY(); ++y) 
-			{
-				for (int x=0; x<vessels.getSizeX(); ++x) 
-				{
-					if (this.plastidMask.getValueInt(x, y)==255)
-					{
-						plastidStromuliImg.putValueInt(x, y, 255);
+//	/**
+//	 * Stromuli detection method based on analyzing the morphological shape
+//	 * of the joined region of plastid and stromuli.
+//	 * 
+//	 * @param maxFilterResult						Image of maximal vessel filter responses.
+//	 * @throws ALDOperatorException				Thrown in case of failure.
+//	 * @throws ALDProcessingDAGException	Thrown in case of failure.
+//	 */
+//	private void detectStromuliMorphology(MTBImage maxFilterResult) 
+//			throws ALDOperatorException, ALDProcessingDAGException {
+//
+//		MTBImageByte plastidStromuliImg = (MTBImageByte)MTBImage.createMTBImage(
+//				this.xSize, this.ySize, this.zSize, this.tSize,	this.cSize, 
+//					MTBImageType.MTB_BYTE);
+//
+//		//2.1 Niblack-Filter auf Vesselbild
+//		
+//		//MTBImage firstslice = vessel_filter.getResponseStack().getCurrentSlice();
+//		ImgThreshNiblack nibl = new ImgThreshNiblack();
+//		
+//		//nibl.setInputImage(firstslice);
+//		//outImg3 = vessel_filter.getResponseStack();
+//		
+//		MTBImage result_img = maxFilterResult;
+//		double mm[] = result_img.getMinMaxDouble();
+//		for (int y=0; y<result_img.getSizeY(); ++y) {
+//			for (int x=0; x<result_img.getSizeX(); ++x) {
+//				result_img.putValueDouble(x, y, 
+//						result_img.getValueDouble(x, y) * 255.0/mm[1]);
+//			}
+//		}
+//		
+//		nibl.setInputImage(result_img);
+//		
+//		nibl.setParameter("processMode",
+//				ImgThreshNiblack.Mode.valueOf("STD_LOCVARCHECK"));
+//		nibl.setParameter("enhanceR", new Double(-1.0));
+//		nibl.setParameter("scalingK", new Double(0.5));
+//		nibl.setParameter("winSize", new Integer(25));
+//		nibl.setParameter("varCheckNB", new Integer(20));
+//		nibl.setParameter("varCheckThresh", new Double(23));
+//		
+//		nibl.runOp();
+//		MTBImageByte vessels = nibl.getResultImage();
+//		vessels.setTitle("Vessel-Detektion");
+////		vessels.show();
+//		
+//		//2.2 Erstellung Vessel_Regions
+//		LabelComponentsSequential labler = new LabelComponentsSequential(vessels,true);
+//		labler.runOp();
+//		MTBImageInt vessels_regions = (MTBImageInt)labler.getLabelImage();
+////		MTBRegion2DSet vessels_RSet = labler.getResultingRegions();
+//		
+//		//3.0 Verschmelzung 2.2 mit 1.1
+//		boolean [] greenlight = 
+//				new boolean [vessels.getSizeX()*vessels.getSizeY()];
+//			for (int y=0; y<vessels.getSizeY(); ++y) 
+//			{
+//				for (int x=0; x<vessels.getSizeX(); ++x) 
+//				{
+//					if (this.plastidMask.getValueInt(x, y)==255)
+//					{
+//						plastidStromuliImg.putValueInt(x, y, 255);
+////						if (vessels_regions.getValueInt(x, y)!=0) 
+////							greenlight[vessels_regions.getValueInt(x, y)]=true;
+//					}
+//					else plastidStromuliImg.putValueInt(x, y, 0);
+//					if (this.plastidMask.getValueInt(x, y)==255)
+//					{
 //						if (vessels_regions.getValueInt(x, y)!=0) 
 //							greenlight[vessels_regions.getValueInt(x, y)]=true;
-					}
-					else plastidStromuliImg.putValueInt(x, y, 0);
-					if (this.plastidMask.getValueInt(x, y)==255)
-					{
-						if (vessels_regions.getValueInt(x, y)!=0) 
-							greenlight[vessels_regions.getValueInt(x, y)]=true;
-					}
-				}
-			}
-			for (int y=0; y<vessels.getSizeY(); ++y) 
-			{
-				for (int x=0; x<vessels.getSizeX(); ++x) 
-				{
-					if (greenlight[vessels_regions.getValueInt(x, y)])
-					{
-						plastidStromuliImg.putValueInt(x, y, 255);
-						
-					}
-				}
-			}
-			
-//			plastidStromuliImg.setTitle("Plastids with Stromuli candidates");
-//			plastidStromuliImg.show();
-				
-			// check which regions have got additional pixels, these
-			// are potential regions with stromuli
-			
-		//4.0 Ermittlung von potentiellen Stromulis
-		LabelComponentsSequential labler2 = new LabelComponentsSequential(plastidStromuliImg,true);
-		labler2.runOp();
-		MTBImage strom_regions = labler2.getLabelImage();
-//		ArrayList <Double> norm_maxDis = new ArrayList<Double> ();
-		MTBRegion2DSet regionlist_s = new MTBRegion2DSet(strom_regions,0);
-		
-		//4.1 Verbesserung über Size
-		MTBRegion2DSet final_regions = new MTBRegion2DSet();
-		
-//		ArrayList <Double> n_sizer = new ArrayList<Double> ();
-		int mw_points =0;
-		double var_points =0;
-		for ( int z = 0; z < regionlist_s.size();z++)
-		{
-			mw_points+=regionlist_s.get(z).getPoints().size();
-		}
-		mw_points = mw_points/regionlist_s.size();
-		for ( int z = 0; z < regionlist_s.size();z++)
-		{
-			var_points +=Math.pow(regionlist_s.get(z).getPoints().size()-mw_points,2);
-		}
-		var_points = var_points/regionlist_s.size();
-		for ( int z = 0; z < regionlist_s.size();z++)
-		{
-			if (regionlist_s.get(z).getPoints().size() <= 0)
-			{
-				continue;
-			}
-			double size_stud= (regionlist_s.get(z).getPoints().size() - mw_points)/Math.sqrt(var_points);
-			if (size_stud >=2) continue;
-			// BM: check if region has grown
-			int newPixelCount = 0;
-			for (Point2D.Double p : regionlist_s.get(z).getPoints()) {
-				if (this.plastidMask.getValueInt((int)p.x, (int)p.y) == 0) {
-					// region has grown							
-					++newPixelCount;
-				}
-			}
-			if (newPixelCount >= 4)
-				final_regions.add(regionlist_s.get(z));
-			
-		}
-		
-		/* 
-		 * below: additional checks by analyzing projection histogram;
-		 * 				exact methodology is unclear and probably errorprone... 
-		 */
-		
-		//5.0 Projektion
-//		ArrayList <MTBImageHistogram> plastidhistos = new ArrayList<MTBImageHistogram >();
-//		for ( int z = 0; z < final_regions.size();z++)
-//		{
-//			
-//			
-//			
-//			Point2D.Double center2 = new Point2D.Double (final_regions.get(z).getCenterOfMass_X(),final_regions.get(z).getCenterOfMass_Y());
-//			double winkel =(final_regions.get(z).getOrientation());
-//
-//			System.out.println("Region: #### " + z + " ##### " + winkel + " #### " + "( " + center2.getX() + " , " + center2.getY() + " | "+ final_regions.get(z).getMajorAxisLength()+" )");
-//
-//			ArrayList <Integer> gamma_list = new ArrayList<Integer> ();
-//			for (int u =0; u < final_regions.get(z).getPoints().size(); u++)
-//			{
-//				Point2D.Double cpoint =final_regions.get(z).getPoints().get(u);
-//				double gamma =0.0;
-//				double epsi = 0.0; 
-//	            double a1 = 0, b1 = 0, c1 = 0;
-//	            double a2 = 0, b2 = 0, c2 = 0;
-//	            double D=0, D1=0, D2=0;
-//	            
-//	            
-//	               
-//	                a1 = Math.cos(winkel);
-//	                b1 = - Math.sin(winkel);
-//	                c1 = cpoint.getX()- center2.getX();
-//	                
-//	                
-//	                a2 =  Math.sin(winkel);
-//	                b2 =  Math.cos(winkel);
-//	                c2 = cpoint.getY()-center2.getY();
-//	                
-//	                //Verarbeitungen:
-//	                D = a1 * b2 - a2 * b1; 
-//	                
-//	                //Selektion und Ausgabe:
-//	                if (D == 0)
-//	                {
-//	                        System.out.println("Keine reelle Loesung moeglich!");
-//	                }
-//	                else
-//	                {
-//	                        D1 = c1 * b2 - c2 * b1; D2 = a1 * c2 - a2 * c1;
-//	                                        gamma = D1/D;   epsi= D2/D;
-//	
-//	                }
-//	                
-//	               
-//	                int X_wert= (int) Math.round(center2.getX()+ Math.cos(winkel) * gamma);
-//	                int Y_wert = (int) Math.round(center2.getY()+ Math.sin(winkel) * gamma);
-//	                //System.out.println("( " + (X_wert - (int)bbox[0]) + " , " + (Y_wert - (int)bbox[1])+ " )");
-//	                gamma_list.add((int) Math.round(gamma));
-//	              
-//	                
-//			}
-//			Collections.sort(gamma_list);
-//			int last_val=gamma_list.get(gamma_list.size()-1);
-//			int first_val=gamma_list.get(0);
-//			int val_length =Math.abs(last_val)+Math.abs(first_val);
-//			int shift = Math.abs(first_val);
-//			
-//			double vals [] = new double[val_length+1];
-//			for ( int l1: gamma_list)
-//			{
-//				vals[l1+shift] = vals[l1+shift]+1;
-//				
-//			}
-//			int counter =0;
-//			if (vals.length <= 1) plastidhistos.add(null);
-//			else
-//			{
-//				MTBImageHistogram a= new MTBImageHistogram(vals, vals.length, 0, vals.length-1);
-//				for (int l = 0; l<vals.length; l++)
-//				{
-//					a.setBinValue(l, vals[l]);
-//					//System.out.println(l+ " : "+vals[l]);
-//					counter++;
+//					}
 //				}
-//				plastidhistos.add(a);
 //			}
-//	
+//			for (int y=0; y<vessels.getSizeY(); ++y) 
+//			{
+//				for (int x=0; x<vessels.getSizeX(); ++x) 
+//				{
+//					if (greenlight[vessels_regions.getValueInt(x, y)])
+//					{
+//						plastidStromuliImg.putValueInt(x, y, 255);
+//						
+//					}
+//				}
+//			}
 //			
-//            
+////			plastidStromuliImg.setTitle("Plastids with Stromuli candidates");
+////			plastidStromuliImg.show();
+//				
+//			// check which regions have got additional pixels, these
+//			// are potential regions with stromuli
 //			
-//			
+//		//4.0 Ermittlung von potentiellen Stromulis
+//		LabelComponentsSequential labler2 = new LabelComponentsSequential(plastidStromuliImg,true);
+//		labler2.runOp();
+//		MTBImage strom_regions = labler2.getLabelImage();
+////		ArrayList <Double> norm_maxDis = new ArrayList<Double> ();
+//		MTBRegion2DSet regionlist_s = new MTBRegion2DSet(strom_regions,0);
+//		
+//		//4.1 Verbesserung über Size
+//		MTBRegion2DSet final_regions = new MTBRegion2DSet();
+//		
+////		ArrayList <Double> n_sizer = new ArrayList<Double> ();
+//		int mw_points =0;
+//		double var_points =0;
+//		for ( int z = 0; z < regionlist_s.size();z++)
+//		{
+//			mw_points+=regionlist_s.get(z).getPoints().size();
+//		}
+//		mw_points = mw_points/regionlist_s.size();
+//		for ( int z = 0; z < regionlist_s.size();z++)
+//		{
+//			var_points +=Math.pow(regionlist_s.get(z).getPoints().size()-mw_points,2);
+//		}
+//		var_points = var_points/regionlist_s.size();
+//		for ( int z = 0; z < regionlist_s.size();z++)
+//		{
+//			if (regionlist_s.get(z).getPoints().size() <= 0)
+//			{
+//				continue;
+//			}
+//			double size_stud= (regionlist_s.get(z).getPoints().size() - mw_points)/Math.sqrt(var_points);
+//			if (size_stud >=2) continue;
+//			// BM: check if region has grown
+//			int newPixelCount = 0;
+//			for (Point2D.Double p : regionlist_s.get(z).getPoints()) {
+//				if (this.plastidMask.getValueInt((int)p.x, (int)p.y) == 0) {
+//					// region has grown							
+//					++newPixelCount;
+//				}
+//			}
+//			if (newPixelCount >= 4)
+//				final_regions.add(regionlist_s.get(z));
 //			
 //		}
 //		
-		//6 Auswertung Histogramme
-//		int reg_count =  0;
-//		boolean [] stromu_green = new boolean [plastidhistos.size()];
-//		for (MTBImageHistogram b:plastidhistos)
-//		{
-//			if (b == null) {reg_count++; continue;}
-//			else
-//			{
-//			MTBImageHistogram dummy = b;
-//			CalcGlobalThreshOtsu calcThres = new CalcGlobalThreshOtsu(dummy);
-//			calcThres.runOp();
-//			int thres = (int)calcThres.getOtsuThreshold().getValue().doubleValue();
-//			double class_sum1 =0;
-//			double class_sum2= 0;
-//			int max_pos_c1 =thres;
-//			int max_pos_c2 = -1;
-//			double max_c1 =-1.0;
-//			double max_c2 =-1.0;
-//			for (int lz1 = 0; lz1<=thres; lz1++)
-//			{
-//				if (b.getBinValue(lz1) > max_c1) 
-//				{
-//					max_c1 = b.getBinValue(lz1); 
-//					if (max_pos_c1 < max_pos_c1) max_pos_c1 = lz1;
-//				}
-//				class_sum1= class_sum1 + b.getBinValue(lz1);
-//				
+//		/* 
+//		 * below: additional checks by analyzing projection histogram;
+//		 * 				exact methodology is unclear and probably errorprone... 
+//		 */
+//		
+//		//5.0 Projektion
+////		ArrayList <MTBImageHistogram> plastidhistos = new ArrayList<MTBImageHistogram >();
+////		for ( int z = 0; z < final_regions.size();z++)
+////		{
+////			
+////			
+////			
+////			Point2D.Double center2 = new Point2D.Double (final_regions.get(z).getCenterOfMass_X(),final_regions.get(z).getCenterOfMass_Y());
+////			double winkel =(final_regions.get(z).getOrientation());
+////
+////			System.out.println("Region: #### " + z + " ##### " + winkel + " #### " + "( " + center2.getX() + " , " + center2.getY() + " | "+ final_regions.get(z).getMajorAxisLength()+" )");
+////
+////			ArrayList <Integer> gamma_list = new ArrayList<Integer> ();
+////			for (int u =0; u < final_regions.get(z).getPoints().size(); u++)
+////			{
+////				Point2D.Double cpoint =final_regions.get(z).getPoints().get(u);
+////				double gamma =0.0;
+////				double epsi = 0.0; 
+////	            double a1 = 0, b1 = 0, c1 = 0;
+////	            double a2 = 0, b2 = 0, c2 = 0;
+////	            double D=0, D1=0, D2=0;
+////	            
+////	            
+////	               
+////	                a1 = Math.cos(winkel);
+////	                b1 = - Math.sin(winkel);
+////	                c1 = cpoint.getX()- center2.getX();
+////	                
+////	                
+////	                a2 =  Math.sin(winkel);
+////	                b2 =  Math.cos(winkel);
+////	                c2 = cpoint.getY()-center2.getY();
+////	                
+////	                //Verarbeitungen:
+////	                D = a1 * b2 - a2 * b1; 
+////	                
+////	                //Selektion und Ausgabe:
+////	                if (D == 0)
+////	                {
+////	                        System.out.println("Keine reelle Loesung moeglich!");
+////	                }
+////	                else
+////	                {
+////	                        D1 = c1 * b2 - c2 * b1; D2 = a1 * c2 - a2 * c1;
+////	                                        gamma = D1/D;   epsi= D2/D;
+////	
+////	                }
+////	                
+////	               
+////	                int X_wert= (int) Math.round(center2.getX()+ Math.cos(winkel) * gamma);
+////	                int Y_wert = (int) Math.round(center2.getY()+ Math.sin(winkel) * gamma);
+////	                //System.out.println("( " + (X_wert - (int)bbox[0]) + " , " + (Y_wert - (int)bbox[1])+ " )");
+////	                gamma_list.add((int) Math.round(gamma));
+////	              
+////	                
+////			}
+////			Collections.sort(gamma_list);
+////			int last_val=gamma_list.get(gamma_list.size()-1);
+////			int first_val=gamma_list.get(0);
+////			int val_length =Math.abs(last_val)+Math.abs(first_val);
+////			int shift = Math.abs(first_val);
+////			
+////			double vals [] = new double[val_length+1];
+////			for ( int l1: gamma_list)
+////			{
+////				vals[l1+shift] = vals[l1+shift]+1;
+////				
+////			}
+////			int counter =0;
+////			if (vals.length <= 1) plastidhistos.add(null);
+////			else
+////			{
+////				MTBImageHistogram a= new MTBImageHistogram(vals, vals.length, 0, vals.length-1);
+////				for (int l = 0; l<vals.length; l++)
+////				{
+////					a.setBinValue(l, vals[l]);
+////					//System.out.println(l+ " : "+vals[l]);
+////					counter++;
+////				}
+////				plastidhistos.add(a);
+////			}
+////	
+////			
+////            
+////			
+////			
+////			
+////		}
+////		
+//		//6 Auswertung Histogramme
+////		int reg_count =  0;
+////		boolean [] stromu_green = new boolean [plastidhistos.size()];
+////		for (MTBImageHistogram b:plastidhistos)
+////		{
+////			if (b == null) {reg_count++; continue;}
+////			else
+////			{
+////			MTBImageHistogram dummy = b;
+////			CalcGlobalThreshOtsu calcThres = new CalcGlobalThreshOtsu(dummy);
+////			calcThres.runOp();
+////			int thres = (int)calcThres.getOtsuThreshold().getValue().doubleValue();
+////			double class_sum1 =0;
+////			double class_sum2= 0;
+////			int max_pos_c1 =thres;
+////			int max_pos_c2 = -1;
+////			double max_c1 =-1.0;
+////			double max_c2 =-1.0;
+////			for (int lz1 = 0; lz1<=thres; lz1++)
+////			{
+////				if (b.getBinValue(lz1) > max_c1) 
+////				{
+////					max_c1 = b.getBinValue(lz1); 
+////					if (max_pos_c1 < max_pos_c1) max_pos_c1 = lz1;
+////				}
+////				class_sum1= class_sum1 + b.getBinValue(lz1);
+////				
+////			}
+////			for (int lz2 = thres+1; lz2<b.getSize(); lz2++)
+////			{
+////				if (b.getBinValue(lz2) > max_c2) 
+////				{
+////					max_c2 = b.getBinValue(lz2); 
+////					if (max_pos_c2 > max_pos_c2) max_pos_c2 = lz2;
+////				}
+////				class_sum2= class_sum2 + b.getBinValue(lz2);
+////			}
+////			double class_mean1 =class_sum1/thres;
+////			double class_mean2 =class_sum2/(b.getSize()-thres);
+////			int distance_maxps = -1;
+////			distance_maxps = Math.abs(max_pos_c2 - max_pos_c1);
+////			
+////			System.out.println(reg_count+" |||Class_means: Class1= " +class_mean1 + " | Class2=" + class_mean2 + "|Distance=|"+ distance_maxps + "|max"+ max_c1+ ","+max_c2);
+////			double mean_thres = Math.abs(class_mean1 - class_mean2);
+////			double max_thres = Math.abs(max_c1 - max_c2);
+////			if (mean_thres >= thres_mittel) stromu_green[reg_count] = true;
+////			if (max_thres <= thres_max) stromu_green[reg_count] = false;
+////			
+////			reg_count++;
+////			
+////			}
+////			
+////		}
+//		//7 Ausgabe
+//		
+////		for (int j1= 0; j1<inImg.getSizeX();j1++)
+////		{
+////			for (int j2=0;j2<inImg.getSizeY();j2++)
+////			{
+////				outImg2.putValueInt(j1, j2, inImg.getValueInt(j1, j2));
+////			}
+////			
+////			
+////		}
+//		
+//		// visualize final stromuli regions
+//		for(int k = 0; k<final_regions.size();k++) {
+//			for (int v= 0;v<final_regions.get(k).getPoints().size();v++) {
+//				this.resultLabelImage.putValueInt(
+//						(int)final_regions.get(k).getPoints().get(v).getX(), 
+//						(int)final_regions.get(k).getPoints().get(v).getY(), k);
 //			}
-//			for (int lz2 = thres+1; lz2<b.getSize(); lz2++)
-//			{
-//				if (b.getBinValue(lz2) > max_c2) 
-//				{
-//					max_c2 = b.getBinValue(lz2); 
-//					if (max_pos_c2 > max_pos_c2) max_pos_c2 = lz2;
-//				}
-//				class_sum2= class_sum2 + b.getBinValue(lz2);
-//			}
-//			double class_mean1 =class_sum1/thres;
-//			double class_mean2 =class_sum2/(b.getSize()-thres);
-//			int distance_maxps = -1;
-//			distance_maxps = Math.abs(max_pos_c2 - max_pos_c1);
-//			
-//			System.out.println(reg_count+" |||Class_means: Class1= " +class_mean1 + " | Class2=" + class_mean2 + "|Distance=|"+ distance_maxps + "|max"+ max_c1+ ","+max_c2);
-//			double mean_thres = Math.abs(class_mean1 - class_mean2);
-//			double max_thres = Math.abs(max_c1 - max_c2);
-//			if (mean_thres >= thres_mittel) stromu_green[reg_count] = true;
-//			if (max_thres <= thres_max) stromu_green[reg_count] = false;
-//			
-//			reg_count++;
-//			
-//			}
-//			
 //		}
-		//7 Ausgabe
-		
-//		for (int j1= 0; j1<inImg.getSizeX();j1++)
-//		{
-//			for (int j2=0;j2<inImg.getSizeY();j2++)
-//			{
-//				outImg2.putValueInt(j1, j2, inImg.getValueInt(j1, j2));
-//			}
-//			
-//			
+//		
+//		// copy final stromuli regions to output region set
+//		double xMax = 0.0;
+//		double yMax = 0.0;
+//		Vector<MTBRegion2D> stromulis = new Vector<MTBRegion2D>();
+//		for(int k = 0; k<final_regions.size();k++) {
+//			MTBRegion2D reg = final_regions.get(k);
+//			double[] minmax = reg.getMinMaxCoordinates();
+//			if (minmax[2] > xMax)
+//				xMax = minmax[2];
+//			if (minmax[3] > yMax)
+//				yMax = minmax[3];
+//			stromulis.add(reg);
 //		}
-		
-		// visualize final stromuli regions
-		for(int k = 0; k<final_regions.size();k++) {
-			for (int v= 0;v<final_regions.get(k).getPoints().size();v++) {
-				this.resultLabelImage.putValueInt(
-						(int)final_regions.get(k).getPoints().get(v).getX(), 
-						(int)final_regions.get(k).getPoints().get(v).getY(), k);
-			}
-		}
-		
-		// copy final stromuli regions to output region set
-		double xMax = 0.0;
-		double yMax = 0.0;
-		Vector<MTBRegion2D> stromulis = new Vector<MTBRegion2D>();
-		for(int k = 0; k<final_regions.size();k++) {
-			MTBRegion2D reg = final_regions.get(k);
-			double[] minmax = reg.getMinMaxCoordinates();
-			if (minmax[2] > xMax)
-				xMax = minmax[2];
-			if (minmax[3] > yMax)
-				yMax = minmax[3];
-			stromulis.add(reg);
-		}
-		
-		// set resulting region set as value of operator's output parameter
-		this.stromuliRegions = 
-				new MTBRegion2DSet(stromulis, 0, 0, xMax, yMax);
-	}
+//		
+//		// set resulting region set as value of operator's output parameter
+//		this.stromuliRegions = 
+//				new MTBRegion2DSet(stromulis, 0, 0, xMax, yMax);
+//	}
 	
 	// ----- StatusReporter interface
 	
