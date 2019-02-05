@@ -37,6 +37,9 @@ import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException.OperatorExceptionType;
 import de.unihalle.informatik.MiToBo.apps.plantCells.stromules.StromulesDetector2D;
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBBorder2DSet;
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBContour2D;
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBContour2DSet;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2DSet;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
@@ -49,6 +52,8 @@ import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCn
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarkerShapeRegion;
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarkerVector;
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.operators.CellCounterDetectOperator;
+import de.unihalle.informatik.MiToBo.segmentation.contours.extraction.ContourOnLabeledComponents;
+import de.unihalle.informatik.MiToBo.segmentation.contours.extraction.ContourOnLabeledComponents.ContourType;
 
 /**
  * Detector wrapper for detection of stromules from given plastid regions. 
@@ -245,15 +250,37 @@ public class CellCounterDetectOperatorStromules
 		MTBRegion2DSet resultStromuliRegions = 
 				(MTBRegion2DSet)this.stromuliOp.getParameter("stromuliRegions");
 		int resultStromuliCount = resultStromuliRegions.size();
+		
+		// extract high quality region contours
+		MTBBorder2DSet borders = null;
+		if (this.highQualityData) {
+			// extract ordered contour pixel list
+			ContourOnLabeledComponents clc = new ContourOnLabeledComponents(
+					resultStromuliRegions, ContourType.OUT_IN_CONTOUR, 1);
+			clc.runOp();
+			MTBContour2DSet conts = clc.getResultContours();
+			borders = new MTBBorder2DSet();
+			for (MTBContour2D c: conts) {
+				borders.add(c);
+			}
+		}
 
 		if (this.verbose.booleanValue())
 			System.out.println(opIdentifier + 
 				"\t -> Number of detected stromuli: " + resultStromuliCount);
 
 		// format results
+		int i=0;
 		Vector<CellCntrMarker> markers = new Vector<>();
 		for (MTBRegion2D reg: resultStromuliRegions) {
-			CellCntrMarkerShape s = new CellCntrMarkerShapeRegion(reg);
+			CellCntrMarkerShape s;
+			if (this.highQualityData && borders != null) {
+				s = new CellCntrMarkerShapeRegion(reg, borders.elementAt(i));
+				++i;
+			}
+			else {
+				s = new CellCntrMarkerShapeRegion(reg);
+			}
 			s.setAvgIntensity(Double.NaN);
 			CellCntrMarker marker = new CellCntrMarker(
 				(int)reg.getCenterOfMass_X(), (int)reg.getCenterOfMass_Y(),
