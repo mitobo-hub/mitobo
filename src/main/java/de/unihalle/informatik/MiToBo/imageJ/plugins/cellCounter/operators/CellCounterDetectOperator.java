@@ -77,6 +77,11 @@ public abstract class CellCounterDetectOperator
 	protected Vector<CellCntrMarker> detectResults;
 	
 	/**
+	 * Flag to enable extraction of data with highest accuracy. 
+	 */
+	protected boolean highQualityData = false;
+	
+	/**
 	 * Get common short name of operator for GUI.
 	 * @return	Name of operator.
 	 */
@@ -89,6 +94,20 @@ public abstract class CellCounterDetectOperator
 	 */
 	public Vector<CellCntrMarker> getDetectionResults() {
 		return this.detectResults;
+	}
+	
+	/**
+	 * Enable or disable extraction of high quality data.
+	 * <p>
+	 * Extracting high quality data is allowed to take a bit longer than normal.
+	 * For example in case of region contours high quality data could refer to
+	 * an extraction of ordered lists of boundary points compared to unordered 
+	 * lists which is much faster.
+	 * 
+	 * @param flag		If true, high quality data is requested.
+	 */
+	public void setHighQualityData(boolean flag) {
+		this.highQualityData = flag;
 	}
 	
 	/** 
