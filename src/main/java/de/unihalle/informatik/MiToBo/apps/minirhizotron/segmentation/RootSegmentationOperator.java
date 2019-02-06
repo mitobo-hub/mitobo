@@ -1,6 +1,5 @@
 /*
- * This file is part of Alida, a Java library for 
- * Advanced Library for Integrated Development of Data Analysis Applications.
+ * This file is part of MiToBo, the Microscope Image Analysis Toolbox.
  *
  * Copyright (C) 2010 - @YEAR@
  *
@@ -17,14 +16,18 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Fore more information on Alida, visit
+ * Fore more information on MiToBo, visit
  *
- *    http://www.informatik.uni-halle.de/alida/
+ *    http://www.informatik.uni-halle.de/mitobo/
  *
  */
 
 package de.unihalle.informatik.MiToBo.apps.minirhizotron.segmentation;
 
+import java.util.Map;
+
+import de.unihalle.informatik.Alida.annotations.Parameter;
+import de.unihalle.informatik.Alida.annotations.Parameter.ExpertMode;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.operator.ALDOperatorCollectionElement;
 import ij.ImagePlus;
@@ -36,8 +39,22 @@ import ij.ImagePlus;
 public abstract class RootSegmentationOperator 
 	extends ALDOperatorCollectionElement 
 {
-	private static ImagePlus image;
+	/**
+	 * Input image.
+	 */
+	protected ImagePlus image;
 	
+  /**
+   * Result data structure: list of point pairs
+   */
+  @Parameter(label = "result data structure", 
+  		required = true, 
+  		direction = Parameter.Direction.OUT,
+  		dataIOOrder = 23, 
+  		mode = ExpertMode.STANDARD,
+  		description = "Result list of point pairs")
+  protected Map<Integer, Map<Integer, Node>> resultLineMap;
+
 	/**
 	 * Default constructor.
 	 * @throws ALDOperatorException Thrown in case of failure.
@@ -53,15 +70,16 @@ public abstract class RootSegmentationOperator
 	 */
 	public void setImage(ImagePlus img)
 	{
-		image = img;
+		this.image = img;
 	}
 	
 	/**
 	 * Getter for the input image.
 	 * @return the image as an ImagePlus
 	 */
-	public static ImagePlus getImage()
+	public ImagePlus getImage()
 	{
-		return image;
+		return this.image;
 	}
+	
 }
