@@ -39,21 +39,21 @@ import ij.ImagePlus;
 public abstract class RootSegmentationOperator 
 	extends ALDOperatorCollectionElement 
 {
-	/**
-	 * Input image.
-	 */
-	protected ImagePlus image;
+   /**
+    * Input image.
+    */
+   protected ImagePlus image;
 	
-  /**
-   * Result data structure: list of point pairs
-   */
-  @Parameter(label = "result data structure", 
+   /**
+   	* Result data structure: list of point pairs
+   	*/
+   @Parameter(label = "result data structure", 
   		required = true, 
   		direction = Parameter.Direction.OUT,
-  		dataIOOrder = 23, 
+  		dataIOOrder = 1, 
   		mode = ExpertMode.STANDARD,
   		description = "Result list of point pairs")
-  protected Map<Integer, Map<Integer, Node>> resultLineMap;
+    protected Map<Integer, Map<Integer, Node>> resultLineMap;
 
 	/**
 	 * Default constructor.

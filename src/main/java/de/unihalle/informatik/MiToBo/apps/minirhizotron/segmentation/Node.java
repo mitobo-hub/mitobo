@@ -5,7 +5,7 @@ public class Node
 	private int predecessor; 
 	private double x;
 	private double y;
-	private double radius;
+	private double diameter;
 	private double nx;
 	private double ny;
 	
@@ -20,7 +20,7 @@ public class Node
 		this.predecessor = 0;
 		this.x = x;
 		this.y = y;
-		this.radius = 0.0;
+		this.diameter = 0.0;
 	}
 	
 	public Node(int predecessor, double x, double y)
@@ -28,15 +28,15 @@ public class Node
 		this.predecessor = predecessor;
 		this.x = x;
 		this.y = y;
-		this.radius = 0.0;
+		this.diameter = 0.0;
 	}
 	
-	public Node(int predecessor, double x, double y, double radius)
+	public Node(int predecessor, double x, double y, double diameter)
 	{
 		this.predecessor = predecessor;
 		this.x = x;
 		this.y = y;
-		this.radius = radius;
+		this.diameter = diameter;
 	}
 	
 	// getter	
@@ -55,9 +55,9 @@ public class Node
 		return this.y;
 	}
 	
-	public double getRadius()
+	public double getDiameter()
 	{
-		return this.radius;
+		return this.diameter;
 	}
 	
 	public double getNx()
@@ -86,9 +86,9 @@ public class Node
 		this.y = y;
 	}
 	
-	public void setRadius(double radius)
+	public void setDiameter(double diameter)
 	{
-		this.radius = radius;
+		this.diameter = diameter;
 	}
 	
 	public void setNx(double nx)
