@@ -316,6 +316,11 @@
       <groupId>org.jgrapht</groupId>
       <artifactId>jgrapht-core</artifactId>
     </dependency>
+    <dependency>
+      <!-- Steger Ridge Detection -->
+      <groupId>de.biomedical-imaging.imagej</groupId>
+      <artifactId>ij_ridge_detect</artifactId>
+    </dependency>
     <!-- ImgLib2 dependencies -->
     <dependency>
       <groupId>net.imglib2</groupId>

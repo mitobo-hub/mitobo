@@ -39,6 +39,8 @@ import de.unihalle.informatik.MiToBo.apps.particles2D.ParticleDetectorUWT2D;
 import de.unihalle.informatik.MiToBo.apps.plantCells.plastids.PlastidDetector2DParticlesUWT;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBBorder2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBBorder2DSet;
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBContour2D;
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBContour2DSet;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2DSet;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBBorder2D.BorderConnectivity;
@@ -46,6 +48,8 @@ import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCn
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarkerShape;
 import de.unihalle.informatik.MiToBo.imageJ.plugins.cellCounter.datatypes.CellCntrMarkerShapeRegion;
 import de.unihalle.informatik.MiToBo.segmentation.contours.extraction.BordersOnLabeledComponents;
+import de.unihalle.informatik.MiToBo.segmentation.contours.extraction.ContourOnLabeledComponents;
+import de.unihalle.informatik.MiToBo.segmentation.contours.extraction.ContourOnLabeledComponents.ContourType;
 import de.unihalle.informatik.MiToBo.segmentation.contours.extraction.BordersOnLabeledComponents.BorderType;
 
 /**
@@ -164,11 +168,26 @@ public class CellCounterDetectOperatorParticlesUWT
 		Vector<CellCntrMarker> markers = new Vector<>();
 		
 		// extract borders for all regions
-		BordersOnLabeledComponents blc = new BordersOnLabeledComponents(null,
-			resultPlastidRegions, BorderConnectivity.CONNECTED_8, 
-				BorderType.OUT_IN_BORDERS, 1);
-		blc.runOp(null);				
-		MTBBorder2DSet borders = blc.getResultBorders();
+		MTBBorder2DSet borders;
+		if (this.highQualityData) {
+			// extract ordered contour pixel list
+			ContourOnLabeledComponents clc = new ContourOnLabeledComponents(
+					resultPlastidRegions, ContourType.OUT_IN_CONTOUR, 1);
+			clc.runOp();
+			MTBContour2DSet conts = clc.getResultContours();
+			borders = new MTBBorder2DSet();
+			for (MTBContour2D c: conts) {
+				borders.add(c);
+			}
+		}
+		else {
+			// extract unordered contour pixel list
+			BordersOnLabeledComponents blc = new BordersOnLabeledComponents(null,
+					resultPlastidRegions, BorderConnectivity.CONNECTED_8, 
+					BorderType.OUT_IN_BORDERS, 1);
+			blc.runOp(null);				
+			borders = blc.getResultBorders();
+		}
 
 		for (int i=0; i<resultPlastidRegions.size(); ++i) {
 			MTBRegion2D reg = resultPlastidRegions.elementAt(i);
