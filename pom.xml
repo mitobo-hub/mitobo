@@ -255,18 +255,6 @@
       <layout>default</layout>
     </repository>
   </repositories>
-      
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-	<groupId>org.scijava</groupId>
-	<artifactId>pom-scijava</artifactId>
-	<version>${scijava.version}</version>
-	<type>pom</type>
-        <scope>import</scope>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
 
   <dependencies>
     <!-- Compile dependencies -->
