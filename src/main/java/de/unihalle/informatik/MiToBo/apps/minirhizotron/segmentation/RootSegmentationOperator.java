@@ -82,4 +82,13 @@ public abstract class RootSegmentationOperator
 		return this.image;
 	}
 	
+	/**
+	 * Getter for the result map
+	 * @return resultLineMap
+	 */
+	public Map<Integer, Map<Integer, Node>> getMap()
+	{
+		return this.resultLineMap;	
+	}
+	
 }

@@ -17,7 +17,7 @@ public class Node
 	
 	public Node(double x, double y)
 	{
-		this.predecessor = 0;
+		this.predecessor = -1;
 		this.x = x;
 		this.y = y;
 		this.diameter = 0.0;
