@@ -64,21 +64,6 @@ public class MTBContour2D extends MTBBorder2D
 	implements MTBDataExportableToImageJROI {
 
 		/**
-		 * The contour pixels.
-		 */
-//		private Vector<Point2D.Double> points;
-
-		/**
-		 * Set of inner contours if available.
-		 */
-//		private Vector<MTBContour2D> inner;
-
-		/**
-		 * The number of contour points.
-		 */
-//		private int pointNum;
-
-		/**
 		 * Standard constructor. Creates an empty 2D contour object.
 		 */
 		public MTBContour2D() {
@@ -89,7 +74,7 @@ public class MTBContour2D extends MTBBorder2D
 		}
 
 		/**
-		 * Constructor to create an 2D contour object from a 2D point vector.
+		 * Constructor to create a 2D contour object from a 2D point vector.
 		 * 
 		 * @param _points
 		 *          vector with 2D points
@@ -390,6 +375,20 @@ public class MTBContour2D extends MTBBorder2D
 				MTBRegion2DSet resultRegion = LCS.getResultingRegions();
 				System.out.println(resultRegion.size());
 				return resultRegion.elementAt(0);
+		}
+
+		/**
+		 * Read a 2D contour object from an ASCII file in xSV format.
+		 * <p>
+		 * The file is expected to contain a single point in each row, first
+		 * the x-coordinate and then the y-coordinate. Both coordinates should
+		 * be separated by the delimiter character.  
+		 * 
+		 * @param file	File name from where to read the points.
+		 * @param delim	Delimiter in the file.
+		 */
+		public void readContourFromASCIIFile(String file, String delim) {
+			super.readBorderFromASCIIFile(file, delim);
 		}
 
 		/* (non-Javadoc)

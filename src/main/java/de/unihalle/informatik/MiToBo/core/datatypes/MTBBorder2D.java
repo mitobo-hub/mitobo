@@ -25,6 +25,10 @@
 package de.unihalle.informatik.MiToBo.core.datatypes;
 
 import java.awt.geom.Point2D;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.util.Vector;
 
 import de.unihalle.informatik.Alida.annotations.ALDClassParameter;
@@ -103,7 +107,7 @@ public class MTBBorder2D extends ALDData implements Cloneable {
 	}
 
 	/**
-	 * Constructor to create an 2D border object from a 2D point vector.
+	 * Constructor to create a 2D border object from a 2D point vector.
 	 * @param _points		Vector with 2D points.
 	 * @param bc				Type of connectivity within point list.
 	 */
@@ -344,6 +348,44 @@ public class MTBBorder2D extends ALDData implements Cloneable {
 		return bbox;
 	}
 	
+	/**
+	 * Read a 2D border object from an ASCII file in xSV format.
+	 * <p>
+	 * The file is expected to contain a single point in each row, first
+	 * the x-coordinate and then the y-coordinate. Both coordinates should
+	 * be separated by the delimiter character, e.g. ',' or ' '.  
+	 * 
+	 * @param file	File name from where to read the points.
+	 * @param delim	Delimiter in the file.
+	 */
+	public void readBorderFromASCIIFile(String file, String delim) {
+		
+		try {
+			BufferedReader bf = new BufferedReader(new FileReader(new File(file)));
+			
+			Vector<Point2D.Double> pointVec = new Vector<>();
+			
+			String line = bf.readLine();
+			String[] coords = null;
+			double x, y;
+			while (line != null) {
+				coords = line.split(delim);
+				x = Double.parseDouble(coords[0]);
+				y = Double.parseDouble(coords[0]);
+				pointVec.add(new Point2D.Double(x, y));
+			}
+			bf.close();
+			
+			this.points = pointVec;
+			this.inner = new Vector<MTBBorder2D>();
+			this.pointNum = this.points.size();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+	}
+
+
 	/**
 	 * Function to update object state after setting new point list.
 	 * <p>
