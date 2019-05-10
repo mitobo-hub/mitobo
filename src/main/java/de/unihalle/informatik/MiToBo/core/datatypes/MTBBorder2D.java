@@ -27,7 +27,6 @@ package de.unihalle.informatik.MiToBo.core.datatypes;
 import java.awt.geom.Point2D;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.Vector;
 
@@ -150,7 +149,7 @@ public class MTBBorder2D extends ALDData implements Cloneable {
 
 	/**
 	 * Get a specific 2D point belonging to the border object.
-	 * @param 	Index of requested point.
+	 * @param index 	Index of requested point.
 	 * @return 2D point at specific index.
 	 */
 	public Point2D.Double getPointAt(int index) {
@@ -194,6 +193,7 @@ public class MTBBorder2D extends ALDData implements Cloneable {
 	/**
 	 * Set the inner borders of the border object.
 	 * @param ic	Vector with inner borders.
+	 * @throws MTBDatatypeException Thrown in case of failure.
 	 */
 	@SuppressWarnings("unused")
   public void setInner(Vector<MTBBorder2D> ic) throws MTBDatatypeException {
@@ -203,6 +203,7 @@ public class MTBBorder2D extends ALDData implements Cloneable {
 	/**
 	 * Add an inner border to the existing border object.
 	 * @param ic	New inner 2D border.
+	 * @throws MTBDatatypeException Thrown in case of failure.
 	 */
 	@SuppressWarnings("unused")
   public void addInner(MTBBorder2D ic) throws MTBDatatypeException {
@@ -242,8 +243,8 @@ public class MTBBorder2D extends ALDData implements Cloneable {
 	 * @param height		Height of the binary image.
 	 * @return Image with borders.
 	 * 
-	 * @throws ALDOperatorException
-	 * @throws ALDProcessingDAGException
+	 * @throws ALDOperatorException				Thrown in case of failure.
+	 * @throws ALDProcessingDAGException	Thrown in case of failure.
 	 */
 	public MTBImageByte toMTBImageByte(String file, int width, int height)
 			throws ALDOperatorException, ALDProcessingDAGException {
@@ -282,8 +283,8 @@ public class MTBBorder2D extends ALDData implements Cloneable {
 	 * @param image		Image to where the borders should be drawn.
 	 * @return Image with borders.
 	 * 
-	 * @throws ALDOperatorException
-	 * @throws ALDProcessingDAGException
+	 * @throws ALDOperatorException				Thrown in case of failure.
+	 * @throws ALDProcessingDAGException	Thrown in case of failure.
 	 */
 	public MTBImage toMTBImage(String file, MTBImage image)
 			throws ALDOperatorException, ALDProcessingDAGException {
@@ -355,32 +356,42 @@ public class MTBBorder2D extends ALDData implements Cloneable {
 	 * the x-coordinate and then the y-coordinate. Both coordinates should
 	 * be separated by the delimiter character, e.g. ',' or ' '.  
 	 * 
-	 * @param file	File name from where to read the points.
-	 * @param delim	Delimiter in the file.
+	 * @param file			File name from where to read the points.
+	 * @param delim			Delimiter in the file.
+	 * @param skipLines	Number of header lines to skip.
+	 * @return Border object.
 	 */
-	public void readBorderFromASCIIFile(String file, String delim) {
+	public static MTBBorder2D readBorderFromASCIIFile(
+			String file, String delim, int skipLines) {
 		
 		try {
 			BufferedReader bf = new BufferedReader(new FileReader(new File(file)));
 			
 			Vector<Point2D.Double> pointVec = new Vector<>();
 			
-			String line = bf.readLine();
+			// skip first lines
+			int sl = 0;
+			String line;
+			while (sl < skipLines) {
+				line = bf.readLine();
+				++sl;
+			}
+			line = bf.readLine();
+			
 			String[] coords = null;
 			double x, y;
 			while (line != null) {
 				coords = line.split(delim);
 				x = Double.parseDouble(coords[0]);
-				y = Double.parseDouble(coords[0]);
+				y = Double.parseDouble(coords[1]);
 				pointVec.add(new Point2D.Double(x, y));
+				line = bf.readLine();
 			}
 			bf.close();
-			
-			this.points = pointVec;
-			this.inner = new Vector<MTBBorder2D>();
-			this.pointNum = this.points.size();
+			return new MTBBorder2D(pointVec, BorderConnectivity.CONNECTED_8);
 		} catch (Exception e) {
 			e.printStackTrace();
+			return null;
 		}
 		
 	}

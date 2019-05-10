@@ -33,6 +33,9 @@ import ij.process.ImageProcessor;
 import java.awt.Color;
 import java.awt.Polygon;
 import java.awt.geom.Point2D;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.util.Hashtable;
 import java.util.Vector;
 
@@ -377,20 +380,6 @@ public class MTBContour2D extends MTBBorder2D
 				return resultRegion.elementAt(0);
 		}
 
-		/**
-		 * Read a 2D contour object from an ASCII file in xSV format.
-		 * <p>
-		 * The file is expected to contain a single point in each row, first
-		 * the x-coordinate and then the y-coordinate. Both coordinates should
-		 * be separated by the delimiter character.  
-		 * 
-		 * @param file	File name from where to read the points.
-		 * @param delim	Delimiter in the file.
-		 */
-		public void readContourFromASCIIFile(String file, String delim) {
-			super.readBorderFromASCIIFile(file, delim);
-		}
-
 		/* (non-Javadoc)
 		 * @see de.unihalle.informatik.MiToBo.core.datatypes.interfaces.MTBDataExportableToImageJROI#convertToImageJRoi()
 		 */
@@ -559,6 +548,86 @@ public class MTBContour2D extends MTBBorder2D
 				nc.addInner(ic);
 			}
 			return nc;
+		}
+
+		/**
+		 * Draw a contour into an image.
+		 * 
+		 * @param img			Image where to draw the contour into.
+		 * @param color 	Color in which to draw the contour.
+		 */
+	  public void drawContour(MTBImage img, Color color) {
+
+	    // get number of points
+	    int np = this.points.size();
+
+	    if (np == 0)
+	      return;
+
+	    // draw segments
+	    int c = ((color.getRed() & 0xff) << 16) 
+	    		+ ((color.getGreen() & 0xff) << 8) 
+	    		+ (color.getBlue() & 0xff);
+	    for (int i = 0; i < np - 1; i++) {
+	      int x1 = (int) Math.round(this.points.get(i).x);
+	      int y1 = (int) Math.round(this.points.get(i).y);
+	      int x2 = (int) Math.round(this.points.get(i + 1).x);
+	      int y2 = (int) Math.round(this.points.get(i + 1).y);
+	      img.drawLine2D(x1, y1, x2, y2, c);
+	    }
+	    // last segment N-1 -> 0
+	    int x1 = (int) Math.round(this.points.get(np - 1).x);
+	    int y1 = (int) Math.round(this.points.get(np - 1).y);
+	    int x2 = (int) Math.round(this.points.get(0).x);
+	    int y2 = (int) Math.round(this.points.get(0).y);
+	    img.drawLine2D(x1, y1, x2, y2, c);
+	  }
+	  
+		/**
+		 * Read a 2D contour object from an ASCII file in xSV format.
+		 * <p>
+		 * The file is expected to contain a single point in each row, first
+		 * the x-coordinate and then the y-coordinate. Both coordinates should
+		 * be separated by the delimiter character.  
+		 * 
+		 * @param file			File name from where to read the points.
+		 * @param delim			Delimiter in the file.
+		 * @param skipLines	Number of header lines to skip.
+		 * @return Contour object.
+		 */
+		public static MTBContour2D readContourFromASCIIFile(
+				String file, String delim, int skipLines) {
+			
+			try {
+				BufferedReader bf = new BufferedReader(new FileReader(new File(file)));
+				
+				Vector<Point2D.Double> pointVec = new Vector<>();
+				
+				// skip first lines
+				int sl = 0;
+				String line;
+				while (sl < skipLines) {
+					line = bf.readLine();
+					++sl;
+				}
+				line = bf.readLine();
+				
+				String[] coords = null;
+				double x, y;
+				while (line != null) {
+					coords = line.split(delim);
+					x = Double.parseDouble(coords[0]);
+					y = Double.parseDouble(coords[1]);
+					pointVec.add(new Point2D.Double(x, y));
+					line = bf.readLine();
+				}
+				bf.close();
+				return new MTBContour2D(pointVec);
+			} catch (Exception e) {
+				e.printStackTrace();
+				return null;
+			}
+			
 		}
 
 		/**

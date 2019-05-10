@@ -24,6 +24,7 @@
 
 package de.unihalle.informatik.MiToBo.core.datatypes;
 
+import java.awt.geom.Point2D;
 import java.io.*;
 import java.util.*;
 
@@ -36,6 +37,7 @@ import de.unihalle.informatik.Alida.operator.ALDData;
 import de.unihalle.informatik.Alida.operator.ALDOperator;
 import de.unihalle.informatik.MiToBo.core.datatypes.interfaces.MTBDataExportableToImageJROI;
 import de.unihalle.informatik.MiToBo.core.exceptions.MTBDatatypeException;
+import de.unihalle.informatik.MiToBo.io.dirs.DirectoryTree;
 import de.unihalle.informatik.MiToBo_xml.*;
 import ij.gui.PolygonRoi;
 
@@ -89,34 +91,35 @@ public class MTBContour2DSet extends ALDData
 				this.xMax = 0.0;
 				this.yMax = 0.0;
 				this.contourSet = new Vector<MTBContour2D>();
-				setProperty("xMin", 0.0);
-				setProperty("yMin", 0.0);
-				setProperty("xMax", 0.0);
-				setProperty("yMax", 0.0);
+				setProperty("xMin", new Double(0.0));
+				setProperty("yMin", new Double(0.0));
+				setProperty("xMax", new Double(0.0));
+				setProperty("yMax", new Double(0.0));
 		}
 
 		/**
 		 * Construct an empty set of contours with given extent of domain.
 		 * 
-		 * @param xMin
+		 * @param _xMin
 		 *          minimal x-coordinate of the domain
-		 * @param yMin
+		 * @param _yMin
 		 *          minimal y-coordinate of the domain
-		 * @param xMax
+		 * @param _xMax
 		 *          maximal x-coordinate of the domain
-		 * @param yMax
+		 * @param _yMax
 		 *          maximal y-coordinate of the domain
 		 */
-		public MTBContour2DSet(double xMin, double yMin, double xMax, double yMax) {
-				this.xMin = xMin;
-				this.yMin = yMin;
-				this.xMax = xMax;
-				this.yMax = yMax;
+		public MTBContour2DSet(
+					double _xMin, double _yMin, double _xMax, double _yMax) {
+				this.xMin = _xMin;
+				this.yMin = _yMin;
+				this.xMax = _xMax;
+				this.yMax = _yMax;
 				this.contourSet = new Vector<MTBContour2D>();
-				setProperty("xMin", xMin);
-				setProperty("yMin", yMin);
-				setProperty("xMax", xMax);
-				setProperty("yMax", yMax);
+				setProperty("xMin", new Double(_xMin));
+				setProperty("yMin", new Double(_yMin));
+				setProperty("xMax", new Double(_xMax));
+				setProperty("yMax", new Double(_yMax));
 		}
 
 		@Override
@@ -140,12 +143,12 @@ public class MTBContour2DSet extends ALDData
 		 * @return Number of contours.
 		 */
 		public int size() {
-				return contourSet.size();
+				return this.contourSet.size();
 		}
 
 		/**
 		 * Get a contour by index.
-		 * 
+		 * @param i Index of border to retrieve. 
 		 * @return The i-th contour.
 		 */
     public MTBContour2D elementAt(int i) {
@@ -189,8 +192,8 @@ public class MTBContour2DSet extends ALDData
 		/**
 		 * Append a contour (at the end) to the set of contours.
 		 * 
-		 * @param contour
-		 *          contour to add
+		 * @param contour			Contour to add.
+		 * @return True in case of success.
 		 */
     public boolean add(MTBContour2D contour) {
 			return this.contourSet.add(contour);
@@ -226,8 +229,8 @@ public class MTBContour2DSet extends ALDData
 		 * 
 		 * @param filename
 		 *          Filename to read from, WITHOUT extension (for the moment).
-		 * @throws IOException 
-		 * @throws XmlException 
+		 * @throws IOException 		Thrown in case of failure.
+		 * @throws XmlException 	Thrown in case of failure.
 		 */
 		public void read(String filename) throws IOException, XmlException {
 
@@ -259,17 +262,14 @@ public class MTBContour2DSet extends ALDData
 		}
 
 		/**
-		 * Read a contour set from an xml object <code>xmlContourSet</code> and set the MTB
-		 * polygon set accordingly. 
+		 * Read a contour set from an xml object <code>xmlContourSet</code> 
+		 * and set the MTB polygon set accordingly. 
 		 * <p>
 		 * WARNING: currently assume filename WITHOUT extension.
 		 * 
-		 * @param filename
-		 *          Filename to read from, WITHOUT extension (for the moment).
-		 * @throws IOException 
-		 * @throws XmlException 
+		 * @param xmlContourSet	Object from where to read the data.
 		 */
-		public void read(MTBXMLContour2DSetType xmlContourSet) throws IOException, XmlException {
+		public void read(MTBXMLContour2DSetType xmlContourSet) {
 
 			// get bounding box
 			this.xMin = xmlContourSet.getXMin();
@@ -294,6 +294,7 @@ public class MTBContour2DSet extends ALDData
 		 * 
 		 * @param filename
 		 *          Filename to write to, WITHOUT extension (for the moment)
+		 * @throws ALDException Thrown in case of failure.
 		 */
 		public void write(String filename) throws ALDException {
 				try {
@@ -330,8 +331,13 @@ public class MTBContour2DSet extends ALDData
 				ALDOperator.writeHistory(this, filename);
 		}
 
+		/**
+		 * Convert contour object to MTB XML datatype.
+		 * @return	MTB XML datatype object.
+		 */
 		public MTBXMLContour2DSetType toXMLType() {
-			MTBXMLContour2DSetType xmlContourSet = MTBXMLContour2DSetType.Factory.newInstance();
+			MTBXMLContour2DSetType xmlContourSet = 
+					MTBXMLContour2DSetType.Factory.newInstance();
 
 			// transfer the contours to XML
 			MTBXMLContour2DType[] cList = new MTBXMLContour2DType[this.contourSet
@@ -350,8 +356,14 @@ public class MTBContour2DSet extends ALDData
 		}
 		/**
 		 * Copy the information of <code>contour</code> into the corresponding xml
-		 * element <code>xmlContour</code>. If <code>xmlContour</code> is null, a new
+		 * element <code>xmlContour</code>. 
+		 * <p>
+		 * If <code>xmlContour</code> is null, a new
 		 * obejct is created, otherwise the passed object filled.
+		 * 
+		 * @param contour	Contour object to convert. 
+		 * @param xmlC 		Optional target object.
+		 * @return Resulting XML object.
 		 */
 		public MTBXMLContour2DType getContour2DAsXml(MTBContour2D contour,
 		    MTBXMLContour2DType xmlC) {
@@ -440,5 +452,46 @@ public class MTBContour2DSet extends ALDData
 		public Iterator<MTBContour2D> iterator() {
 			Iterator<MTBContour2D> iter = this.contourSet.iterator();
 			return iter;
+		}
+		
+		/**
+		 * Read a set of 2D contours from ASCII files in xSV format from the
+		 * given directory.
+		 * <p>
+		 * It is assumed that all files have the same format and that there are 
+		 * only files containing contours in the directory.
+		 * 
+		 * @param dir				Directory from where to read the files.
+		 * @param delim			Delimiter in the file.
+		 * @param skipLines	Number of header lines to skip.
+		 * @return Set of contours.
+		 */
+		public static MTBContour2DSet readContoursFromASCIIFiles(
+				String dir, String delim, int skipLines) {
+
+			MTBContour2DSet set = new MTBContour2DSet();
+			double xmin = Double.MAX_VALUE;
+			double ymin = Double.MAX_VALUE;
+			double xmax = Double.MIN_VALUE;
+			double ymax = Double.MIN_VALUE;
+			
+			DirectoryTree dt = new DirectoryTree(dir, false);
+			Vector<String> files = dt.getFileList();
+			MTBContour2D c;
+			for (String f: files) {
+				c = MTBContour2D.readContourFromASCIIFile(f, delim, skipLines);
+				for (Point2D.Double p: c.getPoints()) {
+					if (p.x < xmin) xmin = p.x;
+					if (p.x > xmax) xmax = p.x;
+					if (p.y < ymin) ymin = p.y;
+					if (p.y > ymax) ymax = p.y;			
+				}
+				set.add(c);
+			}
+			set.xMin = xmin;
+			set.xMax = xmax;
+			set.yMin = ymin;
+			set.yMax = ymax;
+			return set;
 		}
 }

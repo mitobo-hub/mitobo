@@ -24,11 +24,13 @@
 
 package de.unihalle.informatik.MiToBo.core.datatypes;
 
+import java.awt.geom.Point2D;
 import java.util.*;
 
 import de.unihalle.informatik.Alida.annotations.ALDClassParameter;
 import de.unihalle.informatik.Alida.annotations.ALDParametrizedClass;
 import de.unihalle.informatik.Alida.operator.ALDData;
+import de.unihalle.informatik.MiToBo.io.dirs.DirectoryTree;
 
 /**
  * A set of 2D borders.
@@ -133,6 +135,7 @@ public class MTBBorder2DSet extends ALDData implements Cloneable {
 
 	/**
 	 * Get a border by index.
+	 * @param i Index of border to retrieve.
 	 * @return The i-th border.
 	 */
 	public MTBBorder2D elementAt(int i) {
@@ -176,6 +179,7 @@ public class MTBBorder2DSet extends ALDData implements Cloneable {
 	/**
 	 * Append a border (at the end) to the set of borders.
 	 * @param border		Border to be added.
+	 * @return True in case of success.
 	 */
 	public boolean add(MTBBorder2D border) {
 		return this.borderSet.add(border);
@@ -186,8 +190,8 @@ public class MTBBorder2DSet extends ALDData implements Cloneable {
 	 * @param border		New border element.
 	 * @param i					Index of position where to put it.
 	 */
-	public void setElementAt(MTBBorder2D contour, int i) {
-		this.borderSet.setElementAt(contour, i);
+	public void setElementAt(MTBBorder2D border, int i) {
+		this.borderSet.setElementAt(border, i);
 	}
 
 	/**
@@ -198,6 +202,48 @@ public class MTBBorder2DSet extends ALDData implements Cloneable {
 		this.borderSet.removeElementAt(i);
 	}
 
+	/**
+	 * Read a set of 2D border objects from ASCII files in xSV format from the
+	 * given directory.
+	 * <p>
+	 * It is assumed that all files have the same format and that there are only
+	 * files containing borders in the directory. Not that the directory is not
+	 * processed recursively.
+	 * 
+	 * @param dir				Directory from where to read the files.
+	 * @param delim			Delimiter in the file.
+	 * @param skipLines	Number of header lines to skip.
+	 * @return Set of borders.
+	 */
+	public static MTBBorder2DSet readBordersFromASCIIFiles(
+			String dir, String delim, int skipLines) {
+
+		MTBBorder2DSet set = new MTBBorder2DSet();
+		double xmin = Double.MAX_VALUE;
+		double ymin = Double.MAX_VALUE;
+		double xmax = Double.MIN_VALUE;
+		double ymax = Double.MIN_VALUE;
+		
+		DirectoryTree dt = new DirectoryTree(dir, false);
+		Vector<String> files = dt.getFileList();
+		MTBBorder2D b;
+		for (String f: files) {
+			b = MTBBorder2D.readBorderFromASCIIFile(f, delim, skipLines);
+			for (Point2D.Double p: b.getPoints()) {
+				if (p.x < xmin) xmin = p.x;
+				if (p.x > xmax) xmax = p.x;
+				if (p.y < ymin) ymin = p.y;
+				if (p.y > ymax) ymax = p.y;			
+			}
+			set.add(b);
+		}
+		set.xMin = xmin;
+		set.xMax = xmax;
+		set.yMin = ymin;
+		set.yMax = ymax;
+		return set;
+	}
+	
 	//		/**
 	//		 * Read a contour set from an xml file <code>filename</code> and set the MTB
 	//		 * polygon set accordingly. The processing history is read also if available.
