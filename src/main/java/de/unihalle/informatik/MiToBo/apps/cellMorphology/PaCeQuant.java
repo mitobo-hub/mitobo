@@ -1038,11 +1038,14 @@ public class PaCeQuant extends MTBOperator {
 					labelImgToProcess = segResult.resultLableImgWithoutIDs;
 				
 					// handle result data
-					if (this.drawRegionIDsToOutputImages)
+					if (this.drawRegionIDsToOutputImages) {
 						this.resultCellLabelImg = segResult.resultLabelImg;
-					else
+						this.resultCellOverlayImg = segResult.resultOverlayImg;
+					}
+					else {
 						this.resultCellLabelImg = segResult.resultLableImgWithoutIDs;
-					this.resultCellOverlayImg = segResult.resultOverlayImg;
+						this.resultCellOverlayImg = segResult.resultOverlayImgWithoutIDs;
+					}
 					this.resultCellRegions = segResult.resultRegs;
 					
 				}
@@ -1333,11 +1336,15 @@ public class PaCeQuant extends MTBOperator {
 								labelImgToProcess = segResult.resultLableImgWithoutIDs;
 								
 								// handle some more result data
-								if (this.drawRegionIDsToOutputImages)
+								if (this.drawRegionIDsToOutputImages) {
 									this.resultCellLabelImg = segResult.resultLabelImg;
-								else
+									this.resultCellOverlayImg = segResult.resultOverlayImg;
+								}
+								else {
 									this.resultCellLabelImg = segResult.resultLableImgWithoutIDs;
-								this.resultCellOverlayImg = segResult.resultOverlayImg;
+									this.resultCellOverlayImg = 
+											segResult.resultOverlayImgWithoutIDs;
+								}
 								this.resultCellRegions = segResult.resultRegs;
 
 								String fileRoot = 
@@ -1745,6 +1752,7 @@ public class PaCeQuant extends MTBOperator {
 	/**
 	 * Method that processes a single image.
 	 * @param img	Image to process.
+	 * @return Cell region segmentation result.
 	 * @throws ALDProcessingDAGException Thrown in case of failure.
 	 * @throws ALDOperatorException Thrown in case of failure.
 	 */
@@ -1782,12 +1790,19 @@ public class PaCeQuant extends MTBOperator {
 		MTBImageRGB overlayImg = (MTBImageRGB)MTBImage.createMTBImage(
 				this.width, this.height, 1, 1, 1, MTBImageType.MTB_RGB);
 		overlayImg.setTitle("Pseudo-colored cell regions " 
+				+ "of image <" + img.getTitle() + "> with IDs");
+		MTBImageRGB overlayImgWONumbers = (MTBImageRGB)MTBImage.createMTBImage(
+				this.width, this.height, 1, 1, 1, MTBImageType.MTB_RGB);
+		overlayImgWONumbers.setTitle("Pseudo-colored cell regions " 
 				+ "of image <" + img.getTitle() + ">");
 		for (int y = 0; y < this.height; y++) {
 			for (int x = 0; x < this.width; x++) {
 				overlayImg.putValueR(x, y, img.getValueInt(x, y));
 				overlayImg.putValueG(x, y, img.getValueInt(x, y));
 				overlayImg.putValueB(x, y, img.getValueInt(x, y));
+				overlayImgWONumbers.putValueR(x, y, img.getValueInt(x, y));
+				overlayImgWONumbers.putValueG(x, y, img.getValueInt(x, y));
+				overlayImgWONumbers.putValueB(x, y, img.getValueInt(x, y));
 			}
 		}
 		MTBImageShort labelImg =	(MTBImageShort)MTBImage.createMTBImage(
@@ -1821,6 +1836,9 @@ public class PaCeQuant extends MTBOperator {
 				overlayImg.putValueR(x, y, red);
 				overlayImg.putValueG(x, y, green);
 				overlayImg.putValueB(x, y, blue);
+				overlayImgWONumbers.putValueR(x, y, red);
+				overlayImgWONumbers.putValueG(x, y, green);
+				overlayImgWONumbers.putValueB(x, y, blue);
 				labelImg.putValueInt(x, y, regionID);
 				labelImageWONumbers.putValueInt(x, y, regionID);
 				binImg.putValueR(x, y, 255);
@@ -1844,6 +1862,7 @@ public class PaCeQuant extends MTBOperator {
 		segResult.resultBinaryImg = (MTBImageByte)binImg.convertType(
 				MTBImageType.MTB_BYTE, true);
 		segResult.resultOverlayImg = overlayImg;
+		segResult.resultOverlayImgWithoutIDs = overlayImgWONumbers;
 		segResult.resultLabelImg = labelImg;
 		segResult.resultLableImgWithoutIDs = labelImageWONumbers;
 		segResult.resultRegs = validRegions;
@@ -3037,6 +3056,11 @@ public class PaCeQuant extends MTBOperator {
 		 */
 		public MTBImageRGB resultOverlayImg;
 		
+		/**
+		 * Image overlay of detected regions over input image without ID strings. 
+		 */
+		public MTBImageRGB resultOverlayImgWithoutIDs;
+
 		/**
 		 * Result image with labels of segmented regions.
 		 */
