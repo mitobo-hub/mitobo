@@ -22,19 +22,9 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev$
- * $Date$
- * $Author$
- * 
- */
-
 package de.unihalle.informatik.MiToBo.core.dataio.provider.cmdline;
 
 import de.unihalle.informatik.Alida.annotations.ALDDataIOProvider;
-import de.unihalle.informatik.Alida.dataio.provider.ALDDataIOCmdline;
 import de.unihalle.informatik.Alida.dataio.provider.cmdline.ALDStandardizedDataIOCmdline;
 import de.unihalle.informatik.Alida.dataio.provider.swing.components.ALDTableWindow;
 import de.unihalle.informatik.Alida.exceptions.ALDDataIOManagerException;
@@ -43,11 +33,8 @@ import de.unihalle.informatik.Alida.exceptions.ALDDataIOProviderException.ALDDat
 import de.unihalle.informatik.MiToBo.apps.cells2D.*;
 import de.unihalle.informatik.MiToBo.gui.MTBTableModel;
 
-import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.lang.reflect.Field;
 import java.util.*;
 
@@ -72,13 +59,33 @@ public class MTBTableModelDataIO extends ALDStandardizedDataIOCmdline {
 		return classes;
 	}
 		
+	@SuppressWarnings("unused")
 	@Override
 	public Object parse(Field field, Class<?> cl, String valueString)
 			throws ALDDataIOProviderException, ALDDataIOManagerException {
-		throw new ALDDataIOProviderException( ALDDataIOProviderExceptionType.UNSPECIFIED_ERROR,
-				"MTBTabelModelDataIO::readData not yet implemented");
+		if (cl.equals(MTBTableModel.class)) {
+			String[] lines = valueString.split("\n");
+			// first line contains headers
+			String[] headers = lines[0].split("\t");
+			MTBTableModel tm = new MTBTableModel(lines.length-1,headers.length);
+			for (int i=0; i<headers.length; ++i) {
+				tm.setColumnName(i, headers[i]);
+			}
+			String[] entries;
+			for (int i=1;i<lines.length;++i) {
+				entries = lines[i].split("\t");
+				for (int j=0;j<entries.length;++j) {
+					tm.setValueAt(entries[j], i-1, j);
+				}
+			}
+			return tm;
+		}
+	  throw new ALDDataIOProviderException( 
+	  	ALDDataIOProviderExceptionType.UNSPECIFIED_ERROR,
+  		"MTBTabelModelDataIO::readData for Mica2DTableModel not yet implemented");
 	}
 
+	@SuppressWarnings("unused")
 	@Override
 	public String formatAsString(Object obj) throws ALDDataIOManagerException,
 			ALDDataIOProviderException {
@@ -94,5 +101,10 @@ public class MTBTableModelDataIO extends ALDStandardizedDataIOCmdline {
 			resultString.append(s);
 		}
 		return resultString.toString();
+	}
+	
+	@Override
+	protected boolean requiresNewlines() {
+		return true;
 	}
 }
