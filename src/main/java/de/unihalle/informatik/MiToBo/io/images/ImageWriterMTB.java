@@ -712,7 +712,9 @@ public class ImageWriterMTB extends MTBOperator implements StatusReporter {
 		
 		if (store.getPixelsBinDataCount(0) == 0 ||
 				store.getPixelsBinDataBigEndian(0, 0) == null) {
+			// if we don't have any information about bit order, select little endian
 			store.setPixelsBinDataBigEndian(Boolean.FALSE, 0, 0);
+			store.setPixelsBigEndian(Boolean.FALSE, 0);
 		}
 		
 		if (store.getPixelsDimensionOrder(0) == null) {
@@ -985,10 +987,12 @@ public class ImageWriterMTB extends MTBOperator implements StatusReporter {
 		if (store.getPixelsType(0) == null) {
 			store.setPixelsType(PixelType.fromString(FormatTools.getPixelTypeString(ptype)), 0);
 		}
-		
+
 		if (store.getPixelsBinDataCount(0) == 0 ||
 				store.getPixelsBinDataBigEndian(0, 0) == null) {
+			// if we don't have any information about bit order, select little endian
 			store.setPixelsBinDataBigEndian(Boolean.FALSE, 0, 0);
+			store.setPixelsBigEndian(Boolean.FALSE, 0);
 		}
 		
 		if (store.getPixelsDimensionOrder(0) == null) {
@@ -1018,7 +1022,6 @@ public class ImageWriterMTB extends MTBOperator implements StatusReporter {
 
 
 		ImageIOUtils.physicalPixelSize_to_OME(cal, store, 0);
-		
 
 		if (imp.getImageStackSize() !=
 					imp.getNChannels() * imp.getNSlices() * imp.getNFrames()) {
@@ -1110,7 +1113,6 @@ public class ImageWriterMTB extends MTBOperator implements StatusReporter {
 			!w.getMetadataRetrieve().getPixelsBinDataBigEndian(0, 0).booleanValue();
 		byte[] plane = null;
 		w.setInterleaved(false);
-		
 		
 		boolean verbose = this.getVerbose();
 		
