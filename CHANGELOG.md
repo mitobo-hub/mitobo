@@ -14,6 +14,25 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 
 ### Fixed
 
+## [1.8.15] - 2019-07-29
+Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
+- Released MiToBo 1.8.15
+
+### Added
+- DrawContour2DSet: new operator to draw given contours into a new/given image
+- GetMTBContour2DSetFromXSVFiles: operator to read contour sets from ASCII files
+- MTBTableModelDataIO: added functionality to read tab-separated tables from file
+- PaCeQuant_FeatureColorMapper: new operator to map PaCeQuant cell feature values to call label images to get feature maps
+
+### Changed
+- ImageIOUtils: updated handling of physical pixel units according to new Bioformats philosophy
+- PaCeQuant: checkbox for adding IDs to result images now effects all result images
+
+### Fixed
+- ImageIOUtils: corrected handling of inches on saving images
+- ImageWriterMTB: fixed handling of big/little endian representation when saving images
+- MTBImage and all sub-classes: calibration object is now consistently handed over between MiToBo and ImageJ data type objects
+
 ## [1.8.14] - 2019-02-11
 Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
 - Released MiToBo 1.8.14
