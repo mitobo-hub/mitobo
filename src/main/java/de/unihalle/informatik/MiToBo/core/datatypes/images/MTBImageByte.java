@@ -22,29 +22,8 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev$
- * $Date$
- * $Author$
- * 
- */
-
-/* 
- * Most recent change(s):
- * 
- * $Rev$
- * $Date$
- * $Author$
- * 
- */
-
 package de.unihalle.informatik.MiToBo.core.datatypes.images;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
-import de.unihalle.informatik.Alida.annotations.ALDDerivedClass;
 import ij.ImagePlus;
 import ij.gui.NewImage;
 
@@ -57,7 +36,6 @@ import ij.gui.NewImage;
  * @author gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.MANDATORY)
 public class MTBImageByte extends MTBImage {
 	
 	/** reference to the ImagePlus pixel data */
@@ -101,28 +79,32 @@ public class MTBImageByte extends MTBImage {
 		m_sizeZ = sizeZ;
 		m_sizeT = sizeT;
 		m_sizeC = sizeC;		
-		
-	    this.setProperty("SizeX", m_sizeX);
-	    this.setProperty("SizeY", m_sizeY);
-	    this.setProperty("SizeZ", m_sizeZ);
-	    this.setProperty("SizeT", m_sizeT);
-	    this.setProperty("SizeC", m_sizeC);
-		
+
+		this.setProperty("SizeX", m_sizeX);
+		this.setProperty("SizeY", m_sizeY);
+		this.setProperty("SizeZ", m_sizeZ);
+		this.setProperty("SizeT", m_sizeT);
+		this.setProperty("SizeC", m_sizeC);
+
 		m_sizeStack = m_sizeZ*m_sizeT*m_sizeC;
-		
+
 		// set image type
 		m_type = MTBImageType.MTB_BYTE;
-		
+
 		// create new ImagePlus
 		this.m_img = NewImage.createByteImage(this.getTitle(), 
 				this.m_sizeX, this.m_sizeY, this.m_sizeStack, 
 				NewImage.FILL_BLACK);
 		m_img.setIgnoreFlush(true);
 		m_imgStack = m_img.getStack();
-		
+
 		m_img.setDimensions(m_sizeC, m_sizeZ, m_sizeT);
 		m_img.setOpenAsHyperStack((m_sizeC > 1) || (m_sizeT > 1));
 		
+		// copy calibration object from given image
+		this.calibration = this.m_img.getCalibration();
+		// make sure that calibration properties contain consistent data
+		this.updatePhysProperties_ImgToProp();
 		
 		// get data from underlying image
 		m_data = new byte[m_sizeStack][];
@@ -143,7 +125,8 @@ public class MTBImageByte extends MTBImage {
 	 * @param sizeT size in t-dimension
 	 * @param sizeC size in c-dimension
 	 */
-	protected MTBImageByte(byte[][] data, int sizeX, int sizeY, int sizeZ, int sizeT, int sizeC) throws IllegalArgumentException {
+	protected MTBImageByte(byte[][] data, int sizeX, int sizeY, 
+			int sizeZ, int sizeT, int sizeC) throws IllegalArgumentException {
 		super();
 		
 		if (data.length != sizeZ*sizeT*sizeC || data[0].length != sizeX*sizeY) {
@@ -172,7 +155,9 @@ public class MTBImageByte extends MTBImage {
 		m_img.setDimensions(m_sizeC, m_sizeZ, m_sizeT);
 		m_img.setOpenAsHyperStack((m_sizeC > 1) || (m_sizeT > 1));
 		
-		
+		// link calibration object from ImageJ image to MiToBo data structure
+		this.setCalibrationFromUnderlyingIJImage();
+
 		// set data
 		m_data = new byte[m_sizeStack][];
 

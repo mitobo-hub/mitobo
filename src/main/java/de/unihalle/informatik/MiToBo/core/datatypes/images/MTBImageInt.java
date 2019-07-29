@@ -22,19 +22,8 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev$
- * $Date$
- * $Author$
- * 
- */
-
 package de.unihalle.informatik.MiToBo.core.datatypes.images;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.gui.NewImage;
@@ -49,7 +38,6 @@ import ij.gui.NewImage;
  * @author gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.MANDATORY)
 public class MTBImageInt extends MTBImage {
 	
 	/** image data */
@@ -76,12 +64,12 @@ public class MTBImageInt extends MTBImage {
 		m_sizeT = sizeT;
 		m_sizeC = sizeC;	
 
-	    this.setProperty("SizeX", m_sizeX);
-	    this.setProperty("SizeY", m_sizeY);
-	    this.setProperty("SizeZ", m_sizeZ);
-	    this.setProperty("SizeT", m_sizeT);
-	    this.setProperty("SizeC", m_sizeC);
-		
+		this.setProperty("SizeX", m_sizeX);
+		this.setProperty("SizeY", m_sizeY);
+		this.setProperty("SizeZ", m_sizeZ);
+		this.setProperty("SizeT", m_sizeT);
+		this.setProperty("SizeC", m_sizeC);
+
 		m_sizeStack = m_sizeZ*m_sizeT*m_sizeC;
 		
 		// set image type
@@ -122,7 +110,10 @@ public class MTBImageInt extends MTBImage {
 					this.m_sizeX, this.m_sizeY, this.m_sizeStack,
 					NewImage.FILL_BLACK);
 			m_img.setIgnoreFlush(true);
-			m_img.setCalibration(this.calibration);
+			this.m_img.setCalibration(this.calibration);
+			// setCalibration on ImagePlus creates new object, preserver consistency!
+			this.calibration = this.m_img.getCalibration();  
+			m_img.setIgnoreFlush(true);
 		}
 		
 		m_img.setDimensions(m_sizeC, m_sizeZ, m_sizeT);

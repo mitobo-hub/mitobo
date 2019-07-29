@@ -22,19 +22,8 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev$
- * $Date$
- * $Author$
- * 
- */
-
 package de.unihalle.informatik.MiToBo.core.datatypes.images;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import ij.ImagePlus;
 import ij.gui.NewImage;
 
@@ -47,7 +36,6 @@ import ij.gui.NewImage;
  * @author gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.MANDATORY)
 public class MTBImageFloat extends MTBImage {
 
 	/** reference to the ImagePlus pixel data */
@@ -91,12 +79,12 @@ public class MTBImageFloat extends MTBImage {
 		m_sizeZ = sizeZ;
 		m_sizeT = sizeT;
 		m_sizeC = sizeC;	
-		
-	    this.setProperty("SizeX", m_sizeX);
-	    this.setProperty("SizeY", m_sizeY);
-	    this.setProperty("SizeZ", m_sizeZ);
-	    this.setProperty("SizeT", m_sizeT);
-	    this.setProperty("SizeC", m_sizeC);
+
+		this.setProperty("SizeX", m_sizeX);
+		this.setProperty("SizeY", m_sizeY);
+		this.setProperty("SizeZ", m_sizeZ);
+		this.setProperty("SizeT", m_sizeT);
+		this.setProperty("SizeC", m_sizeC);
 		
 		m_sizeStack = m_sizeZ*m_sizeT*m_sizeC;
 		
@@ -113,7 +101,9 @@ public class MTBImageFloat extends MTBImage {
 		m_img.setDimensions(m_sizeC, m_sizeZ, m_sizeT);
 		m_img.setOpenAsHyperStack((m_sizeC > 1) || (m_sizeT > 1));
 		
-		
+		// link calibration object from ImageJ image to MiToBo data structure
+		this.setCalibrationFromUnderlyingIJImage();
+
 		// get data from underlying image
 		m_data = new float[m_sizeStack][];
 		

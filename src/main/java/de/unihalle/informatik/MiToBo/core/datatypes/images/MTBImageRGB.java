@@ -208,6 +208,8 @@ public class MTBImageRGB extends MTBImage {
 					this.m_sizeX, this.m_sizeY, this.m_sizeStack, 
 					NewImage.FILL_BLACK);
 			this.m_img.setCalibration(this.calibration);
+			// setCalibration on ImagePlus creates new object, preserve consistency!
+			this.calibration = this.m_img.getCalibration();  
 			this.m_img.setIgnoreFlush(true);
 		}
 		
@@ -274,151 +276,139 @@ public class MTBImageRGB extends MTBImage {
 	}
 	
 	/**
-	 * Set the physical size of a voxel (stepsize) in x-dimension
-	 * @param stepsize
+	 * Set the physical size of a voxel (stepsize) in x-dimension.
+	 * @param stepsize	Stepsize in x-dimension.
 	 */
 	@Override
 	public void setStepsizeX(double stepsize) {
 		this.calibration.pixelWidth = stepsize;
-	  	this.setProperty("StepsizeX", new Double(stepsize));
-	    
-	  	if (this.m_imgR != null)
-	  		this.m_imgR.setStepsizeX(stepsize);
-	  	if (this.m_imgG != null)
-	  		this.m_imgG.setStepsizeX(stepsize);
-	  	if (this.m_imgB != null)
-	  		this.m_imgB.setStepsizeX(stepsize);
+		this.setProperty("StepsizeX", new Double(stepsize));
+
+		if (this.m_imgR != null)
+			this.m_imgR.setStepsizeX(stepsize);
+		if (this.m_imgG != null)
+			this.m_imgG.setStepsizeX(stepsize);
+		if (this.m_imgB != null)
+			this.m_imgB.setStepsizeX(stepsize);
 	}
 	
-    /**
-     * Set the physical size of a voxel (stepsize) in y-dimension
-     * 
-     * @param stepsize
-     */
+	/**
+	 * Set the physical size of a voxel (stepsize) in y-dimension.
+	 * @param stepsize	Stepsize in y-dimension.
+	 */
 	@Override
 	public void setStepsizeY(double stepsize) {
 		this.calibration.pixelHeight = stepsize;
 		this.setProperty("StepsizeY", new Double(stepsize));
-	    
-	  	if (this.m_imgR != null)
-	  		this.m_imgR.setStepsizeY(stepsize);
-	  	if (this.m_imgG != null)
-	  		this.m_imgG.setStepsizeY(stepsize);
-	  	if (this.m_imgB != null)
-	  		this.m_imgB.setStepsizeY(stepsize);
+
+		if (this.m_imgR != null)
+			this.m_imgR.setStepsizeY(stepsize);
+		if (this.m_imgG != null)
+			this.m_imgG.setStepsizeY(stepsize);
+		if (this.m_imgB != null)
+			this.m_imgB.setStepsizeY(stepsize);
 	}
-	
+
 	/**
-	 * Set the physical size of a voxel (stepsize) in z-dimension
-	 * 
-	 * @param stepsize
+	 * Set the physical size of a voxel (stepsize) in z-dimension.
+	 * @param stepsize	Stepsize in z-dimension.
 	 */
 	@Override
 	public void setStepsizeZ(double stepsize) {
 		this.calibration.pixelDepth = stepsize;
-	    this.setProperty("StepsizeZ", new Double(stepsize));
-	    
-	  	if (this.m_imgR != null)
-	  		this.m_imgR.setStepsizeZ(stepsize);
-	  	if (this.m_imgG != null)
-	  		this.m_imgG.setStepsizeZ(stepsize);
-	  	if (this.m_imgB != null)
-	  		this.m_imgB.setStepsizeZ(stepsize);
+		this.setProperty("StepsizeZ", new Double(stepsize));
+
+		if (this.m_imgR != null)
+			this.m_imgR.setStepsizeZ(stepsize);
+		if (this.m_imgG != null)
+			this.m_imgG.setStepsizeZ(stepsize);
+		if (this.m_imgB != null)
+			this.m_imgB.setStepsizeZ(stepsize);
 	}
 	
 	/**
-	 * Set the stepsize in t-dimension (timestep)
-	 * 
-	 * @param stepsize
+	 * Set the stepsize in t-dimension (timestep).
+	 * @param stepsize	Stepsize in t-dimension.
 	 */
 	@Override
 	public void setStepsizeT(double stepsize) {
 		this.calibration.frameInterval = stepsize;
-	    this.setProperty("StepsizeT", new Double(stepsize));
-	    
-	  	if (this.m_imgR != null)
-	  		this.m_imgR.setStepsizeT(stepsize);
-	  	if (this.m_imgG != null)
-	  		this.m_imgG.setStepsizeT(stepsize);
-	  	if (this.m_imgB != null)
-	  		this.m_imgB.setStepsizeT(stepsize);
+		this.setProperty("StepsizeT", new Double(stepsize));
+
+		if (this.m_imgR != null)
+			this.m_imgR.setStepsizeT(stepsize);
+		if (this.m_imgG != null)
+			this.m_imgG.setStepsizeT(stepsize);
+		if (this.m_imgB != null)
+			this.m_imgB.setStepsizeT(stepsize);
 	}
 	
-	
 	/**
-	 * Set the unit of the x-dimension
-	 * 
-	 * @param unit
-	 *          String of x-dimension unit
+	 * Set the unit of the x-dimension.
+	 * @param unit	String of x-dimension unit.
 	 */
 	@Override
 	public void setUnitX(String unit) {
 		this.calibration.setXUnit(unit);
-	    this.setProperty("UnitX", unit);
-	    
-	    if (this.m_imgR != null)
-	    	this.m_imgR.setUnitX(unit);
-	    if (this.m_imgG != null)
-	    	this.m_imgG.setUnitX(unit);
-	    if (this.m_imgB != null)
-	    	this.m_imgB.setUnitX(unit);
+		this.setProperty("UnitX", unit);
+
+		if (this.m_imgR != null)
+			this.m_imgR.setUnitX(unit);
+		if (this.m_imgG != null)
+			this.m_imgG.setUnitX(unit);
+		if (this.m_imgB != null)
+			this.m_imgB.setUnitX(unit);
 	}
 
 	/**
-	 * Set the unit of the y-dimension
-	 * 
-	 * @param unit
-	 *          String of y-dimension unit
+	 * Set the unit of the y-dimension.
+	 * @param unit	String of y-dimension unit.
 	 */
 	@Override
 	public void setUnitY(String unit) {
 		this.calibration.setYUnit(unit);
-	    this.setProperty("UnitY", unit);
-	    
-	    if (this.m_imgR != null)
-	    	this.m_imgR.setUnitY(unit);
-	    if (this.m_imgG != null)
-	    	this.m_imgG.setUnitY(unit);
-	    if (this.m_imgB != null)
-	    	this.m_imgB.setUnitY(unit);
+		this.setProperty("UnitY", unit);
+
+		if (this.m_imgR != null)
+			this.m_imgR.setUnitY(unit);
+		if (this.m_imgG != null)
+			this.m_imgG.setUnitY(unit);
+		if (this.m_imgB != null)
+			this.m_imgB.setUnitY(unit);
 	}
 
 	/**
-	 * Set the unit of the z-dimension
-	 * 
-	 * @param unit
-	 *          String of z-dimension unit
+	 * Set the unit of the z-dimension.
+	 * @param unit	String of z-dimension unit.
 	 */
 	@Override
 	public void setUnitZ(String unit) {
 		this.calibration.setZUnit(unit);
-	    this.setProperty("UnitZ", unit);
-	    
-	    if (this.m_imgR != null)
-	    	this.m_imgR.setUnitZ(unit);
-	    if (this.m_imgG != null)
-	    	this.m_imgG.setUnitZ(unit);
-	    if (this.m_imgB != null)
-	    	this.m_imgB.setUnitZ(unit);
+		this.setProperty("UnitZ", unit);
+
+		if (this.m_imgR != null)
+			this.m_imgR.setUnitZ(unit);
+		if (this.m_imgG != null)
+			this.m_imgG.setUnitZ(unit);
+		if (this.m_imgB != null)
+			this.m_imgB.setUnitZ(unit);
 	}
 
 	/**
-	 * Set the unit of the t-dimension
-	 * 
-	 * @param unit
-	 *          String of t-dimension unit
+	 * Set the unit of the t-dimension.
+	 * @param unit	String of t-dimension unit.
 	 */
 	@Override
 	public void setUnitT(String unit) {
 		this.calibration.setTimeUnit(unit);
-	    this.setProperty("UnitT", unit);
-	    
-	    if (this.m_imgR != null)
-	    	this.m_imgR.setUnitT(unit);
-	    if (this.m_imgG != null)
-	    	this.m_imgG.setUnitT(unit);
-	    if (this.m_imgB != null)
-	    	this.m_imgB.setUnitT(unit);
+		this.setProperty("UnitT", unit);
+
+		if (this.m_imgR != null)
+			this.m_imgR.setUnitT(unit);
+		if (this.m_imgG != null)
+			this.m_imgG.setUnitT(unit);
+		if (this.m_imgB != null)
+			this.m_imgB.setUnitT(unit);
 	}
 	
 	

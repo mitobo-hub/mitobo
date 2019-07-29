@@ -207,45 +207,14 @@ public abstract class MTBImage extends ALDData
     
     if (img.getCalibration() != null) {
     	this.calibration = img.getCalibration();
-    	
+    	// make sure to set MiToBo properties consistently
+    	this.updatePhysProperties_ImgToProp();
     }
     else {
-    	this.calibration = new Calibration();
-        this.setStepsizeX(1.0);
-        this.setStepsizeY(1.0);
-        this.setStepsizeZ(1.0);
-        this.setStepsizeT(1.0);
-
-        this.setUnitX("pixel");
-        this.setUnitY("pixel");
-        this.setUnitZ("pixel");
-        this.setUnitT("sec");
+    	this.setCalibration(new Calibration());
         
       //  this.calibration.disableDensityCalibration();
     }
-    
-//    Calibration cal = img.getCalibration();
-//    if (cal != null) {
-//      this.setStepsizeX(cal.pixelWidth);
-//      this.setStepsizeY(cal.pixelHeight);
-//      this.setStepsizeZ(cal.pixelDepth);
-//      this.setStepsizeT(cal.frameInterval);
-//
-//      this.setUnitX(cal.getXUnit());
-//      this.setUnitY(cal.getYUnit());
-//      this.setUnitZ(cal.getZUnit());
-//      this.setUnitT(cal.getTimeUnit());
-//    } else {
-//      this.setStepsizeX(1.0);
-//      this.setStepsizeY(1.0);
-//      this.setStepsizeZ(1.0);
-//      this.setStepsizeT(1.0);
-//
-//      this.setUnitX("");
-//      this.setUnitY("");
-//      this.setUnitZ("");
-//      this.setUnitT("");
-//    }
     
     if (this.m_img.getWindow() != null)
     	if (this.m_img.getWindow().getKeyListeners().length == 0)
@@ -284,26 +253,21 @@ public abstract class MTBImage extends ALDData
     
     this.xml = null;
     
-    this.calibration = new Calibration();
-    
-    this.setStepsizeX(1.0);
-    this.setStepsizeY(1.0);
-    this.setStepsizeZ(1.0);
-    this.setStepsizeT(1.0);
-
-    this.setUnitX("pixel");
-    this.setUnitY("pixel");
-    this.setUnitZ("pixel");
-    this.setUnitT("sec");
+    // create new calibration object
+    this.setCalibration(new Calibration());
     
  //   this.calibration.disableDensityCalibration();
   }
 
   // ----- Data access functions
   /**
-   * Get the calibration object. The MTBImage and the underlying ImagePlus (if available)
-   * share the same Calibration object. This object stores information about physical pixel size,
-   * world coordinates (it can return world coordinate for a specified pixel coordinate) etc.
+   * Get the calibration object.
+   * <p>
+   * The MTBImage and the underlying ImagePlus (if available) share the same 
+   * {link ij.measure.Calibration} object. This object stores information about 
+   * physical pixel size, world coordinates (it can return world coordinates 
+   * for a specified pixel coordinate) etc.
+   * @return Calibration object of image.
    */
   public Calibration getCalibration() {
 	  return this.calibration;
@@ -311,24 +275,48 @@ public abstract class MTBImage extends ALDData
   
   /**
    * Set the calibration object (see getCalibration() for further information).
+   * <p>
+   * The calibration objected is updated consistently in the MiToBo image data
+   * structure and also in the underlying ImagePlus image, if existent.
+   * 
    * @param _calibration	Calibration for image.
    */
   public void setCalibration(Calibration _calibration) {
-	  this.calibration = _calibration;
-	  
-	  this.setProperty("StepsizeX", new Double(this.calibration.pixelWidth));
-	  this.setProperty("StepsizeY", new Double(this.calibration.pixelHeight));
-	  this.setProperty("StepsizeZ", new Double(this.calibration.pixelDepth));
-	  this.setProperty("StepsizeT", new Double(this.calibration.frameInterval));
 
-	  this.setProperty("UnitX", this.calibration.getXUnit());
-	  this.setProperty("UnitY", this.calibration.getYUnit());
-	  this.setProperty("UnitZ", this.calibration.getZUnit());
-	  this.setProperty("UnitT", this.calibration.getTimeUnit());
-	  
-	  if (this.m_img != null) {
-		  this.m_img.setCalibration(this.calibration);
+  	/* Attention! Calling {@link ij.ImagePlus#setCalibration(Calibration)}
+  	 * creates a copy of the given calibration object. Thus, to make sure that 
+  	 * MTBImage and {@link ij.ImagePlus} refer to the same object, first call 
+  	 * {@link ij.ImagePlus#setCalibration(Calibration)}, then assign the 
+  	 * calibration object of the ImagePlus to the MTBImage member variable.
+  	 */
+  	if (this.m_img != null) {
+		  this.m_img.setCalibration(_calibration);
+  	  this.calibration = this.m_img.getCalibration();  		
 	  }
+  	else {
+  	  this.calibration = _calibration;  		
+  	}
+  	
+  	// make sure to set MiToBo image properties consistently
+  	this.updatePhysProperties_ImgToProp();
+  }
+  
+  /**
+   * Set the MiToBo image calibration reference to underlying ImagePlus 
+   * calibration.
+   */
+  protected void setCalibrationFromUnderlyingIJImage() {
+  	// if we don't have an ImageJ image, just return
+  	if (this.m_img == null)
+  		return;
+  	
+  	/* Copy calibration object from given image, but note:
+  	 * Don't use {#setCalibration(Calibration)} here since this would also 
+  	 * update the calibration object in the underlying ImagePlus again!
+  	 */ 
+		this.calibration = this.m_img.getCalibration();
+		// make sure that calibration properties contain consistent data
+		this.updatePhysProperties_ImgToProp();
   }
   
   /**
@@ -497,7 +485,7 @@ public abstract class MTBImage extends ALDData
    * @param stepsize	Stepsize in y dimension.
    */
   public void setStepsizeY(double stepsize) {
-	this.calibration.pixelHeight = stepsize;
+  	this.calibration.pixelHeight = stepsize;
     this.setProperty("StepsizeY", new Double(stepsize));
   }
 
@@ -507,7 +495,7 @@ public abstract class MTBImage extends ALDData
    * @param stepsize	Stepsize in z dimension.
    */
   public void setStepsizeZ(double stepsize) {
-	this.calibration.pixelDepth = stepsize;
+  	this.calibration.pixelDepth = stepsize;
     this.setProperty("StepsizeZ", new Double(stepsize));
   }
 
@@ -538,7 +526,7 @@ public abstract class MTBImage extends ALDData
    */
   @Override
   public String getUnitY() {
-	return this.calibration.getYUnit();
+  	return this.calibration.getYUnit();
   }
 
   /**
@@ -548,7 +536,7 @@ public abstract class MTBImage extends ALDData
    */
   @Override
   public String getUnitZ() {
-	return this.calibration.getZUnit();
+  	return this.calibration.getZUnit();
   }
 
   /**
@@ -606,18 +594,21 @@ public abstract class MTBImage extends ALDData
   }
   
   /**
-   * Copy physical properties like stepsizes and units from sourceImg to this. 
-   * @param sourceImg
+   * Copy physical properties like stepsizes and units from 
+   * {#sourceImg} to this.
+   *  
+   * @param sourceImg	Image from where to copy the properties.
    */
   public void copyPhysicalProperties(MTBImage sourceImg) {
-	  this.setStepsizeX(sourceImg.getStepsizeX());
-	  this.setStepsizeY(sourceImg.getStepsizeY());
-	  this.setStepsizeZ(sourceImg.getStepsizeZ());
-	  this.setStepsizeT(sourceImg.getStepsizeT());
-	  this.setUnitX(sourceImg.getUnitX());
-	  this.setUnitY(sourceImg.getUnitY());
-	  this.setUnitZ(sourceImg.getUnitZ());
-	  this.setUnitT(sourceImg.getUnitT()); 
+  	this.setCalibration(sourceImg.getCalibration().copy());
+//	  this.setStepsizeX(sourceImg.getStepsizeX());
+//	  this.setStepsizeY(sourceImg.getStepsizeY());
+//	  this.setStepsizeZ(sourceImg.getStepsizeZ());
+//	  this.setStepsizeT(sourceImg.getStepsizeT());
+//	  this.setUnitX(sourceImg.getUnitX());
+//	  this.setUnitY(sourceImg.getUnitY());
+//	  this.setUnitZ(sourceImg.getUnitZ());
+//	  this.setUnitT(sourceImg.getUnitT()); 
   }
 
   /**
@@ -2570,7 +2561,7 @@ public abstract class MTBImage extends ALDData
 		newImg.m_currentSliceIdx = img.m_currentSliceIdx;
 		
 		// copy calibration object
-		newImg.calibration = img.calibration.copy();
+		newImg.setCalibration(img.calibration.copy());
 		
 		if (img.xml != null)
 			newImg.setXML(MTBImage.this.xml);
@@ -2614,7 +2605,7 @@ public abstract class MTBImage extends ALDData
 		newImg.m_currentSliceIdx = img.m_currentSliceIdx;
 		
 		// copy calibration object
-		newImg.calibration = img.calibration.copy();
+		newImg.setCalibration(img.calibration.copy());
 		
 		if (img.xml != null)
 			newImg.setXML(MTBImage.this.xml);	
@@ -2638,109 +2629,109 @@ public abstract class MTBImage extends ALDData
      */
     protected MTBImage convertType(MTBImage img, MTBImageType type, boolean scaleDown) {
 
-      // create new image of given type
-      MTBImage newImg = MTBImage.createMTBImage(img.m_sizeX, img.m_sizeY, img.m_sizeZ,
-    		  img.m_sizeT, img.m_sizeC, type);
+    	// create new image of given type
+    	MTBImage newImg = MTBImage.createMTBImage(img.m_sizeX, img.m_sizeY, img.m_sizeZ,
+    			img.m_sizeT, img.m_sizeC, type);
 
-      // set title
-      	newImg.setTitle(MTBImage.getTitleRunning(img.m_title));
+    	// set title
+    	newImg.setTitle(MTBImage.getTitleRunning(img.m_title));
 
-      // copy calibration object
-	  newImg.calibration = img.calibration.copy();
+    	// copy calibration object
+    	newImg.setCalibration(img.calibration.copy());
 	  
-	  if (img.xml != null)
-			newImg.setXML(MTBImage.this.xml);
-	  
-      // get current slice index
-      int idx = img.getCurrentSliceIndex();
+    	if (img.xml != null)
+    		newImg.setXML(MTBImage.this.xml);
 
-      if (img.m_type == MTBImageType.MTB_RGB && type != MTBImageType.MTB_RGB) {
-        // Conversion from RGB to gray value type
+    	// get current slice index
+    	int idx = img.getCurrentSliceIndex();
 
-        int[] rgbValue;
+    	if (img.m_type == MTBImageType.MTB_RGB && type != MTBImageType.MTB_RGB) {
+    		// Conversion from RGB to gray value type
 
-        for (int i = 0; i < img.m_sizeStack; i++) {
+    		int[] rgbValue;
 
-          img.setCurrentSliceIndex(i);
-          newImg.setCurrentSliceIndex(i);
+    		for (int i = 0; i < img.m_sizeStack; i++) {
 
-          for (int y = 0; y < img.m_sizeY; y++) {
-            for (int x = 0; x < img.m_sizeX; x++) {
-              rgbValue = ((MTBImageRGB) img).getValue(x, y);
+    			img.setCurrentSliceIndex(i);
+    			newImg.setCurrentSliceIndex(i);
 
-              newImg.putValueDouble(x, y, 0.299 * rgbValue[0] + 0.587
-                  * rgbValue[1] + 0.114 * rgbValue[2]);
-            }
-          }
-        }
-      } 
-      else if (img.m_type != MTBImageType.MTB_RGB && type == MTBImageType.MTB_RGB) {
-        // Conversion from gray value type to RGB
+    			for (int y = 0; y < img.m_sizeY; y++) {
+    				for (int x = 0; x < img.m_sizeX; x++) {
+    					rgbValue = ((MTBImageRGB) img).getValue(x, y);
 
-        double val;
+    					newImg.putValueDouble(x, y, 0.299 * rgbValue[0] + 0.587
+    							* rgbValue[1] + 0.114 * rgbValue[2]);
+    				}
+    			}
+    		}
+    	} 
+    	else if (img.m_type != MTBImageType.MTB_RGB && type == MTBImageType.MTB_RGB) {
+    		// Conversion from gray value type to RGB
 
-        double[] minmax = null;
-        if (scaleDown) {
-          minmax = img.getMinMaxDouble();
-        }
+    		double val;
 
-        for (int i = 0; i < img.m_sizeStack; i++) {
+    		double[] minmax = null;
+    		if (scaleDown) {
+    			minmax = img.getMinMaxDouble();
+    		}
 
-          img.setCurrentSliceIndex(i);
-          newImg.setCurrentSliceIndex(i);
+    		for (int i = 0; i < img.m_sizeStack; i++) {
 
-          for (int y = 0; y < img.m_sizeY; y++) {
-            for (int x = 0; x < img.m_sizeX; x++) {
-              val = img.getValueDouble(x, y);
+    			img.setCurrentSliceIndex(i);
+    			newImg.setCurrentSliceIndex(i);
 
-              if (scaleDown) {
-                val = Math.round((val - minmax[0]) / (minmax[1] - minmax[0])
-                    * 255.0);
-              }
+    			for (int y = 0; y < img.m_sizeY; y++) {
+    				for (int x = 0; x < img.m_sizeX; x++) {
+    					val = img.getValueDouble(x, y);
 
-              ((MTBImageRGB) newImg).putValue(x, y, (int) val, (int) val,
-                  (int) val);
-            }
-          }
-        }
-      } 
-      else {
-        // Conversion of gray value types or conversion from RGB to RGB
+    					if (scaleDown) {
+    						val = Math.round((val - minmax[0]) / (minmax[1] - minmax[0])
+    								* 255.0);
+    					}
 
-        double val;
+    					((MTBImageRGB) newImg).putValue(x, y, (int) val, (int) val,
+    							(int) val);
+    				}
+    			}
+    		}
+    	} 
+    	else {
+    		// Conversion of gray value types or conversion from RGB to RGB
 
-        double[] minmax = null;
+    		double val;
 
-        if (type.ordinal() < img.m_type.ordinal() && scaleDown) {
-          minmax = img.getMinMaxDouble();
-        }
+    		double[] minmax = null;
 
-        for (int i = 0; i < img.m_sizeStack; i++) {
+    		if (type.ordinal() < img.m_type.ordinal() && scaleDown) {
+    			minmax = img.getMinMaxDouble();
+    		}
 
-          img.setCurrentSliceIndex(i);
-          newImg.setCurrentSliceIndex(i);
+    		for (int i = 0; i < img.m_sizeStack; i++) {
 
-          for (int y = 0; y < img.m_sizeY; y++) {
-            for (int x = 0; x < img.m_sizeX; x++) {
-              val = img.getValueDouble(x, y);
+    			img.setCurrentSliceIndex(i);
+    			newImg.setCurrentSliceIndex(i);
 
-              if (type.ordinal() < img.m_type.ordinal() && scaleDown) {
-                val = Math.round((val - minmax[0]) / (minmax[1] - minmax[0])
-                    * (newImg.getTypeMax() - newImg.getTypeMin())
-                    + newImg.getTypeMin());
-              }
+    			for (int y = 0; y < img.m_sizeY; y++) {
+    				for (int x = 0; x < img.m_sizeX; x++) {
+    					val = img.getValueDouble(x, y);
 
-              newImg.putValueDouble(x, y, val);
-            }
-          }
-        }
-      }
+    					if (type.ordinal() < img.m_type.ordinal() && scaleDown) {
+    						val = Math.round((val - minmax[0]) / (minmax[1] - minmax[0])
+    								* (newImg.getTypeMax() - newImg.getTypeMin())
+    								+ newImg.getTypeMin());
+    					}
 
-      // restore current slice index
-      img.setCurrentSliceIndex(idx);
-      newImg.setCurrentSliceIndex(0);
+    					newImg.putValueDouble(x, y, val);
+    				}
+    			}
+    		}
+    	}
 
-      return newImg;
+    	// restore current slice index
+    	img.setCurrentSliceIndex(idx);
+    	newImg.setCurrentSliceIndex(0);
+
+    	return newImg;
     }
   		
   	
@@ -2807,9 +2798,9 @@ public abstract class MTBImage extends ALDData
       	imgPart.m_title = MTBImage.getTitleRunning(img.m_title);
 
       	// copy calibration object
-      	imgPart.calibration = img.calibration.copy();
-      	imgPart.copyPhysicalProperties(img);
-      	imgPart.getImagePlus().setCalibration(imgPart.calibration);
+      	imgPart.setCalibration(img.calibration.copy());
+//      	imgPart.copyPhysicalProperties(img);
+//      	imgPart.getImagePlus().setCalibration(imgPart.calibration);
 
       	// update origin
       	imgPart.calibration.xOrigin = img.calibration.xOrigin + x;
