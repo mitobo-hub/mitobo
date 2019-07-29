@@ -68,15 +68,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev$
- * $Date$
- * $Author$
- * 
- */
-
 /*
  * This class uses the Bio-Formats and OME-XML packages/libraries (see the two licenses at the top)
  */
@@ -88,20 +79,17 @@ import ij.measure.Calibration;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Set;
-import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 
 import loci.formats.FormatTools;
 import loci.formats.IFormatReader;
 import loci.formats.IFormatWriter;
 import loci.formats.meta.IMetadata;
 import loci.formats.meta.MetadataRetrieve;
+import ome.units.UNITS;
 import ome.units.quantity.Length;
 import ome.units.quantity.Time;
 import ome.units.unit.Unit;
 import ome.xml.model.enums.PixelType;
-import ome.xml.model.primitives.PositiveFloat;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType;
 
 /**
@@ -109,7 +97,6 @@ import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType
  * @author Oliver Gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.MANDATORY)
 public class ImageIOUtils {
 
 	/**
@@ -135,48 +122,39 @@ public class ImageIOUtils {
 	}
 	
 	/**
-	 * Set OME meta data for image of index <code>imageIdx</code> using information from a <code>Calibration</code> object
-	 * @param cal
-	 * @param omemeta
-	 * @param imageIdx
+	 * Set OME meta data for image of index <code>imageIdx</code> using 
+	 * information from a <code>Calibration</code> object.
+	 * 
+	 * @param cal				Calibration object.
+	 * @param omemeta		OME object where to store calibration metadata.
+	 * @param imageIdx	Index of image.
 	 */
 	public static void physicalPixelSize_to_OME(Calibration cal, 
 			IMetadata omemeta, int imageIdx) {
-		
-		Unit<Length> ul;
+
+		Unit<Length> ul = UNITS.MICROMETER;
+
 		if (ImageIOUtils.toMicrons(cal.pixelWidth, cal.getXUnit()) > 0.0) {
-//			omemeta.setPixelsPhysicalSizeX(new PositiveFloat(ImageIOUtils.toMicrons(cal.pixelWidth, cal.getXUnit())), imageIdx);
-			ul = Unit.CreateBaseUnit(cal.getXUnit(), cal.getXUnit());
-			omemeta.setPixelsPhysicalSizeX(	
-					new Length(	new Double(
-							ImageIOUtils.toMicrons(cal.pixelWidth, cal.getXUnit())),
-							ul), 
-					imageIdx);
+			omemeta.setPixelsPhysicalSizeX(
+				new Length(
+					new Double(ImageIOUtils.toMicrons(cal.pixelWidth, cal.getXUnit())), 
+						ul), imageIdx);
 		}
 			
 		if (ImageIOUtils.toMicrons(cal.pixelHeight, cal.getYUnit()) > 0.0) {
-//			omemeta.setPixelsPhysicalSizeY(new PositiveFloat(ImageIOUtils.toMicrons(cal.pixelHeight, cal.getYUnit())), imageIdx);
-			ul = Unit.CreateBaseUnit(cal.getYUnit(), cal.getYUnit());
-			omemeta.setPixelsPhysicalSizeY(	
-					new Length(	new Double(
-							ImageIOUtils.toMicrons(cal.pixelHeight, cal.getYUnit())),
-							ul), 
-					imageIdx);
+			omemeta.setPixelsPhysicalSizeY(
+				new Length(
+					new Double(ImageIOUtils.toMicrons(cal.pixelHeight, cal.getYUnit())), 
+						ul), imageIdx);
 		}
 		
 		if (ImageIOUtils.toMicrons(cal.pixelDepth, cal.getZUnit()) > 0.0) {
-//			omemeta.setPixelsPhysicalSizeZ(new PositiveFloat(ImageIOUtils.toMicrons(cal.pixelDepth, cal.getZUnit())), imageIdx);
-			ul = Unit.CreateBaseUnit(cal.getZUnit(), cal.getZUnit());
-			omemeta.setPixelsPhysicalSizeZ(	
-					new Length(	new Double(
-							ImageIOUtils.toMicrons(cal.pixelDepth, cal.getZUnit())),
-							ul), 
-					imageIdx);
+			omemeta.setPixelsPhysicalSizeZ(
+				new Length(
+					new Double(ImageIOUtils.toMicrons(cal.pixelDepth, cal.getZUnit())), 
+						ul), imageIdx);
 		}
-		
-//		ImageIOUtils.physicalPixelSize_to_OME(cal, omemeta, imageIdx);
-		
-//		omemeta.setPixelsTimeIncrement(ImageIOUtils.toSeconds(cal.frameInterval, cal.getTimeUnit()), imageIdx);
+
 		Unit<Time> ut = Unit.CreateBaseUnit(cal.getTimeUnit(), "s");
 		Time t = new Time(new Double(
 				ImageIOUtils.toSeconds(cal.frameInterval, cal.getTimeUnit())), ut);
@@ -185,12 +163,13 @@ public class ImageIOUtils {
 	
 	/**
 	 * Convert a value of given space unit to microns.
-	 * @param val
-	 * @param unit
-	 * @return
+	 * @param val		Value to convert.
+	 * @param unit	Source unit.
+	 * @return	Value in microns.
 	 */
 	public static double toMicrons(double val, String unit) {
-		if (unit.equalsIgnoreCase("micron") || unit.equalsIgnoreCase("microns") || unit.equalsIgnoreCase("um") || unit.equalsIgnoreCase("micrometer"))
+		if (   unit.equalsIgnoreCase("micron") || unit.equalsIgnoreCase("microns") 
+				|| unit.equalsIgnoreCase("um") || unit.equalsIgnoreCase("micrometer"))
 			return val;
 		else if (unit.equalsIgnoreCase("pm") || unit.equalsIgnoreCase("picometer"))
 			return val * 0.000001;
@@ -206,6 +185,8 @@ public class ImageIOUtils {
 			return val * 1000000;
 		else if (unit.equalsIgnoreCase("km") || unit.equalsIgnoreCase("kilometer"))
 			return val * 1000000000;
+		else if (unit.equalsIgnoreCase("inch") || unit.equalsIgnoreCase("inches"))
+			return val * 25.4 * 1000.0;
 		else if (unit.equalsIgnoreCase("pixel") || unit.equalsIgnoreCase("pixels"))
 			return 0.0;
 		else
