@@ -314,7 +314,7 @@ public class StegerRidgeDetection2DWrapper extends MTBOperator
 			}
 		}
 		
-		drawResultsToImage(this.resultImage, this.resultLines, null, true, false);
+		drawResultsToImage(this.resultImage, this.resultLines, null, this.estimateWidth, false);
 	}
 	
 	/**
