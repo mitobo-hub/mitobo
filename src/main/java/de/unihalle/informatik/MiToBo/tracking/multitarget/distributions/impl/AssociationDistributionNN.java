@@ -22,25 +22,8 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev: 5288 $
- * $Date: 2012-03-29 10:27:02 +0200 (Thu, 29 Mar 2012) $
- * $Author: gress $
- * 
- */
 package de.unihalle.informatik.MiToBo.tracking.multitarget.distributions.impl;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.Arrays;
-import java.util.Random;
-import java.util.Stack;
-import java.util.Vector;
-
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBTreeNode;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBTreeNodeData;
 import de.unihalle.informatik.MiToBo.math.LogFaculty;
@@ -52,6 +35,13 @@ import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.abstracts.Ab
 import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.impl.TargetID;
 import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.interfaces.DataAssociation;
 import de.unihalle.informatik.MiToBo.tracking.multitarget.distributions.abstracts.AbstractMultiObservationDistributionIndep;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.Random;
+import java.util.Stack;
+import java.util.Vector;
+
 
 /**
  * Association distribution to sample association variables for a set of observations based 
@@ -74,7 +64,6 @@ import de.unihalle.informatik.MiToBo.tracking.multitarget.distributions.abstract
  * @param <S> Type of discrete variables in the multi target observation
  * @param <T> Type of discrete variables in the multi target state
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class AssociationDistributionNN<S extends TargetID,T extends TargetID> extends
 		AssociationDistribution<S, T> {
 
@@ -618,6 +607,15 @@ public class AssociationDistributionNN<S extends TargetID,T extends TargetID> ex
 		public int m;
 		public AType c;
 			
+		@Override
+		public ProbTreeData clone() {
+			ProbTreeData nDat = new ProbTreeData();
+			nDat.log_p = this.log_p;
+			nDat.m = this.m;
+			nDat.c = this.c;
+			return nDat;
+		}
+	
 		@Override
 		public void printData() {
 			System.out.println("m=" + this.m + " c="+this.c + " log_p="+this.log_p);

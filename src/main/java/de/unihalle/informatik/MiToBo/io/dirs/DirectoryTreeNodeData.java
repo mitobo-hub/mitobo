@@ -24,10 +24,10 @@
 
 package de.unihalle.informatik.MiToBo.io.dirs;
 
+import de.unihalle.informatik.MiToBo.core.datatypes.*;
 import java.io.File;
 import java.util.*;
 
-import de.unihalle.informatik.MiToBo.core.datatypes.*;
 
 /**
  * Implements class {@link MTBTreeNodeData} for the tree sub-class
@@ -64,13 +64,20 @@ public class DirectoryTreeNodeData extends MTBTreeNodeData {
 		this.files= new Vector<String>();
 	}
 	
-	/* (non-Javadoc)
-	 * @see datatypes.TreeNodeData#setNode(datatypes.TreeNode)
-	 */
 	@Override
-  public void setNode(MTBTreeNode n) {
-		this.node= n;
+	public DirectoryTreeNodeData clone() {
+		DirectoryTreeNodeData nDat = new DirectoryTreeNodeData(this.path);
+		nDat.files = (Vector<String>)this.files.clone();
+		return nDat;
 	}
+
+	// /* (non-Javadoc)
+	//  * @see datatypes.TreeNodeData#setNode(datatypes.TreeNode)
+	//  */
+	// @Override
+  // public void setNode(MTBTreeNode n) {
+	// 	this.node= n;
+	// }
 	
 	/**
 	 * Request path associated with the node.
@@ -139,7 +146,7 @@ public class DirectoryTreeNodeData extends MTBTreeNodeData {
 		}
 
 		// get childs of the node associated with this directory
-		Vector<MTBTreeNode> childs= this.node.getChilds();
+		Vector<MTBTreeNode> childs= this.getNode().getChilds();
 		
 		// get the strings from these childs recursively
 		for (int i=0;i<childs.size();++i) {
@@ -167,7 +174,7 @@ public class DirectoryTreeNodeData extends MTBTreeNodeData {
 		Vector<String> datalist= new Vector<String>();
 
 		// get childs of the node associated with this directory
-		Vector<MTBTreeNode> childs= this.node.getChilds();
+		Vector<MTBTreeNode> childs= this.getNode().getChilds();
 		
 		// get the strings from these childs recursively
 		for (int i=0;i<childs.size();++i) {

@@ -22,15 +22,6 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev$
- * $Date$
- * $Author$
- * 
- */
-
 package de.unihalle.informatik.MiToBo.core.datatypes;
 
 import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
@@ -47,34 +38,36 @@ import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
  * 
  * @author Birgit Möller
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
-public abstract class MTBTreeNodeData {
+public abstract class MTBTreeNodeData implements Cloneable {
 
-		/**
-		 * Reference to the associated node of the tree.
-		 */
-		protected MTBTreeNode node;
+	/**
+	 * Reference to the associated node of the tree.
+	 */
+	private MTBTreeNode node = null;
 
-		/**
-		 * Sets the node the object is associated with.
-		 * 
-		 * @param n	TreeNode the data object belongs to.
-		 */
-		public void setNode(MTBTreeNode n) {
-				this.node = n;
-		}
+	/**
+	 * Sets the node the object is associated with.
+	 * 
+	 * @param n TreeNode the data object belongs to.
+	 */
+	protected void setNode(MTBTreeNode n) {
+		this.node = n;
+	}
 
-		/**
-		 * Return the node object containing the data.
-		 * 
-		 * @return Node the data is associated with.
-		 */
-		public MTBTreeNode getNode() {
-				return this.node;
-		}
+	/**
+	 * Return the node object containing the data.
+	 * 
+	 * @return Node the data is associated with.
+	 */
+	public MTBTreeNode getNode() {
+		return this.node;
+	}
 
-		/**
-		 * Method to print the data associated with the node.
-		 */
-		public abstract void printData();
+	@Override
+	public abstract MTBTreeNodeData clone();
+
+	/**
+	 * Method to print the data associated with the node.
+	 */
+	public abstract void printData();
 }

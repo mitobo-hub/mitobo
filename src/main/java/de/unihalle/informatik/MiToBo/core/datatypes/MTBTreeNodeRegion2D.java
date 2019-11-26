@@ -22,26 +22,14 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev$
- * $Date$
- * $Author$
- * 
- */
-
 package de.unihalle.informatik.MiToBo.core.datatypes;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 
 /**
  * Class to create a TreeNodeData object for a 2D region (MTBRegion2D).
  * 
  * @author gress
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class MTBTreeNodeRegion2D extends MTBTreeNodeData {
 
 	/**
@@ -62,7 +50,13 @@ public class MTBTreeNodeRegion2D extends MTBTreeNodeData {
 	public MTBTreeNodeRegion2D(MTBRegion2D reg) {
 		this.m_level = -1;
 		this.m_reg = reg;
-		this.node = null;
+	}
+
+	@Override
+	public MTBTreeNodeRegion2D clone() {
+		MTBTreeNodeRegion2D nDat = new MTBTreeNodeRegion2D(this.m_reg.clone());
+		nDat.m_level = this.m_level;
+		return nDat;
 	}
 
 	/**

@@ -22,21 +22,11 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev$
- * $Date$
- * $Author$
- * 
- */
-
 package de.unihalle.informatik.MiToBo.core.datatypes;
-
-import java.util.*;
 
 import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
 import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
+import java.util.*;
 
 /**
  * This class implements the nodes of class 'Tree'. The recursive structure of a
@@ -157,5 +147,20 @@ public class MTBTreeNode {
 			System.out.println("--> Children = ");
 		for (int i = 0; i < this.childs.size(); ++i)
 			this.childs.get(i).printData();
+	}
+
+	/**
+	 * Recursively collect all nodes of the subtree below this node.
+	 * <p>
+	 * The method runs in a depth-first fashion.
+	 * @return	List of all nodes below this one in the tree.
+	 */
+	public Vector<MTBTreeNode> getAllSubtreeNodesDepthFirst() {
+		Vector<MTBTreeNode> subtreeNodes = new Vector<>();
+		subtreeNodes.add(this);
+		for (MTBTreeNode c: this.getChilds()) {
+			subtreeNodes.addAll(c.getAllSubtreeNodesDepthFirst());
+		}
+		return subtreeNodes;
 	}
 }

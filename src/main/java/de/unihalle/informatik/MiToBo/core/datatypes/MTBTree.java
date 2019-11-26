@@ -22,25 +22,15 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev$
- * $Date$
- * $Author$
- * 
- */
-
 package de.unihalle.informatik.MiToBo.core.datatypes;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
+import java.util.Vector;
 
 /**
  * This class implements a simple tree data structure.
  * <p>
- * The main component of a tree is its root node. It can have an unrestricted 
- * number of children. The tree structure is implicitly given by the recursive 
+ * The main component of a tree is its root node. It can have an unrestricted
+ * number of children. The tree structure is implicitly given by the recursive
  * (one-way) linkage of nodes to their children.
  * 
  * Each node of the tree is associated with a certain data object. Each data
@@ -53,8 +43,7 @@ import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
  * 
  * @author Birgit Möller
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
-public class MTBTree {
+public class MTBTree implements Cloneable {
 
 	/**
 	 * Root node of the tree.
@@ -62,7 +51,7 @@ public class MTBTree {
 	protected MTBTreeNode root;
 
 	/**
-	 * Constructor for the tree. 
+	 * Constructor for the tree.
 	 * <p>
 	 * An associated data object has to be provided in any case.
 	 * 
@@ -71,15 +60,41 @@ public class MTBTree {
 	public MTBTree(MTBTreeNodeData rootObject) {
 		this.root = new MTBTreeNode(rootObject);
 	}
-	
+
 	/**
-	 * Constructor for the tree for a given root node. 
+	 * Constructor for the tree for a given root node.
+	 * 
 	 * @param rootNode the root node
 	 */
 	public MTBTree(MTBTreeNode rootNode) {
 		this.root = rootNode;
 	}
-	
+
+	@Override
+	public MTBTree clone() {
+		MTBTreeNodeData nData = this.root.getData().clone();
+		MTBTreeNode newRoot = new MTBTreeNode(nData);
+		for (MTBTreeNode c : this.root.getChilds()) {
+			cloneChild(newRoot, c);
+		}
+		MTBTree newTree = new MTBTree(newRoot);
+		return newTree;
+	}
+
+	/**
+	 * Helper function to recursively clone child nodes in a deep fashion.
+	 * 
+	 * @param np Parent node to which the clone of the child should be added.
+	 * @param c  Current child node to be cloned.
+	 */
+	protected static void cloneChild(MTBTreeNode np, MTBTreeNode c) {
+		MTBTreeNodeData nData = c.getData().clone();
+		MTBTreeNode newChild = new MTBTreeNode(nData);
+		np.addChild(newChild);
+		for (MTBTreeNode cc : c.getChilds()) {
+			cloneChild(newChild, cc);
+		}
+	}
 
 	/**
 	 * Access the root node.
@@ -94,11 +109,19 @@ public class MTBTree {
 	 * Prints tree data.
 	 * <p>
 	 * Special feature of this tree: this function prints recursively the data
-	 * contained inside the tree. Prerequisite for this is that the data objects
-	 * of each node provide a method for printing their data in a reasonable way,
-	 * i.e. implement the method printData() of the abstract class TreeNodeData.
+	 * contained inside the tree. Prerequisite for this is that the data objects of
+	 * each node provide a method for printing their data in a reasonable way, i.e.
+	 * implement the method printData() of the abstract class TreeNodeData.
 	 */
 	public void printTree() {
 		this.root.printData();
+	}
+
+	/**
+	 * Get all nodes in a depth-first sorting.
+	 * @return	List of all nodes of the tree.
+	 */
+	public Vector<MTBTreeNode> getAllNodesDepthFirst() {
+		return this.root.getAllSubtreeNodesDepthFirst();
 	}
 }
