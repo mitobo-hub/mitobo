@@ -56,6 +56,15 @@ public class MTBRootTreeNodeData extends MTBTreeNodeData {
 		this.yPos = y;
 	}
 
+	public MTBRootTreeNodeData clone() {
+		MTBRootTreeNodeData nData = new MTBRootTreeNodeData(this.xPos, this.yPos);
+		nData.layer = this.layer;
+		nData.radius = this.radius;
+		nData.status = this.status;
+		nData.connectorIDs = this.connectorIDs.clone();
+		return nData;
+	}
+
 	public double getXPos() {
 		return this.xPos;
 	}
