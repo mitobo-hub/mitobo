@@ -70,6 +70,16 @@ public class MTBTreeNode {
 	}
 
 	/**
+	 * Set the data object of the node.
+	 * 
+	 * @param d		New data object associated with node.
+	 */
+	public void setData(MTBTreeNodeData d) {
+		this.dataObject = d;
+		this.dataObject.setNode(this);
+	}
+
+	/**
 	 * Returns a reference to the data associated with the node.
 	 * 
 	 * @return Reference to the node's data object.
