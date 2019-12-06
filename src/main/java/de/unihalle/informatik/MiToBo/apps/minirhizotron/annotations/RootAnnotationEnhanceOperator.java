@@ -74,6 +74,10 @@ public abstract class RootAnnotationEnhanceOperator
 		this.image = img;
 	}
 	
+	/**
+	 * Provide treeline to be enhanced.
+	 * @param tls		Set if treelines.
+	 */
 	public void setInputTreelines(Vector<MTBRootTree> tls) {
 		this.inputTreelines = tls;
 	}

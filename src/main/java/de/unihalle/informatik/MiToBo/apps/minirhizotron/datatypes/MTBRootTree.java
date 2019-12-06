@@ -30,16 +30,30 @@ import de.unihalle.informatik.MiToBo.core.datatypes.MTBTree;
 /**
  * Tree datatype to represent plant roots.
  * <p>
+ * All relevant data required to properly represent the nodes of a
+ * plant root tree is stored in the node data objects of 
+ * type {@link MTBRootTreeNodeData}.
  * 
  * @author moeller
+ * @see MTBRootTreeNodeData
  */
 @ALDDerivedClass
 public class MTBRootTree extends MTBTree {
 
+	/**
+	 * Default constructor.
+	 * <p>
+	 * The tree is initialized with just a root node with empty node data.
+	 */
 	public MTBRootTree() {
 		super(new MTBRootTreeNodeData());
 	}
 
+	/**
+	 * Constructor with given data.
+	 * <p>
+	 * The tree is initialized with the given node data for the root node.
+	 */
 	public MTBRootTree(MTBRootTreeNodeData d) {
 		super(d);
 	}

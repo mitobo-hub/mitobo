@@ -28,34 +28,70 @@ import de.unihalle.informatik.Alida.annotations.ALDDerivedClass;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBTreeNodeData;
 
 /**
+ * Node data object for {@link MTBRootTree}. 
  * <p>
+ * This class is intended to store data for representing plant 
+ * roots in images. Its main purpose is the data exchange between
+ * rhizoTrak and MiToBo.
  * 
  * @author Birgit Moeller
  */
 @ALDDerivedClass
 public class MTBRootTreeNodeData extends MTBTreeNodeData {
 
+	/**
+	 * y-position of the node in 2D image space.
+	 */
 	protected double xPos;
 
+	/**
+	 * y-position of the node in 2D image space.
+	 */
 	protected double yPos;
 
+	/**
+	 * Layer where the node is located.
+	 */
 	protected int layer;
 
+	/**	
+	 *  Radius of the node
+	 */
 	protected double radius;
 
+	/**
+	 * Status associated with the node.
+	 */
 	protected int status;
 
-	protected int[] connectorIDs[];
+	/**
+	 * List of connectors the corresponding treeline is attached to.class
+	 * <p>
+	 * Note: usually a treeline should only be member of one connector,
+	 * only in case of conflicts there could be more.
+	 */
+	protected int[] connectorIDs;
 
+	/**
+	 * Default constructor, all members are initialized with zero.
+	 */
 	public MTBRootTreeNodeData() {
 
 	}
 
+	/**
+	 * Constructor with positional data.
+	 * @param x		x-position of the node.
+	 * @param y		y-position of the node.
+	 */
 	public MTBRootTreeNodeData(double x, double y) {
 		this.xPos = x;
 		this.yPos = y;
 	}
 
+	/**
+	 * Clone function.
+	 */
 	public MTBRootTreeNodeData clone() {
 		MTBRootTreeNodeData nData = new MTBRootTreeNodeData(this.xPos, this.yPos);
 		nData.layer = this.layer;
@@ -65,16 +101,105 @@ public class MTBRootTreeNodeData extends MTBTreeNodeData {
 		return nData;
 	}
 
+	/**
+	 * Get x-position of the node.
+	 * @return	Position in x.
+	 */
 	public double getXPos() {
 		return this.xPos;
 	}
 
+	/**
+	 * Get y-position of the node.
+	 * @return	Position in y.
+	 */
 	public double getYPos() {
 		return this.yPos;
 	}
 
+	/**
+	 * Get the layer where the node is located.
+	 * @return	Layer.
+	 */	
+	public int getLayer() {
+		return this.layer;
+	}
+
+	/**
+	 * Get the radius of the node.
+	 * @return	Node radius.
+	 */
+	public double getRadius() {
+		return this.radius;
+	}
+
+	/**
+	 * Get the status of the node (segment).
+	 * @return	Status.
+	 */
+	public int getStatus() {
+		return this.status;
+	}
+
+	/**
+	 * Get connector IDs.
+	 * @return List of connectors.
+	 */
+	public int[] getConnectorIDs() {
+		return this.connectorIDs;
+	}
+
+	/**
+	 * Set x-position of the node.
+	 * @param x		x-position.
+	 */
+	public void setXPos(double x) {
+		this.xPos = x;
+	}
+
+	/**
+	 * Set y-position of the node.
+	 * @param y		y-position.
+	 */
+	public void setYPos(double y) {
+		this.yPos = y;
+	}
+
+	/**
+	 * Set the layer where the node is located.
+	 * @param l		Layer.
+	 */	
+	public void setLayer(int l) {
+		this.layer = l;
+	}
+
+	/**
+	 * Set the radius of the node.
+	 * @param	r		Node radius.
+	 */
+	public void setRadius(double r) {
+		this.radius = r;
+	}
+
+	/**
+	 * Set the status of the node (segment).
+	 * @param s		Status.
+	 */
+	public void getStatus(int s) {
+		this.status = s;
+	}
+
+	/**
+	 * Set connector IDs.
+	 * @param cs	List of connectors.
+	 */
+	public void getConnectorIDs(int[] cs) {
+		this.connectorIDs = cs;
+	}
+
 	@Override
 	public void printData() {
-		// TODO Auto-generated method stub
+		System.out.println("[layer " + this.layer + "] " + this.xPos + " , " + this.yPos
+			+ " / r = " + this.radius + " / status = " + this.status);
 	}
 }
