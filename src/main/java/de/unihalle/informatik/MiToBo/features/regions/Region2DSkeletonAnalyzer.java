@@ -689,11 +689,13 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 		}
 		for (int l=1; l<=maxLabel; ++l) {
 			radiiMaxInscribedCircles[l] =  Math.sqrt(maxDistPerRegion[l]) * this.pixelLength;
-			this.analysisDisplayImg.drawPoint2D(
-				(int)maxDistPoints[l].x, (int)maxDistPoints[l].y, 0, 0xFFFF00, 1);
-			this.analysisDisplayImg.drawCircle2D(
-				(int)maxDistPoints[l].x, (int)maxDistPoints[l].y, 0, 
-					(int)radiiMaxInscribedCircles[l], yellow);
+			if (this.visualizeAnalysisResults) {
+				this.analysisDisplayImg.drawPoint2D(
+					(int)maxDistPoints[l].x, (int)maxDistPoints[l].y, 0, 0xFFFF00, 1);
+				this.analysisDisplayImg.drawCircle2D(
+					(int)maxDistPoints[l].x, (int)maxDistPoints[l].y, 0, 
+						(int)radiiMaxInscribedCircles[l], yellow);
+			}
 		}
 
 		// calculate distances to the background for all non-branch pixels
