@@ -37,6 +37,8 @@ import de.unihalle.informatik.Alida.annotations.ALDAOperator.Level;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.unihalle.informatik.Alida.operator.events.ALDOperatorExecutionProgressEvent;
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBBorder2D;
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBBorder2DSet;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBNeuriteSkelGraph;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2DSet;
@@ -51,81 +53,77 @@ import de.unihalle.informatik.MiToBo.morphology.DistanceTransform;
 import de.unihalle.informatik.MiToBo.morphology.SkeletonExtractor;
 import de.unihalle.informatik.MiToBo.morphology.DistanceTransform.DistanceMetric;
 import de.unihalle.informatik.MiToBo.morphology.DistanceTransform.ForegroundColor;
+import de.unihalle.informatik.MiToBo.segmentation.contours.extraction.BordersOnLabeledComponents;
+import de.unihalle.informatik.MiToBo.segmentation.contours.extraction.BordersOnLabeledComponents.BorderType;
 import de.unihalle.informatik.MiToBo.segmentation.regions.labeling.LabelComponentsSequential;
 import de.unihalle.informatik.MiToBo.segmentation.thresholds.ImgThresh;
 
 /**
  * Operator to analyze skeletons of a given set of regions.
  * <p>
- * The operator takes as input a label image, calculates the skeleton
- * for each region and finally calculates several measures on the 
- * skeletons, e.g., the number of branches, their average lengths, or 
- * the average distances of the branch endpoints to the background. The 
- * skeleton is calculated using ImageJ functions. Inside the skeleton
- * 8-neighborhood between pixels is given.
+ * The operator takes as input a label image, calculates the skeleton for each
+ * region and finally calculates several measures on the skeletons, e.g., the
+ * number of branches, their average lengths, or the average distances of the
+ * branch endpoints to the background. The skeleton is calculated using ImageJ
+ * functions. Inside the skeleton 8-neighborhood between pixels is given.
  * <p>
- * Note that the number of branches is determined by the number of 
- * endpoints to be found in the skeleton. An endpoint is a skeleton 
- * point having no or only a single neighboring pixel in the skeleton,
- * or a point with two neighbors in direct vicinity. The latter case
- * can only appear if within the skeleton 4-neighborhood is assumed.<br> 
- * If we find more than two endpoints the count is equal to the number 
- * of branches, and if we find only two endpoints or even only one, 
- * we only have a single branch in the skeleton. 
+ * Note that the number of branches is determined by the number of endpoints to
+ * be found in the skeleton. An endpoint is a skeleton point having no or only a
+ * single neighboring pixel in the skeleton, or a point with two neighbors in
+ * direct vicinity. The latter case can only appear if within the skeleton
+ * 4-neighborhood is assumed.<br>
+ * If we find more than two endpoints the count is equal to the number of
+ * branches, and if we find only two endpoints or even only one, we only have a
+ * single branch in the skeleton.
  * <p>
- * The distance of an endpoint to the background can be interpreted as a 
- * rough estimation of the curvature of the contour surrounding the 
- * endpoint. The curvature can be defined as the radius of a maximal 
- * circle located at the branch endpoint, and the distance to the 
- * background is approximately equal to the radius of this circle.
+ * The distance of an endpoint to the background can be interpreted as a rough
+ * estimation of the curvature of the contour surrounding the endpoint. The
+ * curvature can be defined as the radius of a maximal circle located at the
+ * branch endpoint, and the distance to the background is approximately equal to
+ * the radius of this circle.
  * 
  * @author moeller
  */
-@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL, 
-	level=Level.STANDARD, allowBatchMode = false)
+@ALDAOperator(genericExecutionMode = ALDAOperator.ExecutionMode.ALL, level = Level.STANDARD, allowBatchMode = false)
 public class Region2DSkeletonAnalyzer extends MTBOperator {
-	
+
 	/**
 	 * Operator class identifier.
 	 */
 	private static final String operatorID = "[Region2DSkeletonAnalyzer]";
-	
+
 	/**
 	 * Definition of red color.
 	 */
-	private static final int red = 
-			((255 & 0xff)<<16)+((0 & 0xff)<<8) + (0 & 0xff);
+	private static final int red = ((255 & 0xff) << 16) + ((0 & 0xff) << 8) + (0 & 0xff);
 
 	/**
 	 * Definition of yellow color.
 	 */
-	private static final int yellow = 
-			((255 & 0xff)<<16)+((255 & 0xff)<<8) + (0 & 0xff);
-	
+	private static final int yellow = ((255 & 0xff) << 16) + ((255 & 0xff) << 8) + (0 & 0xff);
+
 	/**
 	 * Definition of green color.
 	 */
-	private static final int green = 
-			((0 & 0xff)<<16)+((255 & 0xff)<<8) + (0 & 0xff);
+	private static final int green = ((0 & 0xff) << 16) + ((255 & 0xff) << 8) + (0 & 0xff);
 
 	/**
 	 * Definition of blue color.
 	 */
-	private static final int blue = 
-			((0 & 0xff)<<16)+((0 & 0xff)<<8) + (255 & 0xff);
+	private static final int blue = ((0 & 0xff) << 16) + ((0 & 0xff) << 8) + (255 & 0xff);
 
 	/**
 	 * Set of region features calculated from region skeletons.
 	 * <p>
-	 * These names are also used as headers in the result table. 
+	 * These names are also used as headers in the result table.
 	 */
 	public static enum FeatureNames {
 		/**
-		 * Integer ID of region (for reference purposes). 
+		 * Integer ID of region (for reference purposes).
 		 */
 		RegionID,
 		/**
-		 * Number of branches. 
+		 * Number of branches.
 		 */
 		BranchCount,
 		/**
@@ -147,75 +145,70 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 		/**
 		 * Thrid quartile width of core region (non-branch section).
 		 */
-		MaxCoreRegionWidth
+		MaxCoreRegionWidth,
+		/**
+		 * Radius of maximal empty circle inscribed in region.
+		 */
+		RadiusMaxInscribedEmptyCircle
 	}
 
 	/**
 	 * Label image to process.
 	 * <p>
-	 * It is assumed that each region is marked by a unique label larger
-	 * than zero. The background should have zero values.
+	 * It is assumed that each region is marked by a unique label larger than zero.
+	 * The background should have zero values.
 	 */
-	@Parameter(label = "Input Label Image", required = true, 
-			direction = Parameter.Direction.IN, description = "Input image.",
-			dataIOOrder = 0)
+	@Parameter(label = "Input Label Image", required = true, direction = Parameter.Direction.IN, description = "Input image.", dataIOOrder = 0)
 	private transient MTBImage inImg = null;
 
 	/**
 	 * Length of a pixel.
 	 * <p>
-	 * Note that we assume that a pixel is square, i.e. has an aspect ratio 
-	 * of 1. If this is not the case, extracted values are not correct.
+	 * Note that we assume that a pixel is square, i.e. has an aspect ratio of 1. If
+	 * this is not the case, extracted values are not correct.
 	 */
-	@Parameter(label = "Pixel length", required = false, 
-			direction = Parameter.Direction.IN, description = "Pixel length.",
-			dataIOOrder = 0)
+	@Parameter(label = "Pixel length", required = false, direction = Parameter.Direction.IN, description = "Pixel length.", dataIOOrder = 0)
 	private double pixelLength = 1.0;
 
 	/**
 	 * Table with region skeleton features.
 	 * <p>
-	 * Each row contains one region, each column corresponds to a feature.
-	 * The region IDs are identical to the labels in the input image.
+	 * Each row contains one region, each column corresponds to a feature. The
+	 * region IDs are identical to the labels in the input image.
 	 * <p>
-	 * The first two columns of the table corresponding to the region ID
-	 * and the branch count contain values of type {@link Integer}, 
-	 * the last two columns contain values of type {@link Double}.
+	 * The first two columns of the table corresponding to the region ID and the
+	 * branch count contain values of type {@link Integer}, the last two columns
+	 * contain values of type {@link Double}.
 	 */
-	@Parameter(label = "Result Table of Skeleton Features", 
-			dataIOOrder = 0, direction = Parameter.Direction.OUT,
-			description = "Result table of skeleton features.")
+	@Parameter(label = "Result Table of Skeleton Features", dataIOOrder = 0, direction = Parameter.Direction.OUT, description = "Result table of skeleton features.")
 	private transient MTBTableModel resultFeatureTable = null;
 
 	/**
 	 * Enable/disable the creation of an image to visualize results.
 	 */
-	@Parameter(label = "Visualize analysis results?", dataIOOrder = 0,
-			direction = Parameter.Direction.IN, supplemental = true,
-			description = "If selected an image showing analysis results " 
-					+ "is created.")
+	@Parameter(label = "Visualize analysis results?", dataIOOrder = 0, direction = Parameter.Direction.IN, supplemental = true, description = "If selected an image showing analysis results "
+			+ "is created.")
 	private boolean visualizeAnalysisResults = false;
 
 	/**
 	 * Image illustrating analysis results.
 	 */
-	@Parameter(label = "Image showing analysis results", dataIOOrder = 1,
-			direction = Parameter.Direction.OUT, 
-			description = "Image illustrating the results of the analysis.")
+	@Parameter(label = "Image showing analysis results", dataIOOrder = 1, direction = Parameter.Direction.OUT, description = "Image illustrating the results of the analysis.")
 	private transient MTBImageRGB analysisDisplayImg = null;
 
 	/**
 	 * Width of input label image.
 	 */
 	private transient int width;
-	
+
 	/**
 	 * Height of input label image.
 	 */
 	private transient int height;
-	
+
 	/**
 	 * Default constructor.
+	 * 
 	 * @throws ALDOperatorException Thrown on construction failure.
 	 */
 	public Region2DSkeletonAnalyzer() throws ALDOperatorException {
@@ -224,15 +217,17 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 
 	/**
 	 * Set input label image to process.
-	 * @param img	Input label image.
+	 * 
+	 * @param img Input label image.
 	 */
 	public void setInputLabelImage(MTBImage img) {
 		this.inImg = img;
 	}
-	
+
 	/**
 	 * Set length of a pixel.
-	 * @param pl	Length of a pixel.
+	 * 
+	 * @param pl Length of a pixel.
 	 */
 	public void setPixelLength(double pl) {
 		this.pixelLength = pl;
@@ -240,25 +235,27 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 
 	/**
 	 * Enable/disable creation of image with analysis data.
-	 * @param flag	If true, creation of image is enabled.
+	 * 
+	 * @param flag If true, creation of image is enabled.
 	 */
 	public void setVisualizeAnalysisResults(boolean flag) {
 		this.visualizeAnalysisResults = flag;
 	}
-	
+
 	/**
 	 * Get table of calculated features.
-	 * @return	Table with feature values.
+	 * 
+	 * @return Table with feature values.
 	 */
 	public MTBTableModel getResultTable() {
 		return this.resultFeatureTable;
 	}
-	
+
 	/**
 	 * Get the info image with analysis data visualized.
 	 * <p>
-	 * Note, the image is only available if 
-	 * {@link #visualizeAnalysisResults} was set to true before.
+	 * Note, the image is only available if {@link #visualizeAnalysisResults} was
+	 * set to true before.
 	 * 
 	 * @return Info image.
 	 */
@@ -269,27 +266,35 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 	/**
 	 * Get image with visualized analysis results.
 	 * <p>
-	 * This image is only available if the parameter 
-	 * {@link #visualizeAnalysisResults} has been selected prior to 
-	 * running the operator.
+	 * This image is only available if the parameter
+	 * {@link #visualizeAnalysisResults} has been selected prior to running the
+	 * operator.
 	 * 
 	 * @return Image illustrating analysis results.
 	 */
 	public MTBImageRGB getAnalysisImage() {
 		return this.analysisDisplayImg;
 	}
-	
-	/* (non-Javadoc)
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see de.unihalle.informatik.Alida.operator.ALDOperator#operate()
 	 */
 	@Override
-	protected void operate() 
-			throws ALDOperatorException, ALDProcessingDAGException {
+	protected void operate() throws ALDOperatorException, ALDProcessingDAGException {
 
 		// set some variables
 		this.width = this.inImg.getSizeX();
 		this.height = this.inImg.getSizeY();
-		
+
+		// extracting boundaries
+		BordersOnLabeledComponents cExtractor = new BordersOnLabeledComponents();
+		cExtractor.setBorderType(BorderType.OUTER_BORDERS);
+		cExtractor.setInputImage((MTBImageByte)this.inImg.convertType(MTBImageType.MTB_BYTE, true));
+		cExtractor.runOp();
+		MTBBorder2DSet contours = cExtractor.getResultBorders();
+
 		this.fireOperatorExecutionProgressEvent(
 				new ALDOperatorExecutionProgressEvent(this, operatorID 
 					+ " binarizing label image..."));
@@ -607,43 +612,127 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 			}
 		}
 		
-		// calculate distances to the background for all non-branch pixels
+		// determine radii of maximum inscribed circles by finding for each region 
+		// skeleton point with maximum minimal distance to background; 
+		// in parallel store distances of non-branch skeleton pixels to background
+		double minSkelPointDist, dist;
+		double[] radiiMaxInscribedCircles = new double[maxLabel+1];
+		double[] maxDistPerRegion = new double[maxLabel+1];
+		Point2D.Double localSkelMinPoint = null;
+		Point2D.Double[] maxDistPoints = new Point2D.Double[maxLabel+1];
 		MTBImageDouble nonBranchDistImg = (MTBImageDouble)MTBImage.createMTBImage(
-				this.width, this.height, 1, 1, 1, MTBImageType.MTB_DOUBLE); 
-		Point2D.Double[][] nonBranchDistImgPoints = 
-				new Point2D.Double[this.width][this.height];
-		double dist, minDist;
-		Integer label;
-		for (int y=0;y<this.height;++y) {
-			for (int x=0;x<this.width; ++x) {
-				if (nonBranchPixelImg.getValueInt(x, y) != 0) {
+		 		this.width, this.height, 1, 1, 1, MTBImageType.MTB_DOUBLE); 
+
+		int label = 0;
+		for (int y=0; y<this.height; ++y) {
+			for (int x=0; x<this.width; ++x) {
+				// only consider skeleton pixels
+				if (skelImg.getValueInt(x, y) > 0) {
+					for (int dy=-5; dy<=5; ++dy) {
+					for (int dx=-5; dx<=5; ++dx) {
+						if (dx+x < 0 || dx+x>=this.inImg.getSizeX() || y+dy<0 || dy+y >= this.inImg.getSizeY())
+							continue;
+					label = this.inImg.getValueInt(dx+x, dy+y);
+					if (label == 0)
+						continue;
 					// search only inside the bounding box of this region (plus one pix)
-					label = new Integer(this.inImg.getValueInt(x, y));
 					dims = regionBoxes.get(label);
 					xmin = dims[0];
 					xmax = dims[2];
 					ymin = dims[1];
 					ymax = dims[3];
-					minDist = Double.MAX_VALUE;
-					for (int yy=ymin; yy<=ymax; ++yy) {
-						for (int xx=xmin; xx<=xmax; ++xx) {
-							// ignore non-background pixels
-							if (binImg.getValueInt(xx, yy) != 0)
-								continue;
-							dist = (x-xx)*(x-xx) + (y-yy)*(y-yy);
-							if (dist < minDist) {
-								minDist = dist;
-								nonBranchDistImgPoints[x][y] = new Point2D.Double(xx, yy);
+					minSkelPointDist = Double.MAX_VALUE;
+
+					MTBBorder2D c = contours.elementAt(label-1);
+					for (Point2D.Double p: c.getPoints()) {
+						for (int by=-1;by<=1;++by) {
+							for (int bx=-1;bx<=1;++bx) {
+								int px = (int)(p.x+bx);
+								int py = (int)(p.y+by);
+								if ( px < 0 || px >= this.inImg.getSizeX() || py < 0 || py >= this.inImg.getSizeY())
+									continue;
+								if (this.inImg.getValueInt(px, py) > 0)
+									continue;
+								dist = (dx+x-px)*(dx+x-px) + (dy+y-py)*(dy+y-py);
+								if (dist < minSkelPointDist) {
+									minSkelPointDist = dist;
+									localSkelMinPoint = new Point2D.Double(dx+x, dy+y);
+								}
 							}
 						}
 					}
-					// remember final non-squared distance (in pixels)
-					nonBranchDistImg.putValueDouble(x, y, Math.sqrt(minDist));
+					// search within bounding box of corresponding region
+// 					for (int yy=ymin; yy<=ymax; ++yy) {
+// 						for (int xx=xmin; xx<=xmax; ++xx) {
+// 							// ignore non-background pixels
+// 							if (this.inImg.getValueInt(xx, yy) > 0)
+// 								continue;
+// //							dist = (x-xx)*(x-xx) + (y-yy)*(y-yy);
+// 							dist = (dx+x-xx)*(dx+x-xx) + (dy+y-yy)*(dy+y-yy);
+// 							if (dist < minSkelPointDist) {
+// 								minSkelPointDist = dist;
+// 								localSkelMinPoint = new Point2D.Double(dx+x, dy+y);
+// 							}
+// 						}
+// 					}
+					if (minSkelPointDist > maxDistPerRegion[label]) {
+						maxDistPoints[label] = localSkelMinPoint;
+						maxDistPerRegion[label] = minSkelPointDist;
+					}
+					// remember final non-squared distance (in pixels) for non-branch pixels
+					if (dx==0 && dy==0 && nonBranchPixelImg.getValueInt(x, y) != 0)
+						nonBranchDistImg.putValueDouble(x, y, Math.sqrt(minSkelPointDist));
+				}
+				}
 				}
 			}
 		}
+		for (int l=1; l<=maxLabel; ++l) {
+			radiiMaxInscribedCircles[l] =  Math.sqrt(maxDistPerRegion[l]) * this.pixelLength;
+			this.analysisDisplayImg.drawPoint2D(
+				(int)maxDistPoints[l].x, (int)maxDistPoints[l].y, 0, 0xFFFF00, 1);
+			this.analysisDisplayImg.drawCircle2D(
+				(int)maxDistPoints[l].x, (int)maxDistPoints[l].y, 0, 
+					(int)radiiMaxInscribedCircles[l], yellow);
+		}
+
+		// calculate distances to the background for all non-branch pixels
+		// MTBImageDouble nonBranchDistImg = (MTBImageDouble)MTBImage.createMTBImage(
+		// 		this.width, this.height, 1, 1, 1, MTBImageType.MTB_DOUBLE); 
+		// Point2D.Double[][] nonBranchDistImgPoints = 
+		// 		new Point2D.Double[this.width][this.height];
+		// double minDist;
+		// Integer label;
+		// for (int y=0;y<this.height;++y) {
+		// 	for (int x=0;x<this.width; ++x) {
+		// 		if (nonBranchPixelImg.getValueInt(x, y) != 0) {
+		// 			// search only inside the bounding box of this region (plus one pix)
+		// 			label = new Integer(this.inImg.getValueInt(x, y));
+		// 			dims = regionBoxes.get(label);
+		// 			xmin = dims[0];
+		// 			xmax = dims[2];
+		// 			ymin = dims[1];
+		// 			ymax = dims[3];
+		// 			minDist = Double.MAX_VALUE;
+		// 			for (int yy=ymin; yy<=ymax; ++yy) {
+		// 				for (int xx=xmin; xx<=xmax; ++xx) {
+		// 					// ignore non-background pixels
+		// 					if (binImg.getValueInt(xx, yy) != 0)
+		// 						continue;
+		// 					dist = (x-xx)*(x-xx) + (y-yy)*(y-yy);
+		// 					if (dist < minDist) {
+		// 						minDist = dist;
+		// 						nonBranchDistImgPoints[x][y] = new Point2D.Double(xx, yy);
+		// 					}
+		// 				}
+		// 			}
+		// 			// remember final non-squared distance (in pixels)
+		// 			nonBranchDistImg.putValueDouble(x, y, Math.sqrt(minDist));
+		// 		}
+		// 	}
+		// }
 		
-		// coolect set of distances along non-branch skeleton
+		// collect set of distances along non-branch skeleton
 		Double distVal;
 		HashMap<Integer, Double> quartileFirst = new HashMap<>();
 		HashMap<Integer, Double> quartileThird = new HashMap<>();
@@ -678,7 +767,7 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 			if (regionWithLabelFound[i])
 				++regionCount;
 		}
-		this.resultFeatureTable = new MTBTableModel(regionCount, 7);
+		this.resultFeatureTable = new MTBTableModel(regionCount, 8);
 		this.resultFeatureTable.setColumnName(0, 
 				FeatureNames.RegionID.toString());
 		this.resultFeatureTable.setColumnName(1, 
@@ -693,6 +782,8 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 				FeatureNames.MinCoreRegionWidth.toString());
 		this.resultFeatureTable.setColumnName(6, 
 				FeatureNames.MaxCoreRegionWidth.toString());
+		this.resultFeatureTable.setColumnName(7, 
+				FeatureNames.RadiusMaxInscribedEmptyCircle.toString());
 		int rowID = 0;
 		for (int i=0; i<regionWithLabelFound.length; ++i) {
 			if (!regionWithLabelFound[i])
@@ -709,17 +800,19 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 			// set core region dimensions, note that estimated distances 
 			// refer to half of the actual widths, i.e. are multiplied by 2 here
 			if (quartileFirst.get(new Integer(i+1)) == null)
-				this.resultFeatureTable.setValueAt(new Double(Double.NaN), rowID, 5);
+				this.resultFeatureTable.setValueAt(Double.NaN, rowID, 5);
 			else
 				this.resultFeatureTable.setValueAt(Double.toString(
 					quartileFirst.get(new Integer(i+1)).doubleValue() 
 						* 2.0 * this.pixelLength), rowID, 5);
 			if (quartileThird.get(new Integer(i+1)) == null)
-				this.resultFeatureTable.setValueAt(new Double(Double.NaN), rowID, 6);
+				this.resultFeatureTable.setValueAt(Double.NaN, rowID, 6);
 			else
 				this.resultFeatureTable.setValueAt(Double.toString(
 					quartileThird.get(new Integer(i+1)).doubleValue()
 						* 2.0 * this.pixelLength), rowID, 6);
+			this.resultFeatureTable.setValueAt(
+				Double.toString(radiiMaxInscribedCircles[i+1]), rowID, 7);
 			++rowID;
 		}		
 	}
