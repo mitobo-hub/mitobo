@@ -1294,6 +1294,9 @@ public class PaCeQuant extends MTBOperator {
 												+ " --> reading image <" + file + ">..."));
 
 								MTBImage img = imRead.getResultMTBImage();
+								// make sure that you don't work on other than byte images
+								if (!img.getType().equals(MTBImageType.MTB_BYTE))
+									img = img.convertType(MTBImageType.MTB_BYTE, true);
 
 								// check for pixel calibration mode
 								if (this.pixCalibMode.equals(PixelCalibration.AUTO)) {
