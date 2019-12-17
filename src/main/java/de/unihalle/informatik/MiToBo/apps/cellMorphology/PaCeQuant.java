@@ -26,6 +26,7 @@ package de.unihalle.informatik.MiToBo.apps.cellMorphology;
 
 import java.awt.geom.Point2D;
 import java.io.File;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Random;
 import java.util.TreeSet;
@@ -651,6 +652,8 @@ public class PaCeQuant extends MTBOperator {
 	 */
 	private transient Vector<MTBImageRGB> addResultImages;
 	
+	private transient static HashMap<String, String> featureNameMapper = new HashMap<>();
+
 	/**
 	 * Default constructor.
 	 * @throws ALDOperatorException Thrown if construction fails.
@@ -690,6 +693,38 @@ public class PaCeQuant extends MTBOperator {
 		this.morphFeatureOp.setFractionalDigits(5);
 		this.morphFeatureOp.setDrawCurvatureInfoImage(true);
 		this.morphFeatureOp.setDrawSkeletonInfoImage(true);
+
+		// initialize mapper table to map operator feature names to PaCeQuant convention
+		featureNameMapper.put(
+			MorphologyAnalyzer2D.FeatureNames.AvgDistBranchEndpointsToBackground.toString(), 
+			"AvgEndpointDist"); 
+		featureNameMapper.put(
+			MorphologyAnalyzer2D.FeatureNames.MinCoreRegionWidth.toString(), 
+			"MinCoreWidth"); 
+		featureNameMapper.put(
+			MorphologyAnalyzer2D.FeatureNames.MaxCoreRegionWidth.toString(), 
+			"MaxCoreWidth"); 
+		featureNameMapper.put(
+			MorphologyAnalyzer2D.FeatureNames.NumberOfProtrusions.toString(), 
+			"LobeNumber"); 
+		featureNameMapper.put(
+			MorphologyAnalyzer2D.FeatureNames.NonProtrusionArea.toString(), 
+			"NoneLobeArea"); 
+		featureNameMapper.put(
+			MorphologyAnalyzer2D.FeatureNames.AvgLengthProtrusions.toString(), 
+			"AvgLobeLength");
+		featureNameMapper.put(
+			MorphologyAnalyzer2D.FeatureNames.AvgLengthApicalProtrusions.toString(), 
+			"AvgApicalLobeLength");
+		featureNameMapper.put(
+			MorphologyAnalyzer2D.FeatureNames.AvgLengthBasalProtrusions.toString(),
+			"AvgBasalLobeLength");
+		featureNameMapper.put(
+			MorphologyAnalyzer2D.FeatureNames.AvgLengthBaselineProtrusions.toString(), 
+			"AvgBasalLobeWidth");
+		featureNameMapper.put(
+			MorphologyAnalyzer2D.FeatureNames.AvgLengthEquatorProtrusions.toString(), 
+			"AvgEquatorLobeWidth");
 
 		this.setParameter("gapMode", GapCloseMode.WATERSHED);
 		this.setParameter("phasesToRun", 
@@ -2915,44 +2950,19 @@ public class PaCeQuant extends MTBOperator {
 		}
 		
 		// initialize result feature table, region IDs range from 1 to N
-		int featureNum = 28;
+		int featureNum = 29;
 		MTBTableModel featureTable = new MTBTableModel(regions.size(), 
 				featureNum);
 		// select relevant columns and update names
+		String colName, featureName;
 		for (int c=0; c<featureNum; ++c) {
-			featureTable.setColumnName(c, 
-					morphTab.getColumnName(c).replace(" ", "_"));
+			colName = morphTab.getColumnName(c);
+			featureName = colName.split(" ")[0];
+			if (featureNameMapper.get(featureName) != null)
+				colName = morphTab.getColumnName(c).replace(
+					featureName, featureNameMapper.get(featureName));
+			featureTable.setColumnName(c, colName.replace(" ", "_"));
 		}
-		// 12: AvgDistBranchEndpointsToBackground -> AvgEndpointDist
-		featureTable.setColumnName(11, featureTable.getColumnName(11).replace(
-				"AvgDistBranchEndpointsToBackground", "AvgEndpointDist")); 
-		// 14: MinCoreRegionWidth -> MinCoreWidth
-		featureTable.setColumnName(13, featureTable.getColumnName(13).replace(
-				"MinCoreRegionWidth", "MinCoreWidth")); 
-		// 15: MaxCoreRegionWidth -> MaxCoreWidth
-		featureTable.setColumnName(14, featureTable.getColumnName(14).replace(
-				"MaxCoreRegionWidth", "MaxCoreWidth")); 
-		// 22: NumberOfProtrusions -> LobeNumber
-		featureTable.setColumnName(21, featureTable.getColumnName(21).replace(
-				"NumberOfProtrusions", "LobeNumber")); 
-		// 23: NonProtrusionArea -> NoneLobeArea
-		featureTable.setColumnName(22, featureTable.getColumnName(22).replace(
-				"NonProtrusionArea", "NoneLobeArea")); 
-		// 24: AvgLengthProtrusions -> 	AvgLobeLength
-		featureTable.setColumnName(23, featureTable.getColumnName(23).replace(
-				"AvgLengthProtrusions", "AvgLobeLength")); 		
-		// 25: AvgLengthApicalProtrusions -> AvgApicalLobeLength
-		featureTable.setColumnName(24, featureTable.getColumnName(24).replace(
-				"AvgLengthApicalProtrusions", "AvgApicalLobeLength")); 		
-		// 26: AvgLengthBasalProtrusions -> AvgBasalLobeLength
-		featureTable.setColumnName(25, featureTable.getColumnName(25).replace(
-				"AvgLengthBasalProtrusions", "AvgBasalLobeLength")); 		
-		// 27: AvgLengthBaselineProtrusions -> AvgBasalLobeWidth
-		featureTable.setColumnName(26, featureTable.getColumnName(26).replace(
-				"AvgLengthBaselineProtrusions", "AvgBasalLobeWidth")); 		
-		// 28: AvgLengthEquatorProtrusions -> AvgEquatorLobeWidth	
-		featureTable.setColumnName(27, featureTable.getColumnName(27).replace(
-				"AvgLengthEquatorProtrusions", "AvgEquatorLobeWidth")); 
 
 		// copy and convert data
 		for (int r=0; r<morphTab.getRowCount(); ++r) {
