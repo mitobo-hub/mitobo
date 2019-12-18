@@ -149,7 +149,7 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 		/**
 		 * Radius of maximal empty circle inscribed in region.
 		 */
-		RadiusMaxInscribedEmptyCircle
+		LargestEmptyCircle
 	}
 
 	/**
@@ -785,7 +785,7 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 		this.resultFeatureTable.setColumnName(6, 
 				FeatureNames.MaxCoreRegionWidth.toString());
 		this.resultFeatureTable.setColumnName(7, 
-				FeatureNames.RadiusMaxInscribedEmptyCircle.toString());
+				FeatureNames.LargestEmptyCircle.toString());
 		int rowID = 0;
 		for (int i=0; i<regionWithLabelFound.length; ++i) {
 			if (!regionWithLabelFound[i])

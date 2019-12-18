@@ -709,7 +709,7 @@ public class PaCeQuant extends MTBOperator {
 			"LobeCount"); 
 		featureNameMapper.put(
 			MorphologyAnalyzer2D.FeatureNames.NonProtrusionArea.toString(), 
-			"NoneLobeArea"); 
+			"NonLobeArea"); 
 		featureNameMapper.put(
 			MorphologyAnalyzer2D.FeatureNames.AvgLengthProtrusions.toString(), 
 			"AvgLobeLength");

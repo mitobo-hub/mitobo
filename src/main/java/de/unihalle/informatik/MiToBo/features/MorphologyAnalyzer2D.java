@@ -230,7 +230,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 		 * from the boundary to the corresponding boundary. The point is determined
 		 * as the global maximum of a distance transformation of the region. 
 		 */
-		RadiusMaxInscribedEmptyCircle
+		LargestEmptyCircle
 	}
 
 	@Parameter(label = "Label image", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "label image", dataIOOrder = 0,
@@ -773,7 +773,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 			int maxCoreRegionWidthIndex = skeletonData.findColumn(
 				Region2DSkeletonAnalyzer.FeatureNames.MaxCoreRegionWidth.toString());
 			int radiiMaxEmptyCircleIndex = skeletonData.findColumn(
-					Region2DSkeletonAnalyzer.FeatureNames.RadiusMaxInscribedEmptyCircle.toString());
+					Region2DSkeletonAnalyzer.FeatureNames.LargestEmptyCircle.toString());
 			for (int i = 0; i<skeletonData.getRowCount(); ++i) {
 				this.branchCounts.add(Double.valueOf(
 					(String)skeletonData.getValueAt(i, branchCountIndex)));
@@ -844,7 +844,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 					+ " ("+ this.unitXY + ")" );
 			header.add(FeatureNames.MaxCoreRegionWidth.toString()
 					+ " ("+ this.unitXY + ")" );
-			header.add(FeatureNames.RadiusMaxInscribedEmptyCircle.toString()
+			header.add(FeatureNames.LargestEmptyCircle.toString()
 					+ " ("+ this.unitXY + ")" );
 		}
 		if (this.calcConcavityData) 
