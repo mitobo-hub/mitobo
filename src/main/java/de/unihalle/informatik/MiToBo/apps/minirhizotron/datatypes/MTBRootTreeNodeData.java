@@ -62,7 +62,7 @@ public class MTBRootTreeNodeData extends MTBTreeNodeData {
 	/**
 	 * Status associated with the node.
 	 */
-	protected int status;
+	protected byte status;
 
 	/**
 	 * List of connectors the corresponding treeline is attached to.class
@@ -70,7 +70,7 @@ public class MTBRootTreeNodeData extends MTBTreeNodeData {
 	 * Note: usually a treeline should only be member of one connector,
 	 * only in case of conflicts there could be more.
 	 */
-	protected int[] connectorIDs;
+	protected long[] connectorIDs;
 
 	/**
 	 * Default constructor, all members are initialized with zero.
@@ -137,7 +137,7 @@ public class MTBRootTreeNodeData extends MTBTreeNodeData {
 	 * Get the status of the node (segment).
 	 * @return	Status.
 	 */
-	public int getStatus() {
+	public byte getStatus() {
 		return this.status;
 	}
 
@@ -145,7 +145,7 @@ public class MTBRootTreeNodeData extends MTBTreeNodeData {
 	 * Get connector IDs.
 	 * @return List of connectors.
 	 */
-	public int[] getConnectorIDs() {
+	public long[] getConnectorIDs() {
 		return this.connectorIDs;
 	}
 
@@ -185,7 +185,7 @@ public class MTBRootTreeNodeData extends MTBTreeNodeData {
 	 * Set the status of the node (segment).
 	 * @param s		Status.
 	 */
-	public void getStatus(int s) {
+	public void setStatus(byte s) {
 		this.status = s;
 	}
 
@@ -193,7 +193,7 @@ public class MTBRootTreeNodeData extends MTBTreeNodeData {
 	 * Set connector IDs.
 	 * @param cs	List of connectors.
 	 */
-	public void getConnectorIDs(int[] cs) {
+	public void setConnectorIDs(long[] cs) {
 		this.connectorIDs = cs;
 	}
 

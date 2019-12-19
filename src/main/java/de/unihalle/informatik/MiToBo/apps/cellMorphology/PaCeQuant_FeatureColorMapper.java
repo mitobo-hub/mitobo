@@ -25,6 +25,7 @@
 package de.unihalle.informatik.MiToBo.apps.cellMorphology;
 
 import java.awt.Color;
+import java.io.File;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.Vector;
@@ -162,7 +163,8 @@ public class PaCeQuant_FeatureColorMapper extends MTBOperator {
   	// search for relevant image files
   	HashMap<String, String> imgToTabs = new HashMap<>();
   	for (String img : imgFiles) {
-  		if (img.endsWith("grayscale-result.tif") && img.contains("/results/")) {
+		  if (img.endsWith("grayscale-result.tif") 
+		  		&& img.contains(File.separator + "results" + File.separator)) {
   			String dir = ALDFilePathManipulator.getPath(img);
   			DirectoryTree localDir = new DirectoryTree(dir, false);
 

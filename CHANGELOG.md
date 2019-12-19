@@ -14,6 +14,20 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 
 ### Fixed
 
+## [1.8.16] - 2019-12-19
+Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
+- Released MiToBo 1.8.16
+
+### Added
+- MTBRootTree/MTBRootTreeNodeData: new data types for handling (root) treelines in MiToBo
+
+### Changed
+- MTBTree/MTBTreeNode/MTBTreeNodeData: extended interface to support cloning, added convenience algorithms
+
+### Fixed
+- PaCeQuant_FeatureColorMapper: fixed problem with path separators on Windows machines
+- StegerRidgeDetection2DWrapper: segment width is only drawn now if actually estimated
+
 ## [1.8.15] - 2019-07-29
 Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
 - Released MiToBo 1.8.15
