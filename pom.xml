@@ -4,7 +4,7 @@
 
   <groupId>de.unihalle.informatik.MiToBo</groupId>
   <artifactId>mitobo</artifactId>
-  <version>1.8.16-SNAPSHOT</version>
+  <version>1.8.16</version>
   <packaging>jar</packaging>
 
   <name>mitobo</name>
@@ -15,11 +15,11 @@
   <parent>
     <groupId>de.unihalle.informatik.MiToBo</groupId>
     <artifactId>mitobo-pom</artifactId>
-    <version>1.8-SNAPSHOT</version>
+    <version>1.7</version>
   </parent>
 
   <properties>
-    <mitobo.xml.version>2.10-SNAPSHOT</mitobo.xml.version>
+    <mitobo.xml.version>2.9</mitobo.xml.version>
   </properties>
 
   <build>
