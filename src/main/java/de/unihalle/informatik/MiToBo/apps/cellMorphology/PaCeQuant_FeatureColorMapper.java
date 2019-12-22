@@ -172,7 +172,11 @@ public class PaCeQuant_FeatureColorMapper extends MTBOperator {
 				String tabFile = "";
 				int maxLength = 0;
   			for (String tab : localDir.getFileList()) {
-  				if (!tab.endsWith("-table.txt"))
+				// don't consider other than table files
+				if (!tab.endsWith("-table.txt"))
+					  continue;
+				// table files with lobe features are to be ignored
+			  	if (tab.endsWith("-lobe-table.txt"))
   					continue;
   				String shortTab = ALDFilePathManipulator.getFileName(tab);
   				int minLength = Math.min(shortImg.length(), shortTab.length());
