@@ -33,6 +33,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.Point2D;
+import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -781,10 +782,10 @@ public class LabelImageEditor extends MTBOperator
 	private void saveFile() {
 		MTBImage newLabelImage = MTBImage.createMTBImage(this.activePlus);
 		String withoutPath = 
-				this.currentFile.substring(this.currentFile.lastIndexOf("/")+1);
+				this.currentFile.substring(this.currentFile.lastIndexOf(File.separator)+1);
 		String withoutEnding = 
 				withoutPath.substring(0, withoutPath.lastIndexOf("."));
-		String nf = this.internalOutputDir + "/" + withoutEnding + "-edited.tif";
+		String nf = this.internalOutputDir + File.separator + withoutEnding + "-edited.tif";
 		ImageWriterMTB iw;
 		try {
 			if (this.verbose.booleanValue())
