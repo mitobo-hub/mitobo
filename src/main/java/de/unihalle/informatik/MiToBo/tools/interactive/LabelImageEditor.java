@@ -33,6 +33,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.Point2D;
+import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -470,6 +471,8 @@ public class LabelImageEditor extends MTBOperator
 
 			// run over the image and search for background pixels having two or 
 			// more components with the same label in their neighborhood
+			int neighborhoodSize = 3;
+			int neighborhoodPixelNum = (2*neighborhoodSize + 1) * (2*neighborhoodSize + 1);
 			for (int y=0; y<this.activeProcessor.getHeight();++y) {
 				for (int x=0; x<this.activeProcessor.getWidth();++x) {
 					int label = this.activeProcessor.getPixel(x, y);
@@ -477,8 +480,8 @@ public class LabelImageEditor extends MTBOperator
 						continue;
 
 					labels.clear();
-					for (int dy = -1; dy <= 1; ++dy) {
-						for (int dx = -1; dx <= 1; ++dx) {
+					for (int dy = -neighborhoodSize; dy <= neighborhoodSize; ++dy) {
+						for (int dx = -neighborhoodSize; dx <= neighborhoodSize; ++dx) {
 							if (dx == 0 && dy == 0)
 								continue;
 							if (   x+dx >= 0 && x+dx < this.activeImage.getSizeX()
@@ -486,15 +489,15 @@ public class LabelImageEditor extends MTBOperator
 								nLabel = this.activeProcessor.getPixel(x+dx,  y+dy);
 								if (nLabel == 0)
 									continue;
-								labels.add(new Integer(nLabel));
+								labels.add(nLabel);
 							}						
 						}
 					}
 					if (labels.size() == 1) {
 						int count = 0;
 						label = labels.first().intValue();
-						for (int dy = -1; dy <= 1; ++dy) {
-							for (int dx = -1; dx <= 1; ++dx) {
+						for (int dy = -neighborhoodSize; dy <= neighborhoodSize; ++dy) {
+							for (int dx = -neighborhoodSize; dx <= neighborhoodSize; ++dx) {
 								if (dx == 0 && dy == 0)
 									continue;
 								if (   x+dx >= 0 && x+dx < this.activeImage.getSizeX()
@@ -504,7 +507,7 @@ public class LabelImageEditor extends MTBOperator
 								}
 							}
 						}
-						if (count > 4) 
+						if (count > neighborhoodPixelNum/2) 
 							this.activeProcessor.putPixel(x, y, label);
 					}
 				}
@@ -754,7 +757,7 @@ public class LabelImageEditor extends MTBOperator
 		
 		// check range of available intensity values
 		int max = (int)this.activeImage.getTypeMax();
-		int min = (int)(max * 2.0 / 3.0);			
+		int min = (int)(max * 1.0 / 3.0);			
 		int step = (max - min) / labels.size();
 
 		int n = 0, newLabel;
@@ -781,10 +784,10 @@ public class LabelImageEditor extends MTBOperator
 	private void saveFile() {
 		MTBImage newLabelImage = MTBImage.createMTBImage(this.activePlus);
 		String withoutPath = 
-				this.currentFile.substring(this.currentFile.lastIndexOf("/")+1);
+				this.currentFile.substring(this.currentFile.lastIndexOf(File.separator)+1);
 		String withoutEnding = 
 				withoutPath.substring(0, withoutPath.lastIndexOf("."));
-		String nf = this.internalOutputDir + "/" + withoutEnding + "-edited.tif";
+		String nf = this.internalOutputDir + File.separator + withoutEnding + "-edited.tif";
 		ImageWriterMTB iw;
 		try {
 			if (this.verbose.booleanValue())
