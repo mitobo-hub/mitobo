@@ -1787,12 +1787,17 @@ public class PaCeQuant extends MTBOperator {
 		MTBRegion2DSet validRegions = this.filterValidCellRegions(binSegResult);
 		
 		// init and fill result images
-		MTBImageRGB overlayImg = (MTBImageRGB)MTBImage.createMTBImage(
-				this.width, this.height, 1, 1, 1, MTBImageType.MTB_RGB);
+//		MTBImageRGB overlayImg = (MTBImageRGB)MTBImage.createMTBImage(
+//				this.width, this.height, 1, 1, 1, MTBImageType.MTB_RGB);
+//		img.show();
+		MTBImageRGB overlayImg = (MTBImageRGB)(img.convertType(MTBImageType.MTB_RGB, true));
+		overlayImg.fillBlack();
 		overlayImg.setTitle("Pseudo-colored cell regions " 
 				+ "of image <" + img.getTitle() + "> with IDs");
-		MTBImageRGB overlayImgWONumbers = (MTBImageRGB)MTBImage.createMTBImage(
-				this.width, this.height, 1, 1, 1, MTBImageType.MTB_RGB);
+//		MTBImageRGB overlayImgWONumbers = (MTBImageRGB)MTBImage.createMTBImage(
+//				this.width, this.height, 1, 1, 1, MTBImageType.MTB_RGB);
+		MTBImageRGB overlayImgWONumbers = (MTBImageRGB)(img.convertType(MTBImageType.MTB_RGB, true));
+		overlayImgWONumbers.fillBlack();
 		overlayImgWONumbers.setTitle("Pseudo-colored cell regions " 
 				+ "of image <" + img.getTitle() + ">");
 		for (int y = 0; y < this.height; y++) {
@@ -1805,14 +1810,16 @@ public class PaCeQuant extends MTBOperator {
 				overlayImgWONumbers.putValueB(x, y, img.getValueInt(x, y));
 			}
 		}
-		MTBImageShort labelImg =	(MTBImageShort)MTBImage.createMTBImage(
-				this.width, this.height, 1, 1, 1, MTBImageType.MTB_SHORT);
+//		MTBImageShort labelImg =	(MTBImageShort)MTBImage.createMTBImage(
+//				this.width, this.height, 1, 1, 1, MTBImageType.MTB_SHORT);
+		MTBImageShort labelImg = (MTBImageShort)(img.convertType(MTBImageType.MTB_SHORT, true));
 		labelImg.setTitle("Valid cell regions label image");
 		labelImg.fillBlack();
 		MTBImageShort labelImageWONumbers = (MTBImageShort)labelImg.duplicate();
 		
-		MTBImageRGB binImg = 	(MTBImageRGB)MTBImage.createMTBImage(
-				this.width, this.height, 1, 1, 1, MTBImageType.MTB_RGB);
+//		MTBImageRGB binImg = 	(MTBImageRGB)MTBImage.createMTBImage(
+//				this.width, this.height, 1, 1, 1, MTBImageType.MTB_RGB);
+		MTBImageRGB binImg = (MTBImageRGB)(img.convertType(MTBImageType.MTB_RGB, true));
 		binImg.setTitle("Valid cell regions binary image");
 		binImg.fillBlack();
 		if (this.showAdditionalResultImages) {
