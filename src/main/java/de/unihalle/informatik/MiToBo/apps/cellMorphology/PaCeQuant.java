@@ -1296,6 +1296,13 @@ public class PaCeQuant extends MTBOperator {
 									OperatorExceptionType.OPERATE_FAILED, operatorID 
 									+ " could not init result folder... exiting!");
 					}
+					String resultDirRois = resultDir + File.separator + "roiFiles_singleCells"; 
+					if (!new File(resultDirRois).exists()) {
+						if (!new File(resultDirRois).mkdir())
+							throw new ALDOperatorException(
+									OperatorExceptionType.OPERATE_FAILED, operatorID 
+									+ " could not init result folder for ROIs... exiting!");
+					}
 					
 					// reset operator - just in case...
 					this.reinitOperator();
@@ -1758,7 +1765,7 @@ public class PaCeQuant extends MTBOperator {
   		// save each single region to a ROI file
   		roiString = String.format("%03d", new Integer(roiID));
 				
-  		rw.setOutputFile(resultDir + File.separator +
+  		rw.setOutputFile(resultDir + File.separator + "roiFiles_singleCells" + File.separator +
   				fileRoot + "-roi_" + roiString + ".roi");
   		rw.setData(creg);
   		rw.runOp();
@@ -2766,13 +2773,13 @@ public class PaCeQuant extends MTBOperator {
 			Vector<String> header = new Vector<String>();
 			header.add(FeatureNames.Object.toString());
 			header.add("Type");
-			header.add("EquatorLength ("+ this.unitXY + ")");
-			header.add("BaselineLength ("+ this.unitXY + ")");
-			header.add("ApicalLength ("+ this.unitXY + ")");
-			header.add("BasalLength ("+ this.unitXY + ")");
-			header.add("TotalLength ("+ this.unitXY + ")");
-			header.add("ApicalContourLong ("+ this.unitXY + ")");
-			header.add("ApicalContourShort ("+ this.unitXY + ")");
+			header.add("EquatorLength ("+ this.pixelUnitString + ")");
+			header.add("BaselineLength ("+ this.pixelUnitString + ")");
+			header.add("ApicalLength ("+ this.pixelUnitString + ")");
+			header.add("BasalLength ("+ this.pixelUnitString + ")");
+			header.add("TotalLength ("+ this.pixelUnitString + ")");
+			header.add("ApicalContourLong ("+ this.pixelUnitString + ")");
+			header.add("ApicalContourShort ("+ this.pixelUnitString + ")");
 		
 			// iterate over all regions, and for each region over all lobes,
 			// and count for each lobe the number of adjacent labels
