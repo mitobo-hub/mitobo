@@ -415,7 +415,7 @@ public class PaCeQuant_FeatureColorMapperInputDataIOSwing
 
 					LinkedList<ALDSwingComponentItem> its = new LinkedList<>();
 					for (int i=0;i<tm.getColumnCount();++i) {
-						cName = tm.getColumnName(i);
+						cName = tm.getColumnName(i).split("_")[0];
 						its.add(new ALDSwingComponentItem(cName, cName, cName));
 						this.columnNameToIDMap.put(cName, i);
 					}
