@@ -144,50 +144,50 @@ public class PaCeQuant_FeatureColorMapper extends MTBOperator {
 	protected void operate() 
 			throws ALDOperatorException, ALDProcessingDAGException {
   	
-  	DirectoryTree imgDirTree = 
+  		DirectoryTree imgDirTree = 
   			new DirectoryTree(this.inData.getDirectoryName(), true);
-  	this.fireOperatorExecutionProgressEvent(
-  			new ALDOperatorExecutionProgressEvent(this, classID 
+  		this.fireOperatorExecutionProgressEvent(
+  				new ALDOperatorExecutionProgressEvent(this, classID 
   					+ " processing images in directory <" 
-  					+ this.inData.getDirectoryName() + ">..."));
-  	Vector<String> imgFiles = imgDirTree.getFileList();
+  						+ this.inData.getDirectoryName() + ">..."));
+  		Vector<String> imgFiles = imgDirTree.getFileList();
 
-  	// search for relevant image files
-  	HashMap<String, String> imgToTabs = new HashMap<>();
-  	for (String img : imgFiles) {
-		  if (img.endsWith("grayscale-result.tif") 
-		  		&& img.contains(File.separator + "results" + File.separator)) {
-  			String dir = ALDFilePathManipulator.getPath(img);
-  			DirectoryTree localDir = new DirectoryTree(dir, false);
+	  	// search for relevant image files
+  		HashMap<String, String> imgToTabs = new HashMap<>();
+  		for (String img : imgFiles) {
+			if (	img.endsWith("grayscale-result.tif") 
+				&& 	img.contains(File.separator + "results" + File.separator)) {
+  				String dir = ALDFilePathManipulator.getPath(img);
+  				DirectoryTree localDir = new DirectoryTree(dir, false);
 
-  			String shortImg = ALDFilePathManipulator.getFileName(img);
+	  			String shortImg = ALDFilePathManipulator.getFileName(img);
 				String tabFile = "";
 				int maxLength = 0;
-  			for (String tab : localDir.getFileList()) {
-				// don't consider other than table files
-				if (!tab.endsWith("-table.txt"))
-					  continue;
-				// table files with lobe features are to be ignored
-			  	if (tab.endsWith("-lobe-table.txt"))
-  					continue;
-  				String shortTab = ALDFilePathManipulator.getFileName(tab);
-  				int minLength = Math.min(shortImg.length(), shortTab.length());
-  				for (int i = 0; i < minLength; i++) {
-  					if (shortImg.charAt(i) != shortTab.charAt(i)) {
-  						if (i+1 > maxLength) {
-  							maxLength = i+1;
-  							tabFile = tab;
+  				for (String tab : localDir.getFileList()) {
+					// don't consider other than table files
+					if (!tab.endsWith("-table.txt"))
+						continue;
+					// table files with lobe features are to be ignored
+				  	if (tab.endsWith("-lobe-table.txt"))
+  						continue;
+  					String shortTab = ALDFilePathManipulator.getFileName(tab);
+	  				int minLength = Math.min(shortImg.length(), shortTab.length());
+  					for (int i = 0; i < minLength; i++) {
+  						if (shortImg.charAt(i) != shortTab.charAt(i)) {
+  							if (i+1 > maxLength) {
+  								maxLength = i+1;
+  								tabFile = tab;
+	  						}
+  							break;
   						}
-  						break;
   					}
   				}
-  			}
-  			imgToTabs.put(img, tabFile);
-  	  	this.fireOperatorExecutionProgressEvent(
-  	  			new ALDOperatorExecutionProgressEvent(this, classID 
+	  			imgToTabs.put(img, tabFile);
+		  	  	this.fireOperatorExecutionProgressEvent(
+  	  				new ALDOperatorExecutionProgressEvent(this, classID 
   	  					+ " -> found match: " + img + " <-> " + tabFile));
+  			}
   		}
-  	}
 
 		int minR = this.minColor.getRed();
 		int minG = this.minColor.getGreen();
@@ -201,151 +201,166 @@ public class PaCeQuant_FeatureColorMapper extends MTBOperator {
 		double val;
 		double vmin = Double.MAX_VALUE;
 		double vmax = Double.MIN_VALUE;
-  	Set<String> imgs = imgToTabs.keySet();
-  	try {
+  		Set<String> imgs = imgToTabs.keySet();
+  		try {
  		
-    	// get a provider to read table models
-  		ALDDataIOManagerCmdline mc = ALDDataIOManagerCmdline.getInstance();
-  		ALDDataIOCmdline pc = (ALDDataIOCmdline)mc.getProvider(
-					MTBTableModel.class, ALDDataIOCmdline.class);
+    		// get a provider to read table models
+  			ALDDataIOManagerCmdline mc = ALDDataIOManagerCmdline.getInstance();
+  			ALDDataIOCmdline pc = (ALDDataIOCmdline)mc.getProvider(
+				MTBTableModel.class, ALDDataIOCmdline.class);
   		
-    	this.fireOperatorExecutionProgressEvent(
-    		new ALDOperatorExecutionProgressEvent(this, classID 
-    			+ " parsing tables to determine value range of feature " 
-    				+ "in column " + this.inData.getColumnID() + "..."));
+	    	this.fireOperatorExecutionProgressEvent(
+    			new ALDOperatorExecutionProgressEvent(this, classID 
+    				+ " parsing tables to determine value range of feature " 
+    					+ "in column " + this.inData.getColumnID() + "..."));
   		
-    	// parse all tables and search for minimum and maximum
-  		for (String img: imgs) {
+	    	// parse all tables and search for minimum and maximum
+  			for (String img: imgs) {
   			
-      	this.fireOperatorExecutionProgressEvent(
-      			new ALDOperatorExecutionProgressEvent(this, classID 
+      			this.fireOperatorExecutionProgressEvent(
+      				new ALDOperatorExecutionProgressEvent(this, classID 
       					+ " -> " + imgToTabs.get(img) + "..."));
 
-  			tm = (MTBTableModel)pc.readData(null, 
+	  			tm = (MTBTableModel)pc.readData(null, 
   					MTBTableModel.class, "@" + imgToTabs.get(img));
   			
-  			// get data of selected column
-  			HashMap<Integer, Double> featureVals = new HashMap<>();
-  			for (int i=0;i<tm.getRowCount();++i) {
-  				featureVals.put(Integer.valueOf((String)tm.getValueAt(i, 0)),
+  				// get data of selected column
+	  			HashMap<Integer, Double> featureVals = new HashMap<>();
+  				for (int i=0;i<tm.getRowCount();++i) {
+  					featureVals.put(Integer.valueOf((String)tm.getValueAt(i, 0)),
   						Double.valueOf((String)tm.getValueAt(i, this.inData.getColumnID())));
-  				val = Double.valueOf((String)tm.getValueAt(i, 
+  					val = Double.valueOf((String)tm.getValueAt(i, 
   						this.inData.getColumnID())).doubleValue();
-  				if (val > vmax) vmax = val;
-  				if (val < vmin) vmin = val;
-  			}
-  		} 
+  					if (val > vmax) vmax = val;
+  					if (val < vmin) vmin = val;
+  				}
+  			} 
 			double range = vmax - vmin;
 			
-    	this.fireOperatorExecutionProgressEvent(
-    			new ALDOperatorExecutionProgressEvent(this, classID 
-    					+ "    => vmin: " + vmin + " / vmax: " + vmax));
+	    	this.fireOperatorExecutionProgressEvent(
+   				new ALDOperatorExecutionProgressEvent(this, classID 
+					+ "    => vmin: " + vmin + " / vmax: " + vmax));
 			
-    	this.fireOperatorExecutionProgressEvent(
+		   	this.fireOperatorExecutionProgressEvent(
     			new ALDOperatorExecutionProgressEvent(this, classID 
-    					+ " generating color maps..."));
+    				+ " generating color maps..."));
 
 			// process all images, i.e. pre-compute colors and then generate result
 			ImageReaderMTB imRead = new ImageReaderMTB();
 			ImageWriterMTB imWrite = new ImageWriterMTB();
 			MTBImage img;
 			MTBImageRGB result;
+			String subfolderName;
+			File subfolder;
 			for (String imgFile: imgs) {
-				
-	    	this.fireOperatorExecutionProgressEvent(
-	    			new ALDOperatorExecutionProgressEvent(this, classID 
-	    					+ " -> processing " + imgFile + "..."));
+
+	    		this.fireOperatorExecutionProgressEvent(
+	   				new ALDOperatorExecutionProgressEvent(this, classID 
+						+ " -> processing " + imgFile + "..."));
 
 				imRead.setFileName(imgFile);
 				imRead.runOp();
 				img = imRead.getResultMTBImage();
 				
-  			tm = (MTBTableModel)pc.readData(null, 
+  				tm = (MTBTableModel)pc.readData(null, 
   					MTBTableModel.class, "@" + imgToTabs.get(imgFile));
 
-  			// get data of selected column
-  			HashMap<Integer, Double> featureVals = new HashMap<>();
-  			for (int i=0;i<tm.getRowCount();++i) {
-  				featureVals.put(Integer.valueOf((String)tm.getValueAt(i, 0)),
-  						Double.valueOf((String)tm.getValueAt(i, this.inData.getColumnID())));
-  			}
+				// create sub-folder
+				subfolderName = "featureColorMaps-" + 
+					tm.getColumnName(this.inData.getColumnID()).split("_")[0];
+				subfolder = new File(ALDFilePathManipulator.getPath(imgFile) + File.separator + subfolderName);
+				if (!subfolder.exists()) {
+					if (!subfolder.mkdir()) 
+						throw new ALDOperatorException( 
+							OperatorExceptionType.OPERATE_FAILED, "[PaCeQuant_FeatureColorMapper] "  
+								+ " could not init result folder for color maps...!"); 
+				}
 
-  			int height = img.getSizeY();
-  			int width = img.getSizeX();
-  			int depth = img.getSizeZ();
-  			int times = img.getSizeT();
-  			int channels = img.getSizeC();
+	  			// get data of selected column
+  				HashMap<Integer, Double> featureVals = new HashMap<>();
+  				for (int i=0;i<tm.getRowCount();++i) {
+  					featureVals.put(Integer.valueOf((String)tm.getValueAt(i, 0)),
+  						Double.valueOf((String)tm.getValueAt(i, this.inData.getColumnID())));
+  				}
+
+	  			int height = img.getSizeY();
+  				int width = img.getSizeX();
+  				int depth = img.getSizeZ();
+	  			int times = img.getSizeT();
+  				int channels = img.getSizeC();
 			
-  			// allocate result image
-  			result = (MTBImageRGB)MTBImage.createMTBImage(
+  				// allocate result image
+  				result = (MTBImageRGB)MTBImage.createMTBImage(
   					width, height, depth, times, channels, MTBImageType.MTB_RGB);
 
-  			int id, valueI, newR, newG, newB;
-  			double featVal, ratio;
-  			HashMap<Integer, Color> colors = new HashMap<>();
-  			for (int i=0;i<tm.getRowCount();++i) {
-  				// object ID
-  				id = Integer.valueOf((String)tm.getValueAt(i, 0)).intValue();
+	  			int id, valueI, newR, newG, newB;
+  				double featVal, ratio;
+  				HashMap<Integer, Color> colors = new HashMap<>();
+  				for (int i=0;i<tm.getRowCount();++i) {
+  					// object ID
+	  				id = Integer.valueOf((String)tm.getValueAt(i, 0)).intValue();
   				
-  				// hack to compensate for wrong IDs due to little endian bug!
-  				if (id >= 256)
-  					id = id/256;
+  					// hack to compensate for wrong IDs due to little endian bug!
+  					if (id >= 256)
+  						id = id/256;
 
-  				// feature value
-  				featVal = featureVals.get(new Integer(id)).doubleValue();
+	  				// feature value
+  					featVal = featureVals.get(id).doubleValue();
 
-  				// interpolate new color
-  				ratio = (featVal - vmin) / range;
-  				newR = minR + (int)(ratio*(maxR - minR) + 0.5);
-  				newG = minG + (int)(ratio*(maxG - minG) + 0.5);
-  				newB = minB + (int)(ratio*(maxB - minB) + 0.5);
-  				colors.put(new Integer(id), new Color(newR, newG, newB));
-  			}
+  					// interpolate new color
+  					ratio = (featVal - vmin) / range;
+  					newR = minR + (int)(ratio*(maxR - minR) + 0.5);
+	  				newG = minG + (int)(ratio*(maxG - minG) + 0.5);
+  					newB = minB + (int)(ratio*(maxB - minB) + 0.5);
+  					colors.put(id, new Color(newR, newG, newB));
+  				}
 			
-  			// fill result image
-  			Integer vI;
-  			for (int c = 0; c < channels; ++c) {
-  				for (int t = 0; t < times; ++t) {
-  					for (int z = 0; z < depth; ++z) {
-  						for (int y = 0; y < height; ++y) {
-  							for (int x = 0; x < width; ++x) {
-  								valueI = img.getValueInt(x, y, z, t, c); 
-  								// hack to compensate for wrong IDs due to little endian bug!
-  			  				if (valueI >= 256)
-  			  					valueI = valueI/256;
-  								vI = new Integer(valueI);
-  								if (!colors.containsKey(vI)) {
-  									result.putValueR(x, y, z, t, c, valueI); 
-  									result.putValueG(x, y, z, t, c, valueI); 
-  									result.putValueB(x, y, z, t, c, valueI);
-  								}
-  								else {
-  									result.putValueR(x, y, z, t, c, colors.get(vI).getRed()); 
-  									result.putValueG(x, y, z, t, c, colors.get(vI).getGreen()); 
-  									result.putValueB(x, y, z, t, c, colors.get(vI).getBlue());
+	  			// fill result image
+  				for (int c = 0; c < channels; ++c) {
+  					for (int t = 0; t < times; ++t) {
+  						for (int z = 0; z < depth; ++z) {
+  							for (int y = 0; y < height; ++y) {
+  								for (int x = 0; x < width; ++x) {
+  									valueI = img.getValueInt(x, y, z, t, c); 
+  									// hack to compensate for wrong IDs due to little endian bug!
+	  			  				if (valueI >= 256)
+  				  					valueI = valueI/256;
+  									if (!colors.containsKey(valueI)) {
+  										result.putValueR(x, y, z, t, c, valueI); 
+  										result.putValueG(x, y, z, t, c, valueI); 
+  										result.putValueB(x, y, z, t, c, valueI);
+  									}
+	  								else {
+  										result.putValueR(x, y, z, t, c, colors.get(valueI).getRed()); 
+  										result.putValueG(x, y, z, t, c, colors.get(valueI).getGreen()); 
+  										result.putValueB(x, y, z, t, c, colors.get(valueI).getBlue());
+  									}
   								}
   							}
-  						}
+	  					}
   					}
   				}
-  			}
-  			// add title to image
-  			String colorString = "[" + minR + "," + minG + "," + minB + "] -> " 
+  				// add title to image
+	  			String colorString = "[" + minR + "," + minG + "," + minB + "] -> " 
   					+ "[" + maxR + "," + maxG + "," + maxB + "]";
-  			result.setTitle(tm.getColumnName(this.inData.getColumnID()) + " - FeatureMap " 
+  				result.setTitle(tm.getColumnName(this.inData.getColumnID()) + " - FeatureMap " 
   					+ colorString	+ " of <"	+ img.getTitle() + ">");
   			
-  			// save file
-  			String outfile = imgFile.replace("grayscale-result.tif", 
-  					"colorMap-" + tm.getColumnName(this.inData.getColumnID()) + ".tif");
-  			imWrite.setFileName(outfile);
-  			imWrite.setInputMTBImage(result);
-  			imWrite.runOp();
+	  			// save file
+				String fileName = ALDFilePathManipulator.getFileName(imgFile);
+				fileName = fileName.replace("grayscale-result", 
+					 "colorMap-" + tm.getColumnName(this.inData.getColumnID()) + ".tif");
+				String outfile = ALDFilePathManipulator.getPath(imgFile) + File.separator + subfolderName
+				  + File.separator + fileName;
+
+  				imWrite.setFileName(outfile);
+	  			imWrite.setInputMTBImage(result);
+  				imWrite.runOp();
 			}
-  	} catch (Exception e) {
-  		throw new ALDOperatorException(OperatorExceptionType.OPERATE_FAILED, 
+	  	} catch (Exception e) {
+  			throw new ALDOperatorException(OperatorExceptionType.OPERATE_FAILED, 
   				classID + " Processing input image and table failed, exiting!\n" 
-  						+ e.getMessage());
-  	}
+  					+ e.getMessage());
+  		}
 	}	
 }
