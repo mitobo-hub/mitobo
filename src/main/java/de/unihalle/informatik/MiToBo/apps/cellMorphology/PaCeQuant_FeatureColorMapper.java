@@ -40,7 +40,6 @@ import de.unihalle.informatik.Alida.operator.events.ALDOperatorExecutionProgress
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator.Level;
 import de.unihalle.informatik.Alida.annotations.Parameter;
-import de.unihalle.informatik.Alida.datatypes.ALDDirectoryString;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.*;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType;
 import de.unihalle.informatik.MiToBo.core.operator.*;
@@ -65,7 +64,7 @@ import de.unihalle.informatik.MiToBo.io.images.ImageWriterMTB;
  * @author moeller
  */
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL,
-		level=Level.APPLICATION)
+		level=Level.APPLICATION, allowBatchMode = false)
 public class PaCeQuant_FeatureColorMapper extends MTBOperator {
 
 	/**
@@ -74,22 +73,14 @@ public class PaCeQuant_FeatureColorMapper extends MTBOperator {
 	private static final String classID = "[PaCeQuant_FeatureColorMapper]";
 	
 	/**
-	 * Input experiment directory.
+	 * Input data.
 	 */
-	@Parameter(label = "Input Experiment Directory", required = true,
+	@Parameter(label = "Input Data", required = true,
 		dataIOOrder = 1, direction = Parameter.Direction.IN,	
-		description = "Input experiment directory, " 
+		description = "Input experiment directory and column selection, " 
 				+ "all sub-folders named 'results' will be considered")
-	private ALDDirectoryString inExpDir = null;
+	private PaCeQuant_FeatureColorMapperInputData inData = null;
 	
-	/**
-	 * Column index in feature table to map.
-	 */
-	@Parameter( label= "Column Index", required = true, dataIOOrder = 4, 
-		direction = Parameter.Direction.IN, 
-		description = "Index of feature table column to use, range: 1...#features.")
-	protected int colIndex = 1;	
-
 	/**
 	 * Color for minimal value.
 	 */
@@ -113,11 +104,12 @@ public class PaCeQuant_FeatureColorMapper extends MTBOperator {
 	}		
 
 	/**
-	 * Set input experiment directory.
+	 * Set input data.
 	 * @param indir	Input experiment folder.
+	 * @param id	Selected column.
 	 */
-	public void setInputFolder(String indir) {
-		this.inExpDir = new ALDDirectoryString(indir);
+	public void setInputData(String indir, int id) {
+		this.inData = new PaCeQuant_FeatureColorMapperInputData(indir, id);
 	}
 
 	/**
@@ -153,11 +145,11 @@ public class PaCeQuant_FeatureColorMapper extends MTBOperator {
 			throws ALDOperatorException, ALDProcessingDAGException {
   	
   	DirectoryTree imgDirTree = 
-  			new DirectoryTree(this.inExpDir.getDirectoryName(), true);
+  			new DirectoryTree(this.inData.getDirectoryName(), true);
   	this.fireOperatorExecutionProgressEvent(
   			new ALDOperatorExecutionProgressEvent(this, classID 
   					+ " processing images in directory <" 
-  					+ this.inExpDir.getDirectoryName() + ">..."));
+  					+ this.inData.getDirectoryName() + ">..."));
   	Vector<String> imgFiles = imgDirTree.getFileList();
 
   	// search for relevant image files
@@ -220,7 +212,7 @@ public class PaCeQuant_FeatureColorMapper extends MTBOperator {
     	this.fireOperatorExecutionProgressEvent(
     		new ALDOperatorExecutionProgressEvent(this, classID 
     			+ " parsing tables to determine value range of feature " 
-    				+ "in column " + this.colIndex + "..."));
+    				+ "in column " + this.inData.getColumnID() + "..."));
   		
     	// parse all tables and search for minimum and maximum
   		for (String img: imgs) {
@@ -236,9 +228,9 @@ public class PaCeQuant_FeatureColorMapper extends MTBOperator {
   			HashMap<Integer, Double> featureVals = new HashMap<>();
   			for (int i=0;i<tm.getRowCount();++i) {
   				featureVals.put(Integer.valueOf((String)tm.getValueAt(i, 0)),
-  						Double.valueOf((String)tm.getValueAt(i, this.colIndex)));
+  						Double.valueOf((String)tm.getValueAt(i, this.inData.getColumnID())));
   				val = Double.valueOf((String)tm.getValueAt(i, 
-  						this.colIndex)).doubleValue();
+  						this.inData.getColumnID())).doubleValue();
   				if (val > vmax) vmax = val;
   				if (val < vmin) vmin = val;
   			}
@@ -275,7 +267,7 @@ public class PaCeQuant_FeatureColorMapper extends MTBOperator {
   			HashMap<Integer, Double> featureVals = new HashMap<>();
   			for (int i=0;i<tm.getRowCount();++i) {
   				featureVals.put(Integer.valueOf((String)tm.getValueAt(i, 0)),
-  						Double.valueOf((String)tm.getValueAt(i, this.colIndex)));
+  						Double.valueOf((String)tm.getValueAt(i, this.inData.getColumnID())));
   			}
 
   			int height = img.getSizeY();
@@ -340,12 +332,12 @@ public class PaCeQuant_FeatureColorMapper extends MTBOperator {
   			// add title to image
   			String colorString = "[" + minR + "," + minG + "," + minB + "] -> " 
   					+ "[" + maxR + "," + maxG + "," + maxB + "]";
-  			result.setTitle(tm.getColumnName(this.colIndex) + " - FeatureMap " 
+  			result.setTitle(tm.getColumnName(this.inData.getColumnID()) + " - FeatureMap " 
   					+ colorString	+ " of <"	+ img.getTitle() + ">");
   			
   			// save file
   			String outfile = imgFile.replace("grayscale-result.tif", 
-  					"colorMap-" + tm.getColumnName(this.colIndex) + ".tif");
+  					"colorMap-" + tm.getColumnName(this.inData.getColumnID()) + ".tif");
   			imWrite.setFileName(outfile);
   			imWrite.setInputMTBImage(result);
   			imWrite.runOp();
