@@ -96,6 +96,20 @@ public class PaCeQuant_FeatureColorMapper extends MTBOperator {
 	protected Color maxColor = Color.YELLOW;	
 
 	/**
+	 * Minimal value threshold.
+	 */
+	@Parameter( label= "Minimal value threshold", required = true, dataIOOrder = 10, 
+		direction = Parameter.Direction.IN, description = "Values smaller than this one are ignored.")
+	protected double minValue = Double.NEGATIVE_INFINITY;	
+
+	/**
+	 * Maximal value threshold.
+	 */
+	@Parameter( label= "Maximal value threshold", required = true, dataIOOrder = 11, 
+		direction = Parameter.Direction.IN, description = "Values larger than this one are ignored.")
+	protected double maxValue = Double.POSITIVE_INFINITY;	
+
+	/**
 	 * Default constructor.
 	 *  @throws ALDOperatorException	Thrown in case of failure.
 	 */
@@ -225,12 +239,14 @@ public class PaCeQuant_FeatureColorMapper extends MTBOperator {
   					MTBTableModel.class, "@" + imgToTabs.get(img));
   			
   				// get data of selected column
-	  			HashMap<Integer, Double> featureVals = new HashMap<>();
   				for (int i=0;i<tm.getRowCount();++i) {
-  					featureVals.put(Integer.valueOf((String)tm.getValueAt(i, 0)),
-  						Double.valueOf((String)tm.getValueAt(i, this.inData.getColumnID())));
-  					val = Double.valueOf((String)tm.getValueAt(i, 
-  						this.inData.getColumnID())).doubleValue();
+					val = Double.valueOf((String)tm.getValueAt(i, 
+						this.inData.getColumnID())).doubleValue();
+
+					// check thresholds
+					if (val > this.maxValue || val < this.minValue)
+						continue; 
+
   					if (val > vmax) vmax = val;
   					if (val < vmin) vmin = val;
   				}
@@ -268,7 +284,8 @@ public class PaCeQuant_FeatureColorMapper extends MTBOperator {
 				// create sub-folder
 				subfolderName = "featureColorMaps-" + 
 					tm.getColumnName(this.inData.getColumnID()).split("_")[0];
-				subfolder = new File(ALDFilePathManipulator.getPath(imgFile) + File.separator + subfolderName);
+				subfolder = new File(ALDFilePathManipulator.getPath(imgFile) 
+					+ File.separator + subfolderName);
 				if (!subfolder.exists()) {
 					if (!subfolder.mkdir()) 
 						throw new ALDOperatorException( 
@@ -290,8 +307,8 @@ public class PaCeQuant_FeatureColorMapper extends MTBOperator {
   				int channels = img.getSizeC();
 			
   				// allocate result image
-  				result = (MTBImageRGB)MTBImage.createMTBImage(
-  					width, height, depth, times, channels, MTBImageType.MTB_RGB);
+  				result = (MTBImageRGB)img.duplicate().convertType(MTBImageType.MTB_RGB, true);
+				result.fillBlack();
 
 	  			int id, valueI, newR, newG, newB;
   				double featVal, ratio;
@@ -307,12 +324,17 @@ public class PaCeQuant_FeatureColorMapper extends MTBOperator {
 	  				// feature value
   					featVal = featureVals.get(id).doubleValue();
 
-  					// interpolate new color
-  					ratio = (featVal - vmin) / range;
-  					newR = minR + (int)(ratio*(maxR - minR) + 0.5);
-	  				newG = minG + (int)(ratio*(maxG - minG) + 0.5);
-  					newB = minB + (int)(ratio*(maxB - minB) + 0.5);
-  					colors.put(id, new Color(newR, newG, newB));
+					// interpolate new color, black if out of range
+					if (featVal < this.minValue || featVal > this.maxValue) {
+						colors.put(id, new Color(0, 0, 0));
+					}
+					else {
+						ratio = (featVal - vmin) / range;
+  						newR = minR + (int)(ratio*(maxR - minR) + 0.5);
+	  					newG = minG + (int)(ratio*(maxG - minG) + 0.5);
+  						newB = minB + (int)(ratio*(maxB - minB) + 0.5);
+						colors.put(id, new Color(newR, newG, newB));
+					}
   				}
 			
 	  			// fill result image
@@ -323,8 +345,8 @@ public class PaCeQuant_FeatureColorMapper extends MTBOperator {
   								for (int x = 0; x < width; ++x) {
   									valueI = img.getValueInt(x, y, z, t, c); 
   									// hack to compensate for wrong IDs due to little endian bug!
-	  			  				if (valueI >= 256)
-  				  					valueI = valueI/256;
+	  			  					if (valueI >= 256)
+  				  						valueI = valueI/256;
   									if (!colors.containsKey(valueI)) {
   										result.putValueR(x, y, z, t, c, valueI); 
   										result.putValueG(x, y, z, t, c, valueI); 
