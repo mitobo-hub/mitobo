@@ -1146,13 +1146,20 @@ public class PaCeQuant extends MTBOperator {
 						this.width = this.inImg.getSizeX();
 						this.height = this.inImg.getSizeY();
 						
+						MTBImage workImg = null; 
+						
+						// relabel image to ensure consecutive labeling
+						labler = new LabelComponentsSequential(this.inImg, true);
+						labler.runOp();
+						workImg = labler.getLabelImage();
+
 						// check for pixel calibration mode and set calibration values
 						if (this.pixCalibMode.equals(PixelCalibration.AUTO)) {
-							this.pixelLengthXYinternal = this.inImg.getStepsizeX();
-							this.pixelUnitString = this.inImg.getUnitX();
+							this.pixelLengthXYinternal = workImg.getStepsizeX();
+							this.pixelUnitString = workImg.getUnitX();
 							
 							// safety check for square pixels
-							double lengthY = this.inImg.getStepsizeY();
+							double lengthY = workImg.getStepsizeY();
 							if (  Math.abs(this.pixelLengthXYinternal - lengthY)
 									> 0.0000001) {
 								// write a warning to standard error and skip image
@@ -1175,14 +1182,14 @@ public class PaCeQuant extends MTBOperator {
 							}
 						}
 						
-						binarySegmentationImage = (MTBImageByte)this.inImg.duplicate();
+						binarySegmentationImage = (MTBImageByte)workImg.duplicate();
 						for (int y=0; y<this.height; ++y)
 							for (int x=0; x<this.width; ++x) 
 								if (binarySegmentationImage.getValueInt(x, y) > 0)
 									binarySegmentationImage.putValueInt(x, y, 255);
 						imgToProcess = binarySegmentationImage;
-						labelImgToProcess = this.inImg;
-						regionsToProcess = LabelAreasToRegions.getRegions(this.inImg, 0);
+						labelImgToProcess = workImg;
+						regionsToProcess = LabelAreasToRegions.getRegions(workImg, 0);
 						break;
 						
 					case IMAGEJ_ROIs:
@@ -1582,6 +1589,15 @@ public class PaCeQuant extends MTBOperator {
 									
 									this.width = img.getSizeX();
 									this.height = img.getSizeY();
+									
+									// relabel image to ensure consecutive labeling
+									LabelComponentsSequential labler = 
+											new LabelComponentsSequential();
+									labler.setInputImage(img);
+									labler.setDiagonalNeighborsFlag(true);
+									labler.runOp();
+									img = labler.getLabelImage();
+									
 									binarySegmentationImage = (MTBImageByte)img.convertType(
 											MTBImageType.MTB_BYTE, true);
 									for (int y=0; y<this.height; ++y)
@@ -2940,7 +2956,7 @@ public class PaCeQuant extends MTBOperator {
 		if (this.resultCellLabelImg == null) {
 			this.resultCellLabelImg = (MTBImageShort)
 					this.morphFeatureOp.getLabelImage().convertType(
-							MTBImageType.MTB_SHORT, true);
+							MTBImageType.MTB_SHORT, false);
 			// mark center of masses by region IDs
 			if (this.drawRegionIDsToOutputImages) {
 				int regionID = 1;
