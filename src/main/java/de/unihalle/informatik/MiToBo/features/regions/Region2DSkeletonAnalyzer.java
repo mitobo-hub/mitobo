@@ -207,6 +207,11 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 	private transient int height;
 
 	/**
+	 * Internal image to work on.
+	 */
+	private MTBImage workImage;
+	
+	/**
 	 * Default constructor.
 	 * 
 	 * @throws ALDOperatorException Thrown on construction failure.
@@ -288,18 +293,25 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 		this.width = this.inImg.getSizeX();
 		this.height = this.inImg.getSizeY();
 
+		// relabel image to ensure consecutive labeling
+		LabelComponentsSequential labler = new LabelComponentsSequential();
+		labler.setInputImage(this.inImg);
+		labler.setDiagonalNeighborsFlag(true);
+		labler.runOp();
+		this.workImage = labler.getLabelImage();
+		
 		// extracting boundaries
 		BordersOnLabeledComponents cExtractor = new BordersOnLabeledComponents();
 		cExtractor.setBorderType(BorderType.OUTER_BORDERS);
-		cExtractor.setInputImage((MTBImageByte)this.inImg.convertType(MTBImageType.MTB_BYTE, true));
+		cExtractor.setInputImage((MTBImageByte)this.workImage.convertType(MTBImageType.MTB_BYTE, true));
 		cExtractor.runOp();
 		MTBBorder2DSet contours = cExtractor.getResultBorders();
-
+		
 		this.fireOperatorExecutionProgressEvent(
 				new ALDOperatorExecutionProgressEvent(this, operatorID 
 					+ " binarizing label image..."));
 
-		ImgThresh thresholder = new ImgThresh(this.inImg, 0);
+		ImgThresh thresholder = new ImgThresh(this.workImage, 0);
 		thresholder.runOp(HidingMode.HIDE_CHILDREN);
 		MTBImageByte binImg = (MTBImageByte)thresholder.getResultImage();
 		
@@ -336,7 +348,7 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 			// mark skeleton in red
 			for (int y=0; y<this.height; ++y) {
 				for (int x=0; x<this.width; ++x) {
-					grayVal = this.inImg.getValueInt(x, y);
+					grayVal = this.workImage.getValueInt(x, y);
 					if (grayVal == 0) 
 						this.analysisDisplayImg.putValue(x, y, 
 							grayVal, grayVal, grayVal);
@@ -353,8 +365,8 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 		int maxLabel = 0;
 		for (int y=0;y<this.height;++y) {
 			for (int x=0;x<this.width;++x) {
-				if (this.inImg.getValueInt(x, y) > maxLabel)
-					maxLabel = this.inImg.getValueInt(x, y);
+				if (this.workImage.getValueInt(x, y) > maxLabel)
+					maxLabel = this.workImage.getValueInt(x, y);
 			}
 		}
 
@@ -416,9 +428,9 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 						if (done) {
 							Vector<Point2D.Double> branch = nsg.getLongestPath(true);
 							double size = this.calcBranchLength(branch);
-							if (size > longestPathLengths[this.inImg.getValueInt(x, y)]) {
-								longestPathLengths[this.inImg.getValueInt(x, y)] = size; 
-								longestPath.set(this.inImg.getValueInt(x, y)-1,branch);
+							if (size > longestPathLengths[this.workImage.getValueInt(x, y)]) {
+								longestPathLengths[this.workImage.getValueInt(x, y)] = size; 
+								longestPath.set(this.workImage.getValueInt(x, y)-1,branch);
 							}
 						}
 					}
@@ -449,8 +461,8 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 			regionWithLabelFound[i] = false;
 		for (int y=0;y<this.height;++y) {
 			for (int x=0;x<this.width;++x) {
-				if (this.inImg.getValueInt(x, y) > 0)
-					regionWithLabelFound[this.inImg.getValueInt(x, y)-1] = true;
+				if (this.workImage.getValueInt(x, y) > 0)
+					regionWithLabelFound[this.workImage.getValueInt(x, y)-1] = true;
 			}
 		}
 		
@@ -464,19 +476,19 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 					if (nCount == 0) {
 						// we have only a single skeleton point which is by our definition
 						// also a branch (appears, e.g., in skeletons of perfect circles)
-						++branchCounts[this.inImg.getValueInt(x, y)-1];
+						++branchCounts[this.workImage.getValueInt(x, y)-1];
 					}
 					else if (nCount == 1) {
 						// found an endpoint, mark as processed
 						memImg.putValueInt(x, y, 0);
-						++branchCounts[this.inImg.getValueInt(x, y)-1];
+						++branchCounts[this.workImage.getValueInt(x, y)-1];
 						
 						// calculate branch length...
 						length = traceBranch(skelImg, x, y, null);
-						branchLengths[this.inImg.getValueInt(x, y)-1] += length;
+						branchLengths[this.workImage.getValueInt(x, y)-1] += length;
 						
 						// ... and endpoint distance to background
-						branchDistances[this.inImg.getValueInt(x, y)-1] += 
+						branchDistances[this.workImage.getValueInt(x, y)-1] += 
 								distTransImg.getValueInt(x, y) * this.pixelLength;
 						
 						// visualize if requested
@@ -525,9 +537,9 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 		HashMap<Integer, int[]> regionBoxes = new  HashMap<>();
 		for (int y=0;y<this.height;++y) {
 			for (int x=0;x<this.width;++x) {
-				if (this.inImg.getValueInt(x, y) == 0)
+				if (this.workImage.getValueInt(x, y) == 0)
 					continue;
-				Integer label = new Integer(this.inImg.getValueInt(x, y));
+				Integer label = new Integer(this.workImage.getValueInt(x, y));
 				if (regionBoxes.get(label) == null)
 					// Array: [x-min, y-min, x-max, y-max]
 					regionBoxes.put(label, new int[]{x,y,x,y}); 
@@ -570,7 +582,6 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 			(MTBImageByte)skelImg.duplicate().convertType(MTBImageType.MTB_BYTE, true);
 		
 		// extract set of components from skeleton image
-		LabelComponentsSequential labler = new LabelComponentsSequential();
 		labler.setInputImage(skelImg);
 		labler.setDiagonalNeighborsFlag(true);
 		labler.runOp();
@@ -630,9 +641,10 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 				if (skelImg.getValueInt(x, y) > 0) {
 					for (int dy=-5; dy<=5; ++dy) {
 					for (int dx=-5; dx<=5; ++dx) {
-						if (dx+x < 0 || dx+x>=this.inImg.getSizeX() || y+dy<0 || dy+y >= this.inImg.getSizeY())
+						if (   dx+x < 0 || dx+x>=this.workImage.getSizeX() 
+								|| y+dy<0 || dy+y >= this.workImage.getSizeY())
 							continue;
-					label = this.inImg.getValueInt(dx+x, dy+y);
+					label = this.workImage.getValueInt(dx+x, dy+y);
 					if (label == 0)
 						continue;
 					// search only inside the bounding box of this region (plus one pix)
@@ -649,9 +661,10 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 							for (int bx=-1;bx<=1;++bx) {
 								int px = (int)(p.x+bx);
 								int py = (int)(p.y+by);
-								if ( px < 0 || px >= this.inImg.getSizeX() || py < 0 || py >= this.inImg.getSizeY())
+								if (   px < 0 || px >= this.workImage.getSizeX() 
+										|| py < 0 || py >= this.workImage.getSizeY())
 									continue;
-								if (this.inImg.getValueInt(px, py) > 0)
+								if (this.workImage.getValueInt(px, py) > 0)
 									continue;
 								dist = (dx+x-px)*(dx+x-px) + (dy+y-py)*(dy+y-py);
 								if (dist < minSkelPointDist) {
@@ -743,7 +756,7 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 		for (int y=0;y<this.height;++y) {
 			for (int x=0;x<this.width; ++x) {
 				if (nonBranchDistImg.getValueDouble(x, y) > 0) {
-					label = new Integer(this.inImg.getValueInt(x, y));
+					label = new Integer(this.workImage.getValueInt(x, y));
 					distVal = new Double(nonBranchDistImg.getValueDouble(x, y));
 					if (!distances.containsKey(label)) {
 						distances.put(label, new ArrayList<Double>());
