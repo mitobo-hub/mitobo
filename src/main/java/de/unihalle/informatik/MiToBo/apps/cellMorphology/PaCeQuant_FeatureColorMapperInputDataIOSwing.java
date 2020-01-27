@@ -367,8 +367,8 @@ public class PaCeQuant_FeatureColorMapperInputDataIOSwing
 					String refTabFile = "";
 					for (String tab : tabFiles) {
 						if (		tab.endsWith("table.txt")
-								&& !tab.endsWith("lobe-table.txt")
-								&& 	tab.contains(File.separator + "results" + File.separator)) {
+								&& !tab.endsWith("lobe-table.txt")) {
+//								&& 	tab.contains(File.separator + "results" + File.separator)) {
 									refTabFile = tab;
 									break;
 						}

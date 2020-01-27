@@ -170,8 +170,8 @@ public class PaCeQuant_FeatureColorMapper extends MTBOperator {
   		HashMap<String, String> tabsToImgs = new HashMap<>();
   		for (String tab : tabFiles) {
 			if (		tab.endsWith("table.txt")
-					&& !tab.endsWith("lobe-table.txt")
-					&& 	tab.contains(File.separator + "results" + File.separator)) {
+					&& !tab.endsWith("lobe-table.txt")) {
+//					&& 	tab.contains(File.separator + "results" + File.separator)) {
   				String dir = ALDFilePathManipulator.getPath(tab);
   				DirectoryTree localDir = new DirectoryTree(dir, false);
 
