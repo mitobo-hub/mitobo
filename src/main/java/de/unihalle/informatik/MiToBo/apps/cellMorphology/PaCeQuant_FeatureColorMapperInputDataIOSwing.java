@@ -47,7 +47,6 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -363,51 +362,26 @@ public class PaCeQuant_FeatureColorMapperInputDataIOSwing
 						myField, myClass)).getDirectoryName();
 
 					// find first relevant file to parse column headers
-					DirectoryTree imgDirTree = new DirectoryTree(inDir, true);
-					Vector<String> imgFiles = imgDirTree.getFileList();
-	  
-					// search for relevant image files
-					String tabFile = "";
-					for (String img : imgFiles) {
-						if (   img.endsWith("grayscale-result.tif") 
-							&& img.contains(File.separator + "results" + File.separator)) {
-							String dir = ALDFilePathManipulator.getPath(img);
-							DirectoryTree localDir = new DirectoryTree(dir, false);
-	  
-							String shortImg = ALDFilePathManipulator.getFileName(img);
-							tabFile = "";
-					  		int maxLength = 0;
-							for (String tab : localDir.getFileList()) {
-								// don't consider other than table files
-							  	if (!tab.endsWith("-table.txt"))
-									continue;
-								// table files with lobe features are to be ignored
-								if (tab.endsWith("-lobe-table.txt"))
-									continue;
-								String shortTab = ALDFilePathManipulator.getFileName(tab);
-								int minLength = Math.min(shortImg.length(), shortTab.length());
-								for (int i = 0; i < minLength; i++) {
-									if (shortImg.charAt(i) != shortTab.charAt(i)) {
-										if (i+1 > maxLength) {
-											maxLength = i+1;
-											tabFile = tab;
-										}
-										break;
-									}
-								}
-							}
-							break;
+					DirectoryTree tabDirTree = new DirectoryTree(inDir, true);
+					Vector<String> tabFiles = tabDirTree.getFileList();
+					String refTabFile = "";
+					for (String tab : tabFiles) {
+						if (		tab.endsWith("table.txt")
+								&& !tab.endsWith("lobe-table.txt")
+								&& 	tab.contains(File.separator + "results" + File.separator)) {
+									refTabFile = tab;
+									break;
 						}
 					}
 
 					// read table model
 					// get a provider to read table models
-  					ALDDataIOManagerCmdline mc = ALDDataIOManagerCmdline.getInstance();
-  					ALDDataIOCmdline pc = (ALDDataIOCmdline)mc.getProvider(
-						MTBTableModel.class, ALDDataIOCmdline.class);
+  				ALDDataIOManagerCmdline mc = ALDDataIOManagerCmdline.getInstance();
+  				ALDDataIOCmdline pc = (ALDDataIOCmdline)mc.getProvider(
+					MTBTableModel.class, ALDDataIOCmdline.class);
 
 					MTBTableModel tm = (MTBTableModel)pc.readData(null,
-						MTBTableModel.class, "@" + tabFile);
+						MTBTableModel.class, "@" + refTabFile);
 
 					// get column names
 					String cName;
