@@ -130,6 +130,11 @@ public class LabelImageEditor extends MTBOperator
 	private ImageCanvas ic;
 	
 	/**
+	 * Original image currently under processing.
+	 */
+	private MTBImage originalImage;
+
+	/**
 	 * Image currently under processing.
 	 */
 	private MTBImageByte activeImage;
@@ -257,8 +262,8 @@ public class LabelImageEditor extends MTBOperator
 				// read input image
 				reader.setFileName(f);
 				reader.runOp();
-				this.activeImage = 
-						(MTBImageByte)reader.getResultMTBImage().convertType(
+				this.originalImage = reader.getResultMTBImage();
+				this.activeImage = (MTBImageByte)this.originalImage.convertType(
 								MTBImageType.MTB_BYTE, true);
 				
 				// init frame with first image
@@ -783,14 +788,28 @@ public class LabelImageEditor extends MTBOperator
 	 * Saves the current processing result.
 	 */
 	private void saveFile() {
-		MTBImage newLabelImage = MTBImage.createMTBImage(this.activePlus);
+		MTBImage newLabelImage = this.originalImage.duplicate();
+		newLabelImage.fillBlack();
+		for (int y=0; y<newLabelImage.getSizeY(); ++y) {
+			for (int x=0; x<newLabelImage.getSizeX(); ++x) {
+				newLabelImage.putValueInt(x, y, this.activePlus.getProcessor().getPixel(x, y));
+			}
+		}
 
 		// relabel image to ensure consecutive labels
 		try {
 			LabelComponentsSequential lop = 
 				new LabelComponentsSequential(newLabelImage, true);
 			lop.runOp();
-			newLabelImage = lop.getLabelImage();
+
+			// Hack: make sure to preserve calibration information
+			newLabelImage = this.originalImage.duplicate();
+			for (int y=0; y<newLabelImage.getSizeY(); ++y) {
+				for (int x=0; x<newLabelImage.getSizeX(); ++x) {
+					newLabelImage.putValueInt(x, y, lop.getLabelImage().getValueInt(x, y));
+				}
+			}
+
 		} catch (ALDException aoe) {
 			System.out.println("-> relabeling failed, skipping step...");
 			aoe.printStackTrace();
