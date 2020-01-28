@@ -2796,13 +2796,13 @@ public class PaCeQuant extends MTBOperator {
 			Vector<String> header = new Vector<String>();
 			header.add(FeatureNames.Object.toString());
 			header.add("Type");
-			header.add("EquatorLength ("+ this.pixelUnitString + ")");
-			header.add("BaselineLength ("+ this.pixelUnitString + ")");
-			header.add("ApicalLength ("+ this.pixelUnitString + ")");
-			header.add("BasalLength ("+ this.pixelUnitString + ")");
-			header.add("TotalLength ("+ this.pixelUnitString + ")");
-			header.add("ApicalContourLong ("+ this.pixelUnitString + ")");
-			header.add("ApicalContourShort ("+ this.pixelUnitString + ")");
+			header.add("EquatorLength_("+ this.pixelUnitString + ")");
+			header.add("BaselineLength_("+ this.pixelUnitString + ")");
+			header.add("ApicalLength_("+ this.pixelUnitString + ")");
+			header.add("BasalLength_("+ this.pixelUnitString + ")");
+			header.add("TotalLength_("+ this.pixelUnitString + ")");
+			header.add("ApicalContourLong_("+ this.pixelUnitString + ")");
+			header.add("ApicalContourShort_("+ this.pixelUnitString + ")");
 		
 			// iterate over all regions, and for each region over all lobes,
 			// and count for each lobe the number of adjacent labels
