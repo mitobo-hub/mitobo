@@ -247,6 +247,10 @@ public class LabelImageEditor extends MTBOperator
 			p = Pattern.compile(this.inputRegExp);
 		for (String f: files) {
 
+			// skip Alida history files
+			if (f.endsWith(".ald"))
+				continue;
+
 			if (this.verbose.booleanValue())
 				System.out.println("Processing image " + f + "...");
 			
