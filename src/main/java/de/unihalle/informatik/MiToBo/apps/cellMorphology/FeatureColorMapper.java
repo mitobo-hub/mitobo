@@ -65,55 +65,50 @@ import de.unihalle.informatik.MiToBo.io.images.ImageWriterMTB;
  */
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL,
 		level=Level.APPLICATION, allowBatchMode = false)
-public class PaCeQuant_FeatureColorMapper extends MTBOperator {
+public class FeatureColorMapper extends MTBOperator {
 
 	/**
 	 * Class identifier.
 	 */
 	private static final String classID = "[PaCeQuant_FeatureColorMapper]";
-	
+
 	/**
 	 * Input data.
 	 */
-	@Parameter(label = "Input Data", required = true,
-		dataIOOrder = 1, direction = Parameter.Direction.IN,	
-		description = "Input experiment directory and column selection, " 
-				+ "all sub-folders named 'results' will be considered")
+	@Parameter(label = "Input Data", required = true, dataIOOrder = 1, direction = Parameter.Direction.IN, description = "Input experiment directory and column selection, "
+			+ "all sub-folders named 'results' will be considered")
 	private PaCeQuant_FeatureColorMapperInputData inData = null;
-	
+
 	/**
 	 * Color for minimal value.
 	 */
-	@Parameter( label= "Color of Range Minimum", required = true, dataIOOrder = 7, 
-		direction = Parameter.Direction.IN, description = "Color of small values.")
-	protected Color minColor = Color.RED;	
+	@Parameter(label = "Color of Range Minimum", required = true, dataIOOrder = 7, direction = Parameter.Direction.IN, description = "Color of small values.")
+	protected Color minColor = Color.RED;
 
 	/**
 	 * Color for maximal value.
 	 */
-	@Parameter( label= "Color of Range Maximum", required = true, dataIOOrder = 9, 
-		direction = Parameter.Direction.IN, description = "Color of large values.")
-	protected Color maxColor = Color.YELLOW;	
+	@Parameter(label = "Color of Range Maximum", required = true, dataIOOrder = 9, direction = Parameter.Direction.IN, description = "Color of large values.")
+	protected Color maxColor = Color.YELLOW;
 
 	/**
 	 * Minimal value threshold.
 	 */
-	@Parameter( label= "Minimal value threshold", required = true, dataIOOrder = 10, 
-		direction = Parameter.Direction.IN, description = "Values smaller than this one are ignored.")
-	protected double minValue = Double.NEGATIVE_INFINITY;	
+	@Parameter(label = "Minimal value threshold", required = true, dataIOOrder = 10, direction = Parameter.Direction.IN, description = "Values smaller than this one are ignored.")
+	protected double minValue = Double.NEGATIVE_INFINITY;
 
 	/**
 	 * Maximal value threshold.
 	 */
-	@Parameter( label= "Maximal value threshold", required = true, dataIOOrder = 11, 
-		direction = Parameter.Direction.IN, description = "Values larger than this one are ignored.")
-	protected double maxValue = Double.POSITIVE_INFINITY;	
+	@Parameter(label = "Maximal value threshold", required = true, dataIOOrder = 11, direction = Parameter.Direction.IN, description = "Values larger than this one are ignored.")
+	protected double maxValue = Double.POSITIVE_INFINITY;
 
 	/**
 	 * Default constructor.
-	 *  @throws ALDOperatorException	Thrown in case of failure.
+	 * 
+	 * @throws ALDOperatorException Thrown in case of failure.
 	 */
-	public PaCeQuant_FeatureColorMapper() 
+	public FeatureColorMapper() 
 			throws ALDOperatorException {
 	}		
 
