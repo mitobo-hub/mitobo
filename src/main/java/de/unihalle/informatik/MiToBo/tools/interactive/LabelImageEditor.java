@@ -52,6 +52,7 @@ import de.unihalle.informatik.Alida.annotations.Parameter;
 import de.unihalle.informatik.Alida.annotations.Parameter.ParameterModificationMode;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator.Level;
 import de.unihalle.informatik.Alida.datatypes.ALDDirectoryString;
+import de.unihalle.informatik.Alida.exceptions.ALDException;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.operator.ALDOperator;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2D;
@@ -783,6 +784,18 @@ public class LabelImageEditor extends MTBOperator
 	 */
 	private void saveFile() {
 		MTBImage newLabelImage = MTBImage.createMTBImage(this.activePlus);
+
+		// relabel image to ensure consecutive labels
+		try {
+			LabelComponentsSequential lop = 
+				new LabelComponentsSequential(newLabelImage, true);
+			lop.runOp();
+			newLabelImage = lop.getLabelImage();
+		} catch (ALDException aoe) {
+			System.out.println("-> relabeling failed, skipping step...");
+			aoe.printStackTrace();
+		}
+
 		String withoutPath = 
 				this.currentFile.substring(this.currentFile.lastIndexOf(File.separator)+1);
 		String withoutEnding = 
