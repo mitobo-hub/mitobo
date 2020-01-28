@@ -707,7 +707,7 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 					(int)maxDistPoints[l].x, (int)maxDistPoints[l].y, 0, 0xFFFF00, 1);
 				this.analysisDisplayImg.drawCircle2D(
 					(int)maxDistPoints[l].x, (int)maxDistPoints[l].y, 0, 
-						(int)radiiMaxInscribedCircles[l], yellow);
+						(int)Math.sqrt(maxDistPerRegion[l]), yellow);
 			}
 		}
 
