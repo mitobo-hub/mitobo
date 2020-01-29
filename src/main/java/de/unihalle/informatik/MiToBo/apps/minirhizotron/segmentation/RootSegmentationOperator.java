@@ -24,12 +24,14 @@
 
 package de.unihalle.informatik.MiToBo.apps.minirhizotron.segmentation;
 
+import java.util.Collection;
 import java.util.Map;
 
 import de.unihalle.informatik.Alida.annotations.Parameter;
 import de.unihalle.informatik.Alida.annotations.Parameter.ExpertMode;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.operator.ALDOperatorCollectionElement;
+import de.unihalle.informatik.MiToBo.apps.minirhizotron.datatypes.MTBRootTree;
 import ij.ImagePlus;
 
 /**
@@ -55,7 +57,18 @@ public abstract class RootSegmentationOperator
   		description = "Result list of point pairs")
     protected Map<Integer, Map<Integer, Node>> resultLineMap;
 
-	/**
+   /**
+   	* Result data structure: list of point pairs
+   	*/
+		 @Parameter(label = "result data structure", 
+		 required = true, 
+		 direction = Parameter.Direction.OUT,
+		 dataIOOrder = 2, 
+		 mode = ExpertMode.STANDARD,
+		 description = "Result collection of root trees")
+	 protected Collection<MTBRootTree> resultRootTrees;
+
+	 /**
 	 * Default constructor.
 	 * @throws ALDOperatorException Thrown in case of failure.
 	 */
@@ -90,5 +103,10 @@ public abstract class RootSegmentationOperator
 	{
 		return this.resultLineMap;	
 	}
-	
+
+	public Collection<MTBRootTree> getResultRootTrees() 
+	{
+		return this.resultRootTrees;
+	}
+
 }
