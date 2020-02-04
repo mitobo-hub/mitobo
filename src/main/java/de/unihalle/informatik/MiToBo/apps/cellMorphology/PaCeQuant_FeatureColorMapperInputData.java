@@ -37,19 +37,19 @@ public class PaCeQuant_FeatureColorMapperInputData {
 	protected String dirPath;
 		
 	/**
-	 * Index of selected column.
+	 * Indices of selected column.
 	 */
-	protected int columnID;
+	protected int[] columnIDs;
 
 	/**
 	 * Default constructor.
 	 * 
 	 * @param dir	Name of directory including path.
-	 * @param id	Index of selected column.
+	 * @param ids	Indices of selected columns.
 	 */
-	public PaCeQuant_FeatureColorMapperInputData(String dir, int id) {
+	public PaCeQuant_FeatureColorMapperInputData(String dir, int[] ids) {
 		this.dirPath = dir;
-		this.columnID = id;
+		this.columnIDs = ids;
 	}
 		
 	/**
@@ -61,11 +61,11 @@ public class PaCeQuant_FeatureColorMapperInputData {
 	}
 
 	/**
-	 * Returns index of currently selected column.
-	 * @return	Index of column.
+	 * Returns index of currently selected column(s).
+	 * @return	Indices of columns.
 	 */
-	public int getColumnID() {
-		return this.columnID;
+	public int[] getColumnIDs() {
+		return this.columnIDs;
 	}
 	
 	@Override
