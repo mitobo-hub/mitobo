@@ -60,6 +60,11 @@ import de.unihalle.informatik.MiToBo.io.images.ImageWriterMTB;
  * Finally, each pixel an image with a value larger than zero gets the color 
  * value corresponding to the color of its feature value as derived from the
  * feature value in the corresponding row of the feature table. 
+ * <p>
+ * The minimal and maximal size threshold can be used to exclude too small or 
+ * too large cells from mapping. The thresholds are always applied to the 
+ * cell areas and sizes below the minimal or above the maximal threshold are 
+ * ignored.
  *
  * @author moeller
  */
@@ -92,16 +97,16 @@ public class FeatureColorMapper extends MTBOperator {
 	protected Color maxColor = Color.YELLOW;
 
 	/**
-	 * Minimal value threshold.
+	 * Minimal size threshold.
 	 */
-	@Parameter(label = "Minimal value threshold", required = true, dataIOOrder = 10, direction = Parameter.Direction.IN, description = "Values smaller than this one are ignored.")
-	protected double minValue = Double.NEGATIVE_INFINITY;
+	@Parameter(label = "Minimal size threshold", required = true, dataIOOrder = 10, direction = Parameter.Direction.IN, description = "Values smaller than this one are ignored.")
+	protected double minSizeValue = Double.NEGATIVE_INFINITY;
 
 	/**
 	 * Maximal value threshold.
 	 */
-	@Parameter(label = "Maximal value threshold", required = true, dataIOOrder = 11, direction = Parameter.Direction.IN, description = "Values larger than this one are ignored.")
-	protected double maxValue = Double.POSITIVE_INFINITY;
+	@Parameter(label = "Maximal size threshold", required = true, dataIOOrder = 11, direction = Parameter.Direction.IN, description = "Values larger than this one are ignored.")
+	protected double maxSizeValue = Double.POSITIVE_INFINITY;
 
 	/**
 	 * Default constructor.
@@ -115,10 +120,10 @@ public class FeatureColorMapper extends MTBOperator {
 	/**
 	 * Set input data.
 	 * @param indir	Input experiment folder.
-	 * @param id	Selected column.
+	 * @param ids	Selected columns.
 	 */
-	public void setInputData(String indir, int id) {
-		this.inData = new PaCeQuant_FeatureColorMapperInputData(indir, id);
+	public void setInputData(String indir, int[] ids) {
+		this.inData = new PaCeQuant_FeatureColorMapperInputData(indir, ids);
 	}
 
 	/**
@@ -210,10 +215,24 @@ public class FeatureColorMapper extends MTBOperator {
 			int maxG = this.maxColor.getGreen();
 			int maxB = this.maxColor.getBlue();
 
+			int featuresToMap = this.inData.getColumnIDs().length;
+
 			MTBTableModel tm = null;
 			double val;
-			double vmin = Double.MAX_VALUE;
-			double vmax = Double.MIN_VALUE;
+
+			double[] vMins = new double[featuresToMap];
+			double[] vMaxs = new double[featuresToMap];
+			double[] ranges = new double[featuresToMap];
+			for (int i=0; i<featuresToMap; ++i) {
+				vMins[i] = Double.MAX_VALUE;
+				vMaxs[i] = Double.MIN_VALUE;
+			}
+
+			int columnIDArea = -1;
+			double cellArea;
+
+			// double vmin = Double.MAX_VALUE;
+			// double vmax = Double.MIN_VALUE;
   		Set<String> imgs = tabsToImgs.keySet();
   		try {
  		
@@ -221,12 +240,11 @@ public class FeatureColorMapper extends MTBOperator {
   			ALDDataIOManagerCmdline mc = ALDDataIOManagerCmdline.getInstance();
   			ALDDataIOCmdline pc = (ALDDataIOCmdline)mc.getProvider(
 				MTBTableModel.class, ALDDataIOCmdline.class);
-  		
-	    	this.fireOperatorExecutionProgressEvent(
-    			new ALDOperatorExecutionProgressEvent(this, classID 
-    				+ " parsing tables to determine value range of feature " 
-    					+ "in column " + this.inData.getColumnID() + "..."));
-  		
+			
+				this.fireOperatorExecutionProgressEvent(
+					new ALDOperatorExecutionProgressEvent(this, classID 
+						+ " parsing tables to determine value ranges of features..."));
+
 				// parse all tables and search for minimum and maximum
 				Set<String> tableNames = tabsToImgs.keySet();
   			for (String tab: tableNames) {
@@ -236,25 +254,47 @@ public class FeatureColorMapper extends MTBOperator {
      					+ " -> " + tab + "..."));
 
 	  			tm = (MTBTableModel)pc.readData(null, MTBTableModel.class, "@" + tab);
-  			
+				
+					// in the first table, figure out index of area column
+					if (columnIDArea == -1) {
+						for (int i=0; i<tm.getColumnCount(); ++i) {
+							if (tm.getColumnName(i).contains("Area")) {
+								columnIDArea = i;
+								break;
+							}
+						}
+					}
+
   				// get data of selected column
   				for (int i=0;i<tm.getRowCount();++i) {
-						val = Double.valueOf((String)tm.getValueAt(i, 
-						this.inData.getColumnID())).doubleValue();
 
-						// check thresholds
-						if (val > this.maxValue || val < this.minValue)
+						// check size thresholds
+						cellArea = Double.valueOf((String)tm.getValueAt(i, columnIDArea)).doubleValue();
+						if (cellArea > this.maxSizeValue || cellArea < this.minSizeValue)
 							continue; 
 
-  					if (val > vmax) vmax = val;
-  					if (val < vmin) vmin = val;
+						for (int c=0; c<featuresToMap; ++c) {
+							int columnID = this.inData.getColumnIDs()[c];
+
+							val = Double.valueOf((String)tm.getValueAt(i, columnID)).doubleValue();
+
+							if (val > vMaxs[c]) vMaxs[c] = val;
+							if (val < vMins[c]) vMins[c] = val;
+
+  						// if (val > vmax) vmax = val;
+							// if (val < vmin) vmin = val;
+						}
   				}
   			} 
-				double range = vmax - vmin;
+				for (int c=0; c<featuresToMap; ++c) {
+					ranges[c] = vMaxs[c] - vMins[c];
+				}
+
+				// double range = vmax - vmin;
 			
-	    	this.fireOperatorExecutionProgressEvent(
-   				new ALDOperatorExecutionProgressEvent(this, classID 
-						+ "    => vmin: " + vmin + " / vmax: " + vmax));
+	    	// this.fireOperatorExecutionProgressEvent(
+   			// 	new ALDOperatorExecutionProgressEvent(this, classID 
+				// 		+ "    => vmin: " + vmin + " / vmax: " + vmax));
 			
 		   	this.fireOperatorExecutionProgressEvent(
     			new ALDOperatorExecutionProgressEvent(this, classID 
@@ -281,108 +321,114 @@ public class FeatureColorMapper extends MTBOperator {
 				
   				tm = (MTBTableModel)pc.readData(null, MTBTableModel.class, "@" + tab);
 
-					// create sub-folder
-					subfolderName = "featureColorMaps-" + 
-						tm.getColumnName(this.inData.getColumnID()).split("_")[0];
-					subfolder = new File(ALDFilePathManipulator.getPath(imgFile) 
-						+ File.separator + subfolderName);
-					if (!subfolder.exists()) {
-						if (!subfolder.mkdir()) 
-							throw new ALDOperatorException( 
-								OperatorExceptionType.OPERATE_FAILED, "[PaCeQuant_FeatureColorMapper] "  
-									+ " could not init result folder for color maps...!"); 
-					}
+					for (int col=0; col<featuresToMap; ++col) {
+						int columnID = this.inData.getColumnIDs()[col];
 
-	  			// get data of selected column
-  				HashMap<Integer, Double> featureVals = new HashMap<>();
-  				for (int i=0;i<tm.getRowCount();++i) {
-  					featureVals.put(Integer.valueOf((String)tm.getValueAt(i, 0)),
-  						Double.valueOf((String)tm.getValueAt(i, this.inData.getColumnID())));
-  				}
+						// create sub-folder
+						subfolderName = "featureColorMaps-" + 
+							tm.getColumnName(columnID).split("_")[0];
+						subfolder = new File(ALDFilePathManipulator.getPath(imgFile) 
+							+ File.separator + subfolderName);
+						if (!subfolder.exists()) {
+							if (!subfolder.mkdir()) 
+								throw new ALDOperatorException( 
+									OperatorExceptionType.OPERATE_FAILED, "[PaCeQuant_FeatureColorMapper] "  
+										+ " could not init result folder for color maps...!"); 
+						}
 
-	  			int height = img.getSizeY();
-  				int width = img.getSizeX();
-  				int depth = img.getSizeZ();
-	  			int times = img.getSizeT();
-  				int channels = img.getSizeC();
+		  			// get data of selected column
+  					HashMap<Integer, Double> featureVals = new HashMap<>();
+  					for (int i=0;i<tm.getRowCount();++i) {
+  						featureVals.put(Integer.valueOf((String)tm.getValueAt(i, 0)),
+  							Double.valueOf((String)tm.getValueAt(i, columnID)));
+  					}
+
+		  			int height = img.getSizeY();
+  					int width = img.getSizeX();
+  					int depth = img.getSizeZ();
+	  				int times = img.getSizeT();
+  					int channels = img.getSizeC();
 			
-  				// allocate result image
-  				result = (MTBImageRGB)img.duplicate().convertType(MTBImageType.MTB_RGB, true);
-					result.fillBlack();
+  					// allocate result image
+  					result = (MTBImageRGB)img.duplicate().convertType(MTBImageType.MTB_RGB, true);
+						result.fillBlack();
 
-	  			int id, valueI, newR, newG, newB;
-  				double featVal, ratio;
-  				HashMap<Integer, Color> colors = new HashMap<>();
-  				for (int i=0;i<tm.getRowCount();++i) {
-  					// object ID
-	  				id = Integer.valueOf((String)tm.getValueAt(i, 0)).intValue();
+		  			int id, valueI, newR, newG, newB;
+  					double featVal, ratio;
+  					HashMap<Integer, Color> colors = new HashMap<>();
+  					for (int i=0;i<tm.getRowCount();++i) {
+  						// object ID
+	  					id = Integer.valueOf((String)tm.getValueAt(i, 0)).intValue();
+							cellArea = Double.valueOf((String)tm.getValueAt(i, columnIDArea)).doubleValue();
   				
-  					// hack to compensate for wrong IDs due to little endian bug!
-  					if (id >= 256)
-  						id = id/256;
+  						// hack to compensate for wrong IDs due to little endian bug!
+  						if (id >= 256)
+  							id = id/256;
 
-	  				// feature value
-  					featVal = featureVals.get(id).doubleValue();
+		  				// feature value
+  						featVal = featureVals.get(id).doubleValue();
 
-						// interpolate new color, black if out of range
-						if (featVal < this.minValue || featVal > this.maxValue) {
-							colors.put(id, new Color(0, 0, 0));
-						}
-						else {
-							ratio = (featVal - vmin) / range;
-  						newR = minR + (int)(ratio*(maxR - minR) + 0.5);
-	  					newG = minG + (int)(ratio*(maxG - minG) + 0.5);
-  						newB = minB + (int)(ratio*(maxB - minB) + 0.5);
-							colors.put(id, new Color(newR, newG, newB));
-						}
-  				}
+							// interpolate new color, black if out of range
+							if (cellArea < this.minSizeValue || cellArea > this.maxSizeValue) {
+								colors.put(id, new Color(0, 0, 0));
+							}
+							else {
+								ratio = (featVal - vMins[col]) / ranges[col];
+	  						newR = minR + (int)(ratio*(maxR - minR) + 0.5);
+		  					newG = minG + (int)(ratio*(maxG - minG) + 0.5);
+  							newB = minB + (int)(ratio*(maxB - minB) + 0.5);
+								colors.put(id, new Color(newR, newG, newB));
+							}
+  					}
 			
-	  			// fill result image
-  				for (int c = 0; c < channels; ++c) {
-  					for (int t = 0; t < times; ++t) {
-  						for (int z = 0; z < depth; ++z) {
-  							for (int y = 0; y < height; ++y) {
-  								for (int x = 0; x < width; ++x) {
-  									valueI = img.getValueInt(x, y, z, t, c); 
-  									// hack to compensate for wrong IDs due to little endian bug!
-	  			  				if (valueI >= 256)
-  				  					valueI = valueI/256;
-  									if (!colors.containsKey(valueI)) {
-  										result.putValueR(x, y, z, t, c, valueI); 
-  										result.putValueG(x, y, z, t, c, valueI); 
-  										result.putValueB(x, y, z, t, c, valueI);
-  									}
-	  								else {
-  										result.putValueR(x, y, z, t, c, colors.get(valueI).getRed()); 
-  										result.putValueG(x, y, z, t, c, colors.get(valueI).getGreen()); 
-  										result.putValueB(x, y, z, t, c, colors.get(valueI).getBlue());
+		  			// fill result image
+  					for (int c = 0; c < channels; ++c) {
+  						for (int t = 0; t < times; ++t) {
+  							for (int z = 0; z < depth; ++z) {
+  								for (int y = 0; y < height; ++y) {
+  									for (int x = 0; x < width; ++x) {
+  										valueI = img.getValueInt(x, y, z, t, c); 
+  										// hack to compensate for wrong IDs due to little endian bug!
+	  			  					if (valueI >= 256)
+  				  						valueI = valueI/256;
+  										if (!colors.containsKey(valueI)) {
+  											result.putValueR(x, y, z, t, c, valueI); 
+  											result.putValueG(x, y, z, t, c, valueI); 
+  											result.putValueB(x, y, z, t, c, valueI);
+  										}
+	  									else {
+  											result.putValueR(x, y, z, t, c, colors.get(valueI).getRed()); 
+  											result.putValueG(x, y, z, t, c, colors.get(valueI).getGreen()); 
+  											result.putValueB(x, y, z, t, c, colors.get(valueI).getBlue());
+  										}
   									}
   								}
-  							}
-	  					}
+	  						}	
+  						}
   					}
-  				}
-  				// add title to image
-	  			String colorString = "[" + minR + "," + minG + "," + minB + "] -> " 
-  					+ "[" + maxR + "," + maxG + "," + maxB + "]";
-  				result.setTitle(tm.getColumnName(this.inData.getColumnID()) + " - FeatureMap " 
-  					+ colorString	+ " of <"	+ img.getTitle() + ">");
+  					// add title to image
+	  				String colorString = "[" + minR + "," + minG + "," + minB + "] -> " 
+  						+ "[" + maxR + "," + maxG + "," + maxB + "]";
+  					result.setTitle(tm.getColumnName(columnID) + " - FeatureMap " 
+  						+ colorString	+ " of <"	+ img.getTitle() + ">");
   			
-	  			// save file
-					String fileName = ALDFilePathManipulator.getFileName(imgFile);
-					fileName = fileName + "-colorMap-" + tm.getColumnName(this.inData.getColumnID()) + ".tif";
-					String outfile = ALDFilePathManipulator.getPath(imgFile) + File.separator + subfolderName
-					  + File.separator + fileName;
+		  			// save file
+						String fileName = ALDFilePathManipulator.getFileName(imgFile);
+						fileName = fileName + "-colorMap-" + tm.getColumnName(columnID) + ".tif";
+						String outfile = ALDFilePathManipulator.getPath(imgFile) + File.separator + subfolderName
+						  + File.separator + fileName;
 
-					this.fireOperatorExecutionProgressEvent(
-						new ALDOperatorExecutionProgressEvent(this, classID 
-							+ " -> ... saving result to " + outfile + "..."));
+						this.fireOperatorExecutionProgressEvent(
+							new ALDOperatorExecutionProgressEvent(this, classID 
+								+ " -> ... saving result to " + outfile + "..."));
 	
-  				imWrite.setFileName(outfile);
-	  			imWrite.setInputMTBImage(result);
-  				imWrite.runOp();
+  					imWrite.setFileName(outfile);
+	  				imWrite.setInputMTBImage(result);
+						imWrite.runOp();
+					}
 				}
 	  	} catch (Exception e) {
+				e.printStackTrace();
   			throw new ALDOperatorException(OperatorExceptionType.OPERATE_FAILED, 
   				classID + " Processing input image and table failed, exiting!\n" 
   					+ e.getMessage());
