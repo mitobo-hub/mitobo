@@ -24,9 +24,10 @@
 
 package de.unihalle.informatik.MiToBo.apps.cellMorphology;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Graphics;
-import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -52,6 +53,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 
 import de.unihalle.informatik.Alida.annotations.ALDDataIOProvider;
 import de.unihalle.informatik.Alida.dataio.ALDDataIOManagerCmdline;
@@ -59,7 +61,7 @@ import de.unihalle.informatik.Alida.dataio.ALDDataIOManagerSwing;
 import de.unihalle.informatik.Alida.dataio.provider.ALDDataIOCmdline;
 import de.unihalle.informatik.Alida.dataio.provider.ALDDataIOSwingInitialGUIValueDefaultHandler;
 import de.unihalle.informatik.Alida.dataio.provider.swing.components.ALDSwingComponent;
-import de.unihalle.informatik.Alida.dataio.provider.swing.components.ALDSwingComponentComboBox;
+import de.unihalle.informatik.Alida.dataio.provider.swing.components.ALDSwingComponentList;
 import de.unihalle.informatik.Alida.dataio.provider.swing.components.ALDSwingComponentItem;
 import de.unihalle.informatik.Alida.dataio.provider.swing.components.ALDSwingComponentTextField;
 import de.unihalle.informatik.Alida.dataio.provider.swing.events.ALDSwingValueChangeEvent;
@@ -170,7 +172,7 @@ public class PaCeQuant_FeatureColorMapperInputDataIOSwing
 		private ColorMapperInputDirectoryIOPanel dirSelection;
 
 		private HashMap<String,Integer> columnNameToIDMap;
-		private ALDSwingComponentComboBox columnSelection;
+		private ALDSwingComponentList columnSelection;
 		private Vector<ALDSwingComponentItem> columnSelectionItems;
 
 		/**
@@ -202,7 +204,7 @@ public class PaCeQuant_FeatureColorMapperInputDataIOSwing
 				@SuppressWarnings("unused") Object _data, ALDParameterDescriptor d) {
 
 			this.panelContainer = new JPanel();
-			this.panelContainer.setLayout(new GridLayout(2,1));
+			this.panelContainer.setLayout(new BorderLayout());
 			this.panelContainer.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
 			this.dirLoaderPanel = new JPanel();
@@ -212,7 +214,7 @@ public class PaCeQuant_FeatureColorMapperInputDataIOSwing
 
 			this.columnNameToIDMap = new HashMap<>();
 			this.columnSelectionItems = new Vector<>();
-			this.columnSelection = new ALDSwingComponentComboBox(d, this.columnSelectionItems);
+			this.columnSelection = new ALDSwingComponentList(d, this.columnSelectionItems);
 			this.columnSelection.addValueChangeEventListener(this);
 
 			this.myClass = cla;
@@ -297,12 +299,15 @@ public class PaCeQuant_FeatureColorMapperInputDataIOSwing
 				this.dirLoaderPanel.add(this.iconLabel);
 			}
 
-			this.panelContainer.add(this.dirLoaderPanel);
+			this.panelContainer.add(this.dirLoaderPanel, BorderLayout.NORTH);
 
 			JPanel columnSelectPanel = new JPanel();
-			columnSelectPanel.add(new JLabel("Column to map:    "));
-			columnSelectPanel.add(this.columnSelection.getJComponent());
-			this.panelContainer.add(columnSelectPanel);
+			columnSelectPanel.setLayout(new FlowLayout());
+			columnSelectPanel.add(new JLabel("Column(s) to map:    "));
+			JScrollPane scroller = new JScrollPane(columnSelection.getJComponent());
+			scroller.setPreferredSize(new Dimension(180,100));
+			columnSelectPanel.add(scroller);
+			this.panelContainer.add(columnSelectPanel, BorderLayout.SOUTH);
 		}
 
 		@Override
@@ -318,12 +323,15 @@ public class PaCeQuant_FeatureColorMapperInputDataIOSwing
 		public Object getData() throws ALDDataIOException {
 			String inDir = ((ALDDirectoryString)this.dirSelection.readData(
 						myField, myClass)).getDirectoryName();
-			if (this.columnSelection.getJComponent().getItemCount() == 0)
+			if (this.columnSelection.getJComponent().getModel().getSize() == 0)
 				return null;
-			ALDSwingComponentItem it = 
-				(ALDSwingComponentItem)(this.columnSelection.getJComponent().getSelectedItem());
-			return new PaCeQuant_FeatureColorMapperInputData(inDir, 
-				this.columnNameToIDMap.get(it.getItemText()));
+			Vector<ALDSwingComponentItem> it = this.columnSelection.getSelectedItems();
+			if (it.isEmpty())
+				return null;
+			int[] selectedIDs = new int[it.size()];
+			for (int i=0; i<it.size(); ++i)
+				selectedIDs[i] = this.columnNameToIDMap.get(it.elementAt(i).getItemText());
+			return new PaCeQuant_FeatureColorMapperInputData(inDir, selectedIDs);
 		}
 
 		/**
@@ -358,8 +366,14 @@ public class PaCeQuant_FeatureColorMapperInputDataIOSwing
 			String command = evt.getActionCommand();
 			if (command.equals("load")) {
 				try {
-					String inDir = ((ALDDirectoryString)this.dirSelection.readData(
-						myField, myClass)).getDirectoryName();
+					ALDDirectoryString inString = 
+						(ALDDirectoryString)this.dirSelection.readData(myField, myClass);
+					if (inString == null)
+						JOptionPane.showMessageDialog(this.panelContainer, 
+							"Problem loading file configuration...!", 
+								"Warning", JOptionPane.WARNING_MESSAGE);
+
+					String inDir = inString.getDirectoryName();
 
 					// find first relevant file to parse column headers
 					DirectoryTree tabDirTree = new DirectoryTree(inDir, true);
@@ -418,6 +432,7 @@ public class PaCeQuant_FeatureColorMapperInputDataIOSwing
 				if (this.iconNoData != null)
 					this.iconLabel.setIcon(this.iconNoData);
 				this.iconLabel.setToolTipText("No data loaded until now!");
+				this.panelContainer.updateUI();
 				// trigger event that configuration changed
 				this.handleValueChangeEvent(
 					new ALDSwingValueChangeEvent(this, this.paramDescr));
