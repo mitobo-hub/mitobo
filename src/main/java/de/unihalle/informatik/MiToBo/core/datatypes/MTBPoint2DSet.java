@@ -9,6 +9,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * 
+ * @author Tino Schmidt
+ */
 @ALDParametrizedClass
 public class MTBPoint2DSet extends ALDData implements Cloneable, Iterable<Point2D>
 {
@@ -16,11 +20,18 @@ public class MTBPoint2DSet extends ALDData implements Cloneable, Iterable<Point2
 	@ALDClassParameter(label="List of points")
 	List<Point2D> point2DList;
 	
+	/**
+	 * Standard constructor. Creates an empty list of points.
+	 */
 	public MTBPoint2DSet()
 	{
 		this.point2DList = new ArrayList<Point2D>();
 	}
 	
+	/**
+	 * Constructs a MTBPoint2DSet from a list of points.
+	 * @param point2DList List of points
+	 */
 	public MTBPoint2DSet(List<Point2D> point2DList)
 	{
 		this.point2DList = point2DList;
@@ -147,9 +158,9 @@ public class MTBPoint2DSet extends ALDData implements Cloneable, Iterable<Point2
 	}
 	
 	/**
-	 * Applies the Ramer-Douglas-Peucker algorithm with the first and last point of the point list
+	 * Calls {@link #applyRamerDouglasPeuckerAlgorithm(int, int, double)} with the first and last point of the point list.
 	 * @param epsilon	Distance dimension. Keep the point if the distance is greater than epsilon.
-	 *                     The greater the epsilon the coarser the approximation.
+	 *                  The greater the epsilon the coarser the approximation.
 	 * @return List of points after applying the algorithm
 	 */
 	public MTBPoint2DSet applyRamerDouglasPeuckerAlgorithm(double epsilon)
@@ -158,7 +169,7 @@ public class MTBPoint2DSet extends ALDData implements Cloneable, Iterable<Point2
 	}
 	
 	/**
-	 * Calculate the distance between a point and a line
+	 * Calculates the distance between a point and a line.
 	 *
 	 * @param px 	x-coordinate of current point
 	 * @param py 	y-coordinate of current point
