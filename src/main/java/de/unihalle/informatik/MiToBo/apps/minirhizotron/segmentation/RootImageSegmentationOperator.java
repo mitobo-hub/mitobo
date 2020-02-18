@@ -24,7 +24,7 @@
 
 package de.unihalle.informatik.MiToBo.apps.minirhizotron.segmentation;
 
-import java.util.Map;
+import java.util.HashMap;
 import java.util.Vector;
 
 import de.unihalle.informatik.Alida.annotations.Parameter;
@@ -42,20 +42,41 @@ import ij.ImagePlus;
 public abstract class RootImageSegmentationOperator 
 	extends ALDOperatorCollectionElement 
 {
+
+	public static enum OpWorkingMode {
+		/**
+		 * Creates completely new annotations and segmentation results, respectively,
+		 * which have nothing to do with the input treelines anymore.
+		 */
+		ANNOTATION_CREATE,
+		/**
+		 * Modifies given treelines and does not create any new treelines.
+		 */
+		ANNOTATION_UPDATE,
+		/**
+		 * Updates existing treelines, but may also add some new.
+		 */
+		ANNOTATION_CREATE_AND_UPDATE
+	}
+
   /**
-   * Input image.
+   * Input images.
+	 * <p>
+	 * The hashmap stores for layer indices the corresponding images.
    */
-  protected ImagePlus image;
+  protected HashMap<Integer, ImagePlus> inputImages;
 	
   /**
-	 * Treelines to enhance.
+	 * Input treelines to be improved and updated.
+	 * <p>
+	 * The hashmap stores for layer indices the corresponding treelines.
    */
-	protected Vector<MTBRootTree> inputTreelines;
+	protected HashMap<Integer, Vector<MTBRootTree>> inputTreelines;
 
 	/**
-   * Enhanced treeline annotations.
+   * Resulting enhanced treeline annotations.
    */
-	protected Vector<MTBRootTree> resultTreelines;
+	protected HashMap<Integer, Vector<MTBRootTree>> resultTreelines;
 
 	/**
 	 * Default constructor.
@@ -66,35 +87,87 @@ public abstract class RootImageSegmentationOperator
 	}
 
 	/**
-	 * Setter for the input image.
-	 * @param img - ImagePlus
+	 * Fetches the list of layer IDs of desired input images from the operator.
+	 * @return	List of layer IDs from which the operator wants to get the images.
 	 */
-	public void setImage(ImagePlus img) {
-		this.image = img;
+	public abstract int[] getLayerIDsOfInputImages();
+
+	/**
+	 * Fetches the list of layer IDs of desired input treelines from the operator.
+	 * @return	List of layer IDs from which the operator wants to get treelines.
+	 */
+	public abstract int[] getLayerIDsOfInputTreelines();
+
+	/**
+	 * Request working mode of the operator, i.e., how the operator deals with treelines.
+	 * @return	Working mode of the operator.
+	 */
+	public abstract OpWorkingMode getOperatorWorkingMode();
+
+	/**
+	 * Setter for the input image.
+	 * @param imgs - ImagePlus images per layer to be processed.
+	 */
+	public void setImages(HashMap<Integer, ImagePlus> images) {
+		this.inputImages = images;
 	}
 	
 	/**
-	 * Provide treeline to be enhanced.
-	 * @param tls		Set if treelines.
+	 * Provide treelines to be enhanced.
+	 * @param tls		Set of treelines per layer.
 	 */
-	public void setInputTreelines(Vector<MTBRootTree> tls) {
+	public void setInputTreelines(HashMap<Integer, Vector<MTBRootTree>> tls) {
 		this.inputTreelines = tls;
 	}
 
 	/**
-	 * Getter for the input image.
-	 * @return the image as an ImagePlus
+	 * Getter for all input images.
+	 * @return The map of input images indexed with layer as key.
 	 */
-	public ImagePlus getImage() {
-		return this.image;
+	public HashMap<Integer, ImagePlus> getAllInputImages() {
+		return this.inputImages;
+	}
+
+	/**
+	 * Getter for the input image of specified layer.
+	 * @param layer		Input layer for which image is requested.
+	 * @return The requested input image as an ImagePlus, null if non-existent.
+	 */
+	public ImagePlus getInputImage(int layer) {
+		return this.inputImages.get(layer);
 	}
 	
 	/**
-	 * Getter for the result treelines.
+	 * Getter for the input treelines of the specified layer.
+	 * @return The map of input treelines indexed with layer as key.
+	 */
+	public HashMap<Integer, Vector<MTBRootTree>> getAllInputTreelines() {
+		return this.resultTreelines;	
+	}
+
+	/**
+	 * Getter for the input treelines of the specified layer.
+	 * @param layer		Input layer for which treelines are requested.
+	 * @return List of input treelines of desired layer, null is non-existent.
+	 */
+	public Vector<MTBRootTree> getInputTreelines(int layer) {
+		return this.resultTreelines.get(layer);	
+	}
+
+	/**
+	 * Getter for all result treelines.
 	 * @return List of updated treelines.
 	 */
-	public Vector<MTBRootTree> getResultTreelines() {
+	public HashMap<Integer, Vector<MTBRootTree>> getAllResultTreelines() {
 		return this.resultTreelines;	
+	}
+
+	/**
+	 * Getter for the result treelines of a specific layer.
+	 * @return List of updated treelines for given layer.
+	 */
+	public Vector<MTBRootTree> getResultTreelines(int layer) {
+		return this.resultTreelines.get(layer);	
 	}
 	
 }
