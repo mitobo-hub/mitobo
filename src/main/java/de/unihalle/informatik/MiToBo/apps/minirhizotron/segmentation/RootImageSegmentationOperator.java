@@ -22,7 +22,7 @@
  *
  */
 
-package de.unihalle.informatik.MiToBo.apps.minirhizotron.annotations;
+package de.unihalle.informatik.MiToBo.apps.minirhizotron.segmentation;
 
 import java.util.Map;
 import java.util.Vector;
@@ -35,12 +35,11 @@ import de.unihalle.informatik.MiToBo.apps.minirhizotron.datatypes.MTBRootTree;
 import ij.ImagePlus;
 
 /**
- * Abstract super class for operators targeting at improving root 
- * annotations in rhizoTrak.
+ * Abstract super class for operators segmenting roots from images.
  * 
  * @author Birgit Moeller
  */
-public abstract class RootAnnotationEnhanceOperator 
+public abstract class RootImageSegmentationOperator 
 	extends ALDOperatorCollectionElement 
 {
   /**
@@ -62,7 +61,7 @@ public abstract class RootAnnotationEnhanceOperator
 	 * Default constructor.
 	 * @throws ALDOperatorException Thrown in case of failure.
 	 */
-	public RootAnnotationEnhanceOperator() throws ALDOperatorException {
+	public RootImageSegmentationOperator() throws ALDOperatorException {
 		super();
 	}
 
