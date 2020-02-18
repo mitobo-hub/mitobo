@@ -48,15 +48,24 @@ public abstract class RootImageSegmentationOperator
 		 * Creates completely new annotations and segmentation results, respectively,
 		 * which have nothing to do with the input treelines anymore.
 		 */
-		ANNOTATION_CREATE,
+		SEGMENTATION_CREATE,
 		/**
 		 * Modifies given treelines and does not create any new treelines.
 		 */
-		ANNOTATION_UPDATE,
+		SEGMENTATION_UPDATE,
 		/**
 		 * Updates existing treelines, but may also add some new.
 		 */
-		ANNOTATION_CREATE_AND_UPDATE
+		SEGMENTATION_CREATE_AND_UPDATE
+	}
+
+	public static enum LayerSubset {
+		ACTIVE,
+		ALL,
+		FIRST_TO_ACTIVE,
+		FIRST_TO_ACTIVE_WITHOUT_ACTIVE,
+		ACTIVE_TO_LAST,
+		ACTIVE_TO_LAST_WITHOUT_ACTIVE
 	}
 
   /**
@@ -87,16 +96,16 @@ public abstract class RootImageSegmentationOperator
 	}
 
 	/**
-	 * Fetches the list of layer IDs of desired input images from the operator.
-	 * @return	List of layer IDs from which the operator wants to get the images.
+	 * Request the set of layers from which to provide images to the operator.
+	 * @return	Subset of layers from which the operator wants to get the images.
 	 */
-	public abstract int[] getLayerIDsOfInputImages();
+	public abstract LayerSubset getLayerSubsetForInputImages();
 
 	/**
-	 * Fetches the list of layer IDs of desired input treelines from the operator.
-	 * @return	List of layer IDs from which the operator wants to get treelines.
+	 * Request the set of layers from which to provide treelines to the operator.
+	 * @return	Subset of layers from which the operator wants to get treeline annotations.
 	 */
-	public abstract int[] getLayerIDsOfInputTreelines();
+	public abstract LayerSubset getLayerSubsetForInputTreelines();
 
 	/**
 	 * Request working mode of the operator, i.e., how the operator deals with treelines.
