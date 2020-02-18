@@ -60,11 +60,29 @@ public abstract class RootImageSegmentationOperator
 	}
 
 	public static enum LayerSubset {
+		/**
+		 * Currently active layer.
+		 */
 		ACTIVE,
+		/**
+		 * All layers.
+		 */
 		ALL,
+		/**
+		 * Layers from zero to active one, including the active one.
+		 */
 		FIRST_TO_ACTIVE,
+		/**
+		 * Layers from zero to active one, excluding the active one.
+		 */
 		FIRST_TO_ACTIVE_WITHOUT_ACTIVE,
+		/**
+		 * Layers from active one to last, including active one.
+		 */
 		ACTIVE_TO_LAST,
+		/**
+		 * Layers from active one to last, excluding active one.
+		 */
 		ACTIVE_TO_LAST_WITHOUT_ACTIVE
 	}
 
