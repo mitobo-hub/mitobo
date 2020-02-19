@@ -22,13 +22,6 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Author: posch $
- * 
- */
-
 package de.unihalle.informatik.MiToBo.topology;
 
 

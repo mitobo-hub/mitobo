@@ -22,15 +22,6 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev: 5500 $
- * $Date: 2012-04-19 18:07:09 +0200 (Do, 19 Apr 2012) $
- * $Author: glass $
- * 
- */
-
 package de.unihalle.informatik.MiToBo.apps.singleCellTracking2D;
 
 

@@ -22,15 +22,6 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev: 3901 $
- * $Date: 2011/10/28 15:22:44 $
- * $Author: posch $
- * 
- */
-
 package de.unihalle.informatik.MiToBo.core.dataio.provider.xmlbeans;
 
 import java.lang.reflect.Field;

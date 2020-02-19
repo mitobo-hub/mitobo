@@ -22,15 +22,6 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev$
- * $Date$
- * $Autho$
- * 
- */
-
 package de.unihalle.informatik.MiToBo.morphology;
 
 

@@ -22,15 +22,6 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev$
- * $Date$
- * $Author$
- * 
- */
-
 package de.unihalle.informatik.MiToBo.segmentation.snakes.energies.paramAdapt;
 
 import de.unihalle.informatik.Alida.annotations.ALDClassParameter;

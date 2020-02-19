@@ -22,15 +22,6 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev: 3874 $
- * $Date: 2011-05-27 16:26:40 +0200 (Fr, 27 Mai 2011) $
- * $Author: moeller $
- * 
- */
-
 package cmdTools.cellAnalysis;
 
 import ij.ImagePlus;

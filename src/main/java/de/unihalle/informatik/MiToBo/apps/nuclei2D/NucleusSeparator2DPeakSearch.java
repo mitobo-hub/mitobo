@@ -22,15 +22,6 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev: 5378 $
- * $Date: 2012-04-10 11:30:22 +0200 (Di, 10 Apr 2012) $
- * $Author: moeller $
- * 
- */
-
 package de.unihalle.informatik.MiToBo.apps.nuclei2D;
 
 import java.util.Random;

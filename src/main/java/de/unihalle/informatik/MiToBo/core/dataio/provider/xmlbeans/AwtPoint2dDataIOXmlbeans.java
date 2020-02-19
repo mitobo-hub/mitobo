@@ -22,15 +22,6 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev: 5463 $
- * $Date: 2012-04-17 17:17:15 +0200 (Tue, 17 Apr 2012) $
- * $Author: moeller $
- * 
- */
-
 package de.unihalle.informatik.MiToBo.core.dataio.provider.xmlbeans;
 
 import java.awt.geom.Point2D;

@@ -22,15 +22,6 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev: 4532 $
- * $Date: 2011-11-16 16:20:39 +0100 (Wed, 16 Nov 2011) $
- * $Author: misiak $
- * 
- */
-
 package de.unihalle.informatik.MiToBo.core.datatypes;
 
 import java.awt.Point;

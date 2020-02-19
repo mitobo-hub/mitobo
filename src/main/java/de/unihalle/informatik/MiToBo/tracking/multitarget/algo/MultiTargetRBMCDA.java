@@ -22,15 +22,6 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev: 5288 $
- * $Date: 2012-03-29 10:27:02 +0200 (Thu, 29 Mar 2012) $
- * $Author: gress $
- * 
- */
-
 package de.unihalle.informatik.MiToBo.tracking.multitarget.algo;
 
 import java.io.OutputStream;

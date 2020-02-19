@@ -22,15 +22,6 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev$
- * $Date$
- * $Author$
- * 
- */
-
 package de.unihalle.informatik.MiToBo.segmentation.snakes.optimize.stepsize;
 
 import de.unihalle.informatik.Alida.annotations.ALDDerivedClass;

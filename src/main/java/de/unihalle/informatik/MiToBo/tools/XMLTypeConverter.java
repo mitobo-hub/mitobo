@@ -22,15 +22,6 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev: 4605 $
- * $Date: 2011-11-28 11:00:29 +0100 (Mo, 28 Nov 2011) $
- * $Author: gress $
- * 
- */
-
 package de.unihalle.informatik.MiToBo.tools;
 
 import java.util.Vector;

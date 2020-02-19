@@ -22,15 +22,6 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev: 3725 $
- * $Date: 2011-04-28 11:04:48 +0200 (Do, 28 Apr 2011) $
- * $Author: moeller $
- * 
- */
-
 package de.unihalle.informatik.MiToBo.apps.particles2D;
 
 import java.util.Vector;

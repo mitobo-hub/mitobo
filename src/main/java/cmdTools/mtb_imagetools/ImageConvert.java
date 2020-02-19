@@ -22,15 +22,6 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev$
- * $Date$
- * $Author$
- * 
- */
-
 package cmdTools.mtb_imagetools;
 
 import jargs.gnu.CmdLineParser;

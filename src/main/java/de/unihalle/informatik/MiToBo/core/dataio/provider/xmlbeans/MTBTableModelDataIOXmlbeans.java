@@ -22,15 +22,6 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev$
- * $Date$
- * $Author$
- * 
- */
-
 package de.unihalle.informatik.MiToBo.core.dataio.provider.xmlbeans;
 
 import de.unihalle.informatik.Alida.annotations.ALDDataIOProvider;

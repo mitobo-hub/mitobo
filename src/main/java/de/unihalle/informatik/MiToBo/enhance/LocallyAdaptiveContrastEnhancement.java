@@ -22,15 +22,6 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev: 4413 $
- * $Date: 2011-10-24 18:39:30 +0200 (Mo, 24 Okt 2011) $
- * $Author: posch $
- * 
- */
-
 package de.unihalle.informatik.MiToBo.enhance;
 
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;

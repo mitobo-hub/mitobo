@@ -22,15 +22,6 @@
  *
  */
 
-/* 
- * Most recent change(s):
- * 
- * $Rev$
- * $Date$
- * $Author$
- * 
- */
-
 /*
  * This class uses the Bio-Formats and LOCI-commons packages/libraries (see the two licenses at the top)
  * as well as source code from the LOCI-plugins package (see third license from the top)
