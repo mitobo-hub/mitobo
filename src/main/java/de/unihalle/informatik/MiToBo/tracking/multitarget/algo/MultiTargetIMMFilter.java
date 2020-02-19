@@ -39,8 +39,6 @@ import java.util.Set;
 import java.util.Vector;
 
 import Jama.Matrix;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.math.LinearTransformGaussNoise;
 import de.unihalle.informatik.MiToBo.math.distributions.impl.ExponentialDistribution;
 import de.unihalle.informatik.MiToBo.math.distributions.impl.GaussMixDistribution;
@@ -60,7 +58,6 @@ import de.unihalle.informatik.MiToBo.tracking.multitarget.distributions.impl.Mul
  * @author Oliver Gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class MultiTargetIMMFilter implements
 		MultiTargetPredictionFilterIndep<MotionModelID> {
 	

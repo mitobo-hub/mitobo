@@ -33,8 +33,6 @@
 
 package de.unihalle.informatik.MiToBo.core.datatypes;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 
 /**
  * Exception handling for Polygon2D object.
@@ -44,7 +42,6 @@ import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
  * 
  * @author Danny Misiak
  */
-@ALDMetaInfo(export = ExportPolicy.ALLOWED)
 public class MTBPolygon2DException extends Exception {
 		/**
 		 * Exception error message.

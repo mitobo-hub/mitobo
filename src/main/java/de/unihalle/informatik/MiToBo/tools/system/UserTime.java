@@ -54,8 +54,6 @@
 
 package de.unihalle.informatik.MiToBo.tools.system;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 
 /**
  * This is a stopwatch to measure elapsed user or real time used.
@@ -75,7 +73,6 @@ import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
  * 
  * @author Jens Keilwagen, modified: Stefan Posch
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class UserTime {
 
 	/** Were we able to load the JNI library?

@@ -33,8 +33,6 @@
 
 package de.unihalle.informatik.MiToBo.core.exceptions;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.exceptions.ALDException;
 
 /**
@@ -42,7 +40,6 @@ import de.unihalle.informatik.Alida.exceptions.ALDException;
  * 
  * @author moeller
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public abstract class MTBException extends ALDException {
 
 	@Override

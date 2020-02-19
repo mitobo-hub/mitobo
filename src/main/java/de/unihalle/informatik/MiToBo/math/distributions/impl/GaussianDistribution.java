@@ -36,8 +36,6 @@ import java.util.Random;
 
 import Jama.CholeskyDecomposition;
 import Jama.Matrix;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.math.distributions.interfaces.FirstOrderMoment;
 import de.unihalle.informatik.MiToBo.math.distributions.interfaces.LogProbabilityDensityFunction;
 import de.unihalle.informatik.MiToBo.math.distributions.interfaces.ProbabilityDensityFunction;
@@ -51,7 +49,6 @@ import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.interfaces.C
  * @author Oliver Gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class GaussianDistribution implements ProbabilityDensityFunction, LogProbabilityDensityFunction, SamplingDistribution<Matrix>,
 		FirstOrderMoment<Matrix>, SecondOrderCentralMoment<Matrix>, Copyable<GaussianDistribution> {
 

@@ -34,8 +34,6 @@
 package de.unihalle.informatik.MiToBo.fields;
 
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
 import de.unihalle.informatik.Alida.annotations.Parameter;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator.Level;
@@ -55,7 +53,6 @@ import de.unihalle.informatik.MiToBo.core.operator.*;
 
 @ALDAOperator(genericExecutionMode = ALDAOperator.ExecutionMode.ALL, 
 	level = Level.STANDARD)
-@ALDMetaInfo(export = ExportPolicy.ALLOWED)
 public class GradientFieldCalculator2D extends MTBOperator {
 
 		/**

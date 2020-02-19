@@ -33,8 +33,6 @@
 
 package de.unihalle.informatik.MiToBo.math.distributions.interfaces;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 
 
 /**
@@ -46,7 +44,6 @@ import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
  *
  * @param <T> type of the sample / random variable
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public interface SamplingDistribution<T> {
 
 	/**

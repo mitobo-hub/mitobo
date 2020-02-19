@@ -37,8 +37,6 @@ import java.util.HashMap;
 import java.util.Set;
 import java.util.TreeSet;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.interfaces.DataAssociation;
 
 /**
@@ -51,7 +49,6 @@ import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.interfaces.D
  * @author Oliver Gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class DataAssociationExclusive implements DataAssociation {
 
 	protected HashMap<Integer,Integer> assocObs;

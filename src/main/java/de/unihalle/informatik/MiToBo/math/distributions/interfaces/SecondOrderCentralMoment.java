@@ -33,8 +33,6 @@
 
 package de.unihalle.informatik.MiToBo.math.distributions.interfaces;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 
 /**
  * Interface for classes that provide a second order central moment.
@@ -43,7 +41,6 @@ import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
  *
  * @param <T> type of the second order central moment
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public interface SecondOrderCentralMoment<T> {
 	public T getCovariance();
 }

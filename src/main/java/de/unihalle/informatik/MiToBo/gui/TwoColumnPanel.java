@@ -44,8 +44,6 @@ import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 
 /**
  * A panel with a titled border and two columns for a variable number of generic components that are
@@ -53,7 +51,6 @@ import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
  * @author Oliver Gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class TwoColumnPanel extends JPanel {
 
 

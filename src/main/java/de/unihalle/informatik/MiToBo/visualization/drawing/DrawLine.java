@@ -35,8 +35,6 @@ package de.unihalle.informatik.MiToBo.visualization.drawing;
 
 import java.awt.geom.Point2D;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
 import de.unihalle.informatik.Alida.annotations.Parameter;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator.Level;
@@ -54,7 +52,6 @@ import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
  *
  */
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL, level=Level.APPLICATION)
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class DrawLine extends MTBOperator
 {
 	@Parameter(label = "inImg", required = true, direction = Parameter.Direction.IN, supplemental = false, description = "input image", dataIOOrder = 0)

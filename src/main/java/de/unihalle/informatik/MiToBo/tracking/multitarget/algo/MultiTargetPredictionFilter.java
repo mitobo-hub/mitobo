@@ -33,8 +33,6 @@
 
 package de.unihalle.informatik.MiToBo.tracking.multitarget.algo;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.math.distributions.interfaces.FirstOrderMoment;
 import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.interfaces.Copyable;
 import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.interfaces.DataAssociation;
@@ -46,7 +44,6 @@ import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.interfaces.D
  * @param <S> class type of observations' discrete variables
  * @param <T> class type of states' discrete variables 
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public interface MultiTargetPredictionFilter<T extends Copyable<?>> 
 			extends FirstOrderMoment<T>, Copyable<MultiTargetPredictionFilter<T>> {
 	

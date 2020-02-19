@@ -37,8 +37,6 @@ import java.util.Vector;
 
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
 import de.unihalle.informatik.Alida.annotations.Parameter;
 import de.unihalle.informatik.Alida.annotations.Parameter.ExpertMode;
@@ -52,7 +50,6 @@ import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
  * @author glass
  *
  */
-@ALDMetaInfo(export = ExportPolicy.ALLOWED)
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL)
 public class StatisticsFilter extends MTBOperator
 {

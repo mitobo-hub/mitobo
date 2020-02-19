@@ -42,8 +42,6 @@ import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.util.Vector;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBBorder2DSet;
 
 /**
@@ -56,7 +54,6 @@ import de.unihalle.informatik.MiToBo.core.datatypes.MTBBorder2DSet;
  * @author Danny Misiak
  * 
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class MTBBorder2DSetROI extends Roi {
 
 		/**

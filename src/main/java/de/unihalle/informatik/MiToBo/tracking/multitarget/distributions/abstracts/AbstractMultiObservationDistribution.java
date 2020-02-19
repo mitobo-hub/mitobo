@@ -32,8 +32,6 @@
  */
 package de.unihalle.informatik.MiToBo.tracking.multitarget.distributions.abstracts;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.math.distributions.interfaces.ConditionalDistribution;
 import de.unihalle.informatik.MiToBo.math.distributions.interfaces.EvaluatableDistribution;
 import de.unihalle.informatik.MiToBo.math.distributions.interfaces.LogEvaluatableDistribution;
@@ -51,7 +49,6 @@ import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.interfaces.C
  * @param <S> Type of discrete variables in the multi target observation
  * @param <T> Type of discrete variables in the multi target state
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public abstract class AbstractMultiObservationDistribution<S extends Copyable<?>,T extends Copyable<?>> 
 			implements EvaluatableDistribution<AbstractMultiState<S>>,  LogEvaluatableDistribution<AbstractMultiState<S>>,  
 			ConditionalDistribution<AbstractMultiState<T>> {

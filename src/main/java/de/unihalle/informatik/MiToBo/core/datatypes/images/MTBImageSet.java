@@ -35,8 +35,6 @@ package de.unihalle.informatik.MiToBo.core.datatypes.images;
 
 import java.util.Vector;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.operator.ALDData;
 
 
@@ -45,7 +43,6 @@ import de.unihalle.informatik.Alida.operator.ALDData;
  * @author gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class MTBImageSet extends ALDData {
 
 	Vector<MTBImage> images;

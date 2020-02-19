@@ -45,8 +45,6 @@ import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 
 /**
  * A panel with a titled border and a set of radio buttons that can be 
@@ -54,7 +52,6 @@ import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
  * @author Oliver Gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class RadioButtonPanel extends JPanel implements ActionListener {
 
 	/**

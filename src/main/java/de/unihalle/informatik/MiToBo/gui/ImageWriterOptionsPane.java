@@ -76,8 +76,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.filechooser.FileFilter;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.io.tools.ImageIOUtils;
 
 import loci.formats.FormatException;
@@ -94,7 +92,6 @@ import loci.formats.out.QTWriter;
  * @author Oliver Gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class ImageWriterOptionsPane extends JPanel implements PropertyChangeListener, ActionListener {
 
 	/**

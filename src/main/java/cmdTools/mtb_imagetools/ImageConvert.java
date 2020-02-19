@@ -41,8 +41,6 @@ import java.util.HashMap;
 import loci.common.services.DependencyException;
 import loci.common.services.ServiceException;
 import loci.formats.FormatException;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
@@ -58,7 +56,6 @@ import de.unihalle.informatik.MiToBo.tools.image.ImageConverter;
  * @author Oliver Gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.MANDATORY)
 public class ImageConvert {
 
   public static void main(String[] args) {

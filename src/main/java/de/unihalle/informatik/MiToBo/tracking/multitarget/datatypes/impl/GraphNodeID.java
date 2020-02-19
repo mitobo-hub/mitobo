@@ -35,15 +35,12 @@ package de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.impl;
 
 import java.util.Comparator;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 
 /**
  * A graph node object to hold a nodeID as well as a subgraphID
  * @author Oliver Gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class GraphNodeID implements Comparable<GraphNodeID>, Comparator<GraphNodeID> {
 
 	/** The node's ID */

@@ -33,8 +33,6 @@
 
 package de.unihalle.informatik.MiToBo.math.distributions.interfaces;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 
 /**
  * Interface for conditional densities, e.g. p(x|y)
@@ -42,7 +40,6 @@ import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
  *
  * @param <T> class type of the conditional variable, i.e. y in the upper example
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public interface ConditionalDistribution<T> {
 
 	/**

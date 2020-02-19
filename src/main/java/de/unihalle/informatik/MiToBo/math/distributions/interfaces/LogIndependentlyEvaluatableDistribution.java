@@ -33,8 +33,6 @@
 
 package de.unihalle.informatik.MiToBo.math.distributions.interfaces;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 
 /**
  * Interface for densities p(X) with independent variables in X,
@@ -44,7 +42,6 @@ import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
  *
  * @param <T> Random set
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public interface LogIndependentlyEvaluatableDistribution<T> {
 
 	

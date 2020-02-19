@@ -38,8 +38,6 @@ import java.util.Vector;
 import loci.common.StatusEvent;
 import loci.common.StatusListener;
 import loci.common.StatusReporter;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
 import de.unihalle.informatik.Alida.annotations.Parameter;
 import de.unihalle.informatik.Alida.annotations.Parameter.ExpertMode;
@@ -58,7 +56,6 @@ import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
  * @author gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL)
 public class LinearFilter extends MTBOperator implements StatusReporter {
 	

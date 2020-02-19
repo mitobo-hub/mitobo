@@ -36,8 +36,6 @@ package de.unihalle.informatik.MiToBo.apps.cells2D;
 import java.io.File;
 import java.util.*;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.apps.datatypes.cellImages.SegResult_Complete;
 import de.unihalle.informatik.MiToBo.apps.datatypes.cellImages.SegResult_Cytoplasm;
 import de.unihalle.informatik.MiToBo.apps.datatypes.cellImages.SegResult_Nuclei;
@@ -52,7 +50,6 @@ import de.unihalle.informatik.MiToBo.gui.MTBTableModel;
  *
  * @author moeller
  */
-@ALDMetaInfo(export=ExportPolicy.MANDATORY)
 public class Mica2DTableModel extends MTBTableModel {
 
 	/**

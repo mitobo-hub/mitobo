@@ -34,8 +34,6 @@
 package de.unihalle.informatik.MiToBo.morphology;
 
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
 import de.unihalle.informatik.Alida.annotations.Parameter;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator.Level;
@@ -54,7 +52,6 @@ import de.unihalle.informatik.MiToBo.math.images.MTBImageArithmetics;
  *
  */
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL, level=Level.APPLICATION)
-@ALDMetaInfo(export=ExportPolicy.MANDATORY)
 public class BasicMorphology extends MTBOperator
 {
 	@Parameter(label = "input image", required = true, direction = Parameter.Direction.IN, supplemental = false, description = "input image", dataIOOrder = 0)

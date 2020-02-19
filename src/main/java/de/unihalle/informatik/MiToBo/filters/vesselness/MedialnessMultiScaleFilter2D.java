@@ -26,8 +26,6 @@ package de.unihalle.informatik.MiToBo.filters.vesselness;
 
 import Jama.EigenvalueDecomposition;
 import Jama.Matrix;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
 import de.unihalle.informatik.Alida.annotations.Parameter;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator.Level;
@@ -71,7 +69,6 @@ import de.unihalle.informatik.MiToBo.tools.image.ImageValueTools;
  * </pre>
  */
 @ALDAOperator(genericExecutionMode = ALDAOperator.ExecutionMode.ALL, level = Level.APPLICATION, allowBatchMode = true)
-@ALDMetaInfo(export = ExportPolicy.ALLOWED)
 public class MedialnessMultiScaleFilter2D extends MTBOperator {
 
 		/**

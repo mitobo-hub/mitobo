@@ -45,8 +45,6 @@ import cmdTools.tracking.multitarget.RBMCDATracker;
 import loci.common.services.DependencyException;
 import loci.common.services.ServiceException;
 import loci.formats.FormatException;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.unihalle.informatik.MiToBo.gui.SynchronizedImageWindows;
@@ -57,7 +55,6 @@ import de.unihalle.informatik.MiToBo.io.images.ImageReaderMTB;
  * @author Oliver Gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.MANDATORY)
 public class DisplayImage {
 
 	private static int openWindows = 0;

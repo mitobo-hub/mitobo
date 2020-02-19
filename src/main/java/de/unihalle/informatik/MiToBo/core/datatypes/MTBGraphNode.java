@@ -35,8 +35,6 @@ package de.unihalle.informatik.MiToBo.core.datatypes;
 
 import java.util.Vector;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 
 /**
  * Class implements MTBGraphNodes for the MTBGraph. Each MTBGraphNode has data
@@ -52,7 +50,6 @@ import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
  *          Type parameter of MTBGraphNode. Possible choices are Point, Point2D,
  *          Integer, etc.
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class MTBGraphNode<T> {
 
 		/**

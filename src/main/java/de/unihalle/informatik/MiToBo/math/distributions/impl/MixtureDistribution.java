@@ -33,8 +33,6 @@
 package de.unihalle.informatik.MiToBo.math.distributions.impl;
 
 import Jama.Matrix;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.math.MathX;
 import de.unihalle.informatik.MiToBo.math.distributions.interfaces.LogProbabilityDensityFunction;
 import de.unihalle.informatik.MiToBo.math.distributions.interfaces.ProbabilityDensityFunction;
@@ -44,7 +42,6 @@ import de.unihalle.informatik.MiToBo.math.distributions.interfaces.ProbabilityDe
  * @author Oliver Gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class MixtureDistribution implements ProbabilityDensityFunction, LogProbabilityDensityFunction {
 
 	protected ProbabilityDensityFunction[] pdfs;

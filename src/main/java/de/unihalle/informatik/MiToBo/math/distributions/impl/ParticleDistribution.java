@@ -35,8 +35,6 @@ package de.unihalle.informatik.MiToBo.math.distributions.impl;
 import java.util.Random;
 import java.util.Vector;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.math.distributions.interfaces.SamplingDistribution;
 import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.interfaces.Copyable;
 
@@ -46,7 +44,6 @@ import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.interfaces.C
  *
  * @param <G> type of a particle
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class ParticleDistribution<G extends Copyable<? extends G>> implements SamplingDistribution<G> {
 
 	protected G[] particles;

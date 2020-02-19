@@ -33,8 +33,6 @@
 
 package de.unihalle.informatik.MiToBo.math.distributions.interfaces;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 
 /**
  * Interface for distributions that can be evaluated for each realization x of its random variable X. 
@@ -43,7 +41,6 @@ import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
  *
  * @param <T> type of the random variable
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public interface LogEvaluatableDistribution<T> {
 	
 	/**

@@ -2,8 +2,6 @@ package de.unihalle.informatik.MiToBo.core.grappa;
 
 import com.mxgraph.view.mxGraph;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.grappa.ALDGrappaWorkbench;
 import de.unihalle.informatik.Alida.grappa.ALDGrappaWorkbenchGraph;
 import de.unihalle.informatik.Alida.workflows.ALDWorkflow;
@@ -13,7 +11,6 @@ import de.unihalle.informatik.Alida.workflows.ALDWorkflow;
  * @author Birgit Moeller
  */
 
-@ALDMetaInfo(export = ExportPolicy.ALLOWED)
 public class MTBGrappaWorkbench extends ALDGrappaWorkbench {
 	
 	/**

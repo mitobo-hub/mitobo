@@ -36,8 +36,6 @@ package de.unihalle.informatik.MiToBo.tracking.multitarget.distributions.abstrac
 import java.io.OutputStream;
 import java.util.Random;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.math.distributions.interfaces.LogProbabilityDensityFunction;
 import de.unihalle.informatik.MiToBo.math.distributions.interfaces.SamplingDistribution;
 import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.abstracts.AbstractMultiState;
@@ -53,7 +51,6 @@ import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.interfaces.D
  * @param <S> Type of discrete variables in the multi target observation
  * @param <T> Type of discrete variables in the multi target state
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public abstract class AbstractAssociationDistribution<S extends Copyable<?>,T extends Copyable<?>> implements
 		SamplingDistribution<DataAssociation> {
 

@@ -33,8 +33,6 @@
 
 package de.unihalle.informatik.MiToBo.enhance;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
 import de.unihalle.informatik.Alida.annotations.Parameter;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator.Level;
@@ -130,7 +128,6 @@ import de.unihalle.informatik.MiToBo.segmentation.thresholds.ImgThresh;
  */
 @ALDAOperator(genericExecutionMode = ALDAOperator.ExecutionMode.ALL, 
 	level = Level.APPLICATION)
-@ALDMetaInfo(export = ExportPolicy.MANDATORY)
 public class LocallyAdaptiveContrastEnhancement extends MTBOperator {
 
 	/**

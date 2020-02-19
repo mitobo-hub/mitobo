@@ -33,8 +33,6 @@
 
 package de.unihalle.informatik.MiToBo.apps.datatypes.cellImages;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.annotations.ALDClassParameter;
 import de.unihalle.informatik.Alida.annotations.ALDParametrizedClass;
 import de.unihalle.informatik.MiToBo.apps.datatypes.cellImages.SegResultEnums.MeasureUnit;
@@ -51,7 +49,6 @@ import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageRGB;
  * @author moeller
  */
 @ALDParametrizedClass
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class SegResult_Cytoplasm 
 	implements SegResult_Interface {
 

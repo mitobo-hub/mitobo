@@ -32,8 +32,6 @@
  */
 package de.unihalle.informatik.MiToBo.tracking.multitarget.distributions.abstracts;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.math.distributions.interfaces.IndependentSamplingDistribution;
 import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.abstracts.AbstractMultiState;
 import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.abstracts.AbstractMultiStateFactory;
@@ -45,7 +43,6 @@ import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.interfaces.C
  *
  * @param <T>
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public abstract class AbstractMultiStateTransitionDistributionIndep<T extends Copyable<?>> extends AbstractMultiStateTransitionDistribution<T> 
 														implements IndependentSamplingDistribution<AbstractMultiState<T>> {
 

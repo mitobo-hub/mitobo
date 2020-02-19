@@ -41,8 +41,6 @@ import java.util.Vector;
 
 import org.apache.xmlbeans.XmlException;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2DSetBag;
@@ -60,7 +58,6 @@ import de.unihalle.informatik.MiToBo.tracking.multitarget.eval.TrackEvaluator;
  * @author Oliver Gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.MANDATORY)
 public class EvalTracks {
 
 	/**

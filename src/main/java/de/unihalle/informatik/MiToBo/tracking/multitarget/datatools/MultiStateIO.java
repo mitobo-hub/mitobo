@@ -39,8 +39,6 @@ import java.util.Vector;
 
 import org.apache.xmlbeans.XmlException;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
@@ -56,7 +54,6 @@ import de.unihalle.informatik.MiToBo_xml.MTBXMLMultiStateMMIDVectorType;
  * @author Oliver Gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class MultiStateIO {
 
 	/**

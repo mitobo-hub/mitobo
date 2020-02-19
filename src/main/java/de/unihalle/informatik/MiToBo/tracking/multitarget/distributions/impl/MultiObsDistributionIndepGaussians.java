@@ -35,8 +35,6 @@ package de.unihalle.informatik.MiToBo.tracking.multitarget.distributions.impl;
 import java.util.Random;
 
 import Jama.Matrix;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.math.distributions.impl.GaussianDistribution;
 import de.unihalle.informatik.MiToBo.math.distributions.interfaces.FirstOrderMoment;
 import de.unihalle.informatik.MiToBo.math.distributions.interfaces.SamplingDistribution;
@@ -54,7 +52,6 @@ import de.unihalle.informatik.MiToBo.tracking.multitarget.distributions.abstract
  *
  * @param <T> class type of the observations' and states' discrete variables
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class MultiObsDistributionIndepGaussians<T extends Copyable<?>> extends AbstractMultiObservationDistributionIndep<T,T> 
 					implements SamplingDistribution<AbstractMultiState<T>>, FirstOrderMoment<AbstractMultiState<T>>,
 					SecondOrderCentralMoment<Matrix[]> {

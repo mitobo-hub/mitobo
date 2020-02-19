@@ -38,8 +38,6 @@ import java.util.Iterator;
 import java.util.Vector;
 
 import Jama.Matrix;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.annotations.Parameter;
 import de.unihalle.informatik.Alida.annotations.Parameter.Direction;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
@@ -63,7 +61,6 @@ import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.impl.MultiSt
  * @param <S> input data type
  * @param <T> output data type
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public abstract class DataConverter<S,T> extends MTBOperator {
 
 	@Parameter(label="inputData", required=true, direction=Direction.IN,

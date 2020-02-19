@@ -33,8 +33,6 @@
 
 package de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.impl;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.interfaces.DataAssociation;
 import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.interfaces.DataAssociationFactory;
 
@@ -43,7 +41,6 @@ import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.interfaces.D
  * @author Oliver Gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class DataAssociationExclusiveFactory implements DataAssociationFactory {
 
 	@Override

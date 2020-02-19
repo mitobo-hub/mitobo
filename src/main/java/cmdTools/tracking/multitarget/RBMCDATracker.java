@@ -49,8 +49,6 @@ import loci.formats.FormatException;
 import org.apache.xmlbeans.XmlException;
 
 import Jama.Matrix;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2DSetBag;
@@ -72,7 +70,6 @@ import de.unihalle.informatik.MiToBo.visualization.drawing.DynamicColorLUT;
  * @author Oliver Gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.MANDATORY)
 public class RBMCDATracker {
 	public static void main(String[] args) {
 

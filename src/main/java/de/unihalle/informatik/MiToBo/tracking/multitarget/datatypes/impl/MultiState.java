@@ -35,8 +35,6 @@ package de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.impl;
 
 import java.util.Vector;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.abstracts.AbstractMultiState;
 import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.interfaces.Copyable;
 
@@ -48,7 +46,6 @@ import Jama.Matrix;
  *
  * @param <T> type of the discrete variables
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class MultiState<T extends Copyable<?>> extends AbstractMultiState<T> {
 
 	/** vector of the target states (continuous variables) */

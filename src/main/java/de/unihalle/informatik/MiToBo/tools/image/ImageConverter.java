@@ -33,8 +33,6 @@
 
 package de.unihalle.informatik.MiToBo.tools.image;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
 import de.unihalle.informatik.Alida.annotations.Parameter;
 import de.unihalle.informatik.Alida.annotations.Parameter.ExpertMode;
@@ -54,7 +52,6 @@ import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
  * @author Oliver Gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL)
 public class ImageConverter extends MTBOperator {
 

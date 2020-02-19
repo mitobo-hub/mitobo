@@ -33,8 +33,6 @@
 
 package de.unihalle.informatik.MiToBo.enhance;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
 import de.unihalle.informatik.Alida.annotations.Parameter;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator.Level;
@@ -84,7 +82,6 @@ import de.unihalle.informatik.MiToBo.morphology.BasicMorphology.opMode;
  * </pre>
  */
 @ALDAOperator(genericExecutionMode = ALDAOperator.ExecutionMode.ALL, level = Level.STANDARD, allowBatchMode = true)
-@ALDMetaInfo(export = ExportPolicy.MANDATORY)
 public class TopHatContrastEnhancement extends MTBOperator {
 
 		// --- input parameters ---

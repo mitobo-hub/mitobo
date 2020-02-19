@@ -34,8 +34,6 @@ package de.unihalle.informatik.MiToBo.math;
 
 import java.util.Random;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.math.distributions.impl.GaussianDistribution;
 
 import Jama.Matrix;
@@ -47,7 +45,6 @@ import Jama.Matrix;
  * @author Oliver Gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class LinearTransformGaussNoise {
 	
 	protected Matrix trafo, noiseCov;

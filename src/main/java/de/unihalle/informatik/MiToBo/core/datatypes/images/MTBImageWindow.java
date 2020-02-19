@@ -33,8 +33,6 @@
 
 package de.unihalle.informatik.MiToBo.core.datatypes.images;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType;
 
 
@@ -45,7 +43,6 @@ import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType
  * @author gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.MANDATORY)
 public class MTBImageWindow implements MTBImageManipulator {
 
 	/** size of the window in x-dimension */

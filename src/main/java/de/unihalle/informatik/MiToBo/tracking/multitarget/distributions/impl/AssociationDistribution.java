@@ -37,8 +37,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Random;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.math.MathX;
 import de.unihalle.informatik.MiToBo.math.distributions.impl.GenericDiscreteDistribution;
 import de.unihalle.informatik.MiToBo.math.distributions.interfaces.EvaluatableDistribution;
@@ -72,7 +70,6 @@ import de.unihalle.informatik.MiToBo.tracking.multitarget.distributions.abstract
  * @param <S> Type of discrete variables in the multi target observation
  * @param <T> Type of discrete variables in the multi target state
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class AssociationDistribution<S extends TargetID,T extends TargetID> extends
 		AbstractAssociationDistribution<S, T> implements EvaluatableDistribution<DataAssociation>,
 		LogEvaluatableDistribution<DataAssociation> {

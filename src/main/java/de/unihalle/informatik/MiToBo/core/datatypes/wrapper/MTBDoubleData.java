@@ -33,8 +33,6 @@
 
 package de.unihalle.informatik.MiToBo.core.datatypes.wrapper;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.operator.ALDData;
 
 /**
@@ -48,7 +46,6 @@ import de.unihalle.informatik.Alida.operator.ALDData;
  * 
  * @author Stefan Posch
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class MTBDoubleData extends ALDData {
 	
 		/**

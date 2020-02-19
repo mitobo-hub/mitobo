@@ -41,8 +41,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.annotations.ALDParametrizedClass;
 import de.unihalle.informatik.Alida.annotations.Parameter;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
@@ -58,7 +56,6 @@ import de.unihalle.informatik.MiToBo.fields.VectorField2DPotentialFinder;
  * 
  * @author moeller, misiak
  */
-@ALDMetaInfo(export = ExportPolicy.ALLOWED)
 @ALDParametrizedClass
 public class MTBVectorField2D extends ALDData {
 		/**

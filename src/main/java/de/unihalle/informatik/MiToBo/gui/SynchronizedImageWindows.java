@@ -29,15 +29,12 @@ import ij.ImagePlus;
 
 import java.util.Vector;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 
 /**
  * A class that synchronizes viewing of images for easier comparison. Implemented is synchronous scrolling of stacks.
  * @author Oliver Gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class SynchronizedImageWindows implements ImageListener {
 
 	private Vector<ImagePlus> images;

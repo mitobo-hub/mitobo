@@ -41,8 +41,6 @@ import java.util.Random;
 import java.util.TreeSet;
 import java.util.Vector;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.math.MathX;
 import de.unihalle.informatik.MiToBo.math.distributions.impl.ParticleDistribution;
 import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.abstracts.AbstractMultiState;
@@ -64,7 +62,6 @@ import de.unihalle.informatik.MiToBo.tracking.multitarget.distributions.impl.Ass
  *
  * @param <T>
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class MultiTargetRBMCDA<T extends TargetID> extends ParticleDistribution<RBMCDASample<T>> 
 	implements MultiTargetPredictionFilter<AbstractMultiState<T>> {
 

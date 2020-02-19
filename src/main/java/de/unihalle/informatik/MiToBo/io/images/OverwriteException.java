@@ -1,7 +1,5 @@
 package de.unihalle.informatik.MiToBo.io.images;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 
 /**
@@ -12,7 +10,6 @@ import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
  * @author Oliver Gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class OverwriteException extends ALDOperatorException {
 
 	public OverwriteException(OperatorExceptionType t, String c) {

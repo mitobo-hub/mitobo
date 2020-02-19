@@ -33,8 +33,6 @@
 
 package de.unihalle.informatik.MiToBo.core.datatypes.wrapper;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.operator.ALDData;
 
 /**
@@ -44,7 +42,6 @@ import de.unihalle.informatik.Alida.operator.ALDData;
  * 
  * @author misiak
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class MTBStringData extends ALDData {
 		/**
 		 * The string data to store.

@@ -33,8 +33,6 @@
 
 package de.unihalle.informatik.MiToBo.core.operator;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.operator.*;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 
@@ -79,7 +77,6 @@ import java.util.WeakHashMap;
  * @author moeller
  * @author posch
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class MTBPortHashAccess extends ALDPortHashAccess {
 
 	/**

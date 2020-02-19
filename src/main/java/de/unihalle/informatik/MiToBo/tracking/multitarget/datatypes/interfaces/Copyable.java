@@ -33,8 +33,6 @@
 
 package de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.interfaces;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 
 /**
  * Interface for objects that can be copied (deep copy is assumed).
@@ -43,7 +41,6 @@ import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
  *
  * @param <T> type of the object
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public interface Copyable<T> {
 	
 	T copy();

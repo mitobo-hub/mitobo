@@ -33,8 +33,6 @@
 
 package de.unihalle.informatik.MiToBo.apps.datatypes.cellImages;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.apps.datatypes.cellImages.SegResultEnums.MeasureUnit;
 
 /**
@@ -43,7 +41,6 @@ import de.unihalle.informatik.MiToBo.apps.datatypes.cellImages.SegResultEnums.Me
  * 
  * @author moeller
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public interface SegResult_Interface {
 
 	/**

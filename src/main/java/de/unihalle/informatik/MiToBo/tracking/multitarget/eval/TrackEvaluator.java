@@ -38,8 +38,6 @@ import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.annotations.Parameter;
 import de.unihalle.informatik.Alida.annotations.Parameter.Direction;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
@@ -48,7 +46,6 @@ import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
 import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.impl.MotionModelID;
 import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.impl.MultiState;
 
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class TrackEvaluator extends MTBOperator {
 
 	@Parameter(label="groundtruthObservations", required=true, direction=Direction.IN,

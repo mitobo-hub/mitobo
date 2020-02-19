@@ -33,15 +33,12 @@
 
 package de.unihalle.informatik.MiToBo.apps.datatypes.cellImages;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 
 /**
  * Defines of enumeration types used in conjunction with cell image analysis.
  * 
  * @author moeller
  */
-@ALDMetaInfo(export=ExportPolicy.MANDATORY)
 public class SegResultEnums {
 
 	/**

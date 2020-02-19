@@ -32,8 +32,6 @@
  */
 package de.unihalle.informatik.MiToBo.tracking.multitarget.distributions.abstracts;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.math.distributions.interfaces.ConditionalDistribution;
 import de.unihalle.informatik.MiToBo.math.distributions.interfaces.SamplingDistribution;
 import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.abstracts.AbstractMultiState;
@@ -49,7 +47,6 @@ import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.interfaces.C
  *
  * @param <T> Type of discrete variables in the multi target state
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public abstract class AbstractMultiStateTransitionDistribution<T extends Copyable<?>> implements ConditionalDistribution<AbstractMultiState<T>>,
 																		SamplingDistribution<AbstractMultiState<T>> {
 

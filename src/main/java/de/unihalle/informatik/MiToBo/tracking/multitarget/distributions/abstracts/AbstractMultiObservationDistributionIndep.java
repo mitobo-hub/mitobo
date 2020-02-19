@@ -33,8 +33,6 @@
 package de.unihalle.informatik.MiToBo.tracking.multitarget.distributions.abstracts;
 
 import Jama.Matrix;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.math.distributions.interfaces.FirstOrderMoment;
 import de.unihalle.informatik.MiToBo.math.distributions.interfaces.IndependentlyEvaluatableDistribution;
 import de.unihalle.informatik.MiToBo.math.distributions.interfaces.LogIndependentlyEvaluatableDistribution;
@@ -54,7 +52,6 @@ import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.interfaces.C
  * @param <S> Type of discrete variables in the multi target observation
  * @param <T> Type of discrete variables in the multi target state
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public abstract class AbstractMultiObservationDistributionIndep<S extends Copyable<?>,T extends Copyable<?>> extends
 		AbstractMultiObservationDistribution<S,T> implements IndependentlyEvaluatableDistribution<AbstractMultiState<S>>,
 		LogIndependentlyEvaluatableDistribution<AbstractMultiState<S>>, FirstOrderMoment<AbstractMultiState<T>>,

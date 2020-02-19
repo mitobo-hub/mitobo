@@ -95,8 +95,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 package de.unihalle.informatik.MiToBo.core.batch.provider.output.swing;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.annotations.ALDBatchOutputProvider;
 import de.unihalle.informatik.Alida.batch.ALDBatchRunResultInfo;
 import de.unihalle.informatik.Alida.batch.provider.input.swing.ALDBatchInputIteratorSwing;
@@ -124,7 +122,6 @@ import javax.swing.JComponent;
  * @author moeller
  */
 @ALDBatchOutputProvider(priority=1)
-@ALDMetaInfo(export=ExportPolicy.MANDATORY)
 public class MTBSummarizerSegResultParticlesMultiChannel
 	implements ALDBatchOutputSummarizerSwing {
 	

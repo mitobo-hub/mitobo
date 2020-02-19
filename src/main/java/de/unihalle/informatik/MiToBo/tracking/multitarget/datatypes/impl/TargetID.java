@@ -33,8 +33,6 @@
 
 package de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.impl;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.interfaces.Copyable;
 
 /**
@@ -42,7 +40,6 @@ import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.interfaces.C
  * @author Oliver Gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class TargetID implements Copyable<TargetID> {
 
 	/** Target ID */

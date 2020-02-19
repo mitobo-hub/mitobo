@@ -45,8 +45,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator.ExecutionMode;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator.Level;
@@ -75,7 +73,6 @@ import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.interfaces.A
  * @param <T> Type of the nodes' data objects
  * 
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 @ALDAOperator(genericExecutionMode=ExecutionMode.NONE,level=Level.STANDARD)
 public class GraphvizWriter<T extends Comparable<?> & Comparator<?>> extends ALDOperator {
 

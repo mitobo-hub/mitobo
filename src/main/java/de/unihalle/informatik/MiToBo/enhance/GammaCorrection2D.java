@@ -37,8 +37,6 @@ import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException.OperatorExceptionType;
 import de.unihalle.informatik.Alida.exceptions.ALDWorkflowException;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
 import de.unihalle.informatik.Alida.annotations.Parameter;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator.Level;
@@ -57,7 +55,6 @@ import de.unihalle.informatik.MiToBo.core.operator.*;
  */
 
 @ALDAOperator(genericExecutionMode = ALDAOperator.ExecutionMode.ALL, level = Level.APPLICATION)
-@ALDMetaInfo(export = ExportPolicy.MANDATORY)
 public class GammaCorrection2D extends MTBOperator {
 
 		@Parameter(label = "Input Image", required = true, direction = Parameter.Direction.IN, description = "Input image", mode = ExpertMode.STANDARD, dataIOOrder = 0)

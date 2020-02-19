@@ -33,8 +33,6 @@
 
 package de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.abstracts;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.interfaces.Copyable;
 import Jama.Matrix;
 
@@ -46,7 +44,6 @@ import Jama.Matrix;
  *
  * @param <T> discrete part of a target's state
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public abstract class AbstractMultiState<T extends Copyable<?>> implements Copyable<AbstractMultiState<T>> {
 	
 	/** factory that holds information how a target's state is composed */

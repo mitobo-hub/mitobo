@@ -35,8 +35,6 @@ package de.unihalle.informatik.MiToBo.fields;
 
 import ij.IJ;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
 import de.unihalle.informatik.Alida.annotations.Parameter;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator.Level;
@@ -54,7 +52,6 @@ import de.unihalle.informatik.MiToBo.core.operator.*;
  * @author Danny Misiak
  */
 @ALDAOperator(genericExecutionMode = ALDAOperator.ExecutionMode.NONE, level = Level.STANDARD)
-@ALDMetaInfo(export = ExportPolicy.ALLOWED)
 public class GVFFieldCalculator2D extends MTBOperator {
 
 		/**

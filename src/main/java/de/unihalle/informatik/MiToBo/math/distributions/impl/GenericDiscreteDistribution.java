@@ -35,8 +35,6 @@ package de.unihalle.informatik.MiToBo.math.distributions.impl;
 import java.util.Arrays;
 import java.util.Random;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.math.MathX;
 import de.unihalle.informatik.MiToBo.math.distributions.interfaces.LogProbabilityMassFunction;
 import de.unihalle.informatik.MiToBo.math.distributions.interfaces.ProbabilityMassFunction;
@@ -48,7 +46,6 @@ import de.unihalle.informatik.MiToBo.math.distributions.interfaces.SamplingDistr
  * @author Oliver Gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class GenericDiscreteDistribution implements SamplingDistribution<Integer>,
 		ProbabilityMassFunction, LogProbabilityMassFunction {
 

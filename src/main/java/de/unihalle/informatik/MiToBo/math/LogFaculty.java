@@ -26,8 +26,6 @@ package de.unihalle.informatik.MiToBo.math;
 
 import java.util.Arrays;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 
 /**
  * Class to compute the logarithm of the faculty of an integer n.
@@ -36,7 +34,6 @@ import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
  * @author Oliver Gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class LogFaculty {
 	
 	/** array to store log(0!) to log(n!) */

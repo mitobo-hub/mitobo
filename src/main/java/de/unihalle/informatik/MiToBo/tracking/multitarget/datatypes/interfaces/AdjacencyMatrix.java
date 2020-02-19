@@ -33,8 +33,6 @@
 
 package de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.interfaces;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 
 /**
  * Interface for the adjacency matrix of a graph.
@@ -43,7 +41,6 @@ import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
  *
  * @param <T> type of the nodes of the graph
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public interface AdjacencyMatrix<T extends Comparable<?>> {
 
 	/** Get weight of edge from <code>nodeSrc</code> to <code>nodeTgt</code>. */

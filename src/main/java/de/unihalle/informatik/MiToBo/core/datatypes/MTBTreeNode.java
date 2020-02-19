@@ -24,8 +24,6 @@
 
 package de.unihalle.informatik.MiToBo.core.datatypes;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import java.util.*;
 
 /**
@@ -38,7 +36,6 @@ import java.util.*;
  * 
  * @author Birgit Möller
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class MTBTreeNode {
 
 	/**

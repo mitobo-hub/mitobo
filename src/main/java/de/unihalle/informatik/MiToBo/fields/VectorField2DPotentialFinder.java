@@ -40,8 +40,6 @@ import de.jstacs.algorithms.optimization.*;
 import de.jstacs.algorithms.optimization.termination.SmallDifferenceOfFunctionEvaluationsCondition;
 import de.jstacs.utils.*;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBVectorField2D;
 
 /**
@@ -52,7 +50,6 @@ import de.unihalle.informatik.MiToBo.core.datatypes.MTBVectorField2D;
  * 
  * @author moeller
  */
-@ALDMetaInfo(export = ExportPolicy.ALLOWED)
 public class VectorField2DPotentialFinder {
 
 		/**

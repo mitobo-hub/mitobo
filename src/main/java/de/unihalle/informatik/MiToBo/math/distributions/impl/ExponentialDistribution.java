@@ -32,8 +32,6 @@
  */
 package de.unihalle.informatik.MiToBo.math.distributions.impl;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.math.distributions.interfaces.FirstOrderMoment;
 import de.unihalle.informatik.MiToBo.math.distributions.interfaces.IntegrableDistribution;
 import de.unihalle.informatik.MiToBo.math.distributions.interfaces.SecondOrderCentralMoment;
@@ -44,7 +42,6 @@ import de.unihalle.informatik.MiToBo.math.distributions.interfaces.SecondOrderCe
  * @author Oliver Gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class ExponentialDistribution implements IntegrableDistribution<Double>, FirstOrderMoment<Double>,
 												SecondOrderCentralMoment<Double> {
 

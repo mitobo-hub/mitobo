@@ -36,8 +36,6 @@ package de.unihalle.informatik.MiToBo.tools;
 import java.util.Vector;
 
 import Jama.Matrix;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.impl.MotionModelID;
 import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.impl.MultiState;
 import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.impl.MultiStateFactory;
@@ -53,7 +51,6 @@ import de.unihalle.informatik.MiToBo_xml.MTBXMLStateMMIDType;
  * @author Oliver Gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class XMLTypeConverter {
 	
 	// ---- JAMA matrix ----

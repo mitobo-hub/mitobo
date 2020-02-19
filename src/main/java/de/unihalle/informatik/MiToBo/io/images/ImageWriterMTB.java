@@ -167,8 +167,6 @@ import de.unihalle.informatik.Alida.datatypes.ALDFileString;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException.OperatorExceptionType;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
 import de.unihalle.informatik.Alida.annotations.Parameter;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator.ExecutionMode;
@@ -199,7 +197,6 @@ import de.unihalle.informatik.MiToBo.io.tools.ImageIOUtils;
  *
  */
 
-@ALDMetaInfo(export=ExportPolicy.MANDATORY)
 @ALDAOperator(genericExecutionMode=ExecutionMode.ALL,level=Level.APPLICATION)
 public class ImageWriterMTB extends MTBOperator implements StatusReporter {
 	

@@ -34,8 +34,6 @@
 package de.unihalle.informatik.MiToBo.math.optimization;
 
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
 import de.unihalle.informatik.Alida.annotations.Parameter;
 import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
@@ -53,7 +51,6 @@ import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
  * 
  * @author moeller
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public abstract class MatchingBipartite extends MTBOperator {
 
 	/**

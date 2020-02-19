@@ -45,8 +45,6 @@ import java.io.IOException;
 import java.util.Locale;
 
 import Jama.Matrix;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
@@ -63,7 +61,6 @@ import de.unihalle.informatik.MiToBo.visualization.drawing.DrawTracks2D;
  * @author Oliver Gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.MANDATORY)
 public class ObservationSeriesGenerator {
 
 	public static void main(String[] args) {

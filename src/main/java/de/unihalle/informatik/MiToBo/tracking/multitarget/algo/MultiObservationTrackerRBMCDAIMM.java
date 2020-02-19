@@ -41,8 +41,6 @@ import java.util.Random;
 import java.util.Vector;
 
 import Jama.Matrix;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator.ExecutionMode;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator.Level;
@@ -82,7 +80,6 @@ import de.unihalle.informatik.MiToBo.visualization.drawing.DynamicColorLUT;
  * @author Oliver Gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 @ALDAOperator(genericExecutionMode=ExecutionMode.NONE,level=Level.STANDARD)
 public class MultiObservationTrackerRBMCDAIMM extends MTBOperator {
 	

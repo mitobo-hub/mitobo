@@ -33,12 +33,9 @@
 
 package de.unihalle.informatik.MiToBo.core.datatypes.images;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType;
 
 
-@ALDMetaInfo(export=ExportPolicy.MANDATORY)
 public interface MTBImageManipulator {
 
 	/**

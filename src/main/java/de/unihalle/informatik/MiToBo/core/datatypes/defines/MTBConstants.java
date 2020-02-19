@@ -33,8 +33,6 @@
 
 package de.unihalle.informatik.MiToBo.core.datatypes.defines;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 
 /**
  * Constants globally defined for MiToBo.
@@ -42,7 +40,6 @@ import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
  * 
  * @author moeller
  */
-@ALDMetaInfo(export=ExportPolicy.MANDATORY)
 public class MTBConstants {
 
 	/**

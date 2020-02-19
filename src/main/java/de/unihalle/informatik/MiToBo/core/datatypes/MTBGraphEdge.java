@@ -35,8 +35,6 @@ package de.unihalle.informatik.MiToBo.core.datatypes;
 
 import java.util.Vector;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 
 /**
  * Class implements MTBGraphEdges for the MTBGraph. Each MTBGraphEdges has data
@@ -46,7 +44,6 @@ import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
  * @author misiak
  * 
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class MTBGraphEdge {
 		/**
 		 * Source node of the MTBGraphEdge.

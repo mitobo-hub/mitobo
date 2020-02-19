@@ -35,8 +35,6 @@ package de.unihalle.informatik.MiToBo.tracking.multitarget.distributions.impl;
 import java.util.Random;
 
 import Jama.Matrix;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.math.distributions.impl.GaussianDistribution;
 import de.unihalle.informatik.MiToBo.math.distributions.interfaces.EvaluatableDistribution;
 import de.unihalle.informatik.MiToBo.math.distributions.interfaces.FirstOrderMoment;
@@ -54,7 +52,6 @@ import de.unihalle.informatik.MiToBo.tracking.multitarget.distributions.abstract
  *
  * @param <T> class type of the multi-states' discrete variables
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class MultiStateLinTransDistributionIndepGaussians<T extends Copyable<?>> extends AbstractMultiStateTransitionDistributionIndep<T> 
 									implements EvaluatableDistribution<AbstractMultiState<T>>, 
 											   IndependentlyEvaluatableDistribution<AbstractMultiState<T>>,

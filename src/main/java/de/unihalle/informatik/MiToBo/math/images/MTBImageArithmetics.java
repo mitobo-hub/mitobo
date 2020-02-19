@@ -33,8 +33,6 @@
 
 package de.unihalle.informatik.MiToBo.math.images;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
@@ -51,7 +49,6 @@ import de.unihalle.informatik.MiToBo.math.images.ImageArithmetics.ArithOp;
  * @author gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class MTBImageArithmetics {
 
 

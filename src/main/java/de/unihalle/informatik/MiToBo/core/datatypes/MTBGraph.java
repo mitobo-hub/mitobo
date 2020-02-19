@@ -35,8 +35,6 @@ package de.unihalle.informatik.MiToBo.core.datatypes;
 
 import java.util.Vector;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 
 /**
  * Class implements an (un-) directed MTBGraph. With each MTBGraphNode or
@@ -49,7 +47,6 @@ import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
  * @author Danny Misiak
  * 
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class MTBGraph {
 		/**
 		 * Vector of included graph nodes.

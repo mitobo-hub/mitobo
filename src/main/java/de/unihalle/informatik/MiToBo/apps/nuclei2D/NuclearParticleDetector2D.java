@@ -27,8 +27,6 @@ package de.unihalle.informatik.MiToBo.apps.nuclei2D;
 import java.awt.geom.Point2D;
 import java.util.Vector;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
 import de.unihalle.informatik.Alida.annotations.Parameter;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator.Level;
@@ -74,7 +72,6 @@ import de.unihalle.informatik.MiToBo.segmentation.thresholds.ImgThreshNiblack.Mo
  * </pre>
  */
 @ALDAOperator(genericExecutionMode = ALDAOperator.ExecutionMode.ALL, level = Level.APPLICATION, allowBatchMode = true)
-@ALDMetaInfo(export = ExportPolicy.MANDATORY)
 public class NuclearParticleDetector2D extends MTBOperator {
 
 		// --- input parameters ---

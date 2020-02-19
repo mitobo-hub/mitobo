@@ -34,8 +34,6 @@ package de.unihalle.informatik.MiToBo.math.distributions.impl;
 
 import java.util.Random;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.math.distributions.interfaces.ConditionalDistribution;
 import de.unihalle.informatik.MiToBo.math.distributions.interfaces.FirstOrderMoment;
 import de.unihalle.informatik.MiToBo.math.distributions.interfaces.LogProbabilityMassFunction;
@@ -48,7 +46,6 @@ import de.unihalle.informatik.MiToBo.math.distributions.interfaces.SecondOrderCe
  * @author Oliver Gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class PoissonDistribution implements ProbabilityMassFunction, LogProbabilityMassFunction, ConditionalDistribution<Double>,
 		FirstOrderMoment<Double>, SecondOrderCentralMoment<Double>, SamplingDistribution<Integer> {
 

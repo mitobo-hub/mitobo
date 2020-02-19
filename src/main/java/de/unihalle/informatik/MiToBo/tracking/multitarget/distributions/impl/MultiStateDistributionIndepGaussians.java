@@ -36,8 +36,6 @@ import java.util.Random;
 import java.util.Vector;
 
 import Jama.Matrix;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.math.LinearTransformGaussNoise;
 import de.unihalle.informatik.MiToBo.math.distributions.impl.GaussianDistribution;
 import de.unihalle.informatik.MiToBo.math.distributions.interfaces.EvaluatableDistribution;
@@ -56,7 +54,6 @@ import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.interfaces.C
  *
  * @param <T> class type of the multi-states' discrete variables
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class MultiStateDistributionIndepGaussians<T extends Copyable<?>> implements EvaluatableDistribution<AbstractMultiState<T>>, 
 														IndependentlyEvaluatableDistribution<AbstractMultiState<T>>, 
 														SamplingDistribution<AbstractMultiState<T>>, 

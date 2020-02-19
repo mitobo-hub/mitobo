@@ -37,8 +37,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException.OperatorExceptionType;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator.ExecutionMode;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator.Level;
@@ -63,7 +61,6 @@ import de.unihalle.informatik.MiToBo.core.operator.*;
  *
  */
 @ALDAOperator(genericExecutionMode=ExecutionMode.ALL,level=Level.STANDARD)
-@ALDMetaInfo(export=ExportPolicy.MANDATORY)
 public class HDomeTransform3D extends MTBOperator {
 	
 	@Parameter( label= "h", required = true,  direction = Parameter.Direction.IN, 

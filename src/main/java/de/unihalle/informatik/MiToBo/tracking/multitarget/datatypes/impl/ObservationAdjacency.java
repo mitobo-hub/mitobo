@@ -37,8 +37,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Vector;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.math.MathX;
 import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.abstracts.MatchingAdjacencyMatrix;
 
@@ -49,7 +47,6 @@ import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.abstracts.Ma
  * @author Oliver Gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class ObservationAdjacency extends MatchingAdjacencyMatrix {
 	
 	/** adjacency votes matrix: which observations are associated (same track) 

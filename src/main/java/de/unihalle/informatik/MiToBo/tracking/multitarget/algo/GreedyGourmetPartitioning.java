@@ -39,8 +39,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.Vector;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBGraph;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBGraphEdge;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBGraphNode;
@@ -55,7 +53,6 @@ import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.impl.PartitG
  * @author Oliver Gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class GreedyGourmetPartitioning {
 	
 	protected MatchingAdjacencyMatrix adjMatrix;

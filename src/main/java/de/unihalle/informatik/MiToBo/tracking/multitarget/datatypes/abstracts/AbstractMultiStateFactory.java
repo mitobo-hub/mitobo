@@ -33,8 +33,6 @@
 
 package de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.abstracts;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.interfaces.Copyable;
 import Jama.Matrix;
 
@@ -44,7 +42,6 @@ import Jama.Matrix;
  *
  * @param <T> type of the discrete state variables
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public abstract class AbstractMultiStateFactory<T extends Copyable<?>> {
 	
 	/** degrees of freedom of the continuous variables of a single state */

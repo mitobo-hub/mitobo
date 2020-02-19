@@ -33,8 +33,6 @@
 
 package de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.abstracts;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.impl.PartitGraphNodeID;
 import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.interfaces.AdjacencyMatrix;
 
@@ -44,7 +42,6 @@ import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.interfaces.A
  * @author Oliver Gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public abstract class MatchingAdjacencyMatrix implements AdjacencyMatrix<PartitGraphNodeID> {
 	
 }

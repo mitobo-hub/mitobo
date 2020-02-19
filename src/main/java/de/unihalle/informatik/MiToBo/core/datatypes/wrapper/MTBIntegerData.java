@@ -33,8 +33,6 @@
 
 package de.unihalle.informatik.MiToBo.core.datatypes.wrapper;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 
 /**
  * an Integer wrapper class to be used as input or output for MTB operators<br/>
@@ -42,7 +40,6 @@ import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
  * @author glass
  *
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class MTBIntegerData
 {
 	private Integer value;

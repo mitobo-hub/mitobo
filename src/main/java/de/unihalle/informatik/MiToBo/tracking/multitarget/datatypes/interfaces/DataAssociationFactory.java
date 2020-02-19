@@ -33,15 +33,12 @@
 
 package de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.interfaces;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 
 /**
  * Interface for data association object factories
  * @author Oliver Gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public interface DataAssociationFactory {
 
 	/**

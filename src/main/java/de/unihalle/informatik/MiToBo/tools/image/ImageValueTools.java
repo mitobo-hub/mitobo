@@ -38,8 +38,6 @@ import java.awt.Color;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException.OperatorExceptionType;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator.ExecutionMode;
 import de.unihalle.informatik.Alida.annotations.Parameter;
@@ -70,7 +68,6 @@ import de.unihalle.informatik.MiToBo.core.operator.*;
  * @author Oliver Gress
  * 
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 @ALDAOperator(genericExecutionMode=ExecutionMode.NONE)
 public class ImageValueTools extends MTBOperator {
 

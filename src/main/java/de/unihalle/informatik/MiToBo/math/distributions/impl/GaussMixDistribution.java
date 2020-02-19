@@ -35,8 +35,6 @@ package de.unihalle.informatik.MiToBo.math.distributions.impl;
 import java.util.Random;
 
 import Jama.Matrix;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.math.distributions.interfaces.FirstOrderMoment;
 import de.unihalle.informatik.MiToBo.math.distributions.interfaces.ProbabilityDensityFunction;
 import de.unihalle.informatik.MiToBo.math.distributions.interfaces.SamplingDistribution;
@@ -49,7 +47,6 @@ import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.interfaces.C
  * @author Oliver Gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class GaussMixDistribution extends MixtureDistribution
 				implements SamplingDistribution<Matrix>, FirstOrderMoment<Matrix>, SecondOrderCentralMoment<Matrix>, Copyable<GaussMixDistribution> {
 

@@ -33,8 +33,6 @@
 
 package de.unihalle.informatik.MiToBo.math.distributions.interfaces;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import Jama.Matrix;
 
 /**
@@ -44,7 +42,6 @@ import Jama.Matrix;
  * @author Oliver Gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public interface LogProbabilityDensityFunction extends
 		LogEvaluatableDistribution<Matrix> {
 	

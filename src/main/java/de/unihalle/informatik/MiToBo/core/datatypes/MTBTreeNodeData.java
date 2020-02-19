@@ -24,8 +24,6 @@
 
 package de.unihalle.informatik.MiToBo.core.datatypes;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 
 /**
  * Abstract class to define properties for data objects associated with

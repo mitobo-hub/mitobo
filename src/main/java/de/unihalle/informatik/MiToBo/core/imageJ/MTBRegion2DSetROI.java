@@ -42,8 +42,6 @@ import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.util.Vector;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBBorder2D;
@@ -62,7 +60,6 @@ import de.unihalle.informatik.MiToBo.core.exceptions.MTBDatatypeException;
  * @author Danny Misiak
  * 
  */
-@ALDMetaInfo(export = ExportPolicy.ALLOWED)
 public class MTBRegion2DSetROI extends Roi {
 
 		/**

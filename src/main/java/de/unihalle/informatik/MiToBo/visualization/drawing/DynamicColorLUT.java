@@ -36,15 +36,12 @@ package de.unihalle.informatik.MiToBo.visualization.drawing;
 import java.util.HashMap;
 import java.util.Random;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 
 /**
  * A color lookup table that generates colors dynamically and randomly for indices that do not exist.
  * @author Oliver Gress
  *
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class DynamicColorLUT {
 
 	private Random rand;

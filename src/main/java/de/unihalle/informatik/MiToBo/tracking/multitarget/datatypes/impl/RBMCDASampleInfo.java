@@ -40,8 +40,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.Vector;
 
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo;
-import de.unihalle.informatik.Alida.admin.annotations.ALDMetaInfo.ExportPolicy;
 import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.abstracts.AbstractMultiState;
 import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.interfaces.Copyable;
 import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.interfaces.DataAssociation;
@@ -54,7 +52,6 @@ import de.unihalle.informatik.MiToBo.tracking.multitarget.datatypes.interfaces.D
  *
  * @param <T> type of discrete state variables
  */
-@ALDMetaInfo(export=ExportPolicy.ALLOWED)
 public class RBMCDASampleInfo<T extends TargetID> implements Copyable<RBMCDASampleInfo<T>> {
 
 	/** The probability of the association set of any time step represented by this sample
