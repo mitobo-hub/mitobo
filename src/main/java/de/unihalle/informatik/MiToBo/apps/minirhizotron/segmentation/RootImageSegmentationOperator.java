@@ -140,7 +140,7 @@ public abstract class RootImageSegmentationOperator
 	 * Setter for the input image.
 	 * @param imgs - ImagePlus images per layer to be processed.
 	 */
-	public void setImages(HashMap<Integer, ImagePlus> images) {
+	public void setInputImages(HashMap<Integer, ImagePlus> images) {
 		this.inputImages = images;
 	}
 	
