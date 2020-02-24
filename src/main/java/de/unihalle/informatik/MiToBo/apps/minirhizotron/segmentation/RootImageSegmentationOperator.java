@@ -28,8 +28,6 @@ import java.util.HashMap;
 import java.util.EnumSet;
 import java.util.Vector;
 
-import de.unihalle.informatik.Alida.annotations.Parameter;
-import de.unihalle.informatik.Alida.annotations.Parameter.ExpertMode;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.operator.ALDOperatorCollectionElement;
 import de.unihalle.informatik.MiToBo.apps.minirhizotron.datatypes.MTBRootTree;
@@ -125,6 +123,12 @@ public abstract class RootImageSegmentationOperator
 	 * @return	Subset of layers from which the operator wants to get treeline annotations.
 	 */
 	public abstract EnumSet<LayerSubset> getLayerSubsetForInputTreelines();
+
+	/**
+	 * Ask operator if only selected or all treelines should be provided.
+	 * @return	True if only selected treelines are desired, otherwise false.
+	 */
+	public abstract boolean getOnlySelectedTreelines();
 
 	/**
 	 * Request working mode of the operator, i.e., how the operator deals with treelines.
