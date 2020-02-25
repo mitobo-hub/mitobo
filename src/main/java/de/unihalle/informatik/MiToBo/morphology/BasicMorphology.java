@@ -42,7 +42,9 @@ import de.unihalle.informatik.MiToBo.math.images.MTBImageArithmetics;
  * @author glass
  *
  */
-@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL, level=Level.APPLICATION)
+@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL, 
+	level=Level.APPLICATION,
+	shortDescription="Basic morphological operations on binary and grayscale images.")
 public class BasicMorphology extends MTBOperator
 {
 	@Parameter(label = "input image", required = true, direction = Parameter.Direction.IN, supplemental = false, description = "input image", dataIOOrder = 0)
@@ -470,5 +472,29 @@ public class BasicMorphology extends MTBOperator
 				
 		}
 	}
-
+	
+	@Override
+	public String getDocumentation() {
+		return "\r\n" + 
+				"<p>This operator can be used for performing morphological operations on binary as well as on grayscale images.<br>\r\n" + 
+				"Operations provided are:</p>\r\n" + 
+				"\r\n" + 
+				"<ul><li>\r\n" + 
+				"<p>Dilation</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p>Erosion</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p>Closing</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p>Opening</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p>Morphological Gradient</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p>White (Opening) Top Hat</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p>Black (Closing) Top Hat</p>\r\n" + 
+				"</li></ul>\r\n" + 
+				"\r\n" + 
+				"<p>One can choose between different shaped  and different sized structuring elements</p>";
+	}
 }

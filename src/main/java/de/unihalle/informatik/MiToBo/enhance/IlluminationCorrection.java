@@ -78,7 +78,9 @@ import de.unihalle.informatik.MiToBo.tools.image.ImageConverter;
  * 
  * </pre>
  */
-@ALDAOperator(genericExecutionMode = ALDAOperator.ExecutionMode.ALL, level = Level.STANDARD, allowBatchMode = true)
+@ALDAOperator(genericExecutionMode = ALDAOperator.ExecutionMode.ALL, 
+	level = Level.STANDARD, allowBatchMode = true,
+	shortDescription="Correction of uneven illumination.")
 public class IlluminationCorrection extends MTBOperator {
 
 		// --- input parameters ---
@@ -261,5 +263,66 @@ public class IlluminationCorrection extends MTBOperator {
 				newImg.setCurrentSliceIndex(0);
 
 				return newImg;
+		}
+
+		@Override
+		public String getDocumentation() {
+			return "<p>This class corrects the uneven illumination (e.g. background gradient) of especially gray value bright filed or DIC images.</p>\n" + 
+					"\n" + 
+					"<p>The original image is transformed by a morphological closing (or an other morphological transformation). The correction of the uneven illumination is obtained by dividing the original image by the transformed image. This approach works well for DIC images, maybe also for bright field or other illumination/contrast based images. Mask size of the structuring element should be large to remove the cells or objects but preserve the (uneven) illumination function.</p>\n" + 
+					"\n" + 
+					"<p>The approach is adapted from:  \n" + 
+					"<ul><li>\n" + 
+					"<p>author = {Soille, Pierre},</p>\n" + 
+					"</li><li>\n" + 
+					"<p>title = {Morphological Image Analysis: Principles</p>\n" + 
+					"</li><li>\n" + 
+					"<p>and Applications},</p>\n" + 
+					"</li><li>\n" + 
+					"<p>year = {2010},</p>\n" + 
+					"</li><li>\n" + 
+					"<p>isbn = {9783642076961},</p>\n" + 
+					"</li><li>\n" + 
+					"<p>edition = {2},</p>\n" + 
+					"</li><li>\n" + 
+					"<p>pages = {124 -- 126},</p>\n" + 
+					"</li><li>\n" + 
+					"<p>publisher = {Springer Berlin Heidelberg}. </p>\n" + 
+					"<br>\n" + 
+					"</li></ul>\n" + 
+					"</p>\n" + 
+					"\n" + 
+					"<p>--------------------------------------------------------------------------------</p>\n" + 
+					"<h2>Usage (standard view)</h2>\n" + 
+					"<h3>Required parameters:</h3>\n" + 
+					"\n" + 
+					"<ul><li>\n" + 
+					"<p><tt><b>Input Image</b></tt>\n" + 
+					"<ul><li>\n" + 
+					"<p>Uneven illuminated input image</p>\n" + 
+					"</li></ul>\n" + 
+					"</p>\n" + 
+					"</li><li>\n" + 
+					"<p><tt><b>Morphology</b></tt>\n" + 
+					"<ul><li>\n" + 
+					"<p>Morphological operator for correction</p>\n" + 
+					"</li><li>\n" + 
+					"<p>default: <i><b>Closing with square mask (size 21x21)</b></i></p>\n" + 
+					"</li></ul>\n" + 
+					"</p>\n" + 
+					"</li><li>\n" + 
+					"<p><tt><b>Output Image Type</b></tt>\n" + 
+					"<ul><li>\n" + 
+					"<p>Image type of illumination corrected output image</p>\n" + 
+					"</li><li>\n" + 
+					"<p>default: <i><b>MTB_BYTE</b></i></p>\n" + 
+					"</li></ul>\n" + 
+					"</p>\n" + 
+					"</li></ul>\n" + 
+					"<h3>Supplemental parameters:</h3>\n" + 
+					"\n" + 
+					"<ul><li>\n" + 
+					"<p><tt><b>None</b></tt></p>\n" + 
+					"</li></ul>";
 		}
 }

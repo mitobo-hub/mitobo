@@ -52,7 +52,8 @@ import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
  *
  */
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL,
-	level=Level.STANDARD)
+	level=Level.STANDARD, 
+	shortDescription="Image arithmetics class for MTBImage objects.")
 public class ImageArithmetics extends MTBOperator {
 	
 	@Parameter( label= "First input image", required = true, direction = Parameter.Direction.IN, 
@@ -944,4 +945,57 @@ public class ImageArithmetics extends MTBOperator {
 		return newImg;
 	}
 
+	@Override
+	public String getDocumentation() {
+		return "<p>The ImageArithmetics operator provides simple mathematical operations on images.<br>\n" + 
+				"The operator differentiates between operations taking two input images, one input image and one scalar input as well as a single image only. All operations are elementwise, i.e. per pixel.</p>\n" + 
+				"<br>\n" + 
+				"<h2>Operations on two input images:</h2>\n" + 
+				"\n" + 
+				"<p>The following operations require that the <b>first</b> and <b>second input image</b> are specified. These images have to be of equal size.<br>\n" + 
+				"The value of <b>arithmetic operation</b> can be chosen from:\n" + 
+				"<ul><li>\n" + 
+				"<p>ADD: Sum of pixel values</p>\n" + 
+				"</li><li>\n" + 
+				"<p>SUB: Subtraction of pixel values (input1 - input2)</p>\n" + 
+				"</li><li>\n" + 
+				"<p>MULT: Multiplication of pixel values</p>\n" + 
+				"</li><li>\n" + 
+				"<p>DIV: Division of pixel values (input1 / input2)</p>\n" + 
+				"</li><li>\n" + 
+				"<p>MIN: Minimum of pixel values</p>\n" + 
+				"</li><li>\n" + 
+				"<p>MAX: Maximum of pixel values</p>\n" + 
+				"</li><li>\n" + 
+				"<p>AND: Logical AND of pixel values. Pixel values are interpreted as binary, i.e. value &gt; 0 is interpreted as 1!!</p>\n" + 
+				"</li><li>\n" + 
+				"<p>OR: Logical OR of pixel values. Note that pixel values are interpreted as binary, i.e. value &gt; 0 is interpreted as 1!!</p>\n" + 
+				"</li><li>\n" + 
+				"<p>ABS&nbsp;DIFF: Absolute difference of pixel values</p>\n" + 
+				"<br>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"<h2>Operations using one input image and a scalar input constant:</h2>\n" + 
+				"\n" + 
+				"<p>The following operations require that the <b>first input image</b> is specified together with a scalar value for <b>input constant</b>.<br>\n" + 
+				"The value of <b>arithmetic operation</b> can be chosen from:\n" + 
+				"<ul><li>\n" + 
+				"<p>ADD_CONST: Adds the constant to each pixel</p>\n" + 
+				"</li><li>\n" + 
+				"<p>MULT_CONST: Multiplies each pixel with the constant</p>\n" + 
+				"</li><li>\n" + 
+				"<p>POW_CONST: Raise each pixel to the power of the constant</p>\n" + 
+				"<br>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"<h2>Operations on a single input image only:</h2>\n" + 
+				"\n" + 
+				"<p>The following operations require that the <b>first input image</b> is specified.<br>\n" + 
+				"The value of <b>arithmetic operation</b> can be chosen from:\n" + 
+				"<ul><li>\n" + 
+				"<p>INV: Invert pixel values</p>\n" + 
+				"</li><li>\n" + 
+				"<p>ABS: Absolute value of pixel values</p>\n" + 
+				"</li></ul>";
+	}
 }

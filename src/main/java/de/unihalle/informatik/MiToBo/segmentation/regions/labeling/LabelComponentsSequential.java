@@ -68,7 +68,8 @@ import ij.process.ImageProcessor;
  *
  */
 @ALDAOperator(genericExecutionMode=ExecutionMode.ALL,
-	level=Level.APPLICATION)
+	level=Level.APPLICATION,
+	shortDescription="Sequential component labeling for binarized 2D images.")
 public class LabelComponentsSequential extends MTBOperator {
 	
 	/**
@@ -754,5 +755,46 @@ public class LabelComponentsSequential extends MTBOperator {
 		ip.drawString(s);
 		ImagePlus newLabelImg = new ImagePlus("Label image", ip);
 		return MTBImage.createMTBImage(newLabelImg);
+	}
+	
+	@Override
+	public String getDocumentation() {
+		return "<p>Operator to find in connected components (2D). Background is assumed to have pixel value &lt;= 0, foreground has pixel value &gt; 0.</p>\n" + 
+				"\n" + 
+				"<p>The operator implements the sequential component labeling algorithm described in: <i>W. Burger and M. Burge, Digital image processing: an algorithmic introduction using Java, 2008, Springer-Verlag New York Inc</i></p>\n" + 
+				"<h3>Required input:</h3>\n" + 
+				"\n" + 
+				"<ul><li>\n" + 
+				"<p><b>Input image</b>:</p>\n" + 
+				"\n" + 
+				"<p>Input image with connected components.</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Diagonal neighborhood</b>:</p>\n" + 
+				"\n" + 
+				"<p>Flag if diagonally neighboring of pixels are considered to be connected (8-neighborhood). If true 8-neighborhood is assumed for foreground pixels otherwise 4-neighborhood.</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Create label image</b>:</p>\n" + 
+				"\n" + 
+				"<p>If true an image is created where connected components are drawn with gray value according to their ID.</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Create color image</b>:</p>\n" + 
+				"\n" + 
+				"<p>If true an image is created where connected components are drawn in random colors.</p>\n" + 
+				"</li></ul>\n" + 
+				"<h3>Output:</h3>\n" + 
+				"\n" + 
+				"<ul><li>\n" + 
+				"<p><b>Resulting regions</b>:</p>\n" + 
+				"\n" + 
+				"<p>The set of regions representing the connected components found.</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Label image</b>:</p>\n" + 
+				"\n" + 
+				"<p>The label image (MTBImageType.MTB_INT) that is created if <b>Create label image</b>=true.</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Color image</b>:</p>\n" + 
+				"\n" + 
+				"<p>The color image (MTBImageType.MTB_RGB) that is created if <b>Create color image</b>=true.</p>\n" + 
+				"</li></ul>";
 	}
 }

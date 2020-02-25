@@ -72,7 +72,9 @@ import de.unihalle.informatik.MiToBo.morphology.BasicMorphology.opMode;
  * 
  * </pre>
  */
-@ALDAOperator(genericExecutionMode = ALDAOperator.ExecutionMode.ALL, level = Level.STANDARD, allowBatchMode = true)
+@ALDAOperator(genericExecutionMode = ALDAOperator.ExecutionMode.ALL, 
+	level = Level.STANDARD, allowBatchMode = true,
+	shortDescription="Enhances the contrast by top-hat operations.")
 public class TopHatContrastEnhancement extends MTBOperator {
 
 		// --- input parameters ---
@@ -311,5 +313,69 @@ public class TopHatContrastEnhancement extends MTBOperator {
 				newImg.setCurrentSliceIndex(0);
 
 				return newImg;
+		}
+		
+		@Override
+		public String getDocumentation() {
+			return "\n" + 
+					"<p>This class enhances the contrast by top-hat operations, especially for gray value bright filed or DIC images. A white top-hat is added to the original image (enhance bright objects) and subsequent a black top-hat is subtracted (enhance dark objects).</p>\n" + 
+					"\n" + 
+					"<p>This approach works well for DIC images, maybe also for bright field or other illumination/contrast based images. Mask size of the structuring element should be small to preserve small structures, like neurites.</p>\n" + 
+					"\n" + 
+					"<p><b>NOTE:</b> maybe the result image must be re-scaled, since output gray values can       fall outside the dynamic range of the input image!</p>\n" + 
+					"\n" + 
+					"<p>The approach is adapted from:  \n" + 
+					"<ul><li>\n" + 
+					"<p>author = {Soille, Pierre},</p>\n" + 
+					"</li><li>\n" + 
+					"<p>title = {Morphological Image Analysis: Principles</p>\n" + 
+					"</li><li>\n" + 
+					"<p>and Applications},</p>\n" + 
+					"</li><li>\n" + 
+					"<p>year = {2010},</p>\n" + 
+					"</li><li>\n" + 
+					"<p>isbn = {9783642076961},</p>\n" + 
+					"</li><li>\n" + 
+					"<p>edition = {2},</p>\n" + 
+					"</li><li>\n" + 
+					"<p>pages = {126 -- 127},</p>\n" + 
+					"</li><li>\n" + 
+					"<p>publisher = {Springer Berlin Heidelberg}. </p>\n" + 
+					"<br>\n" + 
+					"</li></ul>\n" + 
+					"</p>\n" + 
+					"\n" + 
+					"<p>--------------------------------------------------------------------------------</p>\n" + 
+					"<h2>Usage (standard view)</h2>\n" + 
+					"<h3>Required parameters:</h3>\n" + 
+					"\n" + 
+					"<ul><li>\n" + 
+					"<p><tt><b>Input Image</b></tt>\n" + 
+					"<ul><li>\n" + 
+					"<p>Low contrast input image</p>\n" + 
+					"</li></ul>\n" + 
+					"</p>\n" + 
+					"</li><li>\n" + 
+					"<p><tt><b>WTH Mask Size</b></tt>\n" + 
+					"<ul><li>\n" + 
+					"<p>Mask size of white top-hat</p>\n" + 
+					"</li><li>\n" + 
+					"<p>default: <i><b>5</b></i></p>\n" + 
+					"</li></ul>\n" + 
+					"</p>\n" + 
+					"</li><li>\n" + 
+					"<p><tt><b>BTH Mask Size</b></tt>\n" + 
+					"<ul><li>\n" + 
+					"<p>ask size of black top-hat</p>\n" + 
+					"</li><li>\n" + 
+					"<p>default: <i><b>5</b></i></p>\n" + 
+					"</li></ul>\n" + 
+					"</p>\n" + 
+					"</li></ul>\n" + 
+					"<h3>Supplemental parameters:</h3>\n" + 
+					"\n" + 
+					"<ul><li>\n" + 
+					"<p><tt><b>None</b></tt></p>\n" + 
+					"</li></ul>";
 		}
 }

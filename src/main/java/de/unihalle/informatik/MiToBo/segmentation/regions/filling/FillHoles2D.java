@@ -61,7 +61,8 @@ import de.unihalle.informatik.MiToBo.segmentation.regions.labeling.LabelComponen
  *
  */
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL,
-	level=Level.STANDARD)
+	level=Level.STANDARD,
+	shortDescription="Fills holes in connected components of binary or label images.")
 public class FillHoles2D extends MTBOperator implements StatusReporter {
 	
 	/**
@@ -440,5 +441,23 @@ public class FillHoles2D extends MTBOperator implements StatusReporter {
 	public void removeStatusListener(StatusListener statuslistener) {
 		this.m_statusListeners.remove(statuslistener);
 	}
-
+	
+	@Override
+	public String getDocumentation() {
+		return "<p>Operator to fill holes in connected components (2D). Background is assumed to have pixel value 0.</p>\n" + 
+				"<h3>Required input:</h3>\n" + 
+				"\n" + 
+				"<ul><li>\n" + 
+				"<p><b>Input image</b>:</p>\n" + 
+				"\n" + 
+				"<p>Input image with connected components.</p>\n" + 
+				"</li></ul>\n" + 
+				"<h3>Output:</h3>\n" + 
+				"\n" + 
+				"<ul><li>\n" + 
+				"<p><b>Result image</b></p>\n" + 
+				"\n" + 
+				"<p>Output image where holes in connected components are filled.</p>\n" + 
+				"</li></ul>";
+	}
 }

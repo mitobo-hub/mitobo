@@ -71,7 +71,8 @@ import de.unihalle.informatik.MiToBo.tools.system.UserTime;
  * @author moeller, misiak
  */
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL,
-		level= Level.STANDARD)
+		level= Level.STANDARD,
+		shortDescription="Image contour segmentation with parametric snakes.")
 @ALDDerivedClass
 public class SnakeOptimizerSingleVarCalc extends SnakeOptimizerSingle {
 
@@ -904,5 +905,157 @@ public class SnakeOptimizerSingleVarCalc extends SnakeOptimizerSingle {
 	 */
 	public Matrix getMemorizedMatrixA() {
 		return this.memA;
+	}
+	
+	@Override
+	public String getDocumentation() {
+		return "<p>Parametric activce contours represent contours as sets of discrete 2D points. Based on application specific energy functionals image segmentation is accomplished by minimizing the functionals with common methods from numerical mathmatics. This optimizer for snake-based image segmentation applies methods from variational calculus to solve the optimization problem, i.e. uses Euler-Lagrange equations and gradient descent techniques. It evolves a single snake in a given image.</p>\n" + 
+				"\n" + 
+				"<p><b>Reference</b>:</p>\n" + 
+				"\n" + 
+				"<p>Michael Kass, Andrew Witkin and Demetri Terzopoulos,<br>\n" + 
+				"\"Snakes: Active contour models\",<br>\n" + 
+				"Int. Journal of Computer Vision, vol. 1, no. 4, pp. 321-331, 1988.</p>\n" + 
+				"<h3>Required input:</h3>\n" + 
+				"\n" + 
+				"<ul><li>\n" + 
+				"<p><b>Input image</b>:</p>\n" + 
+				"\n" + 
+				"<p>Image to be processed, should be a one-layer gray-scale image.</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Initial Snake(s)</b>:</p>\n" + 
+				"\n" + 
+				"<p>Set of initial snakes to be optimized. This optimizer is able to handle one snake  at a time, hence, if the list of polygons contains more than one object, all but the first one are ignored.<br>\n" + 
+				"Initial snake contours can be loaded from different sources:\n" + 
+				"<ul><li>\n" + 
+				"<p>ROI Manager - import ImageJ selections as initial snake polygons</p>\n" + 
+				"</li><li>\n" + 
+				"<p>MTB&nbsp;XML - load polygons from a file in MiToBo XML format (see manual for details)</p>\n" + 
+				"</li><li>\n" + 
+				"<p>SERIAL&nbsp;XML - load polygons from a file in XStream serialized XML format</p>\n" + 
+				"</li><li>\n" + 
+				"<p>MANUAL - opens a window for manual input of polygon points<br>\n" + 
+				"<br>\n" + 
+				"Selecting the option \"ROI Manager\" and pressing the \"View\" button allows to export loaded snake contours to the ImageJ ROI manager for visualization. The edit button allows for manually modifying loaded contours, e.g. adding or erasing points.<br>\n" + 
+				"The icon on the right of the buttons indicates whether contours have already been loaded or not.</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>List of Energies</b>:</p>\n" + 
+				"\n" + 
+				"<p>Snake-based image segmentation relies on a set of energies encoding specific characteristics of the target object that guide the segmentation.<br>\n" + 
+				"<br>\n" + 
+				"By clicking on the button \"Configure Energies...\" a window pops-up that allows to select a set of energies to be applied in the segmentation. Select an energy in the box on top and press \"Add selected energy...\". The selected energy will be added to the table at the bottom. Note that each energy can only be once added to the table, if it is selected and added a second time, nothing happens.<br>\n" + 
+				"<br>\n" + 
+				"The overall snake functional results from the sum of all selected energies. In addition, each energy can be individually weighted by assigning a weight to it in the table. The higher an energy's weight, the more influence the energy will have.<br>\n" + 
+				"<br>\n" + 
+				"Most energies offer configuration parameters. For setting these parameters select an energy from the table at the bottom and press the button \"Configure\". Another configuration window for the selected energy will pop-up which allows you to set its configuration parameters.<br>\n" + 
+				"<br>\n" + 
+				"To remove an energy from the table, select the corresponding row in the table and press the button \"Remove\".<br>\n" + 
+				"</p>\n" + 
+				"</li></ul>\n" + 
+				"<h3>Optional input:</h3>\n" + 
+				"\n" + 
+				"<ul><li>\n" + 
+				"<p><b>Image intensity normalization mode</b>:</p>\n" + 
+				"\n" + 
+				"<p>Image intensities are optionally normalized to a range of [0,1] or [-1,1] (if negative values are present in the image) prior to segmentation for simplifying parameter adjustment. The mode specifies how this normalization is done:\n" + 
+				"<ul><li>\n" + 
+				"<p>INTENSITY&nbsp;NORM&nbsp;NONE: no normalization is done</p>\n" + 
+				"</li><li>\n" + 
+				"<p>INTENSITY&nbsp;NORM&nbsp;THEORETIC&nbsp;RANGE: scale the image according to the theoretic range of possible values, i.e. for an image containing unsigned byte values the range of [0,255] is mapped to [0,1]</p>\n" + 
+				"</li><li>\n" + 
+				"<p>INTENSITY&nbsp;NORM&nbsp;TRUE&nbsp;RANGE: scale the image according to the true range of intensities, i.e. for an image with a minimal intensity of 25 and a maximum intensity of 221, the range of [25,221] is mapped to [0,1]</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Energy normalization mode</b>:</p>\n" + 
+				"\n" + 
+				"<p>The values different energies yield usually vary significantly. To account for numerical issues arising from this fact the optimizer offers to balance different ranges of possible values by energy normalization.\n" + 
+				"<ul><li>\n" + 
+				"<p>NORM&nbsp;NONE: no normalization is done</p>\n" + 
+				"</li><li>\n" + 
+				"<p>NORM&nbsp;BALANCED&nbsp;DERIVATIVES: scales the pixel-wise derivatives of the energy terms to yield values in a range of [-1,1]</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Do Resampling</b>:</p>\n" + 
+				"\n" + 
+				"<p>Turns on snake resampling. In each iteration the snake is then resampled to ensure approximately equally spaced sampling points along the contour. Turning on this option is highly recommended!</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Resample Segment Length</b>:</p>\n" + 
+				"\n" + 
+				"<p>Desired spacing between two snake points along the polygon. During resampling points are removed and added as to yield segments of this length.</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Termination Criterion</b>:</p>\n" + 
+				"\n" + 
+				"<p>Offers different possibilities to check for snake convergence during optimization:\n" + 
+				"<ul><li>\n" + 
+				"<p>MTBTermMaxIterations: stops optimization after a predefined number of iterations</p>\n" + 
+				"</li><li>\n" + 
+				"<p>MTBTermAreaDiff: stops optimization after a predefined number of iterations or if the change of the area enclosed by the snake falls below a threshold between two iterations</p>\n" + 
+				"</li><li>\n" + 
+				"<p>MTBMotionDiff: stops optimization if a certain ratio of snake points has stopped moving<br>\n" + 
+				"<br>\n" + 
+				"Note that the different termination checkers may have individual configuration parameters. To set these parameters choose a criterion and pop-up its configuration window by pressing the \"Configure...\" button.</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Initial Gammy Value</b>:</p>\n" + 
+				"\n" + 
+				"<p>In iterative optimization a step-size is used in each step. This gamma value controls the movements of the snake. The larger the value is, the larger movements the snake performs. Note that too large steps might result in uncontrollable behaviour.</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Gamma Update Strategy</b>:</p>\n" + 
+				"\n" + 
+				"<p>The step-size can be updated over time. Different modes are possible:\n" + 
+				"<ul><li>\n" + 
+				"<p>MTBGammaNone: the initial gamma value is never changed</p>\n" + 
+				"</li><li>\n" + 
+				"<p>MTBGammaFixed: after each iteration the gamma value is decreased by a specified fraction</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li></ul>\n" + 
+				"<h3>Supplemental parameters:</h3>\n" + 
+				"\n" + 
+				"<ul><li>\n" + 
+				"<p><b>Verbose</b>:</p>\n" + 
+				"\n" + 
+				"<p>Prints additional information to the console.</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Show Intermediate Results</b>:</p>\n" + 
+				"\n" + 
+				"<p>Pops-up additional windows during segmentation to show contour evolution.</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Save Intermediate Results</b>:</p>\n" + 
+				"\n" + 
+				"<p>Saves intermediate segmentation results.</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Save Intermediate Results To...</b>:</p>\n" + 
+				"\n" + 
+				"<p>Path where to save intermediate results.</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Show Intermediate Snakes Stack</b>:</p>\n" + 
+				"\n" + 
+				"<p>Generates an additional stack as result which shows intermediate segmentation results.</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Saving Interval for Stack</b>:</p>\n" + 
+				"\n" + 
+				"<p>Interval for saving intermediate results, e.g. every 3rd or 5th result can be saved. Note that saving all results might cause memory issues if many iterations are done.</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Collect energy data</b>:</p>\n" + 
+				"\n" + 
+				"<p>Logs energy data during optimization and displays a table at the end.</p>\n" + 
+				"</li></ul>\n" + 
+				"<h3>Output:</h3>\n" + 
+				"\n" + 
+				"<p>The operator returns...\n" + 
+				"<ul><li>\n" + 
+				"<p>the final contour (as set with one element)</p>\n" + 
+				"</li><li>\n" + 
+				"<p>an image overlay showing the input image and the segmentation result</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"\n" + 
+				"<p>Note that the snake optimizer allows for interaction. At the bottom of the control window there are buttons to pause/resume the optimizer during segmentation or to run it step-wise.</p>";
 	}
 }

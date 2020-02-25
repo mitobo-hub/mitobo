@@ -74,7 +74,8 @@ import de.unihalle.informatik.MiToBo.core.operator.*;
  * @author Birgit Moeller
  */
 @SuppressWarnings("javadoc")
-@ALDAOperator(genericExecutionMode = ALDAOperator.ExecutionMode.ALL)
+@ALDAOperator(genericExecutionMode = ALDAOperator.ExecutionMode.ALL,
+		shortDescription="Otsu's method for calculating global thresholds for image binarization.")
 public class CalcGlobalThreshOtsu extends MTBOperator {
 
 		/**
@@ -321,5 +322,43 @@ public class CalcGlobalThreshOtsu extends MTBOperator {
 				} catch (ALDOperatorException e) {
 						e.printStackTrace();
 				}
+		}
+		
+		@Override
+		public String getDocumentation() {
+			return "<ul><li>\r\n" + 
+					"<p>operator implements the Otsu algorithm for threshold calcuation</p>\r\n" + 
+					"</li><li>\r\n" + 
+					"<p>Otsu assumes bimodal histograms and searches for threshold that\r\n" + 
+					"<ul><li>\r\n" + 
+					"<p>maximizes the difference between the intensity means of both classes</p>\r\n" + 
+					"</li><li>\r\n" + 
+					"<p>mimimizes the intensity variance within each class</p>\r\n" + 
+					"</li></ul>\r\n" + 
+					"</p>\r\n" + 
+					"</li><li>\r\n" + 
+					"<p>operator output is the calculated threshold</p>\r\n" + 
+					"</li></ul>\r\n" + 
+					"<h2>Usage:</h2>\r\n" + 
+					"<h3>Required parameters:</h3>\r\n" + 
+					"\r\n" + 
+					"<ul><li>\r\n" + 
+					"<p><tt>Input image</tt> \r\n" + 
+					"<ul><li>\r\n" + 
+					"<p>the single-channel image to be analyzed</p>\r\n" + 
+					"</li><li>\r\n" + 
+					"<p>if the image contains multiple channels, only the first one is processed</p>\r\n" + 
+					"</li></ul>\r\n" + 
+					"</p>\r\n" + 
+					"</li></ul>\r\n" + 
+					"<h3>Supplemental parameters:</h3>\r\n" + 
+					"\r\n" + 
+					"<ul><li>\r\n" + 
+					"<p><tt>Verbose</tt>\r\n" + 
+					"<ul><li>\r\n" + 
+					"<p>disables/enables output of additional messages on console</p>\r\n" + 
+					"</li></ul>\r\n" + 
+					"</p>\r\n" + 
+					"</li></ul>";
 		}
 }

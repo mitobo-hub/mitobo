@@ -107,7 +107,8 @@ import ij.gui.*;
  * 
  * @author moeller
  */
-@ALDAOperator(genericExecutionMode=ExecutionMode.ALL)
+@ALDAOperator(genericExecutionMode=ExecutionMode.ALL,
+		shortDescription="Image binarization based on local Niblack thresholding.")
 public class ImgThreshNiblack extends MTBOperator {
 
 	/**
@@ -686,4 +687,95 @@ public class ImgThreshNiblack extends MTBOperator {
   	}
   	return result;
   }
+  
+	@Override
+	public String getDocumentation() {
+		return "<ul><li>\n" + 
+				"<p>operator implements the Niblack thresholding algorithm</p>\n" + 
+				"</li><li>\n" + 
+				"<p>threshold is based on intensity mean of the image to be processed</p>\n" + 
+				"</li><li>\n" + 
+				"<p>details for its calculation can be found in the API of this operator</p>\n" + 
+				"</li></ul>\n" + 
+				"<h2>Usage:</h2>\n" + 
+				"<h3>Required parameters:</h3>\n" + 
+				"\n" + 
+				"<ul><li>\n" + 
+				"<p><tt>Input image</tt> \n" + 
+				"<ul><li>\n" + 
+				"<p>the single-channel image to be analyzed</p>\n" + 
+				"</li><li>\n" + 
+				"<p>if the image contains multiple channels, only the first one is processed</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li><li>\n" + 
+				"<p><tt>Mode</tt>\n" + 
+				"<ul><li>\n" + 
+				"<p>processing mode of Niblack operator:\n" + 
+				"<ol><li>\n" + 
+				"<p>STD: standard NIBLACK algorithm</p>\n" + 
+				"</li><li>\n" + 
+				"<p>STD&nbsp;LOCALVARCHECK: standard implementation, but only applied to sliding windows where the local intensity variance exceeds a threshold; windows with lower variance are classified as background</p>\n" + 
+				"</li><li>\n" + 
+				"<p>MASKWISE: Niblack is applied mask-wise to the image</p>\n" + 
+				"</li><li>\n" + 
+				"<p>WHOLE&nbsp;IMAGE: disables local thresholding, but calculates a single threshold for the whole image</p>\n" + 
+				"</li></ol>\n" + 
+				"</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li></ul>\n" + 
+				"<h3>Optional parameters:</h3>\n" + 
+				"\n" + 
+				"<ul><li>\n" + 
+				"<p><tt>Window size</tt>\n" + 
+				"<ul><li>\n" + 
+				"<p>size of the sliding window</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li><li>\n" + 
+				"<p><tt>Exclude mask</tt>\n" + 
+				"<ul><li>\n" + 
+				"<p>optional binary mask to exclude image parts from processing</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li><li>\n" + 
+				"<p><tt>K</tt>\n" + 
+				"<ul><li>\n" + 
+				"<p>parameter K of Niblack algorithm</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li><li>\n" + 
+				"<p><tt>R</tt>\n" + 
+				"<ul><li>\n" + 
+				"<p>parameter R of Niblack algorithm</p>\n" + 
+				"</li><li>\n" + 
+				"<p>activates the enhanced Niblack threshold computation</p>\n" + 
+				"</li><li>\n" + 
+				"<p>if set to -1 the standard calculations are done</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li><li>\n" + 
+				"<p><tt>Variance check neighborhood</tt>\n" + 
+				"<ul><li>\n" + 
+				"<p>size of local neighborhood to decide if Niblack threshold is calculated for a pixel, only used in STD&nbsp;LOCALVARCHECK mode</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li><li>\n" + 
+				"<p><tt>Variance threshold</tt>\n" + 
+				"<ul><li>\n" + 
+				"<p>intensity variance to be exceeded in local neighborhood for threshold calculation in STD&nbsp;LOCALVARCHECK mode</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li></ul>\n" + 
+				"<h3>Supplemental parameters:</h3>\n" + 
+				"\n" + 
+				"<ul><li>\n" + 
+				"<p><tt>Verbose</tt>\n" + 
+				"<ul><li>\n" + 
+				"<p>disables/enables output of additional messages on console</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li></ul>";
+	}
 }

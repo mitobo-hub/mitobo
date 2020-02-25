@@ -118,7 +118,8 @@ import de.unihalle.informatik.MiToBo.segmentation.thresholds.ImgThresh;
  * @author Birgit Moeller
  */
 @ALDAOperator(genericExecutionMode = ALDAOperator.ExecutionMode.ALL, 
-	level = Level.APPLICATION)
+	level = Level.APPLICATION,
+	shortDescription="Locally adaptive contrast enhancement for microscopy images. ")
 public class LocallyAdaptiveContrastEnhancement extends MTBOperator {
 
 	/**
@@ -703,4 +704,73 @@ public class LocallyAdaptiveContrastEnhancement extends MTBOperator {
 		return resultImages;
 	}
 
+	@Override
+	public String getDocumentation() {
+		return "\r\n" + 
+				"<p>This class implements locally adaptive contrast enhancement for microscopy images. </p>\r\n" + 
+				"\r\n" + 
+				"<p><b>Reference</b>:</p>\r\n" + 
+				"\r\n" + 
+				"<p>Jyh-Ying Peng, Chun-Nan Hsu, Chung-Chih Lin,<br>\r\n" + 
+				"\"Adaptive Image Enhancement for Fluorescence Microscopy\",<br>\r\n" + 
+				"Int. Conf. on Technologies and Applications of Artificial Intelligence,<br>\r\n" + 
+				"pp. 9-16, 2010.</p>\r\n" + 
+				"\r\n" + 
+				"<p>The basic idea of the algorithm is to enhance contrast by normalizing each pixel's intensity according to the standard intensity deviation in a local region around the pixel. Subsequently it should be easier to distinguish image background and relevant foreground structures from each other.</p>\r\n" + 
+				"\r\n" + 
+				"<p>Although in principal arbitrary segmentation methods could be applied after contrast enhancement, the algorithm is optimized for subsequent binarization, e.g. by Otsu thresholding. </p>\r\n" + 
+				"\r\n" + 
+				"<p>The algorithm does not work very well on images showing small structures on very noisy background (like P-bodies or stress granules), but is much better suited for larger structures like DAPI-stained nuclei which can more easily be distinguished from clutter, at least visually.</p>\r\n" + 
+				"\r\n" + 
+				"<p>As an extension to the original paper this operator features a mode for component-wise application of the algorithm. This means that the image is first of all thresholded and connected components are extracted. Then the contrast enhancement is applied to each component's bounding box separately.<br>\r\n" + 
+				"In the end the result image is generated from all enhanced patches after they have been thresholded, i.e. the result image in this case is already a  binary segmentation of foreground and background.<br>\r\n" + 
+				"This inherent binarization is done as the contrast-enhanced image contains only fractions of  reasonable information and, thus, is difficult to post-process without specific knowledge only available inside of this operator.</p>\r\n" + 
+				"<h3>Required input:</h3>\r\n" + 
+				"\r\n" + 
+				"<ul><li>\r\n" + 
+				"<p><b>Input image</b>:</p>\r\n" + 
+				"\r\n" + 
+				"<p>Image to be processed</p>\r\n" + 
+				"</li></ul>\r\n" + 
+				"<h3>Optional input:</h3>\r\n" + 
+				"\r\n" + 
+				"<ul><li>\r\n" + 
+				"<p><b>Maximal Region Radius</b>:</p>\r\n" + 
+				"\r\n" + 
+				"<p>The maximum radius of local regions;<br>\r\n" + 
+				" this value should be chosen according to the size of interesting structures in the image, i.e. should be large enough to allow for the local regions to contain likewise foreground as well as background fractions. </p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p><b>Std. Deviation Ratio</b>:</p>\r\n" + 
+				"\r\n" + 
+				"<p>The local radius of each region is chosen such that the standard deviation inside the region exceeds a certain ratio of the overall image standard deviation; use this parameter to specify this ratio.<br>\r\n" + 
+				"Note that larger ratios will usually result in a larger standard deviation threshold and consequently yield larger local regions.</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p><b>Apply component-wise</b>:</p>\r\n" + 
+				"\r\n" + 
+				"<p>If activated the algorithm is applied separately to each connected component segmented from the image by Otsu thresholding and component labeling;<br>\r\n" + 
+				"this mode should be used if the image contains large fractions of background and only some few small foreground objects.</p>\r\n" + 
+				"</li></ul>\r\n" + 
+				"<h3>Supplemental parameters:</h3>\r\n" + 
+				"\r\n" + 
+				"<ul><li>\r\n" + 
+				"<p><b>Calculate Radius Image</b>:</p>\r\n" + 
+				"\r\n" + 
+				"<p>Yields an additional output image visualizing the local region size for each pixel.</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p><b>Verbose</b>:</p>\r\n" + 
+				"\r\n" + 
+				"<p>Additional output messages are written to console.</p>\r\n" + 
+				"</li></ul>\r\n" + 
+				"<h3>Output:</h3>\r\n" + 
+				"\r\n" + 
+				"<ul><li>\r\n" + 
+				"<p><b>Result Image</b>:</p>\r\n" + 
+				"\r\n" + 
+				"<p>In standard mode the enhanced image of type MTB&nbsp;DOUBLE with intensities in the range of [0,1] is returned, in component-wise mode a binary image is returned.</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p><b>Radius Image</b>:</p>\r\n" + 
+				"\r\n" + 
+				"<p>Optional image with calculated local region radii.</p>\r\n" + 
+				"</li></ul>";
+	}
 }
