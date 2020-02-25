@@ -47,7 +47,8 @@ import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
  * @author gress
  * 
  */
-@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL)
+@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL,
+		shortDescription="Applies a non-linear rank operator to the image.")
 public class RankOperator extends MTBOperator implements StatusReporter {
 	
 
@@ -516,57 +517,55 @@ public class RankOperator extends MTBOperator implements StatusReporter {
 		 this.resultImg = img;
 	}
 
-	
+	@Override
+	public String getDocumentation() {
+		return "<p>A rank operator that implements the Median-, Minimum- and Maximum-filter. To compute the new value of a pixel the rank operator considers pixels in the current pixel's neighborhood determined by mask. The current pixel value is then given by the median, the minimum or the maximum value of the considered pixel values.</p>\n" + 
+				"<h3>Required input:</h3>\n" + 
+				"\n" + 
+				"<ul><li>\n" + 
+				"<p><b>Input image</b>:</p>\n" + 
+				"\n" + 
+				"<p>Image to be filtered</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Rank operation</b>:</p>\n" + 
+				"\n" + 
+				"<p>Determines the rank operation:</p>\n" + 
+				"\n" + 
+				"<ul><li>\n" + 
+				"<p>MEDIAN: Median-filter</p>\n" + 
+				"</li><li>\n" + 
+				"<p>MIN: Minimum-filter</p>\n" + 
+				"</li><li>\n" + 
+				"<p>MAX: Maximum-filter</p>\n" + 
+				"</li></ul>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Mask-radius x</b>: </p>\n" + 
+				"\n" + 
+				"<p>The radius of the mask in x-dimension in a city-block sense (rectangular mask)</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Mask-radius y</b>: </p>\n" + 
+				"\n" + 
+				"<p>The radius of the mask in y-dimension in a city-block sense (rectangular mask)</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Mask-radius z</b>: </p>\n" + 
+				"\n" + 
+				"<p>The radius of the mask in z-dimension in a city-block sense (rectangular mask)</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Mask-radius t</b>: </p>\n" + 
+				"\n" + 
+				"<p>The radius of the mask in t-dimension in a city-block sense (rectangular mask)</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Mask-radius c</b>: </p>\n" + 
+				"\n" + 
+				"<p>The radius of the mask in c-dimension in a city-block sense (rectangular mask)</p>\n" + 
+				"</li></ul>\n" + 
+				"<h3>Output:</h3>\n" + 
+				"\n" + 
+				"<ul><li>\n" + 
+				"<p><b>Result image</b>:</p>\n" + 
+				"\n" + 
+				"<p>The filtered image of same type as the input image</p>\n" + 
+				"</li></ul>\n";
+	}
 }
 
-/*BEGIN_MITOBO_ONLINE_HELP
-<p><a target="_blank" href="http://www2.informatik.uni-halle.de/agprbio/mitobo//api/de/unihalle/informatik/MiToBo/filters/linear/RankOperator.html">API</a></p>
-
-<p>A rank operator that implements the Median-, Minimum- and Maximum-filter. To compute the new value of a pixel the rank operator considers pixels in the current pixel's neighborhood determined by mask. The current pixel value is then given by the median, the minimum or the maximum value of the considered pixel values.</p>
-<h3>Required input:</h3>
-
-<ul><li>
-<p><b>Input image</b>:</p>
-
-<p>Image to be filtered</p>
-</li><li>
-<p><b>Rank operation</b>:</p>
-
-<p>Determines the rank operation:</p>
-
-<ul><li>
-<p>MEDIAN: Median-filter</p>
-</li><li>
-<p>MIN: Minimum-filter</p>
-</li><li>
-<p>MAX: Maximum-filter</p>
-</li></ul>
-</li><li>
-<p><b>Mask-radius x</b>: </p>
-
-<p>The radius of the mask in x-dimension in a city-block sense (rectangular mask)</p>
-</li><li>
-<p><b>Mask-radius y</b>: </p>
-
-<p>The radius of the mask in y-dimension in a city-block sense (rectangular mask)</p>
-</li><li>
-<p><b>Mask-radius z</b>: </p>
-
-<p>The radius of the mask in z-dimension in a city-block sense (rectangular mask)</p>
-</li><li>
-<p><b>Mask-radius t</b>: </p>
-
-<p>The radius of the mask in t-dimension in a city-block sense (rectangular mask)</p>
-</li><li>
-<p><b>Mask-radius c</b>: </p>
-
-<p>The radius of the mask in c-dimension in a city-block sense (rectangular mask)</p>
-</li></ul>
-<h3>Output:</h3>
-
-<ul><li>
-<p><b>Result image</b>:</p>
-
-<p>The filtered image of same type as the input image</p>
-</li></ul>
-END_MITOBO_ONLINE_HELP*/

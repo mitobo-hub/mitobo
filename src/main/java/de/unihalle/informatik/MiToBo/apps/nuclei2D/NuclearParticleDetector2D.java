@@ -71,7 +71,9 @@ import de.unihalle.informatik.MiToBo.segmentation.thresholds.ImgThreshNiblack.Mo
  * 
  * </pre>
  */
-@ALDAOperator(genericExecutionMode = ALDAOperator.ExecutionMode.ALL, level = Level.APPLICATION, allowBatchMode = true)
+@ALDAOperator(genericExecutionMode = ALDAOperator.ExecutionMode.ALL, 
+	level = Level.APPLICATION, allowBatchMode = true,
+	shortDescription="Detects nuclei and particles inside these nuclei.")
 public class NuclearParticleDetector2D extends MTBOperator {
 
 		// --- input parameters ---
@@ -813,86 +815,77 @@ public class NuclearParticleDetector2D extends MTBOperator {
 		// "-NuclearParticleDetection-Result");
 		// }
 
+		@Override
+		public String getDocumentation() {
+			return " * <p>The NuclearParticleDetector2D detects nuclei and particles inside these\n" + 
+					" * nuclei and gives some statistics about particles, like particle number per\n" + 
+					" * nuclei, particle size, sum of intensities, etc. Nuclei are detected via the\n" + 
+					" * NucleusDetector2D by using the Niblack thresholding. As post-process the\n" + 
+					" * nuclei channel is gamma corrected and filter with a small gaussian, due to\n" + 
+					" * uneven illumination of the nuclei in the images. This may depends on the\n" + 
+					" * input image data and can be switched off separately. Particles are detected\n" + 
+					" * via the ParticleDetectorUWT2D.</p> <br>\n" + 
+					" * \n" + 
+					" * <p>see <a\n" + 
+					" * href=\"de.unihalle.informatik.MiToBo.apps.nuclei2D.NucleusDetector2D.html\"\n" + 
+					" * >Nucleus Detector 2D</a></p> <p>see <a\n" + 
+					" * href=\"de.unihalle.informatik.MiToBo.apps.particles2D.ParticleDetectorUWT2D.html\"\n" + 
+					" * >Particle Detector UWT 2D</a></p>\n" + 
+					" * \n" + 
+					" * <br>\n" + 
+					" * \n" + 
+					" * <p>----------------------------------------------------------------------------\n" + 
+					" * ----</p> <h2>Output:</h3>\n" + 
+					" * \n" + 
+					" * <ul><li> <p>image with detected nuclei and particles</p> </li><li>\n" + 
+					" * <p>detected nuclei regions</p> </li><li> <p>detected particle regions</p>\n" + 
+					" * </li><li> <p>table with statistic results</p> <br> </li></ul>\n" + 
+					" * \n" + 
+					" * <p>----------------------------------------------------------------------------\n" + 
+					" * ----</p> <h2>Usage (standard view)</h2> <h3>Required parameters:</h3>\n" + 
+					" * \n" + 
+					" * <ul><li> <p><tt><b>Nuclei Channel</b></tt> <ul><li> <p>Channel number of the\n" + 
+					" * nuclei image channel</p> </li><li> <p>range [1, #ImageChannels]</p> </li><li>\n" + 
+					" * <p>default: <i><b>2</b></i></p> </li></ul> </p> </li><li> <p><tt><b>Particle\n" + 
+					" * Channel</b></tt> <ul><li> <p>Channel number of the particle image channel</p>\n" + 
+					" * </li><li> <p>range [1, #ImageChannels]</p> </li><li> <p>default:\n" + 
+					" * <i><b>1</b></i></p> </li></ul> </p> </li></ul>\n" + 
+					" * \n" + 
+					" * <h3>Supplemental parameters:</h3>\n" + 
+					" * \n" + 
+					" * <ul><li> <p><tt><b>Verbose</b></tt> <ul><li> <p>Output of additional messages\n" + 
+					" * on console is disabled/enabled</p> </li><li> <p>default:\n" + 
+					" * <i><b>false</b></i></p> <br> </li></ul> </p> </li></ul>\n" + 
+					" * \n" + 
+					" * <p>----------------------------------------------------------------------------\n" + 
+					" * ----</p> <h2>Usage (advanced view):</h2> <h3>Required parameters:</h3>\n" + 
+					" * \n" + 
+					" * <ul><li> <p><tt><b>Nuclei Channel</b></tt> <ul><li> <p>Channel number of the\n" + 
+					" * nuclei image channel</p> </li><li> <p>range [1, #ImageChannels]</p> </li><li>\n" + 
+					" * <p>default: <i><b>2</b></i></p> </li></ul> </p> </li><li> <p><tt><b>Particle\n" + 
+					" * Channel</b></tt> <ul><li> <p>Channel number of the particle image channel</p>\n" + 
+					" * </li><li> <p>range [1, #ImageChannels]</p> </li><li> <p>default:\n" + 
+					" * <i><b>1</b></i></p> </li></ul> </p> </li><li> <p><tt><b>Use Gamma\n" + 
+					" * Correction</b></tt> <ul><li> <p>Flag to use gamma correction for nuclei\n" + 
+					" * channel</p> </li><li> <p>default: <i><b>true</b></i></p> </li></ul> </p>\n" + 
+					" * </li><li> <p><tt><b>Gamma Value</b></tt> <ul><li> <p>Gamma correction value\n" + 
+					" * for nuclei channel</p> </li><li> <p>range [0, 1]</p> </li><li> <p>default:\n" + 
+					" * <i><b>0.5</b></i></p> </li></ul> </p> </li><li> <p><tt><b>Use Gaussian\n" + 
+					" * Filter</b></tt> <ul><li> <p>Flag to use gaussian filter for nuclei\n" + 
+					" * channel</p> </li><li> <p>default: <i><b>true</b></i></p> </li></ul> </p>\n" + 
+					" * </li><li> <p><tt><b>Nucleus Detector</b></tt> <ul><li> <p>Detector to use for\n" + 
+					" * nuclei detection</p> </li><li> <p>Configurable via GUI (see <a\n" + 
+					" * href=\"de.unihalle.informatik.MiToBo.apps.nuclei2D.NucleusDetector2D.html\"\n" + 
+					" * >Nucleus Detector 2D</a>)</p> </li></ul> </p> </li><li> <p><tt><b>Particle\n" + 
+					" * Detector</b></tt> <ul><li> <p>Detector to use for particle detection</p>\n" + 
+					" * </li><li> <p>Configurable via GUI (see <a\n" + 
+					" * href=\"de.unihalle.informatik.MiToBo.apps.particles2D.ParticleDetectorUWT2D.html\"\n" + 
+					" * >Particle Detector UWT 2D</a>)</p> </li></ul> </p> </li></ul>\n" + 
+					" * \n" + 
+					" * <h3>Supplemental parameters:</h3>\n" + 
+					" * \n" + 
+					" * <ul><li> <p><tt><b>Verbose</b></tt> <ul><li> <p>Output of additional messages\n" + 
+					" * on console is disabled/enabled</p> </li><li> <p>default:\n" + 
+					" * <i><b>false</b></i></p> <br> </li></ul> </p> </li></ul>\n";
+		}
 }
-
-/*
- * BEGIN_MITOBO_ONLINE_HELP
- * 
- * <p><a target="_blank" href=
- * "http://www2.informatik.uni-halle.de/agprbio/mitobo//api/de/unihalle/informatik/MiToBo/apps/nuclei2D/NuclearParticleDetector2D.html"
- * >API</a></p> <br>
- * 
- * <p>The NuclearParticleDetector2D detects nuclei and particles inside these
- * nuclei and gives some statistics about particles, like particle number per
- * nuclei, particle size, sum of intensities, etc. Nuclei are detected via the
- * NucleusDetector2D by using the Niblack thresholding. As post-process the
- * nuclei channel is gamma corrected and filter with a small gaussian, due to
- * uneven illumination of the nuclei in the images. This may depends on the
- * input image data and can be switched off separately. Particles are detected
- * via the ParticleDetectorUWT2D.</p> <br>
- * 
- * <p>see <a
- * href="de.unihalle.informatik.MiToBo.apps.nuclei2D.NucleusDetector2D.html"
- * >Nucleus Detector 2D</a></p> <p>see <a
- * href="de.unihalle.informatik.MiToBo.apps.particles2D.ParticleDetectorUWT2D.html"
- * >Particle Detector UWT 2D</a></p>
- * 
- * <br>
- * 
- * <p>----------------------------------------------------------------------------
- * ----</p> <h2>Output:</h3>
- * 
- * <ul><li> <p>image with detected nuclei and particles</p> </li><li>
- * <p>detected nuclei regions</p> </li><li> <p>detected particle regions</p>
- * </li><li> <p>table with statistic results</p> <br> </li></ul>
- * 
- * <p>----------------------------------------------------------------------------
- * ----</p> <h2>Usage (standard view)</h2> <h3>Required parameters:</h3>
- * 
- * <ul><li> <p><tt><b>Nuclei Channel</b></tt> <ul><li> <p>Channel number of the
- * nuclei image channel</p> </li><li> <p>range [1, #ImageChannels]</p> </li><li>
- * <p>default: <i><b>2</b></i></p> </li></ul> </p> </li><li> <p><tt><b>Particle
- * Channel</b></tt> <ul><li> <p>Channel number of the particle image channel</p>
- * </li><li> <p>range [1, #ImageChannels]</p> </li><li> <p>default:
- * <i><b>1</b></i></p> </li></ul> </p> </li></ul>
- * 
- * <h3>Supplemental parameters:</h3>
- * 
- * <ul><li> <p><tt><b>Verbose</b></tt> <ul><li> <p>Output of additional messages
- * on console is disabled/enabled</p> </li><li> <p>default:
- * <i><b>false</b></i></p> <br> </li></ul> </p> </li></ul>
- * 
- * <p>----------------------------------------------------------------------------
- * ----</p> <h2>Usage (advanced view):</h2> <h3>Required parameters:</h3>
- * 
- * <ul><li> <p><tt><b>Nuclei Channel</b></tt> <ul><li> <p>Channel number of the
- * nuclei image channel</p> </li><li> <p>range [1, #ImageChannels]</p> </li><li>
- * <p>default: <i><b>2</b></i></p> </li></ul> </p> </li><li> <p><tt><b>Particle
- * Channel</b></tt> <ul><li> <p>Channel number of the particle image channel</p>
- * </li><li> <p>range [1, #ImageChannels]</p> </li><li> <p>default:
- * <i><b>1</b></i></p> </li></ul> </p> </li><li> <p><tt><b>Use Gamma
- * Correction</b></tt> <ul><li> <p>Flag to use gamma correction for nuclei
- * channel</p> </li><li> <p>default: <i><b>true</b></i></p> </li></ul> </p>
- * </li><li> <p><tt><b>Gamma Value</b></tt> <ul><li> <p>Gamma correction value
- * for nuclei channel</p> </li><li> <p>range [0, 1]</p> </li><li> <p>default:
- * <i><b>0.5</b></i></p> </li></ul> </p> </li><li> <p><tt><b>Use Gaussian
- * Filter</b></tt> <ul><li> <p>Flag to use gaussian filter for nuclei
- * channel</p> </li><li> <p>default: <i><b>true</b></i></p> </li></ul> </p>
- * </li><li> <p><tt><b>Nucleus Detector</b></tt> <ul><li> <p>Detector to use for
- * nuclei detection</p> </li><li> <p>Configurable via GUI (see <a
- * href="de.unihalle.informatik.MiToBo.apps.nuclei2D.NucleusDetector2D.html"
- * >Nucleus Detector 2D</a>)</p> </li></ul> </p> </li><li> <p><tt><b>Particle
- * Detector</b></tt> <ul><li> <p>Detector to use for particle detection</p>
- * </li><li> <p>Configurable via GUI (see <a
- * href="de.unihalle.informatik.MiToBo.apps.particles2D.ParticleDetectorUWT2D.html"
- * >Particle Detector UWT 2D</a>)</p> </li></ul> </p> </li></ul>
- * 
- * <h3>Supplemental parameters:</h3>
- * 
- * <ul><li> <p><tt><b>Verbose</b></tt> <ul><li> <p>Output of additional messages
- * on console is disabled/enabled</p> </li><li> <p>default:
- * <i><b>false</b></i></p> <br> </li></ul> </p> </li></ul>
- * 
- * 
- * END_MITOBO_ONLINE_HELP
- */

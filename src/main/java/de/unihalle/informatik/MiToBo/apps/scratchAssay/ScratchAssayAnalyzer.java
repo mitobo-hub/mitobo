@@ -25,7 +25,9 @@ import de.unihalle.informatik.MiToBo.gui.MTBTableModel;
  * @author glass
  *
  */
-@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL, level=Level.APPLICATION, allowBatchMode = true)
+@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL, 
+	level=Level.APPLICATION, allowBatchMode = true,
+	shortDescription="Analyzes the scratch areas in a scratch assay/ gap closure/ wound closure assays.")
 public class ScratchAssayAnalyzer extends MTBOperator
 {
 	@Parameter(label = "input image", required = true, direction = Parameter.Direction.IN, supplemental = false, description = "input image", mode = ExpertMode.STANDARD, dataIOOrder = 1,
@@ -510,174 +512,172 @@ public class ScratchAssayAnalyzer extends MTBOperator
 //		}
 //	}
 
+	@Override
+	public String getDocumentation() {
+		return "<ul>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p>Operator for analyzing image sequences from scratch assay/ gap closure/ wound healing experiments</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p>Input can be single images or image stacks from brigthfield as well as fluorescence microscopy</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p>Results are given as segmented images and a table containing scratch areas as well as area differences</p>\r\n" + 
+				"	</li>\r\n" + 
+				"</ul>\r\n" + 
+				"<h2>Usage:</h2>\r\n" + 
+				"<h3>required parameters:</h3>\r\n" + 
+				"\r\n" + 
+				"<ul>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>input image</tt> \r\n" + 
+				"	<ul>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>scratch assay image (stack)</p>\r\n" + 
+				"		</li>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>if an image stack is given, it is assumed, that it represents one scratch assay experiment with the frames being ordered chronologically</p>\r\n" + 
+				"		</li>\r\n" + 
+				"	</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>detection channel</tt> \r\n" + 
+				"	<ul>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>channel to segment scratch (only available in multichannel images)</p>\r\n" + 
+				"		</li>\r\n" + 
+				"	</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>scratch orientation</tt>\r\n" + 
+				"	<ul>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>horizontally or </p>\r\n" + 
+				"		</li>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>vertically</p>\r\n" + 
+				"		</li>\r\n" + 
+				"	</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>&#963; (sigma)</tt>\r\n" + 
+				"	<ul>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>standard deviation of Gaussian filter</p>\r\n" + 
+				"		</li>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>increase leads to more image smoothing (noise reduction) but scratch area tends to decrease</p>\r\n" + 
+				"		</li>\r\n" + 
+				"	</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>entropy filter size</tt>\r\n" + 
+				"	<ul>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>size of entropy filter mask used for emphasizing cell areas</p>\r\n" + 
+				"		</li>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>increase let the scratch area decrease</p>\r\n" + 
+				"		</li>\r\n" + 
+				"	</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	\r\n" + 
+				"</ul>\r\n" + 
+				"<h3>optional parameters:</h3>\r\n" + 
+				"\r\n" + 
+				"<ul>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>maximum iterations [Advanced View]</tt>\r\n" + 
+				"	<ul>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>maximum number of iterations for level set segmentation</p>\r\n" + 
+				"		</li>\r\n" + 
+				"	</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>method for checking for scratch absence</tt>\r\n" + 
+				"	<ul>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>method used to check, if there is a scratch/ gap in the single frames</p>\r\n" + 
+				"		</li>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>none: no check for scratch absence</p>\r\n" + 
+				"		</li>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>INCREASING_AREA: if detected scratch/ gap area increases from one frame to the next about more than defined by <tt>maximum area increase</tt> then it is assumed the gap is closed already and detected gap is an artifact <br/>\r\n" + 
+				"			all subsequent images are considered to contain an already closed gap</p>\r\n" + 
+				"		</li>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>SVM: a previously trained SVM model is used to recognize images without gaps<br/>\r\n" + 
+				"			the path to the SVM model has to be given by <tt>path to svm file</tt><br/>\r\n" + 
+				"			a new SVM model can be trained using the <tt>ScratchAssaySVMTrainer</tt> operator, cf. <a href=\"de.unihalle.informatik.MiToBo.apps.scratchAssay.ScratchAssaySVMTrainer.html\">Scratch Assay SVM Trainer</a></p>\r\n" + 
+				"		</li>\r\n" + 
+				"	</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>maximum area increase</tt>\r\n" + 
+				"	<ul>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>maximum increase of gap area between consecutive frames that is not considered to indicate a segmentation artifact due to an already closed gap(only available, if <tt>method for checking for scratch absence</tt> is set to <tt>INCREASING_AREA</tt>)</p>\r\n" + 
+				"		</li>\r\n" + 
+				"	</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>path to svm file</tt>\r\n" + 
+				"	<ul>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>absolute path to an external svm model file (only available, if <tt>method for checking for scratch absence</tt> is set to <tt>SVM</tt>)</p>\r\n" + 
+				"		</li>\r\n" + 
+				"	</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>pixel length, x-direction</tt>\r\n" + 
+				"	<ul>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>physical length of a pixel in x-direction (without unit)</p>\r\n" + 
+				"		</li>\r\n" + 
+				"	</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>pixel length, y-direction (without unit)</tt>\r\n" + 
+				"	<ul>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>physical length of a pixel in y-direction</p>\r\n" + 
+				"		</li>\r\n" + 
+				"	</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>unit space</tt>\r\n" + 
+				"	<ul>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>unit of spatial pixel dimensions</p>\r\n" + 
+				"		</li>\r\n" + 
+				"	</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"</ul>\r\n" + 
+				"<h3>supplemental parameters:</h3>\r\n" + 
+				"\r\n" + 
+				"<ul>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>Verbose</tt>\r\n" + 
+				"	<ul>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>output some additional information</p>\r\n" + 
+				"		</li>\r\n" + 
+				"	</ul>\r\n" + 
+				"	</li>\r\n" + 
+				"</ul>\r\n";
+	}
 }
-
-/*BEGIN_MITOBO_ONLINE_HELP
-<p><a target="_blank" href="http://www2.informatik.uni-halle.de/agprbio/mitobo//api/de/unihalle/informatik/MiToBo/apps/scratchAssay/ScratchAssayAnalyzer.html">API</a></p>
- 
-<ul>
-	<li>
-		<p>Operator for analyzing image sequences from scratch assay/ gap closure/ wound healing experiments</p>
-	</li>
-	<li>
-		<p>Input can be single images or image stacks from brigthfield as well as fluorescence microscopy</p>
-	</li>
-	<li>
-		<p>Results are given as segmented images and a table containing scratch areas as well as area differences</p>
-	</li>
-</ul>
-<h2>Usage:</h2>
-<h3>required parameters:</h3>
-
-<ul>
-	<li>
-		<p><tt>input image</tt> 
-	<ul>
-		<li>
-			<p>scratch assay image (stack)</p>
-		</li>
-		<li>
-			<p>if an image stack is given, it is assumed, that it represents one scratch assay experiment with the frames being ordered chronologically</p>
-		</li>
-	</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>detection channel</tt> 
-	<ul>
-		<li>
-			<p>channel to segment scratch (only available in multichannel images)</p>
-		</li>
-	</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>scratch orientation</tt>
-	<ul>
-		<li>
-			<p>horizontally or </p>
-		</li>
-		<li>
-			<p>vertically</p>
-		</li>
-	</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>&#963; (sigma)</tt>
-	<ul>
-		<li>
-			<p>standard deviation of Gaussian filter</p>
-		</li>
-		<li>
-			<p>increase leads to more image smoothing (noise reduction) but scratch area tends to decrease</p>
-		</li>
-	</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>entropy filter size</tt>
-	<ul>
-		<li>
-			<p>size of entropy filter mask used for emphasizing cell areas</p>
-		</li>
-		<li>
-			<p>increase let the scratch area decrease</p>
-		</li>
-	</ul>
-		</p>
-	</li>
-	
-</ul>
-<h3>optional parameters:</h3>
-
-<ul>
-	<li>
-		<p><tt>maximum iterations [Advanced View]</tt>
-	<ul>
-		<li>
-			<p>maximum number of iterations for level set segmentation</p>
-		</li>
-	</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>method for checking for scratch absence</tt>
-	<ul>
-		<li>
-			<p>method used to check, if there is a scratch/ gap in the single frames</p>
-		</li>
-		<li>
-			<p>none: no check for scratch absence</p>
-		</li>
-		<li>
-			<p>INCREASING_AREA: if detected scratch/ gap area increases from one frame to the next about more than defined by <tt>maximum area increase</tt> then it is assumed the gap is closed already and detected gap is an artifact <br/>
-			all subsequent images are considered to contain an already closed gap</p>
-		</li>
-		<li>
-			<p>SVM: a previously trained SVM model is used to recognize images without gaps<br/>
-			the path to the SVM model has to be given by <tt>path to svm file</tt><br/>
-			a new SVM model can be trained using the <tt>ScratchAssaySVMTrainer</tt> operator, cf. <a href="de.unihalle.informatik.MiToBo.apps.scratchAssay.ScratchAssaySVMTrainer.html">Scratch Assay SVM Trainer</a></p>
-		</li>
-	</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>maximum area increase</tt>
-	<ul>
-		<li>
-			<p>maximum increase of gap area between consecutive frames that is not considered to indicate a segmentation artifact due to an already closed gap(only available, if <tt>method for checking for scratch absence</tt> is set to <tt>INCREASING_AREA</tt>)</p>
-		</li>
-	</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>path to svm file</tt>
-	<ul>
-		<li>
-			<p>absolute path to an external svm model file (only available, if <tt>method for checking for scratch absence</tt> is set to <tt>SVM</tt>)</p>
-		</li>
-	</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>pixel length, x-direction</tt>
-	<ul>
-		<li>
-			<p>physical length of a pixel in x-direction (without unit)</p>
-		</li>
-	</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>pixel length, y-direction (without unit)</tt>
-	<ul>
-		<li>
-			<p>physical length of a pixel in y-direction</p>
-		</li>
-	</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>unit space</tt>
-	<ul>
-		<li>
-			<p>unit of spatial pixel dimensions</p>
-		</li>
-	</ul>
-		</p>
-	</li>
-</ul>
-<h3>supplemental parameters:</h3>
-
-<ul>
-	<li>
-		<p><tt>Verbose</tt>
-	<ul>
-		<li>
-			<p>output some additional information</p>
-		</li>
-	</ul>
-	</li>
-</ul>
-END_MITOBO_ONLINE_HELP*/

@@ -81,7 +81,8 @@ import Jama.Matrix;
  * @author moeller
  */
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL,
-	level=Level.STANDARD, allowBatchMode=false)
+	level=Level.STANDARD, allowBatchMode=false,
+	shortDescription="This class implements the Karhunen-Loeve transformation, also known as PCA.")
 public class PCA extends MTBOperator {
 
 	/**
@@ -527,40 +528,39 @@ public class PCA extends MTBOperator {
 			}
 		}
 	}
+	
+	@Override
+	public String getDocumentation() {
+		return "Principal component analysis and Karhunen-Loeve transformation of data.\n" + 
+				" \n" + 
+				"<ul>\n" + 
+				"<li><p><b>input:</b>\n" + 
+				"<ul>\n" + 
+				"<li><p><i>Dataset</i>:<br> data to process, each column of the matrix should \n" + 
+				"	contain a data vector</p></li>\n" + 
+				"<li><p><i>Is data mean-free?</i>:<br> flag to indicate if data is already mean-free\n" + 
+				"	which results in skipping the mean value calculations and might save\n" + 
+				"	some time</p></li>	\n" + 
+				"<li><p><i>Reduction Mode</i>:<br> for dimension reduction a subset of principal\n" + 
+				"	components is selected, the mode specifies how this is done\n" + 
+				"	<ul>\n" + 
+				"	<li>NUMBER_COMPONENTS:<br> a fixed number of components is chosen<br>\n" + 
+				"		(see also input parameter <i>Number of Components</i>)\n" + 
+				"	<li>PERCENTAGE_VARIANCE:<br> a certain percentage of data variance is preserved<br>\n" + 
+				"		(see also input parameter <i>Variance fraction</i>)\n" + 
+				"	</ul></p></li>\n" + 
+				"<li><p><i>Number of Components</i>:<br> dimension of data subspace, i.e., \n" + 
+				"	number of principal components used for dimension-reduction</p></li>\n" + 
+				"<li><p><i>Variance fraction</i>:<br> amount of data variance to be represented \n" + 
+				"	in the subspace, e.g., 90% or 95%</p></li>\n" + 
+				"</ul>\n" + 
+				"\n" + 
+				"<li><p><b>output:</b>\n" + 
+				"<ul>\n" + 
+				"<li><p><i>Result Dataset</i>: dimension-reduced data set, each column contains\n" + 
+				"	a data vector\n" + 
+				"</ul>\n" + 
+				"\n" + 
+				"</ul>\n";
+	}
 }
-
-/*BEGIN_MITOBO_ONLINE_HELP
-
-Principal component analysis and Karhunen-Loeve transformation of data.
- 
-<ul>
-<li><p><b>input:</b>
-<ul>
-<li><p><i>Dataset</i>:<br> data to process, each column of the matrix should 
-	contain a data vector</p></li>
-<li><p><i>Is data mean-free?</i>:<br> flag to indicate if data is already mean-free
-	which results in skipping the mean value calculations and might save
-	some time</p></li>	
-<li><p><i>Reduction Mode</i>:<br> for dimension reduction a subset of principal
-	components is selected, the mode specifies how this is done
-	<ul>
-	<li>NUMBER_COMPONENTS:<br> a fixed number of components is chosen<br>
-		(see also input parameter <i>Number of Components</i>)
-	<li>PERCENTAGE_VARIANCE:<br> a certain percentage of data variance is preserved<br>
-		(see also input parameter <i>Variance fraction</i>)
-	</ul></p></li>
-<li><p><i>Number of Components</i>:<br> dimension of data subspace, i.e., 
-	number of principal components used for dimension-reduction</p></li>
-<li><p><i>Variance fraction</i>:<br> amount of data variance to be represented 
-	in the subspace, e.g., 90% or 95%</p></li>
-</ul>
-
-<li><p><b>output:</b>
-<ul>
-<li><p><i>Result Dataset</i>: dimension-reduced data set, each column contains
-	a data vector
-</ul>
-
-</ul>
-
-END_MITOBO_ONLINE_HELP*/

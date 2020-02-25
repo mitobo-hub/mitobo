@@ -12,7 +12,9 @@ import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
 
-@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL, level=Level.STANDARD)
+@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL, 
+	level=Level.STANDARD,
+	shortDescription="Migration analyzer based on manual tracking.")
 public class ManualTrackingMigrationAnalyzer extends MTBOperator
 {
 	@Parameter(label = "path", required = true, direction = Parameter.Direction.IN, supplemental = false, description = "path to file containing data from the ManualTracking plugin", dataIOOrder = 0)
@@ -72,97 +74,95 @@ public class ManualTrackingMigrationAnalyzer extends MTBOperator
 		tw.setVisible(true);
 	}
 
+	public String getDocumentation() {
+		return "<ul>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p>Operator for analyzing cell trajectories obtained from the <a target=\"_blank\" href=\"http://rsb.info.nih.gov/ij/plugins/track/track.html\">ManualTracking </a> ImageJ plugin</p>\r\n" + 
+				"	</li>\r\n" + 
+				"</ul>\r\n" + 
+				"<h2>Usage:</h2>\r\n" + 
+				"<h3>required parameters:</h3>\r\n" + 
+				"\r\n" + 
+				"<ul>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>path</tt>\r\n" + 
+				"	<ul>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>path to ManualTracking results file</p>\r\n" + 
+				"		</li>\r\n" + 
+				"	</ul>\r\n" + 
+				"	</p>\r\n" + 
+				"	</li>\r\n" + 
+				"</ul>\r\n" + 
+				"\r\n" + 
+				"<h3>optional parameters:</h3>\r\n" + 
+				"\r\n" + 
+				"<ul>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>pixel length, x-direction</tt>\r\n" + 
+				"	<ul>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>physical length of a pixel in x-direction</p>\r\n" + 
+				"		</li>\r\n" + 
+				"	</ul>\r\n" + 
+				"	</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>pixel length, y-direction</tt>\r\n" + 
+				"	<ul>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>physical length of a pixel in y-direction</p>\r\n" + 
+				"		</li>\r\n" + 
+				"	</ul>\r\n" + 
+				"	</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>unit space</tt> \r\n" + 
+				"	<ul>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>unit of measurement for pixel size</p>\r\n" + 
+				"		</li>\r\n" + 
+				"	</ul>\r\n" + 
+				"	</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>time between frames</tt>\r\n" + 
+				"	<ul>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>time elapsed between the acqusition of two consecutive frames</p>\r\n" + 
+				"		</li>\r\n" + 
+				"	</ul>\r\n" + 
+				"	</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>unit time</tt>\r\n" + 
+				"	<ul>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>unit of measurement for the time</p>\r\n" + 
+				"		</li>\r\n" + 
+				"	</ul>\r\n" + 
+				"	</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>minimum track length</tt>\r\n" + 
+				"	<ul>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>minimum length (number of consecutive frames) of a track to be considered for analysis</p>\r\n" + 
+				"		</li>\r\n" + 
+				"	</ul>\r\n" + 
+				"	</p>\r\n" + 
+				"	</li>\r\n" + 
+				"</ul>\r\n" + 
+				"<h3>supplemental parameters:</h3>\r\n" + 
+				"\r\n" + 
+				"<ul>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>Verbose</tt>\r\n" + 
+				"	<ul>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>output some additional information</p>\r\n" + 
+				"		</li>\r\n" + 
+				"	</ul>\r\n";
+	}
 }
 
-/*BEGIN_MITOBO_ONLINE_HELP
-<p><a target="_blank" href="http://www2.informatik.uni-halle.de/agprbio/mitobo//api/de/unihalle/informatik/MiToBo/apps/singleCellTracking2D/ManualTrackingMigrationAnalyzer.html">API</a></p>
-
-<ul>
-	<li>
-		<p>Operator for analyzing cell trajectories obtained from the <a target="_blank" href="http://rsb.info.nih.gov/ij/plugins/track/track.html">ManualTracking </a> ImageJ plugin</p>
-	</li>
-</ul>
-<h2>Usage:</h2>
-<h3>required parameters:</h3>
-
-<ul>
-	<li>
-		<p><tt>path</tt>
-	<ul>
-		<li>
-			<p>path to ManualTracking results file</p>
-		</li>
-	</ul>
-	</p>
-	</li>
-</ul>
-
-<h3>optional parameters:</h3>
-
-<ul>
-	<li>
-		<p><tt>pixel length, x-direction</tt>
-	<ul>
-		<li>
-			<p>physical length of a pixel in x-direction</p>
-		</li>
-	</ul>
-	</p>
-	</li>
-	<li>
-		<p><tt>pixel length, y-direction</tt>
-	<ul>
-		<li>
-			<p>physical length of a pixel in y-direction</p>
-		</li>
-	</ul>
-	</p>
-	</li>
-	<li>
-		<p><tt>unit space</tt> 
-	<ul>
-		<li>
-			<p>unit of measurement for pixel size</p>
-		</li>
-	</ul>
-	</p>
-	</li>
-	<li>
-		<p><tt>time between frames</tt>
-	<ul>
-		<li>
-			<p>time elapsed between the acqusition of two consecutive frames</p>
-		</li>
-	</ul>
-	</p>
-	</li>
-	<li>
-		<p><tt>unit time</tt>
-	<ul>
-		<li>
-			<p>unit of measurement for the time</p>
-		</li>
-	</ul>
-	</p>
-	</li>
-	<li>
-		<p><tt>minimum track length</tt>
-	<ul>
-		<li>
-			<p>minimum length (number of consecutive frames) of a track to be considered for analysis</p>
-		</li>
-	</ul>
-	</p>
-	</li>
-</ul>
-<h3>supplemental parameters:</h3>
-
-<ul>
-	<li>
-		<p><tt>Verbose</tt>
-	<ul>
-		<li>
-			<p>output some additional information</p>
-		</li>
-	</ul>
-END_MITOBO_ONLINE_HELP*/

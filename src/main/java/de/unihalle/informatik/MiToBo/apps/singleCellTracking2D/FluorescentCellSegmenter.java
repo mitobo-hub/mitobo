@@ -54,7 +54,9 @@ import de.unihalle.informatik.MiToBo.filters.nonlinear.*;
  * 
  * @author glass
  */
-@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL, level=Level.STANDARD)
+@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL, 
+	level=Level.STANDARD,
+	shortDescription="Segments images or image sequences containing fluorescently labeled cells.")
 public class FluorescentCellSegmenter extends CellSegmenter
 {
 	//TODO: rename median related stuff to Gaussian (also in related operators)
@@ -241,115 +243,112 @@ public class FluorescentCellSegmenter extends CellSegmenter
 		return resultImg;
 	}
 	
+	@Override
+	public String getDocumentation() {
+		return "<ul>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p>This operator is for segmenting images or image sequences containing fluorescently labeled cells</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p>Every frame is treated separately and the result is a binary image with the same dimensions as the input image</p>\r\n" + 
+				"	</li>\r\n" + 
+				"</ul>\r\n" + 
+				"<h2>Usage:</h2>\r\n" + 
+				"\r\n" + 
+				"<h3>required parameters:</h3>\r\n" + 
+				"\r\n" + 
+				"<ul>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>input image</tt>\r\n" + 
+				"		<ul>\r\n" + 
+				"			<li>\r\n" + 
+				"				<p>image (sequence) to be segmented</p>\r\n" + 
+				"			</li>\r\n" + 
+				"		</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"</ul>\r\n" + 
+				"\r\n" + 
+				"<h3>optional parameters:</h3>\r\n" + 
+				"\r\n" + 
+				"<ul>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>channel</tt>\r\n" + 
+				"		<ul>\r\n" + 
+				"			<li>\r\n" + 
+				"				<p>image channel to be segmented</p>\r\n" + 
+				"			</li>\r\n" + 
+				"		</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>minimum seed size</tt>\r\n" + 
+				"		<ul>\r\n" + 
+				"			<li>\r\n" + 
+				"				<p>minimum size (number of pixels) of seed objects to be considered as cells</p>\r\n" + 
+				"			</li>\r\n" + 
+				"		</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>seed image</tt>\r\n" + 
+				"		<ul>\r\n" + 
+				"			<li>\r\n" + 
+				"				<p>image that contains seeds (groups of pixels that don't have intensity value 0)</p>\r\n" + 
+				"			</li>\r\n" + 
+				"			<li>\r\n" + 
+				"				<p>seeds are used as initialization for level set segmentation</p>\r\n" + 
+				"			</li>\r\n" + 
+				"			<li>\r\n" + 
+				"				<p>if left empty, seeds are created automatically</p>\r\n" + 
+				"			</li>\r\n" + 
+				"		</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>median filter radius</tt>\r\n" + 
+				"		<ul>\r\n" + 
+				"			<li>\r\n" + 
+				"				<p>radius (pixels) of median filter used for noise reduction</p>\r\n" + 
+				"			</li>\r\n" + 
+				"		</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>maximum number of iterations [Advanced View]</tt>\r\n" + 
+				"		<ul>\r\n" + 
+				"			<li>\r\n" + 
+				"				<p>maximum number of iterations for level set segmentation</p>\r\n" + 
+				"			</li>\r\n" + 
+				"		</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>&#947; (gamma)</tt>\r\n" + 
+				"		<ul>\r\n" + 
+				"			<li>\r\n" + 
+				"		<p>gamma correction with a value smaller than 1 is used to emphasize faintly fluorescing cells / cell parts</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p>if background noise is very high the value should be increased</p>\r\n" + 
+				"	</li>\r\n" + 
+				"</ul>\r\n" + 
+				"</p>\r\n" + 
+				"</li>\r\n" + 
+				"</ul>\r\n" + 
+				"<h3>supplemental parameters:</h3>\r\n" + 
+				"\r\n" + 
+				"<ul>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>Verbose</tt>\r\n" + 
+				"	<ul>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>output some additional information</p>\r\n" + 
+				"		</li>\r\n" + 
+				"	</ul>\r\n" + 
+				"	</p>\r\n" + 
+				"	</li>\r\n" + 
+				"</ul>\r\n";
+	}
+	
 }
-
-
-/*BEGIN_MITOBO_ONLINE_HELP
-<p><a target="_blank" href="http://www2.informatik.uni-halle.de/agprbio/mitobo//api/de/unihalle/informatik/MiToBo/apps/singleCellTracking2D/FluorescentCellSegmenter.html">API</a></p>
-
-<ul>
-	<li>
-		<p>This operator is for segmenting images or image sequences containing fluorescently labeled cells</p>
-	</li>
-	<li>
-		<p>Every frame is treated separately and the result is a binary image with the same dimensions as the input image</p>
-	</li>
-</ul>
-<h2>Usage:</h2>
-
-<h3>required parameters:</h3>
-
-<ul>
-	<li>
-		<p><tt>input image</tt>
-		<ul>
-			<li>
-				<p>image (sequence) to be segmented</p>
-			</li>
-		</ul>
-		</p>
-	</li>
-</ul>
-
-<h3>optional parameters:</h3>
-
-<ul>
-	<li>
-		<p><tt>channel</tt>
-		<ul>
-			<li>
-				<p>image channel to be segmented</p>
-			</li>
-		</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>minimum seed size</tt>
-		<ul>
-			<li>
-				<p>minimum size (number of pixels) of seed objects to be considered as cells</p>
-			</li>
-		</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>seed image</tt>
-		<ul>
-			<li>
-				<p>image that contains seeds (groups of pixels that don't have intensity value 0)</p>
-			</li>
-			<li>
-				<p>seeds are used as initialization for level set segmentation</p>
-			</li>
-			<li>
-				<p>if left empty, seeds are created automatically</p>
-			</li>
-		</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>median filter radius</tt>
-		<ul>
-			<li>
-				<p>radius (pixels) of median filter used for noise reduction</p>
-			</li>
-		</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>maximum number of iterations [Advanced View]</tt>
-		<ul>
-			<li>
-				<p>maximum number of iterations for level set segmentation</p>
-			</li>
-		</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>&#947; (gamma)</tt>
-		<ul>
-			<li>
-		<p>gamma correction with a value smaller than 1 is used to emphasize faintly fluorescing cells / cell parts</p>
-	</li>
-	<li>
-		<p>if background noise is very high the value should be increased</p>
-	</li>
-</ul>
-</p>
-</li>
-</ul>
-<h3>supplemental parameters:</h3>
-
-<ul>
-	<li>
-		<p><tt>Verbose</tt>
-	<ul>
-		<li>
-			<p>output some additional information</p>
-		</li>
-	</ul>
-	</p>
-	</li>
-</ul>
-END_MITOBO_ONLINE_HELP*/
-

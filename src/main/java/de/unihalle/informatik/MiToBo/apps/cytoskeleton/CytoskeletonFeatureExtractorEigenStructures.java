@@ -52,7 +52,8 @@ import de.unihalle.informatik.MiToBo.math.statistics.PCA.ReductionMode;
  * @author moeller
  */
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.SWING,
-	level=Level.STANDARD, allowBatchMode=false)
+	level=Level.STANDARD, allowBatchMode=false,
+	shortDescription="Extracts Eigen structures as features for the ActinAnalyzer2D.")
 @ALDDerivedClass
 public class CytoskeletonFeatureExtractorEigenStructures 
 	extends CytoskeletonFeatureExtractor {
@@ -328,42 +329,41 @@ public class CytoskeletonFeatureExtractorEigenStructures
       }
 		}
   }
+	
+	@Override
+	public String getDocumentation() {
+		return "This operator extracts Eigen features from given images.\n" + 
+				"\n" + 
+				"<ul>\n" + 
+				"<li><p><b>input:</b>\n" + 
+				"<ul>\n" + 
+				"<li><p><i>Image directory</i>:<br> directory where the images are read \n" + 
+				"  from, all image files are considered;<br> please refer to the webpage \n" + 
+				"  for further information on how the file names should be \n" + 
+				"  formatted </p></li>\n" + 
+				"<li><p><i>Mask directory</i>:<br> directory where the segmentation \n" + 
+				"	information for the images is read from; the directory can be identical \n" + 
+				"	to the image directory</p></li>\n" + 
+				"<li><p><i>Mask format</i>:<br> expected format of the segmentation data \n" + 
+				"  files\n" + 
+				"	<ul>\n" + 
+				"	<li>LABEL_IMAGE:<br> a gray-scale image is expected where the area of \n" + 
+				"	  each cell is marked with a single unique gray-scale value;<br>\n" + 
+				"		the files should share the names of the input image files and have \n" + 
+				"		the	ending \"-mask.tif\"\n" + 
+				"	<li>IJ_ROIS:<br> an ImageJ 1.x file of ROI manager regions is \n" + 
+				"		expected;<br> the files should share the names of the input image \n" + 
+				"		files and have the ending \"-mask.zip\" or \"-mask.roi\"\n" + 
+				"	</ul>\n" + 
+				"<li><p><i>Output and working directory</i>:<br> directory for \n" + 
+				"  intermediate and final results\n" + 
+				"</ul>\n" + 
+				"</ul>\n" + 
+				"\n" + 
+				"<p>\n" + 
+				"For more details about the operator and the corresponding \n" + 
+				"ActinAnalyzer2D refer to its webpage: \n" + 
+				"<a href=\"http://www2.informatik.uni-halle.de/agprbio/mitobo/index.php/Applications/ActinAnalyzer2D\">\n" + 
+				"http://www2.informatik.uni-halle.de/agprbio/mitobo/index.php/Applications/ActinAnalyzer2D</a>.\n"; 
+	}
 }
-
-/*BEGIN_MITOBO_ONLINE_HELP
-
-This operator extracts Eigen features from given images.
-
-<ul>
-<li><p><b>input:</b>
-<ul>
-<li><p><i>Image directory</i>:<br> directory where the images are read 
-  from, all image files are considered;<br> please refer to the webpage 
-  for further information on how the file names should be 
-  formatted </p></li>
-<li><p><i>Mask directory</i>:<br> directory where the segmentation 
-	information for the images is read from; the directory can be identical 
-	to the image directory</p></li>
-<li><p><i>Mask format</i>:<br> expected format of the segmentation data 
-  files
-	<ul>
-	<li>LABEL_IMAGE:<br> a gray-scale image is expected where the area of 
-	  each cell is marked with a single unique gray-scale value;<br>
-		the files should share the names of the input image files and have 
-		the	ending "-mask.tif"
-	<li>IJ_ROIS:<br> an ImageJ 1.x file of ROI manager regions is 
-		expected;<br> the files should share the names of the input image 
-		files and have the ending "-mask.zip" or "-mask.roi"
-	</ul>
-<li><p><i>Output and working directory</i>:<br> directory for 
-  intermediate and final results
-</ul>
-</ul>
-
-<p>
-For more details about the operator and the corresponding 
-ActinAnalyzer2D refer to its webpage: 
-<a href="http://www2.informatik.uni-halle.de/agprbio/mitobo/index.php/Applications/ActinAnalyzer2D">
-http://www2.informatik.uni-halle.de/agprbio/mitobo/index.php/Applications/ActinAnalyzer2D</a>.
-
-END_MITOBO_ONLINE_HELP*/

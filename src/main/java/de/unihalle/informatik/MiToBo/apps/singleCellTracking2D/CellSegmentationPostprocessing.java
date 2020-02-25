@@ -45,7 +45,9 @@ import de.unihalle.informatik.MiToBo.segmentation.regions.labeling.LabelComponen
  * @author glass
  *
  */
-@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.SWING, level=Level.STANDARD)
+@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.SWING, 
+	level=Level.STANDARD,
+	shortDescription="Performs post-processing tasks on already segmented cell images.")
 public class CellSegmentationPostprocessing extends MTBOperator
 {
 	@Parameter(label = "input image", required = true, direction = Parameter.Direction.IN, supplemental = false, description = "binary input image")
@@ -319,92 +321,88 @@ public class CellSegmentationPostprocessing extends MTBOperator
 		return this.resultImg;
 	}
 	
-	
+	@Override
+	public String getDocumentation() {
+		return "<ul>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p>This operator does some modifications on already segmented binary images</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p>The result is a modified binary image</p>\r\n" + 
+				"	</li>\r\n" + 
+				"</ul>\r\n" + 
+				"<h2>Usage:</h2>\r\n" + 
+				"\r\n" + 
+				"<h3>required parameters:</h3>\r\n" + 
+				"\r\n" + 
+				"<ul>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>input image</tt>\r\n" + 
+				"	<ul>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>binary image (sequence) to be postprocessed</p>\r\n" + 
+				"		</li>\r\n" + 
+				"	</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"</ul>\r\n" + 
+				"\r\n" + 
+				"<h3>optional parameters:</h3>\r\n" + 
+				"\r\n" + 
+				"<ul>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>foreground value</tt>\r\n" + 
+				"	<ul>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>intensity value of cell objects</p>\r\n" + 
+				"		</li>\r\n" + 
+				"	</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>minimum area (pixels)</tt>\r\n" + 
+				"		<ul>\r\n" + 
+				"			<li>\r\n" + 
+				"				<p>minimum area (number of pixels) of objects to be retained</p>\r\n" + 
+				"			</li>\r\n" + 
+				"			<li>\r\n" + 
+				"				<p>objects with a smaller area will be discarded</p>\r\n" + 
+				"			</li>\r\n" + 
+				"		</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>are objects 8-connected</tt>\r\n" + 
+				"		<ul>\r\n" + 
+				"			<li>\r\n" + 
+				"				<p>if activated, cell objects will be considered to have eight-connectivity and four-connectivity otherwise</p>\r\n" + 
+				"			</li>\r\n" + 
+				"		</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>remove border touching objects</tt>\r\n" + 
+				"		<ul>\r\n" + 
+				"			<li>\r\n" + 
+				"				<p>if activated, objects that are connected to the image borders will be discarded</p>\r\n" + 
+				"			</li>\r\n" + 
+				"		</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"</ul>\r\n" + 
+				"\r\n" + 
+				"<h3>supplemental parameters:</h3>\r\n" + 
+				"\r\n" + 
+				"<ul>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>Verbose</tt>\r\n" + 
+				"	<ul>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>output some additional information</p>\r\n" + 
+				"		</li>\r\n" + 
+				"	</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"</ul>\r\n";
+	}
 }
-
-/*BEGIN_MITOBO_ONLINE_HELP
-<p><a target="_blank" href="http://www2.informatik.uni-halle.de/agprbio/mitobo//api/de/unihalle/informatik/MiToBo/apps/singleCellTracking2D/CellSegmentationPostprocessing.html">API</a></p>
-
-<ul>
-	<li>
-		<p>This operator does some modifications on already segmented binary images</p>
-	</li>
-	<li>
-		<p>The result is a modified binary image</p>
-	</li>
-</ul>
-<h2>Usage:</h2>
-
-<h3>required parameters:</h3>
-
-<ul>
-	<li>
-		<p><tt>input image</tt>
-	<ul>
-		<li>
-			<p>binary image (sequence) to be postprocessed</p>
-		</li>
-	</ul>
-		</p>
-	</li>
-</ul>
-
-<h3>optional parameters:</h3>
-
-<ul>
-	<li>
-		<p><tt>foreground value</tt>
-	<ul>
-		<li>
-			<p>intensity value of cell objects</p>
-		</li>
-	</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>minimum area (pixels)</tt>
-		<ul>
-			<li>
-				<p>minimum area (number of pixels) of objects to be retained</p>
-			</li>
-			<li>
-				<p>objects with a smaller area will be discarded</p>
-			</li>
-		</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>are objects 8-connected</tt>
-		<ul>
-			<li>
-				<p>if activated, cell objects will be considered to have eight-connectivity and four-connectivity otherwise</p>
-			</li>
-		</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>remove border touching objects</tt>
-		<ul>
-			<li>
-				<p>if activated, objects that are connected to the image borders will be discarded</p>
-			</li>
-		</ul>
-		</p>
-	</li>
-</ul>
-
-<h3>supplemental parameters:</h3>
-
-<ul>
-	<li>
-		<p><tt>Verbose</tt>
-	<ul>
-		<li>
-			<p>output some additional information</p>
-		</li>
-	</ul>
-		</p>
-	</li>
-</ul>
-END_MITOBO_ONLINE_HELP*/
-

@@ -74,7 +74,8 @@ import de.unihalle.informatik.MiToBo.visualization.plots.StackedBarChartPlotter;
  * @author moeller
  */
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL,
-	level=Level.APPLICATION, allowBatchMode=false)
+	level=Level.APPLICATION, allowBatchMode=false,
+	shortDescription="Extracts quantative global features of cytoskeletons.")
 public class CytoskeletonAnalyzer2D extends MTBOperator {
 
 	/**
@@ -1249,83 +1250,83 @@ public class CytoskeletonAnalyzer2D extends MTBOperator {
 			e.printStackTrace();
 		}
 	}
+	
+	@Override
+	public String getDocumentation() {
+		return "This operator performs an unsupervised analysis of actin microfilament\n" + 
+				"structures in sets of microscopy images. It takes as input a directory where\n" + 
+				"the images are expected, and a set of segmentation masks showing the boundaries\n" + 
+				"of individual cells in the images. The operator first calculates a set of\n" + 
+				"texture features from the images and then clusters the feature vectors to\n" + 
+				"identify structural patterns shared among different cells. Finally, each cell\n" + 
+				"is characterized in terms of a distribution vector describing the appearance\n" + 
+				"of various structural patterns in the cell. These vectors can then be used to\n" + 
+				"analyze commonalities and differences between individual cells or groups of\n" + 
+				"cells.\n" + 
+				"\n" + 
+				"<ul>\n" + 
+				"<li><p><b>input:</b>\n" + 
+				"<ul>\n" + 
+				"<li><p><i>Image file folder</i>:<br> directory where the images are read from,\n" + 
+				"	all files in a format supported by the Bioformats library are considered\n" + 
+				"	</p></li>\n" + 
+				"<li><p><i>Boundary file format</i>:<br> expected format of the contour \n" + 
+				"	data files\n" + 
+				"	<ul>\n" + 
+				"	<li>LABEL_IMAGE:<br> a gray-scale image is expected where the area of each\n" + 
+				"		cell is marked with a single unique gray-scale value;<br>\n" + 
+				"		the files should share the names of the input image files and have the\n" + 
+				"		ending \"-mask.tif\"\n" + 
+				"	<li>IJ_ROIS:<br> an ImageJ 1.x file of ROI manager regions is expected;<br>\n" + 
+				"		the files should share the names of the input image files and have the\n" + 
+				"		ending \"-mask.zip\" or \"-mask.roi\"\n" + 
+				"	</ul>\n" + 
+				"<li><p><i>Cytoskeleton channel</i><br> if image stacks are provided you need\n" + 
+				"	to specify in which channel of the images the cytoskeleton information is \n" + 
+				"	located; indices start with 1</p></li>\n" + 
+				"<li><p><i>Calculate features?</i><br> by disabeling this option the \n" + 
+				"	time-consuming feature calculation can be omitted, however, in this case a\n" + 
+				"	sub-folder 'results_features' is expected to already contain the feature \n" + 
+				"	files</p></li>\n" + 
+				"<li><p><i>Feature extractor</i>:<br> operator used for quantifying texture\n" + 
+				"	</p></li>\n" + 
+				"<li><p><i>Tile size x/y and Tile shift x/y</i>:<br> global configuration of\n" + 
+				"	texture quantification stage, i.e., size of sliding window and size of\n" + 
+				"	shifts; if shifts are smaller than tile size window positions are overlapping \n" + 
+				"	</p></li>\n" + 
+				"<li><p><i>Number of feature clusters</i>:<br> number of clusters to be used for\n" + 
+				"	feature vector clustering, should approximately refer to the expected number\n" + 
+				"	of structural patterns appearing in the cells</p></li>\n" + 
+				"<li><p><i>Do PCA in stage II?</i><br> enable or disable the PCA prior to the\n" + 
+				"	pairwise distance calculations in stage II of the approach</p></li>\n" + 
+				"<li><p><i>Optional: Cell boundary file folder</i><br> if the contour data is\n" + 
+				"	not stored in group-wise sub-folders named 'results_segmentation' you can\n" + 
+				"	specify alternative locations via this parameter</p></li>\n" + 
+				"</ul>\n" + 
+				"\n" + 
+				"<li><p><b>output:</b>\n" + 
+				"<ul>\n" + 
+				"<li><p><i>Resulting chart plots for each group</i>:<br>\n" + 
+				"	cluster distributions for each cell categorized into cell groups\n" + 
+				"<li><p><i>Resulting box-whisker plot</i>:<br> box plot of the relative frequecies\n" + 
+				"	of appearance of each	cluster for the different cell groups\n" + 
+				"</ul>\n" + 
+				"In addition to the output data directly displayed on termination of the operator\n" + 
+				"some more result data files are written to the output directory. In particular,\n" + 
+				"a file with the pairwise Euclidean distances between distribution vectors as \n" + 
+				"well as between average vectors of the groups can be found there which can be \n" + 
+				"further analyzed, e.g., with\n" + 
+				"<a href=\"http://deim.urv.cat/~sgomez/multidendrograms.php\">MultiDendrograms</a>\n" + 
+				"or our R script provided for that purpose. Also images visualizing the cluster \n" + 
+				"distributions for each input image and each cell, respectively, are available.\n" + 
+				"\n" + 
+				"</ul>\n" + 
+				"\n" + 
+				"<p>\n" + 
+				"For more details about the operator and additional information on the parameters\n" + 
+				"refer to its webpage:\n" + 
+				"<a href=\"http://mitobo.informatik.uni-halle.de/index.php/Applications/CytoskeletonAnalyzer2D\">\n" + 
+				"http://mitobo.informatik.uni-halle.de/index.php/Applications/CytoskeletonAnalyzer2D</a>.\n";
+	}
 }
 
-/*BEGIN_MITOBO_ONLINE_HELP
-
-This operator performs an unsupervised analysis of actin microfilament
-structures in sets of microscopy images. It takes as input a directory where
-the images are expected, and a set of segmentation masks showing the boundaries
-of individual cells in the images. The operator first calculates a set of
-texture features from the images and then clusters the feature vectors to
-identify structural patterns shared among different cells. Finally, each cell
-is characterized in terms of a distribution vector describing the appearance
-of various structural patterns in the cell. These vectors can then be used to
-analyze commonalities and differences between individual cells or groups of
-cells.
-
-<ul>
-<li><p><b>input:</b>
-<ul>
-<li><p><i>Image file folder</i>:<br> directory where the images are read from,
-	all files in a format supported by the Bioformats library are considered
-	</p></li>
-<li><p><i>Boundary file format</i>:<br> expected format of the contour 
-	data files
-	<ul>
-	<li>LABEL_IMAGE:<br> a gray-scale image is expected where the area of each
-		cell is marked with a single unique gray-scale value;<br>
-		the files should share the names of the input image files and have the
-		ending "-mask.tif"
-	<li>IJ_ROIS:<br> an ImageJ 1.x file of ROI manager regions is expected;<br>
-		the files should share the names of the input image files and have the
-		ending "-mask.zip" or "-mask.roi"
-	</ul>
-<li><p><i>Cytoskeleton channel</i><br> if image stacks are provided you need
-	to specify in which channel of the images the cytoskeleton information is 
-	located; indices start with 1</p></li>
-<li><p><i>Calculate features?</i><br> by disabeling this option the 
-	time-consuming feature calculation can be omitted, however, in this case a
-	sub-folder 'results_features' is expected to already contain the feature 
-	files</p></li>
-<li><p><i>Feature extractor</i>:<br> operator used for quantifying texture
-	</p></li>
-<li><p><i>Tile size x/y and Tile shift x/y</i>:<br> global configuration of
-	texture quantification stage, i.e., size of sliding window and size of
-	shifts; if shifts are smaller than tile size window positions are overlapping 
-	</p></li>
-<li><p><i>Number of feature clusters</i>:<br> number of clusters to be used for
-	feature vector clustering, should approximately refer to the expected number
-	of structural patterns appearing in the cells</p></li>
-<li><p><i>Do PCA in stage II?</i><br> enable or disable the PCA prior to the
-	pairwise distance calculations in stage II of the approach</p></li>
-<li><p><i>Optional: Cell boundary file folder</i><br> if the contour data is
-	not stored in group-wise sub-folders named 'results_segmentation' you can
-	specify alternative locations via this parameter</p></li>
-</ul>
-
-<li><p><b>output:</b>
-<ul>
-<li><p><i>Resulting chart plots for each group</i>:<br>
-	cluster distributions for each cell categorized into cell groups
-<li><p><i>Resulting box-whisker plot</i>:<br> box plot of the relative frequecies
-	of appearance of each	cluster for the different cell groups
-</ul>
-In addition to the output data directly displayed on termination of the operator
-some more result data files are written to the output directory. In particular,
-a file with the pairwise Euclidean distances between distribution vectors as 
-well as between average vectors of the groups can be found there which can be 
-further analyzed, e.g., with
-<a href="http://deim.urv.cat/~sgomez/multidendrograms.php">MultiDendrograms</a>
-or our R script provided for that purpose. Also images visualizing the cluster 
-distributions for each input image and each cell, respectively, are available.
-
-</ul>
-
-<p>
-For more details about the operator and additional information on the parameters
-refer to its webpage:
-<a href="http://mitobo.informatik.uni-halle.de/index.php/Applications/CytoskeletonAnalyzer2D">
-http://mitobo.informatik.uni-halle.de/index.php/Applications/CytoskeletonAnalyzer2D</a>.
-
-END_MITOBO_ONLINE_HELP*/

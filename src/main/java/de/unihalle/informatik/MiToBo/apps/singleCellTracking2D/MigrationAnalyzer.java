@@ -44,7 +44,10 @@ import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
  * @author glass
  *
  */
-@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL, level=Level.STANDARD)
+@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL, 
+	level=Level.STANDARD,
+	shortDescription="Analyzes the movement pattern of cells as well as " 
+			+ "changes in morphology and fluorescence intensity"	)
 public class MigrationAnalyzer extends MTBOperator
 {
 	@Parameter(label = "label image", required = true, direction = Parameter.Direction.INOUT, supplemental = false, description = "labeled input image", dataIOOrder = 0,
@@ -495,208 +498,205 @@ public class MigrationAnalyzer extends MTBOperator
 			}
 			
 		}
-		
+
+		@Override
+		public String getDocumentation() {
+			return "<ul>\r\n" + 
+					"	<li>\r\n" + 
+					"		<p>Operator for analyzing the movement pattern of cells as well as changes in morphology and fluorescence intensity</p>\r\n" + 
+					"	</li>\r\n" + 
+					"</ul>\r\n" + 
+					"\r\n" + 
+					"<h2>Usage:</h2>\r\n" + 
+					"\r\n" + 
+					"<h3>required parameters:</h3>\r\n" + 
+					"\r\n" + 
+					"<ul>\r\n" + 
+					"	<li>\r\n" + 
+					"		<p><tt>label image</tt>\r\n" + 
+					"		<ul>\r\n" + 
+					"			<li>\r\n" + 
+					"				<p>image sequence where each cell region has a unique label</p>\r\n" + 
+					"			</li>\r\n" + 
+					"		</ul>\r\n" + 
+					"		</p>\r\n" + 
+					"	</li>\r\n" + 
+					"</ul>\r\n" + 
+					"\r\n" + 
+					"<h3>optional parameters:</h3>\r\n" + 
+					"\r\n" + 
+					"<ul>\r\n" + 
+					"	<li>\r\n" + 
+					"		<p><tt>intensity image</tt>\r\n" + 
+					"		<ul>\r\n" + 
+					"			<li>\r\n" + 
+					"				<p>image sequence containing the cell intensities</p>\r\n" + 
+					"			</li>\r\n" + 
+					"			<li>\r\n" + 
+					"				<p>only needed if intensities should be analyzed</p>\r\n" + 
+					"			</li>\r\n" + 
+					"		</ul>\r\n" + 
+					"		</p>\r\n" + 
+					"	</li>\r\n" + 
+					"	<li>\r\n" + 
+					"		<p><tt>mask image [Advanced View]</tt>\r\n" + 
+					"		<ul>\r\n" + 
+					"			<li>\r\n" + 
+					"				<p>image sequence containing additional fluorescence intensities that are used to exclude certain cells</p>\r\n" + 
+					"			</li>\r\n" + 
+					"			<li>\r\n" + 
+					"				<p>only needed if cells showing or lacking this fluorescence should be discarded from the analysis</p>\r\n" + 
+					"			</li>\r\n" + 
+					"		</ul>\r\n" + 
+					"		</p>\r\n" + 
+					"	</li>\r\n" + 
+					"	<li>\r\n" + 
+					"		<p><tt>include mask [Advanced View]</tt>\r\n" + 
+					"		<ul>\r\n" + 
+					"			<li>\r\n" + 
+					"				<p>if activated, only those tracks that have corresponding signals in mask image are included in the analysis (otherwise only these tracks are excluded)</p>\r\n" + 
+					"			</li>\r\n" + 
+					"		</ul>\r\n" + 
+					"		</p>\r\n" + 
+					"	</li>\r\n" + 
+					"	<li>\r\n" + 
+					"		<p><tt>average factor [Advanced View]</tt>\r\n" + 
+					"	<ul>\r\n" + 
+					"		<li>\r\n" + 
+					"			<p>only cells with average intensity above / below <tt>average factor</tt> times average intensity of the whole frame are excluded/ included(depending on whether <tt>include bright objects from mask</tt> is activated or not)</p>\r\n" + 
+					"		</li>\r\n" + 
+					"	</ul>\r\n" + 
+					"	</p>\r\n" + 
+					"	</li>\r\n" + 
+					"	<li>\r\n" + 
+					"		<p><tt>pixel length, x-direction</tt>\r\n" + 
+					"		<ul>\r\n" + 
+					"			<li>\r\n" + 
+					"				<p>physical length of a pixel in x-direction</p>\r\n" + 
+					"			</li>\r\n" + 
+					"		</ul>\r\n" + 
+					"		</p>\r\n" + 
+					"	</li>\r\n" + 
+					"	<li>\r\n" + 
+					"		<p><tt>pixel length, y-direction</tt>\r\n" + 
+					"		<ul>\r\n" + 
+					"			<li>\r\n" + 
+					"				<p>physical length of a pixel in y-direction</p>\r\n" + 
+					"			</li>\r\n" + 
+					"		</ul>\r\n" + 
+					"		</p>\r\n" + 
+					"	</li>\r\n" + 
+					"	<li>\r\n" + 
+					"		<p><tt>unit space</tt> \r\n" + 
+					"		<ul>\r\n" + 
+					"			<li>\r\n" + 
+					"				<p>unit of measurement for pixel size</p>\r\n" + 
+					"			</li>\r\n" + 
+					"		</ul>\r\n" + 
+					"		</p>\r\n" + 
+					"	</li>\r\n" + 
+					"	<li>\r\n" + 
+					"		<p><tt>time between frames</tt>\r\n" + 
+					"		<ul>\r\n" + 
+					"			<li>\r\n" + 
+					"				<p>time elapsed between the acqusition of two consecutive frames</p>\r\n" + 
+					"			</li>\r\n" + 
+					"		</ul>\r\n" + 
+					"		</p>\r\n" + 
+					"	</li>\r\n" + 
+					"	<li>\r\n" + 
+					"		<p><tt>unit time</tt>\r\n" + 
+					"	<ul>\r\n" + 
+					"		<li>\r\n" + 
+					"			<p>unit of measurement for the time</p>\r\n" + 
+					"		</li>\r\n" + 
+					"	</ul>\r\n" + 
+					"		</p>\r\n" + 
+					"	</li>\r\n" + 
+					"	<li>\r\n" + 
+					"		<p><tt>minimum track length</tt>\r\n" + 
+					"		<ul>\r\n" + 
+					"			<li>\r\n" + 
+					"				<p>minimum length (number of consecutive frames) of a track to be considered for analysis</p>\r\n" + 
+					"			</li>\r\n" + 
+					"		</ul>\r\n" + 
+					"		</p>\r\n" + 
+					"	</li>\r\n" + 
+					"	<li>\r\n" + 
+					"		<p><tt>analyze trajectories</tt>\r\n" + 
+					"		<ul>\r\n" + 
+					"			<li>\r\n" + 
+					"				<p>should cell trajectories be analyzed</p>\r\n" + 
+					"			</li>\r\n" + 
+					"		</ul>\r\n" + 
+					"		</p>\r\n" + 
+					"	</li>\r\n" + 
+					"	<li>\r\n" + 
+					"		<p><tt>analyze shapes</tt>\r\n" + 
+					"		<ul>\r\n" + 
+					"			<li>\r\n" + 
+					"				<p>should cell shapes be analyzed</p>\r\n" + 
+					"			</li>\r\n" + 
+					"		</ul>\r\n" + 
+					"		</p>\r\n" + 
+					"	</li>\r\n" + 
+					"	<li>\r\n" + 
+					"		<p><tt>analyze intensities</tt>\r\n" + 
+					"		<ul>\r\n" + 
+					"			<li>\r\n" + 
+					"				<p>should image intensities be analysized</p>\r\n" + 
+					"			</li>\r\n" + 
+					"			<li>\r\n" + 
+					"				<p>requires an intensity image corresponding to the label image</p>\r\n" + 
+					"			</li>\r\n" + 
+					"		</ul>\r\n" + 
+					"		</p>\r\n" + 
+					"	</li>\r\n" + 
+					"	<li>\r\n" + 
+					"		<p><tt>show trajectory map</tt>\r\n" + 
+					"		<ul>\r\n" + 
+					"			<li>\r\n" + 
+					"				<p>should a 2D map of the trajectories be created</p>\r\n" + 
+					"			</li>\r\n" + 
+					"		</ul>\r\n" + 
+					"		</p>\r\n" + 
+					"	</li>\r\n" + 
+					"	<li>\r\n" + 
+					"		<p><tt>show overlay image</tt>\r\n" + 
+					"	<ul>\r\n" + 
+					"		<li>\r\n" + 
+					"			<p>should a new image sequence with cells and inpainted trajectories be created</p>\r\n" + 
+					"		</li>\r\n" + 
+					"		<li>\r\n" + 
+					"			<p>requires the intensity image</p>\r\n" + 
+					"		</li>\r\n" + 
+					"	</ul>\r\n" + 
+					"	</p>\r\n" + 
+					"	</li>\r\n" + 
+					"	<li>\r\n" + 
+					"		<p><tt>remove excluded objects</tt>\r\n" + 
+					"	<ul>\r\n" + 
+					"		<li>\r\n" + 
+					"			<p>if activated, all cells that weren't analyzed (e.g. because their tracks were smaller than <tt>minimum track length</tt> are not displayed in the resulting label image)</p>\r\n" + 
+					"		</li>\r\n" + 
+					"	</ul>\r\n" + 
+					"	</p>\r\n" + 
+					"	</li>\r\n" + 
+					"</ul>\r\n" + 
+					"\r\n" + 
+					"<h3>supplemental parameters:</h3>\r\n" + 
+					"\r\n" + 
+					"<ul>\r\n" + 
+					"	<li>\r\n" + 
+					"		<p><tt>Verbose</tt>\r\n" + 
+					"		<ul>\r\n" + 
+					"			<li>\r\n" + 
+					"				<p>output some additional information</p>\r\n" + 
+					"			</li>\r\n" + 
+					"		</ul>\r\n" + 
+					"		</p>\r\n" + 
+					"	</li>\r\n" + 
+					"</ul>\r\n";
+		}
 		
 }
-
-
-/*BEGIN_MITOBO_ONLINE_HELP
-<p><a target="_blank" href="http://www2.informatik.uni-halle.de/agprbio/mitobo//api/de/unihalle/informatik/MiToBo/apps/singleCellTracking2D/CellTrackerBipartite.html">API</a></p>
-
-<ul>
-	<li>
-		<p>Operator for analyzing the movement pattern of cells as well as changes in morphology and fluorescence intensity</p>
-	</li>
-</ul>
-
-<h2>Usage:</h2>
-
-<h3>required parameters:</h3>
-
-<ul>
-	<li>
-		<p><tt>label image</tt>
-		<ul>
-			<li>
-				<p>image sequence where each cell region has a unique label</p>
-			</li>
-		</ul>
-		</p>
-	</li>
-</ul>
-
-<h3>optional parameters:</h3>
-
-<ul>
-	<li>
-		<p><tt>intensity image</tt>
-		<ul>
-			<li>
-				<p>image sequence containing the cell intensities</p>
-			</li>
-			<li>
-				<p>only needed if intensities should be analyzed</p>
-			</li>
-		</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>mask image [Advanced View]</tt>
-		<ul>
-			<li>
-				<p>image sequence containing additional fluorescence intensities that are used to exclude certain cells</p>
-			</li>
-			<li>
-				<p>only needed if cells showing or lacking this fluorescence should be discarded from the analysis</p>
-			</li>
-		</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>include mask [Advanced View]</tt>
-		<ul>
-			<li>
-				<p>if activated, only those tracks that have corresponding signals in mask image are included in the analysis (otherwise only these tracks are excluded)</p>
-			</li>
-		</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>average factor [Advanced View]</tt>
-	<ul>
-		<li>
-			<p>only cells with average intensity above / below <tt>average factor</tt> times average intensity of the whole frame are excluded/ included(depending on whether <tt>include bright objects from mask</tt> is activated or not)</p>
-		</li>
-	</ul>
-	</p>
-	</li>
-	<li>
-		<p><tt>pixel length, x-direction</tt>
-		<ul>
-			<li>
-				<p>physical length of a pixel in x-direction</p>
-			</li>
-		</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>pixel length, y-direction</tt>
-		<ul>
-			<li>
-				<p>physical length of a pixel in y-direction</p>
-			</li>
-		</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>unit space</tt> 
-		<ul>
-			<li>
-				<p>unit of measurement for pixel size</p>
-			</li>
-		</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>time between frames</tt>
-		<ul>
-			<li>
-				<p>time elapsed between the acqusition of two consecutive frames</p>
-			</li>
-		</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>unit time</tt>
-	<ul>
-		<li>
-			<p>unit of measurement for the time</p>
-		</li>
-	</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>minimum track length</tt>
-		<ul>
-			<li>
-				<p>minimum length (number of consecutive frames) of a track to be considered for analysis</p>
-			</li>
-		</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>analyze trajectories</tt>
-		<ul>
-			<li>
-				<p>should cell trajectories be analyzed</p>
-			</li>
-		</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>analyze shapes</tt>
-		<ul>
-			<li>
-				<p>should cell shapes be analyzed</p>
-			</li>
-		</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>analyze intensities</tt>
-		<ul>
-			<li>
-				<p>should image intensities be analysized</p>
-			</li>
-			<li>
-				<p>requires an intensity image corresponding to the label image</p>
-			</li>
-		</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>show trajectory map</tt>
-		<ul>
-			<li>
-				<p>should a 2D map of the trajectories be created</p>
-			</li>
-		</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>show overlay image</tt>
-	<ul>
-		<li>
-			<p>should a new image sequence with cells and inpainted trajectories be created</p>
-		</li>
-		<li>
-			<p>requires the intensity image</p>
-		</li>
-	</ul>
-	</p>
-	</li>
-	<li>
-		<p><tt>remove excluded objects</tt>
-	<ul>
-		<li>
-			<p>if activated, all cells that weren't analyzed (e.g. because their tracks were smaller than <tt>minimum track length</tt> are not displayed in the resulting label image)</p>
-		</li>
-	</ul>
-	</p>
-	</li>
-</ul>
-
-<h3>supplemental parameters:</h3>
-
-<ul>
-	<li>
-		<p><tt>Verbose</tt>
-		<ul>
-			<li>
-				<p>output some additional information</p>
-			</li>
-		</ul>
-		</p>
-	</li>
-</ul>
-END_MITOBO_ONLINE_HELP*/

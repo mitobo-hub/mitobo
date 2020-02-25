@@ -61,7 +61,9 @@ import de.unihalle.informatik.MiToBo.io.images.ImageReaderMTB;
  * @author glass
  *
  */
-@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.SWING, level=Level.STANDARD, allowBatchMode = false)
+@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.SWING, 
+	level=Level.STANDARD, allowBatchMode = false,
+	shortDescription="Training and cross validation of support vector machines for classifying scratch assays.")
 public class ScratchAssaySVMTrainer extends MTBOperator
 {
 	@Parameter(label = "directory containing positive samples", required = true, direction = Parameter.Direction.IN, supplemental = false, description = "directory containing positive samples", mode = ExpertMode.STANDARD, dataIOOrder = 0)
@@ -1042,165 +1044,165 @@ public class ScratchAssaySVMTrainer extends MTBOperator
 			e.printStackTrace();
 		}
 	}
+	
+	@Override
+	public String getDocumentation() {
+		return "<ul><li>\r\n" + 
+				"<p>This operator offers the possibilty to train or validate a support vector machine model for classifying scratch assay images into such containing a scratch and such that don't (already closed)</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p>newly created models can be used in the <a href=\"de.unihalle.informatik.MiToBo.apps.scratchAssay.ScratchAssayAnalyzer.html\">Scratch Assay Analyzer</a></p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p>In order to use this operator two directories have to be created, one containing images where there is a scratch visible (positive samples) and a second containing images without a scratch (negative samples)</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p>all images should have the same dimensions and the scratches have to be oriented either all horizontally or all vertically  </p>\r\n" + 
+				"</li></ul>\r\n" + 
+				"<h2>Usage:</h2>\r\n" + 
+				"<h3>required parameters:</h3>\r\n" + 
+				"\r\n" + 
+				"<ul>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt> directory containing positive samples</tt>\r\n" + 
+				"		<ul>\r\n" + 
+				"			<li>\r\n" + 
+				"				<p>directory containing scratch assay images where the scratch has not been closed</p>\r\n" + 
+				"			</li>\r\n" + 
+				"		</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>directory containing negative samples</tt> \r\n" + 
+				"		<ul>\r\n" + 
+				"			<li>\r\n" + 
+				"				<p>directory containing scratch assay images where the scratch has already been closed</p>\r\n" + 
+				"			</li>\r\n" + 
+				"		</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>scratch orientation</tt>\r\n" + 
+				"		<ul>\r\n" + 
+				"			<li>\r\n" + 
+				"				<p>horizontally or </p>\r\n" + 
+				"			</li>\r\n" + 
+				"			<li>\r\n" + 
+				"				<p>vertically</p>\r\n" + 
+				"			</li>\r\n" + 
+				"		</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>entropy filter size</tt>\r\n" + 
+				"		<ul>\r\n" + 
+				"			<li>\r\n" + 
+				"				<p>size of entropy filter mask</p>\r\n" + 
+				"			</li>\r\n" + 
+				"			<li>\r\n" + 
+				"				<p>increase lets the scratch area decrease</p>\r\n" + 
+				"			</li>\r\n" + 
+				"		</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>sigma</tt>\r\n" + 
+				"	<ul>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>standard deviation of gauss filter</p>\r\n" + 
+				"		</li>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>increase leads to more image smoothing and scratch area tends to decrease</p>\r\n" + 
+				"		</li>\r\n" + 
+				"	</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"</ul>\r\n" + 
+				"<h3>optional parameters:</h3>\r\n" + 
+				"\r\n" + 
+				"<ul>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p>regularization parameter (C)\r\n" + 
+				"	<ul>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>determines severity of misclassification of outliers</p>\r\n" + 
+				"		</li>\r\n" + 
+				"	</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p>kernel type\r\n" + 
+				"	<ul>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>determines type of kernel for support vector machine</p>\r\n" + 
+				"		</li>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>available options are LINEAR, RADIAL and POLYNOMIAL</p>\r\n" + 
+				"		</li>\r\n" + 
+				"	</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p>degree\r\n" + 
+				"	<ul>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>degree of polynomial if polynomial kernel is chosen</p>\r\n" + 
+				"		</li>\r\n" + 
+				"	</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p>k\r\n" + 
+				"	<ul>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>fold number if k-fold cross validation is performed</p>\r\n" + 
+				"		</li>\r\n" + 
+				"	</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p>validation method\r\n" + 
+				"	<ul>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>which (if any) validation method shoulb be used</p>\r\n" + 
+				"		</li>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>available options are \r\n" + 
+				"		<ul>\r\n" + 
+				"			<li>\r\n" + 
+				"				<p>NONE: train a new svm model</p>\r\n" + 
+				"			</li>\r\n" + 
+				"			<li>\r\n" + 
+				"				<p>K&nbsp;FOLD: stratified k-fold cross validation</p>\r\n" + 
+				"			</li>\r\n" + 
+				"			<li>\r\n" + 
+				"				<p>LEAVE&nbsp;ONE&nbsp;OUT: leave-one-out cross validation</p>\r\n" + 
+				"			</li>\r\n" + 
+				"		</ul>\r\n" + 
+				"			</p>\r\n" + 
+				"		</li>\r\n" + 
+				"	</ul>\r\n" + 
+				"	</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>maximum iterations</tt>\r\n" + 
+				"	<ul>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>maximum number of iterations for level set segmentation</p>\r\n" + 
+				"		</li>\r\n" + 
+				"	</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"</ul>\r\n" + 
+				"<h3>supplemental parameters:</h3>\r\n" + 
+				"\r\n" + 
+				"<ul>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>Verbose</tt>\r\n" + 
+				"	<ul>\r\n" + 
+				"		<li>\r\n" + 
+				"			<p>output some additional information</p>\r\n" + 
+				"		</li>\r\n" + 
+				"	</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"</ul>\r\n";
+	}
 }
-
-/*BEGIN_MITOBO_ONLINE_HELP
-<p><a target="_blank" href="http://www2.informatik.uni-halle.de/agprbio/mitobo//api/de/unihalle/informatik/MiToBo/apps/scratchAssay/ScratchAssaySVMTrainer.html">API</a></p>
-<ul><li>
-<p>This operator offers the possibilty to train or validate a support vector machine model for classifying scratch assay images into such containing a scratch and such that don't (already closed)</p>
-</li><li>
-<p>newly created models can be used in the <a href="de.unihalle.informatik.MiToBo.apps.scratchAssay.ScratchAssayAnalyzer.html">Scratch Assay Analyzer</a></p>
-</li><li>
-<p>In order to use this operator two directories have to be created, one containing images where there is a scratch visible (positive samples) and a second containing images without a scratch (negative samples)</p>
-</li><li>
-<p>all images should have the same dimensions and the scratches have to be oriented either all horizontally or all vertically  </p>
-</li></ul>
-<h2>Usage:</h2>
-<h3>required parameters:</h3>
-
-<ul>
-	<li>
-		<p><tt> directory containing positive samples</tt>
-		<ul>
-			<li>
-				<p>directory containing scratch assay images where the scratch has not been closed</p>
-			</li>
-		</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>directory containing negative samples</tt> 
-		<ul>
-			<li>
-				<p>directory containing scratch assay images where the scratch has already been closed</p>
-			</li>
-		</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>scratch orientation</tt>
-		<ul>
-			<li>
-				<p>horizontally or </p>
-			</li>
-			<li>
-				<p>vertically</p>
-			</li>
-		</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>entropy filter size</tt>
-		<ul>
-			<li>
-				<p>size of entropy filter mask</p>
-			</li>
-			<li>
-				<p>increase lets the scratch area decrease</p>
-			</li>
-		</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>sigma</tt>
-	<ul>
-		<li>
-			<p>standard deviation of gauss filter</p>
-		</li>
-		<li>
-			<p>increase leads to more image smoothing and scratch area tends to decrease</p>
-		</li>
-	</ul>
-		</p>
-	</li>
-</ul>
-<h3>optional parameters:</h3>
-
-<ul>
-	<li>
-		<p>regularization parameter (C)
-	<ul>
-		<li>
-			<p>determines severity of misclassification of outliers</p>
-		</li>
-	</ul>
-		</p>
-	</li>
-	<li>
-		<p>kernel type
-	<ul>
-		<li>
-			<p>determines type of kernel for support vector machine</p>
-		</li>
-		<li>
-			<p>available options are LINEAR, RADIAL and POLYNOMIAL</p>
-		</li>
-	</ul>
-		</p>
-	</li>
-	<li>
-		<p>degree
-	<ul>
-		<li>
-			<p>degree of polynomial if polynomial kernel is chosen</p>
-		</li>
-	</ul>
-		</p>
-	</li>
-	<li>
-		<p>k
-	<ul>
-		<li>
-			<p>fold number if k-fold cross validation is performed</p>
-		</li>
-	</ul>
-		</p>
-	</li>
-	<li>
-		<p>validation method
-	<ul>
-		<li>
-			<p>which (if any) validation method shoulb be used</p>
-		</li>
-		<li>
-			<p>available options are 
-		<ul>
-			<li>
-				<p>NONE: train a new svm model</p>
-			</li>
-			<li>
-				<p>K&nbsp;FOLD: stratified k-fold cross validation</p>
-			</li>
-			<li>
-				<p>LEAVE&nbsp;ONE&nbsp;OUT: leave-one-out cross validation</p>
-			</li>
-		</ul>
-			</p>
-		</li>
-	</ul>
-	</p>
-	</li>
-	<li>
-		<p><tt>maximum iterations</tt>
-	<ul>
-		<li>
-			<p>maximum number of iterations for level set segmentation</p>
-		</li>
-	</ul>
-		</p>
-	</li>
-</ul>
-<h3>supplemental parameters:</h3>
-
-<ul>
-	<li>
-		<p><tt>Verbose</tt>
-	<ul>
-		<li>
-			<p>output some additional information</p>
-		</li>
-	</ul>
-		</p>
-	</li>
-</ul>
-END_MITOBO_ONLINE_HELP*/

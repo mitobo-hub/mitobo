@@ -46,7 +46,8 @@ import de.unihalle.informatik.MiToBo.features.texture.FeatureCalculatorHaralickM
  * @author moeller
  */
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL, 
-	level=Level.APPLICATION, allowBatchMode=false)
+	level=Level.APPLICATION, allowBatchMode=false,
+	shortDescription="Calculates features tile-wise on images for given feature extractors.")
 public class TileFeatureCalculator extends MTBOperator
 {
 	/**
@@ -371,36 +372,34 @@ public class TileFeatureCalculator extends MTBOperator
 	public int getTileCountY() {
 		return this.tileNumY;
 	}
+	
+	public String getDocumentation() {
+		return "This operator extracts features from the given image. The features are\r\n" + 
+				"calculated tile-wise on the given image. If the specified shift between \r\n" + 
+				"subsequent tiles is smaller than the given tile size in either of the two \r\n" + 
+				"dimensions, the tiles are overlapping. Contrary, if the shift is larger \r\n" + 
+				"than the tile size gaps result between tiles. The features to be \r\n" + 
+				"calculated are specified via the set of feature calculators.\r\n" + 
+				" \r\n" + 
+				"<ul>\r\n" + 
+				"<li><p><b>input:</b>\r\n" + 
+				"<ul>\r\n" + 
+				"<li><p><i>Input image</i>: the (gray-scale) image to analyze</p></li>\r\n" + 
+				"<li><p><i>Tile size in x/y</i>: dimensions of individual tiles</p></li>\r\n" + 
+				"<li><p><i>Tile shift in x/y</i>: shift between subsequent tiles</p></li>\r\n" + 
+				"<li><p><i>Feature calculators</i>: set of features to be extracted</p></li>\r\n" + 
+				"<li><p><i>Exclude mask</i>: optional mask to ignore image areas</p></li>\r\n" + 
+				"</ul>\r\n" + 
+				"</p>\r\n" + 
+				"</li>\r\n" + 
+				"<li><p><b>output:</b>\r\n" + 
+				"<ul>\r\n" + 
+				"<li><p><i>Result data object</i>: object containing result data</p></li>\r\n" + 
+				"<li><p><i>Result image</i>: visualization of feature measures, if \r\n" + 
+				"	supported by selected feature operators (if not, image will be null)</p></li>\r\n" + 
+				"</ul>\r\n" + 
+				"</p>\r\n" + 
+				"</li>\r\n" + 
+				"</ul>\r\n";
+	}
 }
-
-/*BEGIN_MITOBO_ONLINE_HELP
-
-This operator extracts features from the given image. The features are
-calculated tile-wise on the given image. If the specified shift between 
-subsequent tiles is smaller than the given tile size in either of the two 
-dimensions, the tiles are overlapping. Contrary, if the shift is larger 
-than the tile size gaps result between tiles. The features to be 
-calculated are specified via the set of feature calculators.
- 
-<ul>
-<li><p><b>input:</b>
-<ul>
-<li><p><i>Input image</i>: the (gray-scale) image to analyze</p></li>
-<li><p><i>Tile size in x/y</i>: dimensions of individual tiles</p></li>
-<li><p><i>Tile shift in x/y</i>: shift between subsequent tiles</p></li>
-<li><p><i>Feature calculators</i>: set of features to be extracted</p></li>
-<li><p><i>Exclude mask</i>: optional mask to ignore image areas</p></li>
-</ul>
-</p>
-</li>
-<li><p><b>output:</b>
-<ul>
-<li><p><i>Result data object</i>: object containing result data</p></li>
-<li><p><i>Result image</i>: visualization of feature measures, if 
-	supported by selected feature operators (if not, image will be null)</p></li>
-</ul>
-</p>
-</li>
-</ul>
-
-END_MITOBO_ONLINE_HELP*/

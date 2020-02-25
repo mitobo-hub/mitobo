@@ -59,7 +59,8 @@ import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
  * @author gress
  *
  */
-@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL)
+@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL,
+		shortDescription="Convolves an image with a multi-dimensional Gaussian filter.")
 public class GaussFilter extends MTBOperator implements StatusReporter {
 
 	/** vector of installed StatusListeners */
@@ -731,66 +732,66 @@ public class GaussFilter extends MTBOperator implements StatusReporter {
 	public void removeStatusListener(StatusListener statuslistener) {
 		statusListeners.remove(statuslistener);
 	}
+	
+	@Override
+	public String getDocumentation() {
+		return "<p>Convolution of an input image with a Gaussian kernel. Only Gaussian kernels with a diagonal covariance matrix are considered.</p>\n" + 
+				"<h3>Required input:</h3>\n" + 
+				"\n" + 
+				"<ul><li>\n" + 
+				"<p><b>Input image</b>:</p>\n" + 
+				"\n" + 
+				"<p>Image to be filtered</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>sigmaX</b>:</p>\n" + 
+				"\n" + 
+				"<p>Standard deviation of Gaussian kernel in x-dimension</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>sigmaY</b>: </p>\n" + 
+				"\n" + 
+				"<p>Standard deviation of Gaussian kernel in y-dimension</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>sigmaZ</b>: </p>\n" + 
+				"\n" + 
+				"<p>Standard deviation of Gaussian kernel in z-dimension</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>sigmaT</b>: </p>\n" + 
+				"\n" + 
+				"<p>Standard deviation of Gaussian kernel in t-dimension</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>sigmaC</b>: </p>\n" + 
+				"\n" + 
+				"<p>Standard deviation of Gaussian kernel in c-dimension</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>sigma interpretation</b>: </p>\n" + 
+				"\n" + 
+				"<p>Standard deviations are interpreted to be given in pixels or in physical pixel size</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Kernel truncation</b>:</p>\n" + 
+				"\n" + 
+				"<p>A factor to truncate the tails of the Gaussian function in terms of standard deviation, e.g. if kernel truncation is set to 2 then the Gaussian kernel is truncated (set to zero) for values farther than 2*(standard deviation) from the kernel's mean.</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Boundary padding</b>: </p>\n" + 
+				"\n" + 
+				"<p>Padding of image: Method of how to simulate pixel values outside the image domain.</p>\n" + 
+				"\n" + 
+				"<ul><li>\n" + 
+				"<p>PADDING_ZERO: Values outside the image domain are assumed to be zero.</p>\n" + 
+				"</li><li>\n" + 
+				"<p>PADDING_BORDER: Values outside the image domain correspond to value of nearest pixel in the image domain. </p>\n" + 
+				"</li><li>\n" + 
+				"<p>PADDING_MIRROR: Values of the image are mirrored outside of the image domain along the image border.</p>\n" + 
+				"</li><li>\n" + 
+				"<p>PADDING_PERIODIC: Values are repeated, i.e. the image is assumed to be periodical with period equal to the image dimensions (as assumed for DFT) </p>\n" + 
+				"</li></ul>\n" + 
+				"</li></ul>\n" + 
+				"<h3>Output:</h3>\n" + 
+				"\n" + 
+				"<ul><li>\n" + 
+				"<p><b>Result image</b></p>\n" + 
+				"\n" + 
+				"<p>The filtered image of type MTBImageType.MTB_DOUBLE</p>\n" + 
+				"</li></ul>\n";
+	}
 }
 
-/*BEGIN_MITOBO_ONLINE_HELP
-<p><a target="_blank" href="http://www2.informatik.uni-halle.de/agprbio/mitobo//api/de/unihalle/informatik/MiToBo/filters/linear/GaussFilter.html">API</a></p>
-
-<p>Convolution of an input image with a Gaussian kernel. Only Gaussian kernels with a diagonal covariance matrix are considered.</p>
-<h3>Required input:</h3>
-
-<ul><li>
-<p><b>Input image</b>:</p>
-
-<p>Image to be filtered</p>
-</li><li>
-<p><b>sigmaX</b>:</p>
-
-<p>Standard deviation of Gaussian kernel in x-dimension</p>
-</li><li>
-<p><b>sigmaY</b>: </p>
-
-<p>Standard deviation of Gaussian kernel in y-dimension</p>
-</li><li>
-<p><b>sigmaZ</b>: </p>
-
-<p>Standard deviation of Gaussian kernel in z-dimension</p>
-</li><li>
-<p><b>sigmaT</b>: </p>
-
-<p>Standard deviation of Gaussian kernel in t-dimension</p>
-</li><li>
-<p><b>sigmaC</b>: </p>
-
-<p>Standard deviation of Gaussian kernel in c-dimension</p>
-</li><li>
-<p><b>sigma interpretation</b>: </p>
-
-<p>Standard deviations are interpreted to be given in pixels or in physical pixel size</p>
-</li><li>
-<p><b>Kernel truncation</b>:</p>
-
-<p>A factor to truncate the tails of the Gaussian function in terms of standard deviation, e.g. if kernel truncation is set to 2 then the Gaussian kernel is truncated (set to zero) for values farther than 2*(standard deviation) from the kernel's mean.</p>
-</li><li>
-<p><b>Boundary padding</b>: </p>
-
-<p>Padding of image: Method of how to simulate pixel values outside the image domain.</p>
-
-<ul><li>
-<p>PADDING_ZERO: Values outside the image domain are assumed to be zero.</p>
-</li><li>
-<p>PADDING_BORDER: Values outside the image domain correspond to value of nearest pixel in the image domain. </p>
-</li><li>
-<p>PADDING_MIRROR: Values of the image are mirrored outside of the image domain along the image border.</p>
-</li><li>
-<p>PADDING_PERIODIC: Values are repeated, i.e. the image is assumed to be periodical with period equal to the image dimensions (as assumed for DFT) </p>
-</li></ul>
-</li></ul>
-<h3>Output:</h3>
-
-<ul><li>
-<p><b>Result image</b></p>
-
-<p>The filtered image of type MTBImageType.MTB_DOUBLE</p>
-</li></ul>
-END_MITOBO_ONLINE_HELP*/

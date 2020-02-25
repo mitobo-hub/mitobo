@@ -47,7 +47,8 @@ import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
  * @author gress
  *
  */
-@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL)
+@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL,
+		shortDescription="Convolves an image with a user-specified kernel.")
 public class LinearFilter extends MTBOperator implements StatusReporter {
 	
 	/** vector of installed StatusListeners */
@@ -382,53 +383,51 @@ public class LinearFilter extends MTBOperator implements StatusReporter {
 		m_statusListeners.remove(statuslistener);
 	}
 	
+	@Override
+	public String getDocumentation() {
+		return "<p>Convolution of an input image with an arbitrary kernel (image).</p>\n" + 
+				"<h3>Required input:</h3>\n" + 
+				"\n" + 
+				"<ul><li>\n" + 
+				"<p><b>Input image</b>:</p>\n" + 
+				"\n" + 
+				"<p>Image to be filtered</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Kernel image</b>:</p>\n" + 
+				"\n" + 
+				"<p>The kernel used for convolution (the given kernel is used as it is in the convolution and NOT mirrored at its origin)</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Kernel normalization</b>: </p>\n" + 
+				"\n" + 
+				"<p>Flag to normalize the kernel image. If true the kernel image's pixel values are normalized to sum to 1.</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Boundary padding</b>: </p>\n" + 
+				"\n" + 
+				"<p>Padding of image: Method of how to simulate pixel values outside the image domain.</p>\n" + 
+				"\n" + 
+				"<ul><li>\n" + 
+				"<p>PADDING_ZERO: Values outside the image domain are assumed to be zero.</p>\n" + 
+				"</li><li>\n" + 
+				"<p>PADDING_BORDER: Values outside the image domain correspond to value of nearest pixel in the image domain. </p>\n" + 
+				"</li><li>\n" + 
+				"<p>PADDING_MIRROR: Values of the image are mirrored outside of the image domain along the image border.</p>\n" + 
+				"</li><li>\n" + 
+				"<p>PADDING_PERIODIC: Values are repeated, i.e. the image is assumed to be periodical with period equal to the image dimensions (as assumed for DFT) </p>\n" + 
+				"</li></ul>\n" + 
+				"</li></ul>\n" + 
+				"<h3>Optional input:</h3>\n" + 
+				"\n" + 
+				"<ul><li>\n" + 
+				"<p><b>Kernel origin</b>: </p>\n" + 
+				"\n" + 
+				"<p>The coordinate of the kernel image used as origin. If not specified, the center of the kernel image rounded down is used as origin.</p>\n" + 
+				"</li></ul>\n" + 
+				"<h3>Output:</h3>\n" + 
+				"\n" + 
+				"<ul><li>\n" + 
+				"<p><b>Result image</b></p>\n" + 
+				"\n" + 
+				"<p>The filtered image of type MTBImageType.MTB_DOUBLE</p>\n" + 
+				"</li></ul>\n";
+	}
 }
-
-/*BEGIN_MITOBO_ONLINE_HELP
-<p><a target="_blank" href="http://www2.informatik.uni-halle.de/agprbio/mitobo//api/de/unihalle/informatik/MiToBo/filters/linear/LinearFilter.html">API</a></p>
-
-<p>Convolution of an input image with an arbitrary kernel (image).</p>
-<h3>Required input:</h3>
-
-<ul><li>
-<p><b>Input image</b>:</p>
-
-<p>Image to be filtered</p>
-</li><li>
-<p><b>Kernel image</b>:</p>
-
-<p>The kernel used for convolution (the given kernel is used as it is in the convolution and NOT mirrored at its origin)</p>
-</li><li>
-<p><b>Kernel normalization</b>: </p>
-
-<p>Flag to normalize the kernel image. If true the kernel image's pixel values are normalized to sum to 1.</p>
-</li><li>
-<p><b>Boundary padding</b>: </p>
-
-<p>Padding of image: Method of how to simulate pixel values outside the image domain.</p>
-
-<ul><li>
-<p>PADDING_ZERO: Values outside the image domain are assumed to be zero.</p>
-</li><li>
-<p>PADDING_BORDER: Values outside the image domain correspond to value of nearest pixel in the image domain. </p>
-</li><li>
-<p>PADDING_MIRROR: Values of the image are mirrored outside of the image domain along the image border.</p>
-</li><li>
-<p>PADDING_PERIODIC: Values are repeated, i.e. the image is assumed to be periodical with period equal to the image dimensions (as assumed for DFT) </p>
-</li></ul>
-</li></ul>
-<h3>Optional input:</h3>
-
-<ul><li>
-<p><b>Kernel origin</b>: </p>
-
-<p>The coordinate of the kernel image used as origin. If not specified, the center of the kernel image rounded down is used as origin.</p>
-</li></ul>
-<h3>Output:</h3>
-
-<ul><li>
-<p><b>Result image</b></p>
-
-<p>The filtered image of type MTBImageType.MTB_DOUBLE</p>
-</li></ul>
-END_MITOBO_ONLINE_HELP*/

@@ -40,7 +40,9 @@ import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
  * @author glass
  *
  */
-@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL, level=Level.APPLICATION, allowBatchMode = false)
+@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL, 
+	level=Level.APPLICATION, allowBatchMode = false,
+	shortDescription="Operator for segmenting, tracking and analyzing 2D image sequences of fluorescently labeled cells.")
 public class CellMigrationAnalyzer extends MTBOperator
 {
 	@Parameter(label = "input image", required = true, direction = Parameter.Direction.IN, supplemental = false, description = "input image", dataIOOrder = 0,
@@ -421,301 +423,297 @@ public class CellMigrationAnalyzer extends MTBOperator
 		}
 	}
 	
-	
+	 @Override
+	 public String getDocumentation() {
+		 return "<ul>\r\n" + 
+		 		"	<li>\r\n" + 
+		 		"		<p>Operator for segmenting, tracking and analyzing 2D image sequences of fluorescently labeled cells</p>\r\n" + 
+		 		"	</li>\r\n" + 
+		 		"</ul>\r\n" + 
+		 		"<h2>Usage:</h2>\r\n" + 
+		 		"<h3>required parameters:</h3>\r\n" + 
+		 		"\r\n" + 
+		 		"<ul>\r\n" + 
+		 		"	<li>\r\n" + 
+		 		"		<p><tt>input image</tt>\r\n" + 
+		 		"	<ul>\r\n" + 
+		 		"		<li>\r\n" + 
+		 		"			<p>image (sequence) to be analyzed</p>\r\n" + 
+		 		"		</li>\r\n" + 
+		 		"	</ul>\r\n" + 
+		 		"	</p>\r\n" + 
+		 		"	</li>\r\n" + 
+		 		"</ul>\r\n" + 
+		 		"<ul>\r\n" + 
+		 		"	<li>\r\n" + 
+		 		"		<p><tt>detection channel</tt>\r\n" + 
+		 		"	<ul>\r\n" + 
+		 		"		<li>\r\n" + 
+		 		"			<p>channel used for segmentation (whole cells should be stained in this channel)</p>\r\n" + 
+		 		"		</li>\r\n" + 
+		 		"	</ul>\r\n" + 
+		 		"	</p>\r\n" + 
+		 		"	</li>\r\n" + 
+		 		"</ul>\r\n" + 
+		 		"<h3>optional parameters:</h3>\r\n" + 
+		 		"\r\n" + 
+		 		"<ul>\r\n" + 
+		 		"	<li>\r\n" + 
+		 		"		<p><tt>minimum seed size [Advanced View]</tt>\r\n" + 
+		 		"	<ul>\r\n" + 
+		 		"		<li>\r\n" + 
+		 		"			<p>minimum size (number of pixels) of seed objects to be considered as cells</p>\r\n" + 
+		 		"		</li>\r\n" + 
+		 		"	</ul>\r\n" + 
+		 		"	</p>\r\n" + 
+		 		"	</li>\r\n" + 
+		 		"	<li>\r\n" + 
+		 		"		<p><tt>&#963; (sigma)</tt>\r\n" + 
+		 		"	<ul>\r\n" + 
+		 		"		<li>\r\n" + 
+		 		"			<p>standard deviation of Gaussian filter used for noise reduction</p>\r\n" + 
+		 		"		</li>\r\n" + 
+		 		"	</ul>\r\n" + 
+		 		"	</p>\r\n" + 
+		 		"	</li>\r\n" + 
+		 		"	<li>\r\n" + 
+		 		"		<p><tt>&#947; (gamma)</tt>\r\n" + 
+		 		"	<ul>\r\n" + 
+		 		"		<li>\r\n" + 
+		 		"			<p>gamma correction with a value smaller than 1 is used to emphasize faintly fluorescing cells/ cell parts</p>\r\n" + 
+		 		"		</li>\r\n" + 
+		 		"		<li>\r\n" + 
+		 		"			<p>if background noise is very high the value should be increased</p>\r\n" + 
+		 		"		</li>\r\n" + 
+		 		"	</ul>\r\n" + 
+		 		"	</p>\r\n" + 
+		 		"	</li>\r\n" + 
+		 		"	<li>\r\n" + 
+		 		"		<p><tt>maximum number of iterations [Advanced View]</tt>\r\n" + 
+		 		"	<ul>\r\n" + 
+		 		"		<li>\r\n" + 
+		 		"			<p>maximum number of iterations for level set segmentation</p>\r\n" + 
+		 		"		</li>\r\n" + 
+		 		"	</ul>\r\n" + 
+		 		"	</p>\r\n" + 
+		 		"	</li>\r\n" + 
+		 		"	<li>\r\n" + 
+		 		"		<p><tt>use mask channel [Advanced View]</tt>\r\n" + 
+		 		"	<ul>\r\n" + 
+		 		"		<li>\r\n" + 
+		 		"			<p>should an additional fluorescence channel be used for excluding certain cells</p>\r\n" + 
+		 		"		</li>\r\n" + 
+		 		"	</ul>\r\n" + 
+		 		"	</p>\r\n" + 
+		 		"	</li>\r\n" + 
+		 		"	<li>\r\n" + 
+		 		"		<p><tt>mask channel [Advanced View]</tt>\r\n" + 
+		 		"	<ul>\r\n" + 
+		 		"		<li>\r\n" + 
+		 		"			<p>additional fluorescence channel used for excluding certain cells (<tt>use mask channel</tt> must be activated)</p>\r\n" + 
+		 		"		</li>\r\n" + 
+		 		"	</ul>\r\n" + 
+		 		"	</p>\r\n" + 
+		 		"	</li>\r\n" + 
+		 		"	<li>\r\n" + 
+		 		"		<p><tt>include bright objects from mask [Advanced View]</tt>\r\n" + 
+		 		"	<ul>\r\n" + 
+		 		"		<li>\r\n" + 
+		 		"			<p>if activated bright cells are excluded from the analysis, else dark cells are excluded (refered to the <tt>mask channel</tt>; <tt>use mask channel</tt> must be activated, too)</p>\r\n" + 
+		 		"		</li>\r\n" + 
+		 		"	</ul>\r\n" + 
+		 		"	</p>\r\n" + 
+		 		"	</li>\r\n" + 
+		 		"	<li>\r\n" + 
+		 		"		<p><tt>average factor [Advanced View]</tt>\r\n" + 
+		 		"	<ul>\r\n" + 
+		 		"		<li>\r\n" + 
+		 		"			<p>only cells with average intensity above / below <tt>average factor</tt> times average intensity of the whole frame are excluded/ included(depending on whether <tt>include bright objects from mask</tt> is activated or not)</p>\r\n" + 
+		 		"		</li>\r\n" + 
+		 		"	</ul>\r\n" + 
+		 		"	</p>\r\n" + 
+		 		"	</li>\r\n" + 
+		 		"	<li>\r\n" + 
+		 		"		<p><tt>remove border touching objects</tt>\r\n" + 
+		 		"		<ul>\r\n" + 
+		 		"			<li>\r\n" + 
+		 		"				<p>objects that are connected to the image borders will be discarded, if activated</p>\r\n" + 
+		 		"			</li>\r\n" + 
+		 		"		</ul>\r\n" + 
+		 		"		</p>\r\n" + 
+		 		"	</li>\r\n" + 
+		 		"	<li>\r\n" + 
+		 		"		<p><tt>minimum area (pixels)</tt>\r\n" + 
+		 		"	<ul>\r\n" + 
+		 		"		<li>\r\n" + 
+		 		"			<p>minimum area (number of pixels) of objects to be retained</p>\r\n" + 
+		 		"		</li>\r\n" + 
+		 		"		<li>\r\n" + 
+		 		"			<p>objects with a smaller area will not be analyzed (but they do appear on the resulting label image)</p>\r\n" + 
+		 		"		</li>\r\n" + 
+		 		"	</ul>\r\n" + 
+		 		"	</p>\r\n" + 
+		 		"	</li>\r\n" + 
+		 		"	<li>\r\n" + 
+		 		"		<p><tt>determine gating distance automatically</tt>\r\n" + 
+		 		"	<ul>\r\n" + 
+		 		"		<li>\r\n" + 
+		 		"			<p>should the gating distance be determined automatically</p>\r\n" + 
+		 		"		</li>\r\n" + 
+		 		"		<li>\r\n" + 
+		 		"			<p>if not, the <tt>maximum distance (pixels)</tt> is used</p>\r\n" + 
+		 		"		</li>\r\n" + 
+		 		"	</ul>\r\n" + 
+		 		"	</p>\r\n" + 
+		 		"	</li>\r\n" + 
+		 		"	<li>\r\n" + 
+		 		"		<p><tt>maximum distance (pixels)</tt>\r\n" + 
+		 		"	<ul>\r\n" + 
+		 		"		<li>\r\n" + 
+		 		"			<p>maximum distance (gating distance) a cell is assumed to move between two consecutive frames</p>\r\n" + 
+		 		"		</li>\r\n" + 
+		 		"		<li>\r\n" + 
+		 		"			<p>if the centroid distance of two regions from subsequent frames exceeds this value, these regions are not considered to belong to the same cell</p>\r\n" + 
+		 		"		</li>\r\n" + 
+		 		"		<li>\r\n" + 
+		 		"			<p>only used if automatic gating distance determination is deactivated</p>\r\n" + 
+		 		"		</li>\r\n" + 
+		 		"	</ul>\r\n" + 
+		 		"	</p>\r\n" + 
+		 		"	</li>\r\n" + 
+		 		"	<li>\r\n" + 
+		 		"		<p><tt>maximum area change</tt>\r\n" + 
+		 		"	<ul>\r\n" + 
+		 		"		<li>\r\n" + 
+		 		"			<p>maximum relative change in area a cell is assumed to undergo between two consecutive frames</p>\r\n" + 
+		 		"		</li>\r\n" + 
+		 		"		<li>\r\n" + 
+		 		"			<p>if the fraction of the areas of two regions from subsequent frames differ more than this value, these regions are not considered to belong to the same cell</p>\r\n" + 
+		 		"		</li>\r\n" + 
+		 		"	</ul>\r\n" + 
+		 		"	</p>\r\n" + 
+		 		"	</li>\r\n" + 
+		 		"	<li>\r\n" + 
+		 		"		<p><tt>pixel length, x-direction</tt>\r\n" + 
+		 		"	<ul>\r\n" + 
+		 		"		<li>\r\n" + 
+		 		"			<p>physical length of a pixel in x-direction</p>\r\n" + 
+		 		"		</li>\r\n" + 
+		 		"	</ul>\r\n" + 
+		 		"	</p>\r\n" + 
+		 		"	</li>\r\n" + 
+		 		"	<li>\r\n" + 
+		 		"		<p><tt>pixel length, y-direction</tt>\r\n" + 
+		 		"	<ul>\r\n" + 
+		 		"		<li>\r\n" + 
+		 		"			<p>physical length of a pixel in y-direction</p>\r\n" + 
+		 		"		</li>\r\n" + 
+		 		"	</ul>\r\n" + 
+		 		"	</p>\r\n" + 
+		 		"	</li>\r\n" + 
+		 		"	<li>\r\n" + 
+		 		"		<p><tt>unit space</tt> \r\n" + 
+		 		"	<ul>\r\n" + 
+		 		"		<li>\r\n" + 
+		 		"			<p>unit of measurement for pixel size</p>\r\n" + 
+		 		"		</li>\r\n" + 
+		 		"	</ul>\r\n" + 
+		 		"	</p>\r\n" + 
+		 		"	</li>\r\n" + 
+		 		"	<li>\r\n" + 
+		 		"		<p><tt>time between frames</tt>\r\n" + 
+		 		"	<ul>\r\n" + 
+		 		"		<li>\r\n" + 
+		 		"			<p>time elapsed between the acqusition of two consecutive frames</p>\r\n" + 
+		 		"		</li>\r\n" + 
+		 		"	</ul>\r\n" + 
+		 		"	</p>\r\n" + 
+		 		"	</li>\r\n" + 
+		 		"	<li>\r\n" + 
+		 		"		<p><tt>unit time</tt>\r\n" + 
+		 		"	<ul>\r\n" + 
+		 		"		<li>\r\n" + 
+		 		"			<p>unit of measurement for the time</p>\r\n" + 
+		 		"		</li>\r\n" + 
+		 		"	</ul>\r\n" + 
+		 		"	</p>\r\n" + 
+		 		"	</li>\r\n" + 
+		 		"	<li>\r\n" + 
+		 		"		<p><tt>minimum track length</tt>\r\n" + 
+		 		"	<ul>\r\n" + 
+		 		"		<li>\r\n" + 
+		 		"			<p>minimum length (number of consecutive frames) of a track to be considered for analysis</p>\r\n" + 
+		 		"		</li>\r\n" + 
+		 		"	</ul>\r\n" + 
+		 		"	</p>\r\n" + 
+		 		"	</li>\r\n" + 
+		 		"	<li>\r\n" + 
+		 		"		<p><tt>analyze trajectories</tt>\r\n" + 
+		 		"	<ul>\r\n" + 
+		 		"		<li>\r\n" + 
+		 		"			<p>should cell trajectories be analyzed</p>\r\n" + 
+		 		"		</li>\r\n" + 
+		 		"	</ul>\r\n" + 
+		 		"	</p>\r\n" + 
+		 		"	</li>\r\n" + 
+		 		"	<li>\r\n" + 
+		 		"		<p><tt>analyze shapes</tt>\r\n" + 
+		 		"	<ul>\r\n" + 
+		 		"		<li>\r\n" + 
+		 		"			<p>should cell shapes be analyzed</p>\r\n" + 
+		 		"		</li>\r\n" + 
+		 		"	</ul>\r\n" + 
+		 		"	</p>\r\n" + 
+		 		"	</li>\r\n" + 
+		 		"	<li>\r\n" + 
+		 		"		<p><tt>analyze intensities</tt>\r\n" + 
+		 		"	<ul>\r\n" + 
+		 		"		<li>\r\n" + 
+		 		"			<p>should image intensities be analyzed</p>\r\n" + 
+		 		"		</li>\r\n" + 
+		 		"		<li>\r\n" + 
+		 		"			<p>requires an intensity image corresponding to the label image</p>\r\n" + 
+		 		"		</li>\r\n" + 
+		 		"	</ul>\r\n" + 
+		 		"	</p>\r\n" + 
+		 		"	</li>\r\n" + 
+		 		"	<li>\r\n" + 
+		 		"		<p><tt>show trajectory map</tt>\r\n" + 
+		 		"	<ul>\r\n" + 
+		 		"		<li>\r\n" + 
+		 		"			<p>should a 2D map of the trajectories be created</p>\r\n" + 
+		 		"		</li>\r\n" + 
+		 		"	</ul>\r\n" + 
+		 		"	</p>\r\n" + 
+		 		"	</li>\r\n" + 
+		 		"	<li>\r\n" + 
+		 		"		<p><tt>show overlay image</tt>\r\n" + 
+		 		"	<ul>\r\n" + 
+		 		"		<li>\r\n" + 
+		 		"			<p>should a new image sequence with cells and inpainted trajectories be created</p>\r\n" + 
+		 		"		</li>\r\n" + 
+		 		"	</ul>\r\n" + 
+		 		"	</p>\r\n" + 
+		 		"	</li>\r\n" + 
+		 		"	<li>\r\n" + 
+		 		"		<p><tt>remove excluded objects</tt>\r\n" + 
+		 		"	<ul>\r\n" + 
+		 		"		<li>\r\n" + 
+		 		"			<p>if activated, all cells that weren't analyzed (e.g. because their tracks were smaller than <tt>minimum track length</tt> are not displayed in the resulting label image)</p>\r\n" + 
+		 		"		</li>\r\n" + 
+		 		"	</ul>\r\n" + 
+		 		"	</p>\r\n" + 
+		 		"	</li>\r\n" + 
+		 		"</ul>\r\n" + 
+		 		"<h3>supplemental parameters:</h3>\r\n" + 
+		 		"\r\n" + 
+		 		"<ul>\r\n" + 
+		 		"	<li>\r\n" + 
+		 		"		<p><tt>Verbose</tt>\r\n" + 
+		 		"	<ul>\r\n" + 
+		 		"		<li>\r\n" + 
+		 		"			<p>output some additional information</p>\r\n" + 
+		 		"		</li>\r\n" + 
+		 		"	</ul>\r\n";
+	 }
 }
-
-
-/*BEGIN_MITOBO_ONLINE_HELP
-<p><a target="_blank" href="http://www2.informatik.uni-halle.de/agprbio/mitobo//api/de/unihalle/informatik/MiToBo/apps/singleCellTracking2D/CellMigrationAnalyzer.html">API</a></p>
-
-<ul>
-	<li>
-		<p>Operator for segmenting, tracking and analyzing 2D image sequences of fluorescently labeled cells</p>
-	</li>
-</ul>
-<h2>Usage:</h2>
-<h3>required parameters:</h3>
-
-<ul>
-	<li>
-		<p><tt>input image</tt>
-	<ul>
-		<li>
-			<p>image (sequence) to be analyzed</p>
-		</li>
-	</ul>
-	</p>
-	</li>
-</ul>
-<ul>
-	<li>
-		<p><tt>detection channel</tt>
-	<ul>
-		<li>
-			<p>channel used for segmentation (whole cells should be stained in this channel)</p>
-		</li>
-	</ul>
-	</p>
-	</li>
-</ul>
-<h3>optional parameters:</h3>
-
-<ul>
-	<li>
-		<p><tt>minimum seed size [Advanced View]</tt>
-	<ul>
-		<li>
-			<p>minimum size (number of pixels) of seed objects to be considered as cells</p>
-		</li>
-	</ul>
-	</p>
-	</li>
-	<li>
-		<p><tt>&#963; (sigma)</tt>
-	<ul>
-		<li>
-			<p>standard deviation of Gaussian filter used for noise reduction</p>
-		</li>
-	</ul>
-	</p>
-	</li>
-	<li>
-		<p><tt>&#947; (gamma)</tt>
-	<ul>
-		<li>
-			<p>gamma correction with a value smaller than 1 is used to emphasize faintly fluorescing cells/ cell parts</p>
-		</li>
-		<li>
-			<p>if background noise is very high the value should be increased</p>
-		</li>
-	</ul>
-	</p>
-	</li>
-	<li>
-		<p><tt>maximum number of iterations [Advanced View]</tt>
-	<ul>
-		<li>
-			<p>maximum number of iterations for level set segmentation</p>
-		</li>
-	</ul>
-	</p>
-	</li>
-	<li>
-		<p><tt>use mask channel [Advanced View]</tt>
-	<ul>
-		<li>
-			<p>should an additional fluorescence channel be used for excluding certain cells</p>
-		</li>
-	</ul>
-	</p>
-	</li>
-	<li>
-		<p><tt>mask channel [Advanced View]</tt>
-	<ul>
-		<li>
-			<p>additional fluorescence channel used for excluding certain cells (<tt>use mask channel</tt> must be activated)</p>
-		</li>
-	</ul>
-	</p>
-	</li>
-	<li>
-		<p><tt>include bright objects from mask [Advanced View]</tt>
-	<ul>
-		<li>
-			<p>if activated bright cells are excluded from the analysis, else dark cells are excluded (refered to the <tt>mask channel</tt>; <tt>use mask channel</tt> must be activated, too)</p>
-		</li>
-	</ul>
-	</p>
-	</li>
-	<li>
-		<p><tt>average factor [Advanced View]</tt>
-	<ul>
-		<li>
-			<p>only cells with average intensity above / below <tt>average factor</tt> times average intensity of the whole frame are excluded/ included(depending on whether <tt>include bright objects from mask</tt> is activated or not)</p>
-		</li>
-	</ul>
-	</p>
-	</li>
-	<li>
-		<p><tt>remove border touching objects</tt>
-		<ul>
-			<li>
-				<p>objects that are connected to the image borders will be discarded, if activated</p>
-			</li>
-		</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>minimum area (pixels)</tt>
-	<ul>
-		<li>
-			<p>minimum area (number of pixels) of objects to be retained</p>
-		</li>
-		<li>
-			<p>objects with a smaller area will not be analyzed (but they do appear on the resulting label image)</p>
-		</li>
-	</ul>
-	</p>
-	</li>
-	<li>
-		<p><tt>determine gating distance automatically</tt>
-	<ul>
-		<li>
-			<p>should the gating distance be determined automatically</p>
-		</li>
-		<li>
-			<p>if not, the <tt>maximum distance (pixels)</tt> is used</p>
-		</li>
-	</ul>
-	</p>
-	</li>
-	<li>
-		<p><tt>maximum distance (pixels)</tt>
-	<ul>
-		<li>
-			<p>maximum distance (gating distance) a cell is assumed to move between two consecutive frames</p>
-		</li>
-		<li>
-			<p>if the centroid distance of two regions from subsequent frames exceeds this value, these regions are not considered to belong to the same cell</p>
-		</li>
-		<li>
-			<p>only used if automatic gating distance determination is deactivated</p>
-		</li>
-	</ul>
-	</p>
-	</li>
-	<li>
-		<p><tt>maximum area change</tt>
-	<ul>
-		<li>
-			<p>maximum relative change in area a cell is assumed to undergo between two consecutive frames</p>
-		</li>
-		<li>
-			<p>if the fraction of the areas of two regions from subsequent frames differ more than this value, these regions are not considered to belong to the same cell</p>
-		</li>
-	</ul>
-	</p>
-	</li>
-	<li>
-		<p><tt>pixel length, x-direction</tt>
-	<ul>
-		<li>
-			<p>physical length of a pixel in x-direction</p>
-		</li>
-	</ul>
-	</p>
-	</li>
-	<li>
-		<p><tt>pixel length, y-direction</tt>
-	<ul>
-		<li>
-			<p>physical length of a pixel in y-direction</p>
-		</li>
-	</ul>
-	</p>
-	</li>
-	<li>
-		<p><tt>unit space</tt> 
-	<ul>
-		<li>
-			<p>unit of measurement for pixel size</p>
-		</li>
-	</ul>
-	</p>
-	</li>
-	<li>
-		<p><tt>time between frames</tt>
-	<ul>
-		<li>
-			<p>time elapsed between the acqusition of two consecutive frames</p>
-		</li>
-	</ul>
-	</p>
-	</li>
-	<li>
-		<p><tt>unit time</tt>
-	<ul>
-		<li>
-			<p>unit of measurement for the time</p>
-		</li>
-	</ul>
-	</p>
-	</li>
-	<li>
-		<p><tt>minimum track length</tt>
-	<ul>
-		<li>
-			<p>minimum length (number of consecutive frames) of a track to be considered for analysis</p>
-		</li>
-	</ul>
-	</p>
-	</li>
-	<li>
-		<p><tt>analyze trajectories</tt>
-	<ul>
-		<li>
-			<p>should cell trajectories be analyzed</p>
-		</li>
-	</ul>
-	</p>
-	</li>
-	<li>
-		<p><tt>analyze shapes</tt>
-	<ul>
-		<li>
-			<p>should cell shapes be analyzed</p>
-		</li>
-	</ul>
-	</p>
-	</li>
-	<li>
-		<p><tt>analyze intensities</tt>
-	<ul>
-		<li>
-			<p>should image intensities be analyzed</p>
-		</li>
-		<li>
-			<p>requires an intensity image corresponding to the label image</p>
-		</li>
-	</ul>
-	</p>
-	</li>
-	<li>
-		<p><tt>show trajectory map</tt>
-	<ul>
-		<li>
-			<p>should a 2D map of the trajectories be created</p>
-		</li>
-	</ul>
-	</p>
-	</li>
-	<li>
-		<p><tt>show overlay image</tt>
-	<ul>
-		<li>
-			<p>should a new image sequence with cells and inpainted trajectories be created</p>
-		</li>
-	</ul>
-	</p>
-	</li>
-	<li>
-		<p><tt>remove excluded objects</tt>
-	<ul>
-		<li>
-			<p>if activated, all cells that weren't analyzed (e.g. because their tracks were smaller than <tt>minimum track length</tt> are not displayed in the resulting label image)</p>
-		</li>
-	</ul>
-	</p>
-	</li>
-</ul>
-<h3>supplemental parameters:</h3>
-
-<ul>
-	<li>
-		<p><tt>Verbose</tt>
-	<ul>
-		<li>
-			<p>output some additional information</p>
-		</li>
-	</ul>
-END_MITOBO_ONLINE_HELP*/

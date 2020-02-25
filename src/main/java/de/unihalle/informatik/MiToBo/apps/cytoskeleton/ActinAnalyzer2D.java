@@ -79,7 +79,9 @@ import de.unihalle.informatik.MiToBo.visualization.plots.StackedBarChartPlotter;
  * @author moeller
  */
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL,
-	level=Level.APPLICATION, allowBatchMode=false)
+	level=Level.APPLICATION, allowBatchMode=false,
+	shortDescription="Performs an unsupervised analysis of actin "
+		+ "microfilament structures in sets of microscopy images.")
 public class ActinAnalyzer2D extends MTBOperator {
 
 	/**
@@ -1267,75 +1269,74 @@ public class ActinAnalyzer2D extends MTBOperator {
 			e.printStackTrace();
 		}
 	}
+	
+	@Override
+	public String getDocumentation() {
+		return "This operator performs an unsupervised analysis of actin microfilament\n" + 
+				"structures in sets of microscopy images. It takes as input a directory where\n" + 
+				"the images are expected, and a set of segmentation masks showing the boundaries\n" + 
+				"of individual cells in the images. The operator first calculates a set of\n" + 
+				"texture features from the images and then clusters the feature vectors to\n" + 
+				"identify structural patterns shared among different cells. Finally, each cell\n" + 
+				"is characterized in terms of a distribution vector describing the appearance\n" + 
+				"of various structural patterns in the cell. These vectors can then be used to\n" + 
+				"analyze commonalities and differences between individual cells or groups of\n" + 
+				"cells.\n" + 
+				"\n" + 
+				"<ul>\n" + 
+				"<li><p><b>input:</b>\n" + 
+				"<ul>\n" + 
+				"<li><p><i>Image directory</i>:<br> directory where the images are read from,\n" + 
+				"	all files ending on \".tif\" are considered;<br> please refer to the webpage for\n" + 
+				"	further information on how the file names should be formatted </p></li>\n" + 
+				"<li><p><i>Mask directory</i>:<br> directory where the segmentation information for\n" + 
+				"	the images is read from; the directory can be identical to the\n" + 
+				"	image directory</p></li>\n" + 
+				"<li><p><i>Mask format</i>:<br> expected format of the segmentation data files\n" + 
+				"	<ul>\n" + 
+				"	<li>LABEL_IMAGE:<br> a gray-scale image is expected where the area of each\n" + 
+				"		cell is marked with a single unique gray-scale value;<br>\n" + 
+				"		the files should share the names of the input image files and have the\n" + 
+				"		ending \"-mask.tif\"\n" + 
+				"	<li>IJ_ROIS:<br> an ImageJ 1.x file of ROI manager regions is expected;<br>\n" + 
+				"		the files should share the names of the input image files and have the\n" + 
+				"		ending \"-mask.zip\" or \"-mask.roi\"\n" + 
+				"	</ul>\n" + 
+				"<li><p><i>Output and working directory</i>:<br> directory for intermediate and\n" + 
+				"	final results\n" + 
+				"<li><p><i>Calculate features?</i><br> by disabeling this option the time-consuming\n" + 
+				"	feature calculation can be omitted, however, in this case the feature\n" + 
+				"	directory is expected to already contain the feature files\n" + 
+				"<li><p><i>Feature directory</i>:<br> directory where the calculated features are\n" + 
+				"	saved to and from where they are read if feature calculations are omitted\n" + 
+				"<li><p><i>Number of feature clusters</i>:<br> number of clusters to be used for\n" + 
+				"	feature vector clustering, should approximately refer to the expected number\n" + 
+				"	of structural patterns appearing in the cells\n" + 
+				"<li><p><i>Do PCA in stage II?</i><br> enable or disable the PCA prior to the\n" + 
+				"	pairwise distance calculations in stage II of the approach\n" + 
+				"</ul>\n" + 
+				"\n" + 
+				"<li><p><b>output:</b>\n" + 
+				"<ul>\n" + 
+				"<li><p><i>Resulting chart plots for each group</i>:<br>\n" + 
+				"	cluster distributions for each cell categorized into cell groups\n" + 
+				"<li><p><i>Resulting box-whisker plot</i>:<br> box plot of the relative frequecies\n" + 
+				"	of appearance of each	cluster for the different cell groups\n" + 
+				"</ul>\n" + 
+				"In addition to the output data directly displayed on termination of the operator\n" + 
+				"some more result data files are written to the output directory. In particular,\n" + 
+				"a file with the pairwise Euclidean distances between distribution vectors can\n" + 
+				"be found there which can be further analyzed, e.g., with\n" + 
+				"<a href=\"http://deim.urv.cat/~sgomez/multidendrograms.php\">MultiDendrograms</a>.\n" + 
+				"Also images visualizing the cluster distributions for each input image and\n" + 
+				"each cell, respectively, are available.\n" + 
+				"\n" + 
+				"</ul>\n" + 
+				"\n" + 
+				"<p>\n" + 
+				"For more details about the operator and additional information on the parameters\n" + 
+				"refer to its webpage:\n" + 
+				"<a href=\"http://www2.informatik.uni-halle.de/agprbio/mitobo/index.php/Applications/ActinAnalyzer2D\">\n" + 
+				"http://www2.informatik.uni-halle.de/agprbio/mitobo/index.php/Applications/ActinAnalyzer2D</a>.\n";
+	}
 }
-
-/*BEGIN_MITOBO_ONLINE_HELP
-
-This operator performs an unsupervised analysis of actin microfilament
-structures in sets of microscopy images. It takes as input a directory where
-the images are expected, and a set of segmentation masks showing the boundaries
-of individual cells in the images. The operator first calculates a set of
-texture features from the images and then clusters the feature vectors to
-identify structural patterns shared among different cells. Finally, each cell
-is characterized in terms of a distribution vector describing the appearance
-of various structural patterns in the cell. These vectors can then be used to
-analyze commonalities and differences between individual cells or groups of
-cells.
-
-<ul>
-<li><p><b>input:</b>
-<ul>
-<li><p><i>Image directory</i>:<br> directory where the images are read from,
-	all files ending on ".tif" are considered;<br> please refer to the webpage for
-	further information on how the file names should be formatted </p></li>
-<li><p><i>Mask directory</i>:<br> directory where the segmentation information for
-	the images is read from; the directory can be identical to the
-	image directory</p></li>
-<li><p><i>Mask format</i>:<br> expected format of the segmentation data files
-	<ul>
-	<li>LABEL_IMAGE:<br> a gray-scale image is expected where the area of each
-		cell is marked with a single unique gray-scale value;<br>
-		the files should share the names of the input image files and have the
-		ending "-mask.tif"
-	<li>IJ_ROIS:<br> an ImageJ 1.x file of ROI manager regions is expected;<br>
-		the files should share the names of the input image files and have the
-		ending "-mask.zip" or "-mask.roi"
-	</ul>
-<li><p><i>Output and working directory</i>:<br> directory for intermediate and
-	final results
-<li><p><i>Calculate features?</i><br> by disabeling this option the time-consuming
-	feature calculation can be omitted, however, in this case the feature
-	directory is expected to already contain the feature files
-<li><p><i>Feature directory</i>:<br> directory where the calculated features are
-	saved to and from where they are read if feature calculations are omitted
-<li><p><i>Number of feature clusters</i>:<br> number of clusters to be used for
-	feature vector clustering, should approximately refer to the expected number
-	of structural patterns appearing in the cells
-<li><p><i>Do PCA in stage II?</i><br> enable or disable the PCA prior to the
-	pairwise distance calculations in stage II of the approach
-</ul>
-
-<li><p><b>output:</b>
-<ul>
-<li><p><i>Resulting chart plots for each group</i>:<br>
-	cluster distributions for each cell categorized into cell groups
-<li><p><i>Resulting box-whisker plot</i>:<br> box plot of the relative frequecies
-	of appearance of each	cluster for the different cell groups
-</ul>
-In addition to the output data directly displayed on termination of the operator
-some more result data files are written to the output directory. In particular,
-a file with the pairwise Euclidean distances between distribution vectors can
-be found there which can be further analyzed, e.g., with
-<a href="http://deim.urv.cat/~sgomez/multidendrograms.php">MultiDendrograms</a>.
-Also images visualizing the cluster distributions for each input image and
-each cell, respectively, are available.
-
-</ul>
-
-<p>
-For more details about the operator and additional information on the parameters
-refer to its webpage:
-<a href="http://www2.informatik.uni-halle.de/agprbio/mitobo/index.php/Applications/ActinAnalyzer2D">
-http://www2.informatik.uni-halle.de/agprbio/mitobo/index.php/Applications/ActinAnalyzer2D</a>.
-
-END_MITOBO_ONLINE_HELP*/

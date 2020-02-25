@@ -51,7 +51,9 @@ import de.unihalle.informatik.MiToBo.segmentation.regions.labeling.LabelComponen
  * @author glass
  *
  */
-@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL, level=Level.STANDARD)
+@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL, 
+	level=Level.STANDARD,
+	shortDescription="Assigns unique labels to regions representing individual cells in the input binary image sequence.")
 public class CellTrackerBipartite extends MTBOperator
 {
 	@Parameter(label = "binary input image", required = true, direction = Parameter.Direction.IN, supplemental = false, description = "binary input image", dataIOOrder = 0)
@@ -753,95 +755,92 @@ public class CellTrackerBipartite extends MTBOperator
 		}
 	}
 	
+	@Override
+	public String getDocumentation() {
+		return "<ul>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p>This operator assigns unique labels to regions representing individual cells in the input binary image sequence</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p>As result a label image sequence is given</p>\r\n" + 
+				"	</li>\r\n" + 
+				"</ul>\r\n" + 
+				"\r\n" + 
+				"<h2>Usage:</h2>\r\n" + 
+				"\r\n" + 
+				"<h3>required parameters:</h3>\r\n" + 
+				"\r\n" + 
+				"<ul>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>binary input image</tt>\r\n" + 
+				"		<ul>\r\n" + 
+				"			<li>\r\n" + 
+				"				<p>image sequence to be tracked</p>\r\n" + 
+				"			</li>\r\n" + 
+				"		</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>determine gating distance automatically</tt>\r\n" + 
+				"		<ul>\r\n" + 
+				"			<li>\r\n" + 
+				"				<p>should the gating distance be determined automatically</p>\r\n" + 
+				"			</li>\r\n" + 
+				"			<li>\r\n" + 
+				"				<p>if not, the maximum distance (pixels) is used</p>\r\n" + 
+				"			</li>\r\n" + 
+				"		</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"</ul>\r\n" + 
+				"\r\n" + 
+				"<h3>optional parameters:</h3>\r\n" + 
+				"\r\n" + 
+				"<ul>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>maximum area change</tt>\r\n" + 
+				"		<ul>\r\n" + 
+				"			<li>\r\n" + 
+				"				<p>if the fraction of the areas of two regions from subsequent frames differ more than this value, these regions are not considered to belong to the same cell</p>\r\n" + 
+				"			</li>\r\n" + 
+				"		</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>maximum distance (pixels)</tt>\r\n" + 
+				"		<ul>\r\n" + 
+				"			<li>\r\n" + 
+				"				<p>if the centroid distance of two regions from subsequent frames exceeds this value, these regions are not considered to belong to the same cell</p>\r\n" + 
+				"			</li>\r\n" + 
+				"			<li>\r\n" + 
+				"				<p>only used if automatic gating distance determination is deactivated!</p>\r\n" + 
+				"			</li>\r\n" + 
+				"		</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>are objects 8-connected</tt>\r\n" + 
+				"		<ul>\r\n" + 
+				"			<li>\r\n" + 
+				"				<p>if activated, cell objects will be considered to have eight-connectivity and four-connectivity otherwise</p>\r\n" + 
+				"			</li>\r\n" + 
+				"		</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"</ul>\r\n" + 
+				"\r\n" + 
+				"<h3>supplemental parameters:</h3>\r\n" + 
+				"\r\n" + 
+				"<ul>\r\n" + 
+				"	<li>\r\n" + 
+				"		<p><tt>Verbose</tt>\r\n" + 
+				"		<ul>\r\n" + 
+				"			<li>\r\n" + 
+				"				<p>output some additional information</p>\r\n" + 
+				"			</li>\r\n" + 
+				"		</ul>\r\n" + 
+				"		</p>\r\n" + 
+				"	</li>\r\n" + 
+				"</ul>\r\n";
+	}
 }
-
-
-/*BEGIN_MITOBO_ONLINE_HELP
-<p><a target="_blank" href="http://www2.informatik.uni-halle.de/agprbio/mitobo//api/de/unihalle/informatik/MiToBo/apps/singleCellTracking2D/CellTrackerBipartite.html">API</a></p>
-
-<ul>
-	<li>
-		<p>This operator assigns unique labels to regions representing individual cells in the input binary image sequence</p>
-	</li>
-	<li>
-		<p>As result a label image sequence is given</p>
-	</li>
-</ul>
-
-<h2>Usage:</h2>
-
-<h3>required parameters:</h3>
-
-<ul>
-	<li>
-		<p><tt>binary input image</tt>
-		<ul>
-			<li>
-				<p>image sequence to be tracked</p>
-			</li>
-		</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>determine gating distance automatically</tt>
-		<ul>
-			<li>
-				<p>should the gating distance be determined automatically</p>
-			</li>
-			<li>
-				<p>if not, the maximum distance (pixels) is used</p>
-			</li>
-		</ul>
-		</p>
-	</li>
-</ul>
-
-<h3>optional parameters:</h3>
-
-<ul>
-	<li>
-		<p><tt>maximum area change</tt>
-		<ul>
-			<li>
-				<p>if the fraction of the areas of two regions from subsequent frames differ more than this value, these regions are not considered to belong to the same cell</p>
-			</li>
-		</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>maximum distance (pixels)</tt>
-		<ul>
-			<li>
-				<p>if the centroid distance of two regions from subsequent frames exceeds this value, these regions are not considered to belong to the same cell</p>
-			</li>
-			<li>
-				<p>only used if automatic gating distance determination is deactivated!</p>
-			</li>
-		</ul>
-		</p>
-	</li>
-	<li>
-		<p><tt>are objects 8-connected</tt>
-		<ul>
-			<li>
-				<p>if activated, cell objects will be considered to have eight-connectivity and four-connectivity otherwise</p>
-			</li>
-		</ul>
-		</p>
-	</li>
-</ul>
-
-<h3>supplemental parameters:</h3>
-
-<ul>
-	<li>
-		<p><tt>Verbose</tt>
-		<ul>
-			<li>
-				<p>output some additional information</p>
-			</li>
-		</ul>
-		</p>
-	</li>
-</ul>
-END_MITOBO_ONLINE_HELP*/

@@ -59,7 +59,8 @@ import de.unihalle.informatik.MiToBo.segmentation.thresholds.ImgThresh;
  * <tim.langhammer@student.uni-halle.de>
  */
 @ALDAOperator( genericExecutionMode = ALDAOperator.ExecutionMode.ALL,
-               level = ALDAOperator.Level.APPLICATION)
+               level = ALDAOperator.Level.APPLICATION,
+               shortDescription="Makes an initial segmentation of Xylem Cell Images")
 public class XylemInitialSegmentation extends MTBOperator {
 
 	public final static int DEFAULT_seOpeningSize = 9;
@@ -320,34 +321,34 @@ public class XylemInitialSegmentation extends MTBOperator {
     public void setShapeForErosion( final BasicMorphology.maskShape shapeForErosion ) {
         this.shapeForErosion = shapeForErosion;
     }
+    
+    @Override
+    public String getDocumentation() {
+    	return "This operator computes a initial segmentation of Xylem regions in microscopic sections of woods.\n" + 
+    			"Segmentation is accompished in two phases\n" + 
+    			"<ul>\n" + 
+    			" <li>Calculate otsu threshold</li>\n" + 
+    			" <li>Binarize the greyscaled image based on the otsu threshold</li>\n" + 
+    			" <li>Open the bin-image</li>\n" + 
+    			" <li>Remove small components</li>\n" + 
+    			" <li>Erode the image</li>\n" + 
+    			" <li>Remove small components</li>\n" + 
+    			" <li>Remove uncompact regions</li>\n" + 
+    			"\n" + 
+    			"</ul>\n" + 
+    			"\n" + 
+    			"<br>\n" + 
+    			"As input a gray value image of a microscopic section is required.\n" + 
+    			"\n" + 
+    			"<h3>Parameters</h3>\n" + 
+    			"<ul>\n" + 
+    			"<li>The size of the structuring element for the opening</li>\n" + 
+    			"<li>The minimal size of the region required after opening</li>\n" + 
+    			"<li>The minimal compactness of the region required after opening</li>\n" + 
+    			"</ul>\n" + 
+    			"\n" + 
+    			"<h3>Results</h3>\n" + 
+    			"The initial Xylem regions are returned as abinary image\n";
+    }
 
 }
-/*BEGIN_MITOBO_ONLINE_HELP
-<p><a target="_blank" href="http://www2.informatik.uni-halle.de/agprbio/mitobo//api/de/unihalle/informatik/MiToBo/apps/xylem/XylemInitialSegmentation.html">API</a></p>
- 
-This operator computes a initial segmentation of Xylem regions in microscopic sections of woods.
-Segmentation is accompished in two phases
-<ul>
- <li>Calculate otsu threshold</li>
- <li>Binarize the greyscaled image based on the otsu threshold</li>
- <li>Open the bin-image</li>
- <li>Remove small components</li>
- <li>Erode the image</li>
- <li>Remove small components</li>
- <li>Remove uncompact regions</li>
-
-</ul>
-
-<br>
-As input a gray value image of a microscopic section is required.
-
-<h3>Parameters</h3>
-<ul>
-<li>The size of the structuring element for the opening</li>
-<li>The minimal size of the region required after opening</li>
-<li>The minimal compactness of the region required after opening</li>
-</ul>
-
-<h3>Results</h3>
-The initial Xylem regions are returned as abinary image
-END_MITOBO_ONLINE_HELP*/

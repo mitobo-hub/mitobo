@@ -23,7 +23,8 @@ import de.unihalle.informatik.MiToBo.visualization.drawing.DrawRegion2DSet.DrawT
  * @author posch
  */
 @ALDAOperator( genericExecutionMode = ALDAOperator.ExecutionMode.ALL,
-               level = ALDAOperator.Level.APPLICATION )
+               level = ALDAOperator.Level.APPLICATION,
+               shortDescription="Implements xylem detection in RGB or HSX images.")
 public class XylemDetector extends MTBOperator {
 
 	/**
@@ -395,30 +396,29 @@ public class XylemDetector extends MTBOperator {
 		return drawOp.getResultImage();
 
 	}
+	
+	@Override
+	public String getDocumentation() {
+		return "This operator detects Xylem regions in microscopic sections of woods.\r\n" + 
+				"Detection is accompished in two phases\r\n" + 
+				"<ul>\r\n" + 
+				"<li> Initial segmentation </li>\r\n" + 
+				"<li> Region growing </li>\r\n" + 
+				"</ul>\r\n" + 
+				"\r\n" + 
+				"<h3>Input</h3>\r\n" + 
+				"As input a RGB or HSX image of a microscopic section is required.\r\n" + 
+				"If both images are given, the RGB image is ignored.\r\n" + 
+				"\r\n" + 
+				"<h3>Results</h3>\r\n" + 
+				"As a result the detected Xylem regions are returned as a binary image and\r\n" + 
+				"a table of features for each Xylem regions is created.\r\n" + 
+				"<p>\r\n" + 
+				"Optionally contours of the detected Xylem regions may be overlayed onto the input image\r\n" + 
+				"and intermediate results be return, as well as timing information.\r\n" + 
+				"<p>\r\n" + 
+				"For a description of parameters see the online help of\r\n" + 
+				"the operators <I>XylemInitialSegmentation</I> and <I>XylemGrower</I>.\r\n";
+	}
 }
 
-/*BEGIN_MITOBO_ONLINE_HELP
-<p><a target="_blank" href="http://www2.informatik.uni-halle.de/agprbio/mitobo//api/de/unihalle/informatik/MiToBo/apps/xylem/XylemDetector.html">API</a></p>
- 
-This operator detects Xylem regions in microscopic sections of woods.
-Detection is accompished in two phases
-<ul>
-<li> Initial segmentation </li>
-<li> Region growing </li>
-</ul>
-
-<h3>Input</h3>
-As input a RGB or HSX image of a microscopic section is required.
-If both images are given, the RGB image is ignored.
-
-<h3>Results</h3>
-As a result the detected Xylem regions are returned as a binary image and
-a table of features for each Xylem regions is created.
-<p>
-Optionally contours of the detected Xylem regions may be overlayed onto the input image
-and intermediate results be return, as well as timing information.
-<p>
-For a description of parameters see the online help of
-the operators <I>XylemInitialSegmentation</I> and <I>XylemGrower</I>.
-
-END_MITOBO_ONLINE_HELP*/

@@ -42,7 +42,8 @@ import de.unihalle.informatik.MiToBo.math.images.ImageStatistics.StatValue;
  * @author moeller
  */
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL, 
-	level=Level.STANDARD, allowBatchMode=false)
+	level=Level.STANDARD, allowBatchMode=false,
+	shortDescription="Calculates statistical features tile-wise on images.")
 @ALDDerivedClass
 public class FeatureCalculatorIntensityStats extends FeatureCalculator
 {
@@ -87,40 +88,39 @@ public class FeatureCalculatorIntensityStats extends FeatureCalculator
 		this.resultObj = 
 				new FeatureCalculatorIntensityStatsResult(this.statMeasure, resultVal);
   }
+	
+	@Override
+	public String getDocumentation() {
+		return "This operator calculates statistical indicators on the given image.\r\n" + 
+				" \r\n" + 
+				"<ul>\r\n" + 
+				"<li><p><b>input:</b>\r\n" + 
+				"<ul>\r\n" + 
+				"<li><p><i>Input image</i>: the (gray-scale) image to analyze</p></li>\r\n" + 
+				"<li>\r\n" + 
+				"<p><i>Statistical measure</i>: the indicator to calculate, available are\r\n" + 
+				"<ul>\r\n" + 
+				"<li> INTENSITY_MEAN: average intensity in the image\r\n" + 
+				"<li> INTENSITY_MAX: maximal intensity in the image\r\n" + 
+				"<li> INTENSITY_MIN: minimal intensity in the image\r\n" + 
+				"<li> INTENSITY_VARIANCE: intensity variance in the image\r\n" + 
+				"<li> INTENSITY_STDDEV: standard deviation of the image intensity\r\n" + 
+				"<li> INTENSITY_ENTROPY: entropy of image intensities\r\n" + 
+				"<li> HISTO_UNIFORMITY: uniformity of intensity\r\n" + 
+				"<li> HISTO_SKEWNESS: skewness of intensity distribution, third moment\r\n" + 
+				"</ul>\r\n" + 
+				"</li>\r\n" + 
+				"</ul>\r\n" + 
+				"</p>\r\n" + 
+				"</li>\r\n" + 
+				"<li><p><b>output:</b>\r\n" + 
+				"<ul>\r\n" + 
+				"<li><p><i>Value</i>: calculated value of selected indicator</p></li>\r\n" + 
+				"<li><p><i>Statistical indicator</i>: name of indicator</p></li>\r\n" + 
+				"</ul>\r\n" + 
+				"</p>\r\n" + 
+				"</li>\r\n" + 
+				"</ul>\r\n";
+	}
 
 }
-
-/*BEGIN_MITOBO_ONLINE_HELP
-
-This operator calculates statistical indicators on the given image.
- 
-<ul>
-<li><p><b>input:</b>
-<ul>
-<li><p><i>Input image</i>: the (gray-scale) image to analyze</p></li>
-<li>
-<p><i>Statistical measure</i>: the indicator to calculate, available are
-<ul>
-<li> INTENSITY_MEAN: average intensity in the image
-<li> INTENSITY_MAX: maximal intensity in the image
-<li> INTENSITY_MIN: minimal intensity in the image
-<li> INTENSITY_VARIANCE: intensity variance in the image
-<li> INTENSITY_STDDEV: standard deviation of the image intensity
-<li> INTENSITY_ENTROPY: entropy of image intensities
-<li> HISTO_UNIFORMITY: uniformity of intensity
-<li> HISTO_SKEWNESS: skewness of intensity distribution, third moment
-</ul>
-</li>
-</ul>
-</p>
-</li>
-<li><p><b>output:</b>
-<ul>
-<li><p><i>Value</i>: calculated value of selected indicator</p></li>
-<li><p><i>Statistical indicator</i>: name of indicator</p></li>
-</ul>
-</p>
-</li>
-</ul>
-
-END_MITOBO_ONLINE_HELP*/

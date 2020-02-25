@@ -41,7 +41,8 @@ import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
  * @author glass
  *
  */
-@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL)
+@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL,
+		shortDescription="Extracts statistical values over local neighborhoods of given image.")
 public class StatisticsFilter extends MTBOperator
 {
 	@Parameter(label = "input image", required = true, direction = Parameter.Direction.IN, supplemental = false, description = "input image", mode=ExpertMode.STANDARD, dataIOOrder = 0)
@@ -380,57 +381,57 @@ public class StatisticsFilter extends MTBOperator
 		return this.inImg;
 	}
 	
+	@Override
+	public String getDocumentation() {
+		return "<ul><li>\r\n" + 
+				"<p>Operator for calculating local statistical measures for every pixel in an image</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p>outputs an image where each pixel intensity value equals the calculated measure for the corresponding pixel of the input image</p>\r\n" + 
+				"</li></ul>\r\n" + 
+				"<h2>Usage:</h2>\r\n" + 
+				"<h3>required parameters:</h3>\r\n" + 
+				"\r\n" + 
+				"<ul><li>\r\n" + 
+				"<p>input image\r\n" + 
+				"<ul><li>\r\n" + 
+				"<p>image to be filtered</p>\r\n" + 
+				"</li></ul>\r\n" + 
+				"</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p>filter method\r\n" + 
+				"<ul><li>\r\n" + 
+				"<p>statistic calculated for every pixel</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p>available methods are \r\n" + 
+				"<ul><li>\r\n" + 
+				"<p>VARIANCE - variance</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p>STDDEV - standard deviation</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p>KURTOSIS - kurtosis</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p>ENTROPY - Shannon entropy</p>\r\n" + 
+				"</li></ul>\r\n" + 
+				"</p>\r\n" + 
+				"</li></ul>\r\n" + 
+				"</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p>mask size \r\n" + 
+				"<ul><li>\r\n" + 
+				"<p>side length (pixels) of squared window used to calculate the statistics</p>\r\n" + 
+				"</li></ul>\r\n" + 
+				"</p>\r\n" + 
+				"</li></ul>\r\n" + 
+				"<h3>supplemental parameters:</h3>\r\n" + 
+				"\r\n" + 
+				"<ul><li>\r\n" + 
+				"<p><tt>Verbose</tt>\r\n" + 
+				"<ul><li>\r\n" + 
+				"<p>output somme additional information</p>\r\n" + 
+				"</li></ul>\r\n" + 
+				"</p>\r\n" + 
+				"</li></ul>\r\n";
+	}
+	
 }
 
-/*BEGIN_MITOBO_ONLINE_HELP
-<p><a target="_blank" href="http://www2.informatik.uni-halle.de/agprbio/mitobo//api/de/unihalle/informatik/MiToBo/filters/nonlinear/StatisticsFilter.html">API</a></p>
-
-<ul><li>
-<p>Operator for calculating local statistical measures for every pixel in an image</p>
-</li><li>
-<p>outputs an image where each pixel intensity value equals the calculated measure for the corresponding pixel of the input image</p>
-</li></ul>
-<h2>Usage:</h2>
-<h3>required parameters:</h3>
-
-<ul><li>
-<p>input image
-<ul><li>
-<p>image to be filtered</p>
-</li></ul>
-</p>
-</li><li>
-<p>filter method
-<ul><li>
-<p>statistic calculated for every pixel</p>
-</li><li>
-<p>available methods are 
-<ul><li>
-<p>VARIANCE - variance</p>
-</li><li>
-<p>STDDEV - standard deviation</p>
-</li><li>
-<p>KURTOSIS - kurtosis</p>
-</li><li>
-<p>ENTROPY - Shannon entropy</p>
-</li></ul>
-</p>
-</li></ul>
-</p>
-</li><li>
-<p>mask size 
-<ul><li>
-<p>side length (pixels) of squared window used to calculate the statistics</p>
-</li></ul>
-</p>
-</li></ul>
-<h3>supplemental parameters:</h3>
-
-<ul><li>
-<p><tt>Verbose</tt>
-<ul><li>
-<p>output somme additional information</p>
-</li></ul>
-</p>
-</li></ul>
-END_MITOBO_ONLINE_HELP*/

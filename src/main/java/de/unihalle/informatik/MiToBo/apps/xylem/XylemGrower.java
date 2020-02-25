@@ -63,7 +63,8 @@ import java.util.Vector;
  * @author posch
  */
 @ALDAOperator( genericExecutionMode = ALDAOperator.ExecutionMode.ALL,
-               level = ALDAOperator.Level.APPLICATION )
+               level = ALDAOperator.Level.APPLICATION,
+               shortDescription="Implements region growing for xylem segmentation.")
 public class XylemGrower extends MTBOperator {
 	
 	// ===================================================================================
@@ -1558,50 +1559,49 @@ public class XylemGrower extends MTBOperator {
 		this.minAreaPostProcessing = minAreaPostProcessing;
 	}
 
+	@Override
+	public String getDocumentation() {
+		return "This operator grows Xylem regions in microscopic sections of woods.\r\n" + 
+				"\r\n" + 
+				" <p>\r\n" + 
+				" Prerequisite is \r\n" + 
+				" HS[X]-image (hue, saturation, intensity/value/brightness) as the input\r\n" + 
+				" and some thresholds to control the growing process and\r\n" + 
+				" an initial segmentation of xylem regions supplied as a binary image.\r\n" + 
+				" <p>\r\n" + 
+				" All three channels of the hs[x] image are assume to be a byte image and values\r\n" + 
+				" in the range <code>0 - 255</code>.\r\n" + 
+				" <p>\r\n" + 
+				" The initial regions are eroded to get seed regions, where we\r\n" + 
+				" determine the mean-value of the hue and/or saturation and/or I/V/B-channel.\r\n" + 
+				" <p>\r\n" + 
+				" Subsequently the region are grown via region growing. We compare each pixel of the\r\n" + 
+				" contour of those seed regions with the pixel of the background beside them,\r\n" + 
+				" either in a 4-neighbourhood or an 8-neighbourhood.\r\n" + 
+				" <p>\r\n" + 
+				" This is repeated until the list of uninspected pixel is not empty.\r\n" + 
+				" Afterwards we may do some post processing. E.G. calculate gradient\r\n" + 
+				" informations on the found regions to split regions who contain more then one\r\n" + 
+				" xylem.\r\n" + 
+				"\r\n" + 
+				"<h3> Parameters</h3>\r\n" + 
+				"<ul>\r\n" + 
+				"<li>Size of structuring element for ersion to compute seed regions</li>\r\n" + 
+				"<li>Minimal size of a region for further erosion of seed regions</li>\r\n" + 
+				"<li>The method for growing the region</li>\r\n" + 
+				"<li>Hue channel threshold</li>\r\n" + 
+				"<li>Saturation channel threshold</li>\r\n" + 
+				"<li>Intensity channel threshold</li>\r\n" + 
+				"<li>The neighbourhood for the pixel to visit</li>\r\n" + 
+				"<li>Size of SE for opening (post processing)</li>\r\n" + 
+				"</ul>\r\n" + 
+				"\r\n" + 
+				"<h3>Results</h3>\r\n" + 
+				"As a result the detected Xylem regions are returned as a binary image and\r\n" + 
+				"a table of features for each Xylem regions is created.\r\n" + 
+				"<p>\r\n" + 
+				"Optionally intermediate results may be returned.\r\n";
+	}
+	
 }
 
-/*BEGIN_MITOBO_ONLINE_HELP
-<p><a target="_blank" href="http://www2.informatik.uni-halle.de/agprbio/mitobo//api/de/unihalle/informatik/MiToBo/apps/xylem/XylemGrower.html">API</a></p>
- 
-This operator grows Xylem regions in microscopic sections of woods.
-
- <p>
- Prerequisite is 
- HS[X]-image (hue, saturation, intensity/value/brightness) as the input
- and some thresholds to control the growing process and
- an initial segmentation of xylem regions supplied as a binary image.
- <p>
- All three channels of the hs[x] image are assume to be a byte image and values
- in the range <code>0 - 255</code>.
- <p>
- The initial regions are eroded to get seed regions, where we
- determine the mean-value of the hue and/or saturation and/or I/V/B-channel.
- <p>
- Subsequently the region are grown via region growing. We compare each pixel of the
- contour of those seed regions with the pixel of the background beside them,
- either in a 4-neighbourhood or an 8-neighbourhood.
- <p>
- This is repeated until the list of uninspected pixel is not empty.
- Afterwards we may do some post processing. E.G. calculate gradient
- informations on the found regions to split regions who contain more then one
- xylem.
-
-<h3> Parameters</h3>
-<ul>
-<li>Size of structuring element for ersion to compute seed regions</li>
-<li>Minimal size of a region for further erosion of seed regions</li>
-<li>The method for growing the region</li>
-<li>Hue channel threshold</li>
-<li>Saturation channel threshold</li>
-<li>Intensity channel threshold</li>
-<li>The neighbourhood for the pixel to visit</li>
-<li>Size of SE for opening (post processing)</li>
-</ul>
-
-<h3>Results</h3>
-As a result the detected Xylem regions are returned as a binary image and
-a table of features for each Xylem regions is created.
-<p>
-Optionally intermediate results may be returned.
-
-END_MITOBO_ONLINE_HELP*/

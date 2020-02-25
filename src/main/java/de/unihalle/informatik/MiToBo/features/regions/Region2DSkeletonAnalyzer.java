@@ -82,7 +82,8 @@ import de.unihalle.informatik.MiToBo.segmentation.thresholds.ImgThresh;
  * @author moeller
  */
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL, 
-	level=Level.STANDARD, allowBatchMode = false)
+	level=Level.STANDARD, allowBatchMode = false,
+	shortDescription="Analyzes skeletons of a given set of regions.")
 public class Region2DSkeletonAnalyzer extends MTBOperator {
 	
 	/**
@@ -868,57 +869,55 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 		}
 		return length;
 	}
+	
+	@Override
+	public String getDocumentation() {
+		return "<p>\r\n" + 
+				"This operator calculates for a set of regions in a given image the region \r\n" + 
+				"skeletons and subsequently extracts some feature measures from the skeletons. \r\n" + 
+				"Measures currently implemented are, e.g.,\r\n" + 
+				"<ul>\r\n" + 
+				"<li> the number of branches of the region skeleton\r\n" + 
+				"<li> the average length of the branches\r\n" + 
+				"<li> the average distance of the branch endpoints to the background of the image\r\n" + 
+				"</ul>\r\n" + 
+				"The distance of a branch endpoint to the background can be interpreted as the \r\n" + 
+				"radius of a maximal circle located at the branch endpoint and touching the \r\n" + 
+				"boundary of the region. This radius can be regarded as an estimate for the \r\n" + 
+				"local curvature of the region boundary, hence, the average radius of all branch\r\n" + 
+				"endpoints yield a measure for the 'roughness' of the boundary, i.e. how much\r\n" + 
+				"the boundary 'curves' on average.  \r\n" + 
+				" \r\n" + 
+				"<h2>Usage:</h2>\r\n" + 
+				"<ul>\r\n" + 
+				"<li><p><b>Required input parameters:</b>\r\n" + 
+				"<ul>\r\n" + 
+				"<li><p><i>Input label image</i>:<br>\r\n" + 
+				" an image containing the regions where each region is labeled with an individual\r\n" + 
+				" label larger than zero and the background has label zero</p>\r\n" + 
+				"</ul>\r\n" + 
+				"<li><p><b>Supplemental input parameters:</b>\r\n" + 
+				"<ul>\r\n" + 
+				"<li><p><i>Visualize analysis results?</i><br> \r\n" + 
+				"	this flag allows to enable the creation of an additional output image where\r\n" + 
+				"	the region skeletons, detected endpoints and the maximal circle per endpoint\r\n" + 
+				"	are depicted</p>\r\n" + 
+				"<li><p><i>Verbose</i>:<br>\r\n" + 
+				" activates additional output during processing; usually the output is written \r\n" + 
+				" to console only and might not be accessible via the graphical UI\r\n" + 
+				"</ul>\r\n" + 
+				"</ul>\r\n" + 
+				"\r\n" + 
+				"<li><p><b>Output parameters:</b>\r\n" + 
+				"<ul>\r\n" + 
+				"<li><p><i>Result Table of skeleton features</i>:<br>\r\n" + 
+				" table with extracted features where each row refers to a region; the first\r\n" + 
+				" column contains the region ID, i.e., the label of the region in the image,\r\n" + 
+				" subsequent columns contain the various features\r\n" + 
+				"<li><p><i>Image with analysis results</i>:<br>\r\n" + 
+				"	if the corresponding option was selected an image visualizing the skeletons\r\n" + 
+				"	and detected endpoints and circles is provided\r\n" + 
+				"</ul>\r\n" + 
+				"</ul>\r\n";
+	}
 }
-
-/*BEGIN_MITOBO_ONLINE_HELP
-<p><a target="_blank" href="http://www2.informatik.uni-halle.de/agprbio/mitobo//api/de/unihalle/informatik/MiToBo/features/regions/Region2DSkeletonAnalyzer.html">API</a></p>
-
-<p>
-This operator calculates for a set of regions in a given image the region 
-skeletons and subsequently extracts some feature measures from the skeletons. 
-Measures currently implemented are, e.g.,
-<ul>
-<li> the number of branches of the region skeleton
-<li> the average length of the branches
-<li> the average distance of the branch endpoints to the background of the image
-</ul>
-The distance of a branch endpoint to the background can be interpreted as the 
-radius of a maximal circle located at the branch endpoint and touching the 
-boundary of the region. This radius can be regarded as an estimate for the 
-local curvature of the region boundary, hence, the average radius of all branch
-endpoints yield a measure for the 'roughness' of the boundary, i.e. how much
-the boundary 'curves' on average.  
- 
-<h2>Usage:</h2>
-<ul>
-<li><p><b>Required input parameters:</b>
-<ul>
-<li><p><i>Input label image</i>:<br>
- an image containing the regions where each region is labeled with an individual
- label larger than zero and the background has label zero</p>
-</ul>
-<li><p><b>Supplemental input parameters:</b>
-<ul>
-<li><p><i>Visualize analysis results?</i><br> 
-	this flag allows to enable the creation of an additional output image where
-	the region skeletons, detected endpoints and the maximal circle per endpoint
-	are depicted</p>
-<li><p><i>Verbose</i>:<br>
- activates additional output during processing; usually the output is written 
- to console only and might not be accessible via the graphical UI
-</ul>
-</ul>
-
-<li><p><b>Output parameters:</b>
-<ul>
-<li><p><i>Result Table of skeleton features</i>:<br>
- table with extracted features where each row refers to a region; the first
- column contains the region ID, i.e., the label of the region in the image,
- subsequent columns contain the various features
-<li><p><i>Image with analysis results</i>:<br>
-	if the corresponding option was selected an image visualizing the skeletons
-	and detected endpoints and circles is provided
-</ul>
-</ul>
-
-END_MITOBO_ONLINE_HELP*/

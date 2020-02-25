@@ -84,7 +84,8 @@ import de.unihalle.informatik.MiToBo.features.FeatureCalculator;
  * @author Elisabeth Piltz
  */
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL, 
-	level=Level.STANDARD, allowBatchMode=false)
+	level=Level.STANDARD, allowBatchMode=false,
+	shortDescription="Calculates set of Haralick co-occurrence texture features from an image.")
 @ALDDerivedClass
 public class FeatureCalculatorHaralickMeasures extends FeatureCalculator
 {
@@ -409,52 +410,50 @@ public class FeatureCalculatorHaralickMeasures extends FeatureCalculator
 		return new FeatureCalculatorHaralickMeasuresResult(nanResult);
 	}
 
+	@Override
+	public String getDocumentation() {
+		return "This operator calculates a co-occurence matrix on the given image applying the\r\n" + 
+				"specified parameters. Subsequently the following Haralick measures are \r\n" + 
+				"calculated from the matrix:\r\n" + 
+				"<ul>\r\n" + 
+				"<li> homogenity\r\n" + 
+				"<li> contrast\r\n" + 
+				"<li> local homogeneity \r\n" + 
+				"<li> entropy \r\n" + 
+				"<li> correlation \r\n" + 
+				"<li> auto-correlation\r\n" + 
+				"<li> dissimilarity\r\n" + 
+				"<li> cluster shade\r\n" + 
+				"<li> cluster prominence\r\n" + 
+				"<li> maximum probability\r\n" + 
+				"</ul>\r\n" + 
+				" \r\n" + 
+				"<ul>\r\n" + 
+				"<li><p><b>input:</b>\r\n" + 
+				"<ul>\r\n" + 
+				"<li><p><i>Input image</i>: the (gray-scale) image to analyze</p></li>\r\n" + 
+				"<li><p><i>Directions</i>: \r\n" + 
+				"set of directions to consider, for each direction the 10 features are extracted,\r\n" + 
+				"i.e., the resulting feature vector has a dimension of 10 times the number of\r\n" + 
+				"directions\r\n" + 
+				"</p></li>\r\n" + 
+				"<li><p><i>Isotropic calculations</i>: if selected the various directions are \r\n" + 
+				"not treated indipendently, but the extracted measures are averaged over all\r\n" + 
+				"directions; in this case the result data vector has always only 10 dimensions\r\n" + 
+				"</p></li>\r\n" + 
+				"<li><p><i>Distance</i>: pixel distance between pixel pairs to consider</p></li>\r\n" + 
+				"</ul>\r\n" + 
+				"</p>\r\n" + 
+				"</li>\r\n" + 
+				"<li><p><b>output:</b><br>\r\n" + 
+				"The result of the operator is represented as a table with the extracted \r\n" + 
+				"feature measures. Each row of the table refers to a single measure. In case of\r\n" + 
+				"isotropic calculations there are 10 entries in the table referring to the 10\r\n" + 
+				"Haralick measures as listed above. In the non-isotropic case for each direction\r\n" + 
+				"10 values are present where the first 10 entries refer to the first direction, \r\n" + 
+				"the second 10 entries to the second direction and so on.\r\n" + 
+				"</p>\r\n" + 
+				"</li>\r\n" + 
+				"</ul>\r\n";
+	}
 }
-
-/*BEGIN_MITOBO_ONLINE_HELP
-
-This operator calculates a co-occurence matrix on the given image applying the
-specified parameters. Subsequently the following Haralick measures are 
-calculated from the matrix:
-<ul>
-<li> homogenity
-<li> contrast
-<li> local homogeneity 
-<li> entropy 
-<li> correlation 
-<li> auto-correlation
-<li> dissimilarity
-<li> cluster shade
-<li> cluster prominence
-<li> maximum probability
-</ul>
- 
-<ul>
-<li><p><b>input:</b>
-<ul>
-<li><p><i>Input image</i>: the (gray-scale) image to analyze</p></li>
-<li><p><i>Directions</i>: 
-set of directions to consider, for each direction the 10 features are extracted,
-i.e., the resulting feature vector has a dimension of 10 times the number of
-directions
-</p></li>
-<li><p><i>Isotropic calculations</i>: if selected the various directions are 
-not treated indipendently, but the extracted measures are averaged over all
-directions; in this case the result data vector has always only 10 dimensions
-</p></li>
-<li><p><i>Distance</i>: pixel distance between pixel pairs to consider</p></li>
-</ul>
-</p>
-</li>
-<li><p><b>output:</b><br>
-The result of the operator is represented as a table with the extracted 
-feature measures. Each row of the table refers to a single measure. In case of
-isotropic calculations there are 10 entries in the table referring to the 10
-Haralick measures as listed above. In the non-isotropic case for each direction
-10 values are present where the first 10 entries refer to the first direction, 
-the second 10 entries to the second direction and so on.
-</p>
-</li>
-</ul>
-
-END_MITOBO_ONLINE_HELP*/
