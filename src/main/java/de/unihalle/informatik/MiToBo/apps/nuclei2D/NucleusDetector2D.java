@@ -53,7 +53,8 @@ import de.unihalle.informatik.MiToBo.segmentation.thresholds.*;
  * 
  * @author moeller
  */
-@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL)
+@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL,
+		shortDescription="Operator for segmenting cell nuclei in 2D images.")
 public class NucleusDetector2D extends MTBOperator {
 
 	/**
@@ -612,5 +613,125 @@ public class NucleusDetector2D extends MTBOperator {
 		binResult = 
 				morphOp.getResultImage().convertType(MTBImageType.MTB_BYTE, true);
 		return (MTBImageByte)binResult.convertType(MTBImageType.MTB_BYTE, true);
+	}
+	
+	@Override
+	public String getDocumentation() {
+		return "<ul><li>\n" + 
+				"<p>algorithms for detecting fluorescently labeled nuclei in microscope images</p>\n" + 
+				"</li><li>\n" + 
+				"<p>operator supports different detection modes combining binary morphology, local contrast enhancement and active contours</p>\n" + 
+				"</li><li>\n" + 
+				"<p>output data are masks of detected nuclei and statistical measures</p>\n" + 
+				"</li></ul>\n" + 
+				"<h2>Usage:</h2>\n" + 
+				"<h3>Required parameters:</h3>\n" + 
+				"\n" + 
+				"<ul><li>\n" + 
+				"<p><tt>Input image</tt> \n" + 
+				"<ul><li>\n" + 
+				"<p>the single-channel image to be analyzed</p>\n" + 
+				"</li><li>\n" + 
+				"<p>if the image contains multiple channels, only the first one is processed</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li><li>\n" + 
+				"<p><tt>Operator mode</tt>\n" + 
+				"<ul><li>\n" + 
+				"<p>mode to use for detection, each mode subsumes a specific list of thresholding and morphological operations</p>\n" + 
+				"</li><li>\n" + 
+				"<p>the default mode OTSU&nbsp;OPENCLOSE has proven most reliable, but the results are highly data specific - probably some tests with different settings are necessary to achieve satisfactory results on your data</p>\n" + 
+				"</li><li>\n" + 
+				"<p>available modes:\n" + 
+				"<ol><li>\n" + 
+				"<p>OTSU&nbsp;OPENCLOSE: combines Otsu thresholding with opening and closing operations</p>\n" + 
+				"</li><li>\n" + 
+				"<p>OTSU&nbsp;ERODEDILATE: combines Otsu thresholding with erosion and dilation operations</p>\n" + 
+				"</li><li>\n" + 
+				"<p>NIBLACK: applies Niblack thresholding and morphological post-processing</p>\n" + 
+				"</li><li>\n" + 
+				"<p>CONTRAST&nbsp;ANALYSIS: applies a local contrast-enhancement to the image and then does an Otsu thresholding followed by some post-processing;<br>\n" + 
+				"for details on the contrast enhancement see section <a href=\"stml:de.unihalle.informatik.MiToBo.enhance.LocallyAdaptiveContrastEnhancement\">Locally Adaptive Contrast Enhancement</a> for details</p>\n" + 
+				"</li></ol>\n" + 
+				"</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li></ul>\n" + 
+				"<h3>Optional parameters:</h3>\n" + 
+				"\n" + 
+				"<ul><li>\n" + 
+				"<p><tt>Min. nuclei size</tt>\n" + 
+				"<ul><li>\n" + 
+				"<p>minimum size of nuclei regions in pixel, smaller regions are removed</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li><li>\n" + 
+				"<p><tt>Apply morpholigical operations</tt>\n" + 
+				"<ul><li>\n" + 
+				"<p>disables/enables morphological post-processing</p>\n" + 
+				"</li><li>\n" + 
+				"<p>if disabled nuclei images are only thresholded, small regions are removed and holes are filled</p>\n" + 
+				"</li><li>\n" + 
+				"<p>not used in CONTRAST&nbsp;ANALYSIS mode</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li><li>\n" + 
+				"<p><tt>Masksize</tt>\n" + 
+				"<ul><li>\n" + 
+				"<p>mask size of squared structuring element for morphological operations</p>\n" + 
+				"</li><li>\n" + 
+				"<p>not used in CONTRAST&nbsp;ANALYSIS mode</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li><li>\n" + 
+				"<p><tt>Fill holes</tt>\n" + 
+				"<ul><li>\n" + 
+				"<p>enables/disables hole filling in nuclei regions after thresholding</p>\n" + 
+				"</li><li>\n" + 
+				"<p>not used in CONTRAST&nbsp;ANALYSIS mode</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li><li>\n" + 
+				"<p><tt>Niblack operator</tt>\n" + 
+				"<ul><li>\n" + 
+				"<p>thresholding operator to be used in mode NIBLACK, see <a href=\"stml:de.unihalle.informatik.MiToBo.segmentation.thresholds.ImgThreshNiblack\">Niblack Thresholding</a> for details</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li><li>\n" + 
+				"<p><tt>Operator for local contrast improvement</tt>\n" + 
+				"<ul><li>\n" + 
+				"<p>operator for locally adaptive contrast enhancement, refer to section <a href=\"stml:de.unihalle.informatik.MiToBo.enhance.LocallyAdaptiveContrastEnhancement\">Locally Adaptive Contrast Enhancement</a> for details on the operator<br>\n" + 
+				"Note: if the operator is not applied in component-wise mode (which is the default), processing an image may take up to a few minutes...</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li><li>\n" + 
+				"<p><tt> Try Nuclei Separation</tt>\n" + 
+				"<ul><li>\n" + 
+				"<p>applies one of the operators for nucleus region separation to the binary nuclei mask to re-split nuclei regions which might have been merged during prior detection steps</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li><li>\n" + 
+				"<p><tt> Nucleus Separator</tt>\n" + 
+				"<ul><li>\n" + 
+				"<p>the operator for separation to be applied;<br>\n" + 
+				"for details, refer to section <a href=\"stml:de.unihalle.informatik.MiToBo.apps.nuclei2D.NucleusSeparator2D\">Nucleus Region Separation</a></p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li><li>\n" + 
+				"<p><tt>Units</tt>\n" + 
+				"<ul><li>\n" + 
+				"<p>currently not used</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li></ul>\n" + 
+				"<h3>Supplemental parameters:</h3>\n" + 
+				"\n" + 
+				"<ul><li>\n" + 
+				"<p><tt>Verbose</tt>\n" + 
+				"<ul><li>\n" + 
+				"<p>disables/enables output of additional messages on console</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li></ul>";
 	}
 }

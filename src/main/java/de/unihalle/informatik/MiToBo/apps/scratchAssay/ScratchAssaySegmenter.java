@@ -69,7 +69,9 @@ import de.unihalle.informatik.MiToBo.tools.image.ImageValueTools;
  * @author glass
  *
  */
-@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.SWING, level=Level.STANDARD)
+@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.SWING, 
+	level=Level.STANDARD,
+	shortDescription="Segments the wound area of a scratch assay image.")
 public class ScratchAssaySegmenter extends MTBOperator
 {
 	@Parameter(label = "input image", required = true, direction = Parameter.Direction.IN, supplemental = false, description = "input image", mode=ExpertMode.STANDARD, dataIOOrder = 0)
@@ -717,4 +719,84 @@ public class ScratchAssaySegmenter extends MTBOperator
 		return maxDiff;
 	}
 	
+	@Override
+	public String getDocumentation() {
+		return "<ul><li>\r\n" + 
+				"<p>operator for segmenting the wound area of a scratch assay image</p>\r\n" + 
+				"</li></ul>\r\n" + 
+				"<h2>Usage:</h2>\r\n" + 
+				"<h3>required parameters:</h3>\r\n" + 
+				"\r\n" + 
+				"<ul><li>\r\n" + 
+				"<p><tt>input image</tt>\r\n" + 
+				"<ul><li>\r\n" + 
+				"<p>image to be segmented</p>\r\n" + 
+				"</li></ul>\r\n" + 
+				"</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p><tt>horizontal scratch</tt>\r\n" + 
+				"<ul><li>\r\n" + 
+				"<p>is scratch horizontally oriented (else it is assumed to be vertically oriented)</p>\r\n" + 
+				"</li></ul>\r\n" + 
+				"</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p><tt>entropy filter size</tt>\r\n" + 
+				"<ul><li>\r\n" + 
+				"<p>size of entropy filter mask</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p>increase lets the scratch area decrease</p>\r\n" + 
+				"</li></ul>\r\n" + 
+				"</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p><tt>sigma</tt>\r\n" + 
+				"<ul><li>\r\n" + 
+				"<p>standard deviation of gauss filter</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p>increase leads to more image smoothing and scratch area tends to decrease</p>\r\n" + 
+				"</li></ul>\r\n" + 
+				"</p>\r\n" + 
+				"</li></ul>\r\n" + 
+				"<h3>optional parameters:</h3>\r\n" + 
+				"\r\n" + 
+				"<ul><li>\r\n" + 
+				"<p><tt>maximum iterations</tt>\r\n" + 
+				"<ul><li>\r\n" + 
+				"<p>maximum number of iterations for level set segmentation</p>\r\n" + 
+				"</li></ul>\r\n" + 
+				"</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p><tt>don't check for scratch presence</tt>\r\n" + 
+				"<ul><li>\r\n" + 
+				"<p>don't check for scratch presence prior to segmentation</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p>deactivate, if built-in check for scratch presence fails</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p>alternative: train a new svm model, cf. <a href=\"stml:de.unihalle.informatik.MiToBo.apps.scratchAssay.ScratchAssaySVMTrainer\">Scratch Assay SVM Trainer</a></p>\r\n" + 
+				"</li></ul>\r\n" + 
+				"</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p><tt>use external svm file</tt>\r\n" + 
+				"<ul><li>\r\n" + 
+				"<p>should an external svm file be used for classification</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p>the automatic scratch detection uses a built-in support vector machine model to decide whether an image contains a scratch or not, if this detection doesn't work properly an external model file created with the <a href=\"stml:de.unihalle.informatik.MiToBo.apps.scratchAssay.ScratchAssaySVMTrainer\">Scratch Assay SVM Trainer</a> can be used for this task</p>\r\n" + 
+				"</li></ul>\r\n" + 
+				"</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p><tt>external svm file</tt>\r\n" + 
+				"<ul><li>\r\n" + 
+				"<p>absolute path to an external svm model file</p>\r\n" + 
+				"</li></ul>\r\n" + 
+				"</p>\r\n" + 
+				"</li></ul>\r\n" + 
+				"<h3>supplemental parameters:</h3>\r\n" + 
+				"\r\n" + 
+				"<ul><li>\r\n" + 
+				"<p><tt>Verbose</tt>\r\n" + 
+				"<ul><li>\r\n" + 
+				"<p>output some additional information</p>\r\n" + 
+				"</li></ul>\r\n" + 
+				"</p>\r\n" + 
+				"</li></ul>";
+	}
 }

@@ -82,7 +82,8 @@ import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
  * @author Oliver Gress
  *
  */
-@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL)
+@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL,
+		shortDescription="Visualizes 2D regions.")
 public class DrawRegion2DSet extends MTBOperator {
 	
 	/**
@@ -921,4 +922,62 @@ public class DrawRegion2DSet extends MTBOperator {
 				this.addParameter("color");			
 		}
 	}
+	
+	@Override
+	public String getDocumentation() {
+		return "<p>Operator to draw a set of 2D-regions (MTBRegion2DSet) to an image.</p>\n" + 
+				"<h3>Required input:</h3>\n" + 
+				"\n" + 
+				"<ul><li>\n" + 
+				"<p><b>Input regions</b>:</p>\n" + 
+				"\n" + 
+				"<p>Regions to be drawn to an image</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Draw type</b>:</p>\n" + 
+				"\n" + 
+				"<p>The type of image to be drawn:\n" + 
+				"<ul><li>\n" + 
+				"<p>LABEL_IMAGE: Draws a gray value image where regions are labeled by their index in the set + 1.</p>\n" + 
+				"</li><li>\n" + 
+				"<p>ID_IMAGE: Draws a gray value image where regions are labeled by their region ID.</p>\n" + 
+				"</li><li>\n" + 
+				"<p>MASK_IMAGE: Draw a mask image with equal gray values for all regions. Requires <b>Gray value</b> to be set.</p>\n" + 
+				"</li><li>\n" + 
+				"<p>COLOR_IMAGE: Draws a mask image with colored regions. Requires whether <b>Color</b> to be specified exclusively to draw regions with the same color, or <b>Random generator</b> to be set exclusively to paint randomly colored regions. </p>\n" + 
+				"</li><li>\n" + 
+				"<p>TRANSPARENT_IMAGE: Draws a mask image with colored regions (see COLOR_IMAGE) but the regions are transparent to show the underlying intensity structure of a given <b>Target image</b>. </p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Output-image type</b>:</p>\n" + 
+				"\n" + 
+				"<p>Type of the output image. Must be set according to the <b>Draw type</b></p>\n" + 
+				"</li></ul>\n" + 
+				"<h3>Optional input:</h3>\n" + 
+				"\n" + 
+				"<ul><li>\n" + 
+				"<p><b>Gray value</b>: </p>\n" + 
+				"\n" + 
+				"<p>Gray value to draw regions with if <b>Draw type</b>=MASK_IMAGE</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Color</b>: </p>\n" + 
+				"\n" + 
+				"<p>Color to draw regions with if <b>Draw type</b>=[COLOR_IMAGE|TRANSPARENT_IMAGE]</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Random generator</b>: </p>\n" + 
+				"\n" + 
+				"<p>Random generator to draw regions with random colors if <b>Draw type</b>=[COLOR_IMAGE|TRANSPARENT_IMAGE]</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Target image</b>: </p>\n" + 
+				"\n" + 
+				"<p>Image to draw regions to if <b>Draw type</b>=TRANSPARENT_IMAGE</p>\n" + 
+				"</li></ul>\n" + 
+				"<h3>Output:</h3>\n" + 
+				"\n" + 
+				"<ul><li>\n" + 
+				"<p><b>Result image</b></p>\n" + 
+				"\n" + 
+				"<p>Image with regions drawn.</p>\n" + 
+				"</li></ul>";
+	}	
 }

@@ -78,7 +78,8 @@ import de.unihalle.informatik.MiToBo.segmentation.snakes.optimize.termination.*;
  */
 
 @ALDAOperator(genericExecutionMode = ALDAOperator.ExecutionMode.ALL, 
-	level = Level.STANDARD)
+	level = Level.STANDARD,
+	shortDescription="Operator for separating merged nuclei regions in images.")
 @ALDDerivedClass
 public class NucleusSeparator2DPeakSearch extends NucleusSeparator2DAlgos {
 	
@@ -538,5 +539,91 @@ public class NucleusSeparator2DPeakSearch extends NucleusSeparator2DAlgos {
 				}
 			}
 		}
+	}
+	
+	@Override
+	public String getDocumentation() {
+		return "\r\n" + 
+				"<ul><li>\r\n" + 
+				"<p>performs region separation by searching for local peaks in nuclei regions</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p>analyses the paths between peaks and hypothesizes cuts based on heuristic criteria</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p>in the end for each hypothesized nucleus region an initial elliptical approximation is extracted and iteratively improved by snake segmentation on the gray-scale image</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p>output of the operator is a label images of detected (separated) nuclei regions</p>\r\n" + 
+				"</li></ul>\r\n" + 
+				"<h2>Usage:</h2>\r\n" + 
+				"<h3>Required parameters:</h3>\r\n" + 
+				"\r\n" + 
+				"<ul><li>\r\n" + 
+				"<p><tt>Greyscale Input Image</tt> \r\n" + 
+				"<ul><li>\r\n" + 
+				"<p>the single-channel gray-scale image to be analyzed</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p>if the image contains multiple channels, only the first one is processed</p>\r\n" + 
+				"</li></ul>\r\n" + 
+				"</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p><tt> Label Input Image</tt>\r\n" + 
+				"<ul><li>\r\n" + 
+				"<p>label image encoding result of prior nucleus separation with merged regions</p>\r\n" + 
+				"</li></ul>\r\n" + 
+				"</p>\r\n" + 
+				"</li></ul>\r\n" + 
+				"<h3>Optional parameters:</h3>\r\n" + 
+				"\r\n" + 
+				"<ul><li>\r\n" + 
+				"<p><tt>Max. Snake Iterations</tt> \r\n" + 
+				"<ul><li>\r\n" + 
+				"<p>maximum number of snake iterations in region segmentation</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p>the larger the nuclei, the more iterations are required</p>\r\n" + 
+				"</li></ul>\r\n" + 
+				"</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p><tt>Snake Step Size</tt>\r\n" + 
+				"<ul><li>\r\n" + 
+				"<p>step-size in iterative snake optimization</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p>the larger the size the faster the snake moves</p>\r\n" + 
+				"</li></ul>\r\n" + 
+				"</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p><tt>Snake Segment Length</tt>\r\n" + 
+				"<ul><li>\r\n" + 
+				"<p>length of snake segments</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p>the smaller the segments are, the more details can be extracted, however, at the same time the larger computation times are required until convergence</p>\r\n" + 
+				"</li></ul>\r\n" + 
+				"</p>\r\n" + 
+				"</li></ul>\r\n" + 
+				"<h3>Supplemental parameters:</h3>\r\n" + 
+				"\r\n" + 
+				"<ul><li>\r\n" + 
+				"<p><tt>Show Snakes</tt>\r\n" + 
+				"<ul><li>\r\n" + 
+				"<p>displays intermediate results during snake segmentation</p>\r\n" + 
+				"</li></ul>\r\n" + 
+				"</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p><tt>Save snakes</tt>\r\n" + 
+				"<ul><li>\r\n" + 
+				"<p>enables saving of intermediate results during snake segmentation</p>\r\n" + 
+				"</li></ul>\r\n" + 
+				"</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p><tt>Save Results to...</tt>\r\n" + 
+				"<ul><li>\r\n" + 
+				"<p>path where to save intermediate results</p>\r\n" + 
+				"</li></ul>\r\n" + 
+				"</p>\r\n" + 
+				"</li><li>\r\n" + 
+				"<p><tt>Verbose</tt>\r\n" + 
+				"<ul><li>\r\n" + 
+				"<p>activates additional console output</p>\r\n" + 
+				"</li></ul>\r\n" + 
+				"</p>\r\n" + 
+				"</li></ul>";
 	}
 }

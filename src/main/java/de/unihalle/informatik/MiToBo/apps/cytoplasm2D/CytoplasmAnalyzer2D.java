@@ -77,7 +77,8 @@ import de.unihalle.informatik.MiToBo.segmentation.snakes.optimize.*;
  * @author moeller
  */
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL,
-		level= Level.APPLICATION)
+		level= Level.APPLICATION,
+		shortDescription="Segment cell contours from a given single-layer image.")
 public class CytoplasmAnalyzer2D extends MTBOperatorControllable {
 
 	/**
@@ -1598,5 +1599,120 @@ public class CytoplasmAnalyzer2D extends MTBOperatorControllable {
 			writer.setOverwrite(true);
 			writer.runOp(null);
 		}
+	}
+	
+	@Override
+	public String getDocumentation() {
+		return "<ul><li>\n" + 
+				"<p>operator for segmentation of the cytoplasm of cells, i.e. cell boundaries</p>\n" + 
+				"</li><li>\n" + 
+				"<p>based on snakes</p>\n" + 
+				"</li><li>\n" + 
+				"<p>iteratively expands cytoplasm area from initial nuclei regions</p>\n" + 
+				"</li></ul>\n" + 
+				"<h2>Usage:</h2>\n" + 
+				"<h3>Required parameters:</h3>\n" + 
+				"\n" + 
+				"<ul><li>\n" + 
+				"<p><tt>Input image</tt> \n" + 
+				"<ul><li>\n" + 
+				"<p>the single-channel image to be analyzed</p>\n" + 
+				"</li><li>\n" + 
+				"<p>if the image contains multiple channels, only the first one is processed</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li><li>\n" + 
+				"<p><tt>Initial snakes</tt>\n" + 
+				"<ul><li>\n" + 
+				"<p>initial snake contours, i.e. segmented nuclei regions, can be loaded from the ImageJ ROI Manager, edited manually or read from XML files</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li><li>\n" + 
+				"<p><tt>Snake optimizer</tt>\n" + 
+				"<ul><li>\n" + 
+				"<p>active contour snake operator to be used for segmentation, see <a href=\"stml:de.unihalle.informatik.MiToBo.segmentation.snakes\">Snake Segmentation</a> for details</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li></ul>\n" + 
+				"<h3>Optional parameters:</h3>\n" + 
+				"\n" + 
+				"<ul><li>\n" + 
+				"<p><tt>Operation mode</tt>\n" + 
+				"<ul><li>\n" + 
+				"<p>mode to be used for segmentation:\n" + 
+				"<ol><li>\n" + 
+				"<p>iterativeVoronoiExpansion: default mode</p>\n" + 
+				"</li><li>\n" + 
+				"<p>meanVarEnergies: without functionality at the moment</p>\n" + 
+				"</li></ol>\n" + 
+				"</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li><li>\n" + 
+				"<p><tt>Max. level count</tt>\n" + 
+				"<ul><li>\n" + 
+				"<p>maximal number of iterations done in iterative expansion</p>\n" + 
+				"</li><li>\n" + 
+				"<p>most likely a single iteration will be ok</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li><li>\n" + 
+				"<p><tt>Max. distance in voronoi expansion</tt>\n" + 
+				"<ul><li>\n" + 
+				"<p>in Voronoi expansion mode cell regions are expanded by dilation at the beginning of each iteration</p>\n" + 
+				"</li><li>\n" + 
+				"<p>this parameter specifies how far they are expanded</p>\n" + 
+				"</li><li>\n" + 
+				"<p>unit is pixels</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li><li>\n" + 
+				"<p><tt>Min. area growth</tt>\n" + 
+				"<ul><li>\n" + 
+				"<p>area expansion stops if region growth becomes too small between two iterations</p>\n" + 
+				"</li><li>\n" + 
+				"<p>this parameter relates to the threshold for minimal region growth</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li><li>\n" + 
+				"<p><tt>Min. intensity variance</tt>\n" + 
+				"<ul><li>\n" + 
+				"<p>region expansion also stops if the intensity variance in the region fraction added during the most recent iteration is too small</p>\n" + 
+				"</li><li>\n" + 
+				"<p>regions with low variance are deemed to belong to the background</p>\n" + 
+				"</li><li>\n" + 
+				"<p>this parameter specifies the minimum admissible intensity variance in cytoplasm regions</p>\n" + 
+				"</li><li>\n" + 
+				"<p>note that the threshold needs to be adapted to the bit-depth per pixel of the image to be analyzed</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li></ul>\n" + 
+				"<h3>Supplemental parameters:</h3>\n" + 
+				"\n" + 
+				"<ul><li>\n" + 
+				"<p><tt>Show intermediate results</tt>\n" + 
+				"<ul><li>\n" + 
+				"<p>disables/enables display of intermediate results during operator execution</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li><li>\n" + 
+				"<p><tt>Save intermediate results</tt>\n" + 
+				"<ul><li>\n" + 
+				"<p>disables/enables the saving of intermediate results to disk</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li><li>\n" + 
+				"<p><tt>Save intermediate results path</tt>\n" + 
+				"<ul><li>\n" + 
+				"<p>path where to save intermediate results</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li><li>\n" + 
+				"<p><tt>Verbose</tt>\n" + 
+				"<ul><li>\n" + 
+				"<p>disables/enables output of additional messages on console</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li></ul>";
 	}
 }

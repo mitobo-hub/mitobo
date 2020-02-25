@@ -85,7 +85,9 @@ import de.unihalle.informatik.MiToBo.io.tools.FilePathManipulator;
  * @author Danny Misiak
  * 
  */
-@ALDAOperator(genericExecutionMode = ALDAOperator.ExecutionMode.ALL, level = Level.APPLICATION, allowBatchMode = false)
+@ALDAOperator(genericExecutionMode = ALDAOperator.ExecutionMode.ALL, 
+	level = Level.APPLICATION, allowBatchMode = false,
+	shortDescription="Analyzes 2D fluorescence microscope images of neurons.")
 public class NeuronAnalyzer2D extends MTBOperator {
 
 		/**
@@ -639,5 +641,116 @@ public class NeuronAnalyzer2D extends MTBOperator {
 				}
 				System.out.println("JRI R-Engine: executing " + sourceFile + " ...done!");
 				return true;
+		}
+		
+		@Override
+		public String getDocumentation() {
+			return "<p>The Neuron Analyzer 2D application offers advanced functionality to analyze 2D fluorescence microscope images of neurons.</p>\n" + 
+					"<br>\n" + 
+					"<h2>Features:</h2>\n" + 
+					"\n" + 
+					"<ul><li>\n" + 
+					"<p>neuron boundary detection based on active contours</p>\n" + 
+					"</li><li>\n" + 
+					"<p>identification of structural neuron parts, like soma, neurites, growth cones</p>\n" + 
+					"</li><li>\n" + 
+					"<p>morphology analysis, e.g., neurite length, average neurite width, number of branch and end points, growth cone size and shape roundness, ...</p>\n" + 
+					"</li><li>\n" + 
+					"<p>optional: extraction of molecular profiles from the given molecules, like labeled proteins, along the neurites from soma to growth cones</p>\n" + 
+					"</li><li>\n" + 
+					"<p>optional: detection of molecular particles, for example FISH data, along the neurites from soma to growth cones</p>\n" + 
+					"</li><li>\n" + 
+					"<p>intermediate and final results are automatically saved</p>\n" + 
+					"</li><li>\n" + 
+					"<p>tabular presentation of result data</p>\n" + 
+					"<br>\n" + 
+					"</li></ul>\n" + 
+					"\n" + 
+					"<p>--------------------------------------------------------------------------------</p>\n" + 
+					"<h3>Output:</h3>\n" + 
+					"\n" + 
+					"<ul><li>\n" + 
+					"<p>The output directory is created within the image input directory</p>\n" + 
+					"</li><li>\n" + 
+					"<p>Image of detected neurites are saved in the result directory</p>\n" + 
+					"</li><li>\n" + 
+					"<p>Table of measuerements, obtained from the detection results</p>\n" + 
+					"</li><li>\n" + 
+					"<p>Profiles of protein distributions are saved in the result directory (optional)</p>\n" + 
+					"</li><li>\n" + 
+					"<p>Image of detected particles along the detected neurites  (optional)</p>\n" + 
+					"<br>\n" + 
+					"</li></ul>\n" + 
+					"\n" + 
+					"<p>--------------------------------------------------------------------------------</p>\n" + 
+					"<h2>Usage</h2>\n" + 
+					"<h3>Required parameters:</h3>\n" + 
+					"\n" + 
+					"<ul><li>\n" + 
+					"<p><tt><b>Neurite Detector</b></tt>\n" + 
+					"<ul><li>\n" + 
+					"<p>Detector to use for neurite detection</p>\n" + 
+					"</li><li>\n" + 
+					"<p>Configurable via GUI (see <a href=\"stml:de.unihalle.informatik.MiToBo.apps.neurites2D.NeuriteDetector2D\">Neurite Detector 2D</a>)</p>\n" + 
+					"</li></ul>\n" + 
+					"</p>\n" + 
+					"</li><li>\n" + 
+					"<p><tt><b>Extract Profiles</b></tt>\n" + 
+					"<ul><li>\n" + 
+					"<p>Option to choose molecular profile extraction</p>\n" + 
+					"</li><li>\n" + 
+					"<p>default: <i><b>true</b></i></p>\n" + 
+					"</li></ul>\n" + 
+					"</p>\n" + 
+					"</li><li>\n" + 
+					"<p><tt><b>Define Molecules</b></tt>\n" + 
+					"<ul><li>\n" + 
+					"<p>Molecule names of each image channel</p>\n" + 
+					"</li><li>\n" + 
+					"<p>used if <i>Extract Profiles</i> is set to true</p>\n" + 
+					"</li><li>\n" + 
+					"<p>default: <i><b>Tubulin, ZBP, Actin, DAPI</b></i></p>\n" + 
+					"</li></ul>\n" + 
+					"</p>\n" + 
+					"</li><li>\n" + 
+					"<p><tt><b>Profile Molecule Channels</b></tt>\n" + 
+					"<ul><li>\n" + 
+					"<p>Channels of fluorescence stains to use for molecular profile extraction</p>\n" + 
+					"</li><li>\n" + 
+					"<p>used if <i>Extract Profiles</i> is set to true</p>\n" + 
+					"</li><li>\n" + 
+					"<p>default: <i><b>1,2,3</b></i></p>\n" + 
+					"</li></ul>\n" + 
+					"</p>\n" + 
+					"</li><li>\n" + 
+					"<p><tt><b>Extract Particles</b></tt>\n" + 
+					"<ul><li>\n" + 
+					"<p>Option to choose molecular particle extraction, e.g. FISH data</p>\n" + 
+					"</li><li>\n" + 
+					"<p>default: <i><b>false</b></i></p>\n" + 
+					"</li></ul>\n" + 
+					"</p>\n" + 
+					"</li><li>\n" + 
+					"<p><tt><b>Particle Detector</b></tt>\n" + 
+					"<ul><li>\n" + 
+					"<p>Detector to use for particle detection</p>\n" + 
+					"</li><li>\n" + 
+					"<p>Configurable via GUI (see <a href=\"stml:de.unihalle.informatik.MiToBo.apps.neurites2D.NeuriteParticleDetector2D\">Neurite Particle Detector 2D</a>)</p>\n" + 
+					"</li><li>\n" + 
+					"<p>used if <i>Extract Particles</i> is set to true</p>\n" + 
+					"</li></ul>\n" + 
+					"</p>\n" + 
+					"</li></ul>\n" + 
+					"<h3>Supplemental parameters:</h3>\n" + 
+					"\n" + 
+					"<ul><li>\n" + 
+					"<p><tt><b>Verbose</b></tt>\n" + 
+					"<ul><li>\n" + 
+					"<p>Output of additional messages on console is disabled/enabled</p>\n" + 
+					"</li><li>\n" + 
+					"<p>default: <i><b>false</b></i></p>\n" + 
+					"</li></ul>\n" + 
+					"</p>\n" + 
+					"</li></ul>";
 		}
 }

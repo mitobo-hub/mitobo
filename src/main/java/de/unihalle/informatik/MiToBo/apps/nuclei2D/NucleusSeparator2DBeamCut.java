@@ -44,7 +44,8 @@ import java.util.*;
  * 
  * @author posch
  */
-@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL)
+@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL,
+		shortDescription="Routines for separating conglomerates of cell nuclei in 2D.")
 @ALDDerivedClass
 public class NucleusSeparator2DBeamCut extends NucleusSeparator2DAlgos {
 
@@ -1140,4 +1141,102 @@ public class NucleusSeparator2DBeamCut extends NucleusSeparator2DAlgos {
 
     }
 
+  	@Override
+  	public String getDocumentation() {
+  		return "<ul><li>\n" + 
+  				"<p>this operator implements a region separation based on sampling distances between region centroids and contour points and analyzing resulting distance profiles</p>\n" + 
+  				"</li><li>\n" + 
+  				"<p>output of the operator is a label images of detected (separated) nuclei regions</p>\n" + 
+  				"</li></ul>\n" + 
+  				"<h2>Usage:</h2>\n" + 
+  				"<h3>Required parameters:</h3>\n" + 
+  				"\n" + 
+  				"<ul><li>\n" + 
+  				"<p><tt>Greyscale Input Image</tt> \n" + 
+  				"<ul><li>\n" + 
+  				"<p>the single-channel gray-scale image to be analyzed</p>\n" + 
+  				"</li><li>\n" + 
+  				"<p>if the image contains multiple channels, only the first one is processed</p>\n" + 
+  				"</li></ul>\n" + 
+  				"</p>\n" + 
+  				"</li><li>\n" + 
+  				"<p><tt> Label Input Image</tt>\n" + 
+  				"<ul><li>\n" + 
+  				"<p>label image encoding result of prior nuclei separation with merged regions</p>\n" + 
+  				"</li></ul>\n" + 
+  				"</p>\n" + 
+  				"</li><li>\n" + 
+  				"<p><tt>Operator mode</tt>\n" + 
+  				"<ul><li>\n" + 
+  				"<p>operator to be used for region separation, currently only a STANDARD mode is available</p>\n" + 
+  				"</li></ul>\n" + 
+  				"</p>\n" + 
+  				"</li></ul>\n" + 
+  				"<h3>Optional parameters:</h3>\n" + 
+  				"\n" + 
+  				"<ul><li>\n" + 
+  				"<p><tt>Do erosion</tt> \n" + 
+  				"<ul><li>\n" + 
+  				"<p>turns on erosion of separated nuclei regions</p>\n" + 
+  				"</li></ul>\n" + 
+  				"</p>\n" + 
+  				"</li><li>\n" + 
+  				"<p><tt>Erode mask size</tt>\n" + 
+  				"<ul><li>\n" + 
+  				"<p>size of mask for erosion</p>\n" + 
+  				"</li></ul>\n" + 
+  				"</p>\n" + 
+  				"</li><li>\n" + 
+  				"<p><tt>Minimum nuclei size</tt>\n" + 
+  				"<ul><li>\n" + 
+  				"<p>minimum size of valid nuclei after separation, in case of too small regions resulting from separation, separation is reverted</p>\n" + 
+  				"</li></ul>\n" + 
+  				"</p>\n" + 
+  				"</li><li>\n" + 
+  				"<p><tt>Minimum fraction size</tt>\n" + 
+  				"<ul><li>\n" + 
+  				"<p>minimum size fraction of each nucleus after separation</p>\n" + 
+  				"</li></ul>\n" + 
+  				"</p>\n" + 
+  				"</li><li>\n" + 
+  				"<p><tt>Dilation mask size</tt>\n" + 
+  				"<ul><li>\n" + 
+  				"<p>size of structuring element for dilation on cutpoint hypotheses</p>\n" + 
+  				"</li></ul>\n" + 
+  				"</p>\n" + 
+  				"</li><li>\n" + 
+  				"<p><tt>Opening mask size</tt>\n" + 
+  				"<ul><li>\n" + 
+  				"<p>size of structuring element for opening on cutpoint hypotheses</p>\n" + 
+  				"</li></ul>\n" + 
+  				"</p>\n" + 
+  				"</li><li>\n" + 
+  				"<p><tt>Tophat size</tt>\n" + 
+  				"<ul><li>\n" + 
+  				"<p>size of structuring element for top hat on distances</p>\n" + 
+  				"</li></ul>\n" + 
+  				"</p>\n" + 
+  				"</li><li>\n" + 
+  				"<p><tt>Tophat threshold</tt>\n" + 
+  				"<ul><li>\n" + 
+  				"<p>threshold for result from top hat</p>\n" + 
+  				"</li></ul>\n" + 
+  				"</p>\n" + 
+  				"</li></ul>\n" + 
+  				"<h3>Supplemental parameters:</h3>\n" + 
+  				"\n" + 
+  				"<ul><li>\n" + 
+  				"<p><tt>Debug mode</tt> \n" + 
+  				"<ul><li>\n" + 
+  				"<p>turns on different levels of debuggin</p>\n" + 
+  				"</li></ul>\n" + 
+  				"</p>\n" + 
+  				"</li><li>\n" + 
+  				"<p><tt>Verbose</tt>\n" + 
+  				"<ul><li>\n" + 
+  				"<p>activates additional console output</p>\n" + 
+  				"</li></ul>\n" + 
+  				"</p>\n" + 
+  				"</li></ul>";
+  	}
 }

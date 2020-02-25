@@ -40,7 +40,8 @@ import de.unihalle.informatik.MiToBo.core.operator.*;
  * @author moeller, posch
  */
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL,
-	level=Level.APPLICATION)
+	level=Level.APPLICATION,
+	shortDescription="Routines for separating conglomerates of cell nuclei in 2D.")
 public class NucleusSeparator2D extends MTBOperator {
 
 	/**
@@ -182,4 +183,54 @@ public class NucleusSeparator2D extends MTBOperator {
 		this.resultImg.setTitle("Separation result for image \"" +
 				labelImage.getTitle() + "\"...");
 	} 
+	
+	@Override
+	public String getDocumentation() {
+		return "<ul><li>\n" + 
+				"<p>this operator provides methods to split-up nuclei regions which have been merged during segmentation</p>\n" + 
+				"</li><li>\n" + 
+				"<p>it supports different modes discussed in detail below</p>\n" + 
+				"</li><li>\n" + 
+				"<p>output of the operator is a binary or label images of detected (separated) nuclei regions</p>\n" + 
+				"</li></ul>\n" + 
+				"<h2>Usage:</h2>\n" + 
+				"<h3>Required parameters:</h3>\n" + 
+				"\n" + 
+				"<ul><li>\n" + 
+				"<p><tt>Greyscale Input Image</tt> \n" + 
+				"<ul><li>\n" + 
+				"<p>the single-channel gray-scale image to be analyzed</p>\n" + 
+				"</li><li>\n" + 
+				"<p>if the image contains multiple channels, only the first one is processed</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li><li>\n" + 
+				"<p><tt> Label Input Image</tt>\n" + 
+				"<ul><li>\n" + 
+				"<p>label image encoding the result of a prior nucleus detection with merged nuclei</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li><li>\n" + 
+				"<p><tt>Operator mode</tt>\n" + 
+				"<ul><li>\n" + 
+				"<p>operator to be used for region separation, currently supported are <a href=\"stml:de.unihalle.informatik.MiToBo.apps.nuclei2D.NucleusSeparator2DBeamCut\">Beam-Cut</a> and <a href=\"stml:de.unihalle.informatik.MiToBo.apps.nuclei2D.NucleusSeparator2DPeakSearch\">Peak-Search</a> separation</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li></ul>\n" + 
+				"<h3>Supplemental parameters:</h3>\n" + 
+				"\n" + 
+				"<ul><li>\n" + 
+				"<p><tt>Result image display mode</tt> \n" + 
+				"<ul><li>\n" + 
+				"<p>allows switch between binary and gray-scale (labeled) result images</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li><li>\n" + 
+				"<p><tt> Verbose</tt>\n" + 
+				"<ul><li>\n" + 
+				"<p>enables/disables display of additional console output</p>\n" + 
+				"</li></ul>\n" + 
+				"</p>\n" + 
+				"</li></ul>";
+	}
 }

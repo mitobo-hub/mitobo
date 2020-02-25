@@ -67,7 +67,8 @@ import de.unihalle.informatik.MiToBo.visualization.drawing.DrawPolygon2DSet;
  * @author moeller
  */
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL,
-	level=Level.APPLICATION)
+	level=Level.APPLICATION,
+	shortDescription="Operator for integrated cell image analysis.")
 public class Mica2D extends MTBOperatorControllable {
 
 	/**
@@ -824,5 +825,160 @@ public class Mica2D extends MTBOperatorControllable {
   	mtbStack.setTitle(title);
   	mtbStack.show();
   	return mtbStack;
+  }
+  
+  @Override
+  public String getDocumentation() {
+  	return "<p>The MiCA application offers basic functionality to analyse 2D fluorescense microscopy images of cells. Features:</p>\n" + 
+  			"\n" + 
+  			"<ul><li>\n" + 
+  			"<p>algorithms for cell boundary detection based on active contours</p>\n" + 
+  			"</li><li>\n" + 
+  			"<p>methods for sub-cellular structure detection based on wavelets</p>\n" + 
+  			"</li><li>\n" + 
+  			"<p>integrated statistical analysis of segmentation results like counts of structures per cell or other statistical numbers</p>\n" + 
+  			"</li><li>\n" + 
+  			"<p>visual and tabular result data presentation</p>\n" + 
+  			"</li></ul>\n" + 
+  			"<h2>Usage:</h2>\n" + 
+  			"<h3>Required parameters:</h3>\n" + 
+  			"\n" + 
+  			"<ul><li>\n" + 
+  			"<p><tt>Input image</tt> \n" + 
+  			"<ul><li>\n" + 
+  			"<p>the multi-channel image to be analyzed</p>\n" + 
+  			"</li></ul>\n" + 
+  			"</p>\n" + 
+  			"</li><li>\n" + 
+  			"<p><tt>Nucleus channel</tt>\n" + 
+  			"<ul><li>\n" + 
+  			"<p>index of image channel with labeled nuclei</p>\n" + 
+  			"</li><li>\n" + 
+  			"<p>the channel index starts with 1</p>\n" + 
+  			"</li><li>\n" + 
+  			"<p>if the channel index is set to -1, nuclei detection is disabled</p>\n" + 
+  			"</li></ul>\n" + 
+  			"</p>\n" + 
+  			"</li><li>\n" + 
+  			"<p><tt>Cytoplasm channel</tt>\n" + 
+  			"<ul><li>\n" + 
+  			"<p>the channel of the image to use for cell cytoplasm segmentation</p>\n" + 
+  			"</li><li>\n" + 
+  			"<p>the channel index starts with 1</p>\n" + 
+  			"</li><li>\n" + 
+  			"<p>if the channel index is set to -1, cytoplasm detection is disabled</p>\n" + 
+  			"</li></ul>\n" + 
+  			"</p>\n" + 
+  			"</li></ul>\n" + 
+  			"<h3>Optional parameters:</h3>\n" + 
+  			"\n" + 
+  			"<ul><li>\n" + 
+  			"<p><tt>Nuclei detector</tt>\n" + 
+  			"<ul><li>\n" + 
+  			"<p>operator to be used for nuclei detection, for details refer to the documentation about <a href=\"stml:de.unihalle.informatik.MiToBo.apps.nuclei2D\">Nucleus Detection</a> in MiToBo</p>\n" + 
+  			"</li></ul>\n" + 
+  			"</p>\n" + 
+  			"</li><li>\n" + 
+  			"<p><tt>Nuclei contours</tt>\n" + 
+  			"<ul><li>\n" + 
+  			"<p>if a channel index for nuclei detection is specified as required parameter this parameter is ignored</p>\n" + 
+  			"</li><li>\n" + 
+  			"<p>otherwise you can specify nuclei contours here</p>\n" + 
+  			"</li><li>\n" + 
+  			"<p>to load contours use one of the following modes:\n" + 
+  			"<ol><li>\n" + 
+  			"<p>ROI&nbsp;MANAGER: requires selections in the ImageJ ROI Manager</p>\n" + 
+  			"</li><li>\n" + 
+  			"<p>MTB&nbsp;XML: read file with contours saved in MiToBo XML format</p>\n" + 
+  			"</li><li>\n" + 
+  			"<p>SERIAL&nbsp;XML - not fully supported yet</p>\n" + 
+  			"</li><li>\n" + 
+  			"<p>MANUAL: manually enter contours by specifying list of points</p>\n" + 
+  			"</li></ol>\n" + 
+  			"</p>\n" + 
+  			"</li><li>\n" + 
+  			"<p>pressing the \"Load\" button will import the selected contours.</p>\n" + 
+  			"</li></ul>\n" + 
+  			"</p>\n" + 
+  			"</li><li>\n" + 
+  			"<p><tt>Cytoplasm detector</tt>\n" + 
+  			"<ul><li>\n" + 
+  			"<p>operator to be used for detecting the cell cytoplasm, for details refer to the documentation about <a href=\"stml:de.unihalle.informatik.MiToBo.apps.cytoplasm2D\">Cytoplasm Detection</a> in MiToBo </p>\n" + 
+  			"</li></ul>\n" + 
+  			"</p>\n" + 
+  			"</li><li>\n" + 
+  			"<p><tt>Apply Gauss to cytoplasm channel</tt>\n" + 
+  			"<ul><li>\n" + 
+  			"<p>enables/disables optional Gaussian smoothing of the channel for cytoplasm segmentation prior to the actual segmentation</p>\n" + 
+  			"</li></ul>\n" + 
+  			"</p>\n" + 
+  			"</li><li>\n" + 
+  			"<p><tt>Gauss sigma</tt>\n" + 
+  			"<ul><li>\n" + 
+  			"<p>the standard deviation to be used for Gaussian smoothing</p>\n" + 
+  			"</li><li>\n" + 
+  			"<p>if Gaussian smoothing is disabled the parameter is ignored</p>\n" + 
+  			"</li></ul>\n" + 
+  			"</p>\n" + 
+  			"</li><li>\n" + 
+  			"<p><tt>Particle Detector</tt>\n" + 
+  			"<ul><li>\n" + 
+  			"<p>operator to be used for particle detection, for details refer to the documentation about <a href=\"stml:de.unihalle.informatik.MiToBo.apps.particles2D\">Particle Detection</a> in MiToBo</p>\n" + 
+  			"</li></ul>\n" + 
+  			"</p>\n" + 
+  			"</li><li>\n" + 
+  			"<p><tt>Measurement Units</tt>\n" + 
+  			"<ul><li>\n" + 
+  			"<p>currently not used</p>\n" + 
+  			"</li></ul>\n" + 
+  			"</p>\n" + 
+  			"</li></ul>\n" + 
+  			"<h3>Supplemental parameters:</h3>\n" + 
+  			"\n" + 
+  			"<ul><li>\n" + 
+  			"<p><tt>Show final result image stack</tt>\n" + 
+  			"<ul><li>\n" + 
+  			"<p>disables/enables the display of a stack with all segmentation results, i.e. nuclei and particle masks as well as cell cytoplasm contours</p>\n" + 
+  			"</li></ul>\n" + 
+  			"</p>\n" + 
+  			"</li><li>\n" + 
+  			"<p><tt>Show intermediate results</tt>\n" + 
+  			"<ul><li>\n" + 
+  			"<p>disables/enables display of intermediate results during operator execution</p>\n" + 
+  			"</li></ul>\n" + 
+  			"</p>\n" + 
+  			"</li><li>\n" + 
+  			"<p><tt>Save intermediate results</tt>\n" + 
+  			"<ul><li>\n" + 
+  			"<p>disables/enables the saving of intermediate results to disk</p>\n" + 
+  			"</li></ul>\n" + 
+  			"</p>\n" + 
+  			"</li><li>\n" + 
+  			"<p><tt>Save intermediate results to...</tt>\n" + 
+  			"<ul><li>\n" + 
+  			"<p>path where to save intermediate results</p>\n" + 
+  			"</li></ul>\n" + 
+  			"</p>\n" + 
+  			"</li><li>\n" + 
+  			"<p><tt>Show b/w masks</tt>\n" + 
+  			"<ul><li>\n" + 
+  			"<p>enables display of binary masks</p>\n" + 
+  			"</li><li>\n" + 
+  			"<p>if disabled colored overlays of the segmentation results are shown</p>\n" + 
+  			"</li></ul>\n" + 
+  			"</p>\n" + 
+  			"</li><li>\n" + 
+  			"<p><tt>List of channel IDs to copy to result</tt>\n" + 
+  			"<ul><li>\n" + 
+  			"<p>allows to specfiy a list of channel indices for copying related channels to the result stack (ignored if stack option is disabled)</p>\n" + 
+  			"</li></ul>\n" + 
+  			"</p>\n" + 
+  			"</li><li>\n" + 
+  			"<p><tt>Verbose</tt>\n" + 
+  			"<ul><li>\n" + 
+  			"<p>disables/enables output of additional messages on console</p>\n" + 
+  			"</li></ul>\n" + 
+  			"</p>\n" + 
+  			"</li></ul>";
   }
 }

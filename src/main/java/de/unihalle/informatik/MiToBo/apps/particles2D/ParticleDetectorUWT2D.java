@@ -116,7 +116,9 @@ import de.unihalle.informatik.MiToBo.visualization.drawing.DrawRegion2DSet.DrawT
  * @author Oliver Gress
  */
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL,
-		level=Level.STANDARD, allowBatchMode=false)
+		level=Level.STANDARD, allowBatchMode=false,
+		shortDescription="Detects spotlike structures in 2D based on the " 
+				+ "undecimated wavelet transform.")
 @ALDDerivedClass
 public class ParticleDetectorUWT2D extends ParticleDetector 
 	implements StatusReporter {
@@ -1996,5 +1998,64 @@ public class ParticleDetectorUWT2D extends ParticleDetector
       		+ "while running undecimated wavelet transform, exiting...");
       }
     }
+	}
+	
+	@Override
+	public String getDocumentation() {
+		return "<p>A particle detector for spotlike structures (bright on dark background) in 2D based on the undecimated wavelet transform.</p>\n" + 
+				"\n" + 
+				"<p>The undecimated wavelet transform produces wavelet coefficient images that correspond to the results of filtering the original image with a bank of filters.<br>\n" + 
+				"There is one lowpass-filtered image, one highpass-filtered image and several bandpass filtered images, depending on the parameter <b>Jmax</b>. The different bands/filtered images are referenced by the <i>scale</i>.<br>\n" + 
+				" The parameters <b>Jmin</b> and <b>Jmax</b> determine the lower and upper scale limit and thus control the range of wavelet images that are taken into account for particle detection. Scale 1 corresponds to the highpass filtered image and increasing scales correspond to decreasing frequency bands.<br>\n" + 
+				"The <b>Scale-interval size</b> parameter determines, how many wavelet images of adjacent scales are used to compute a wavelet correlation image, which is the multiplication of wavelet coefficients over adjacent scales at each pixel.</p>\n" + 
+				"\n" + 
+				"<p>A short example: <br>\n" + 
+				"<b>Jmin</b>=2, <b>Jmax</b>=4, <b>Scale-interval size</b>=2. That means that the bandpass filtered images of scale 2 and 3 are multiplied for one correlation image, and the bandpass filtered images of scale 3 and 4 for another.<br>\n" + 
+				"Correlation images are then thresholded by <b>Correlation threshold</b> to yield hypotheses of particle detections.<br>\n" + 
+				"  Because multiple hypotheses can exist at the same location due to multiple correlation images, a kind of hypothesis testing is used to determine the more likely detection at a certain location.</p>\n" + 
+				"\n" + 
+				"<p>The resulting particle detections can be extracted from the particle detector as a set of regions.</p>\n" + 
+				"\n" + 
+				"<p>The input image may be transformed if it contains Poisson noise to simulate Gaussian noise </p>\n" + 
+				"\n" + 
+				"<p>For more details see <i>O. Gress, B. M&ouml;ller, N. St&ouml;hr, S. H&uuml;ttelmaier, S. Posch, \"Scale-adaptive wavelet-based particle detection in microscopy images\". In Proc. Bildverarbeitung f&uuml;r die Medizin (BVM 2010), pages 266-270, March 2010, Springer</i>.</p>\n" + 
+				"<h3>Required input:</h3>\n" + 
+				"\n" + 
+				"<ul><li>\n" + 
+				"<p><b>Input image</b>:</p>\n" + 
+				"\n" + 
+				"<p>Image where particles have to be detected</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Jmin</b>:</p>\n" + 
+				"\n" + 
+				"<p>Minimum scale (integer value &gt; 1)</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Jmax</b>: </p>\n" + 
+				"\n" + 
+				"<p>Maximum scale (integer value &gt; Jmin &gt; 1)</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Scale-interval size</b>: </p>\n" + 
+				"\n" + 
+				"<p>Size of scale-interval to be merge scales to wavelet correlation images (integer value &lt;= Jmax-Jmin+1)</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Correlation threshold</b>: </p>\n" + 
+				"\n" + 
+				"<p>Threshold for thresholding wavelet correlation images (real value &gt; 0)</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Minimum region size</b>: </p>\n" + 
+				"\n" + 
+				"<p>The minimum size of that a detected region must have</p>\n" + 
+				"</li><li>\n" + 
+				"<p><b>Poisson- to Gaussian noise transform</b>:</p>\n" + 
+				"\n" + 
+				"<p>Flag to transform Poisson to Gaussian noise</p>\n" + 
+				"</li></ul>\n" + 
+				"<h3>Output:</h3>\n" + 
+				"\n" + 
+				"<ul><li>\n" + 
+				"<p><b>Resulting regions</b></p>\n" + 
+				"\n" + 
+				"<p>The set of regions representing detected particles</p>\n" + 
+				"</li></ul>";
 	}
 }
