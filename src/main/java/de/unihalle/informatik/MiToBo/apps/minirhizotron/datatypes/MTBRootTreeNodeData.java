@@ -48,6 +48,11 @@ public class MTBRootTreeNodeData extends MTBTreeNodeData {
 	 * y-position of the node in 2D image space.
 	 */
 	protected double yPos;
+	
+	/**
+	 * Used for drawing the estimated diameter during Ridge Detection.
+	 */
+	protected double nx, ny;
 
 	/**
 	 * Layer where the node is located.
@@ -116,6 +121,14 @@ public class MTBRootTreeNodeData extends MTBTreeNodeData {
 	public double getYPos() {
 		return this.yPos;
 	}
+	
+	public double getNx() {
+		return this.nx;
+	}
+	
+	public double getNy() {
+		return this.ny;
+	}
 
 	/**
 	 * Get the layer where the node is located.
@@ -163,6 +176,14 @@ public class MTBRootTreeNodeData extends MTBTreeNodeData {
 	 */
 	public void setYPos(double y) {
 		this.yPos = y;
+	}
+	
+	public void setNx(double nx) {
+		this.nx = nx;
+	}
+	
+	public void setNy(double ny) {
+		this.ny = ny;
 	}
 
 	/**
