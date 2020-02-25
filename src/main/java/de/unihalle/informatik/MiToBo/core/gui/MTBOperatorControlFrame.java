@@ -39,7 +39,7 @@ import loci.common.StatusReporter;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.gui.ALDOperatorGUIExecutionProxy;
 import de.unihalle.informatik.Alida.gui.ALDOperatorControlFrame;
-import de.unihalle.informatik.Alida.gui.OnlineHelpDisplayer;
+import de.unihalle.informatik.Alida.gui.ALDOperatorDocumentationFrame;
 import de.unihalle.informatik.Alida.operator.ALDOperator;
 import de.unihalle.informatik.Alida.operator.events.ALDOpParameterUpdateEventListener;
 import de.unihalle.informatik.Alida.version.ALDVersionProviderFactory;
@@ -86,9 +86,15 @@ public class MTBOperatorControlFrame extends ALDOperatorControlFrame
 	@Override
 	protected JMenu generateHelpMenu() {
 		JMenu helpM = new JMenu("Help");
-		JMenuItem itemHelp = new JMenuItem("Online Help");
-		itemHelp.addActionListener(OnlineHelpDisplayer.getHelpActionListener(
-				itemHelp,	this.op.getClass().getName(), this));
+		JMenuItem itemHelp = new JMenuItem("Operator Documentation");
+		// add operator documentation entry if documentation available
+		if (this.op.getDocumentation() != null && !this.op.getDocumentation().isEmpty()) {
+			itemHelp.setActionCommand("helpM_docu");
+			itemHelp.addActionListener(this);
+		}
+		else {
+			itemHelp.setEnabled(false);
+		}
 		JMenuItem itemAbout = new JMenuItem("About MiToBo");
 		itemAbout.setActionCommand("helpM_about");
 		itemAbout.addActionListener(this);
@@ -140,6 +146,13 @@ public class MTBOperatorControlFrame extends ALDOperatorControlFrame
 				"Information about MiToBo", JOptionPane.DEFAULT_OPTION,
 			    JOptionPane.INFORMATION_MESSAGE, MTBIcon.getInstance().getIcon(), 
 			    	options, options[0]);
+		}
+		else if (command.equals("helpM_docu")) {
+			String docText = this.op.getDocumentation();
+			MTBOperatorDocumentationFrame doc = 
+					new MTBOperatorDocumentationFrame(this.op.name, 
+							this.op.getClass().getName(), docText);
+			doc.setVisible(true);
 		}
 		// all other events are passed to the super class
 		else {

@@ -34,7 +34,6 @@ import javax.swing.JOptionPane;
 
 import de.unihalle.informatik.Alida.gui.ALDChooseOpNameFrame;
 import de.unihalle.informatik.Alida.gui.ALDOperatorGUIExecutionProxy;
-import de.unihalle.informatik.Alida.gui.OnlineHelpDisplayer;
 import de.unihalle.informatik.Alida.operator.ALDOperatorLocation;
 import de.unihalle.informatik.Alida.version.ALDVersionProviderFactory;
 import de.unihalle.informatik.MiToBo.core.helpers.MTBIcon;
@@ -79,15 +78,30 @@ public class MTBChooseOpNameFrame extends ALDChooseOpNameFrame {
 	@Override
 	protected JMenu generateHelpMenu() {
 		JMenu helpM = new JMenu("Help");
-		JMenuItem itemHelp = new JMenuItem("Online Help");
-		itemHelp.addActionListener(
-				OnlineHelpDisplayer.getHelpActionListener(itemHelp,"welcome",this));
+		JMenuItem itemHelp = new JMenuItem("Documentation");
+		itemHelp.setActionCommand("showDocu");
+		itemHelp.addActionListener(this);
 		JMenuItem itemAbout = new JMenuItem("About MiToBo");
 		itemAbout.setActionCommand("showAbout");
 		itemAbout.addActionListener(this);
 		helpM.add(itemHelp);
 		helpM.add(itemAbout);
 		return helpM;
+	}
+	
+	/**
+	 * Show the documentation for the chooser.
+	 */
+	@Override
+	protected void showDocuFrame() {
+		String docText = "Welcome to the MiToBo Graphical operator runner!<br/>\n" +
+			"MiToBo's operator runner grounds on Alida's runner and " + 
+			"shares it functionality.<br/>\n";
+		docText += "<p>" + super.getDocumentation();
+		MTBOperatorDocumentationFrame doc = 
+			new MTBOperatorDocumentationFrame("MiToBo Graphical Operator Runner",
+				this.getClass().getName(), docText);
+		doc.setVisible(true);
 	}
 	
 	@Override

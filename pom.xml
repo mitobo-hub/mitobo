@@ -99,13 +99,7 @@
         </executions>
       </plugin>
 
-      <!-- prepare packaging, extract online help comments -->
-      <plugin>
-        <groupId>de.unihalle.informatik.AlidaMiToBo.maven.plugins.help</groupId>
-        <artifactId>comment-parser-maven-plugin</artifactId>
-      </plugin>
-
-      <!-- copy dependencies incl. help jar to local folder -->
+      <!-- copy dependencies to local folder -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
@@ -142,12 +136,6 @@
 	    </configuration>
 	  </execution>
         </executions>
-      </plugin>
-
-      <!-- update helpset archive and copy files to target/classes -->
-      <plugin>
-        <groupId>de.unihalle.informatik.AlidaMiToBo.maven.plugins.help</groupId>
-        <artifactId>helpset-file-injector-maven-plugin</artifactId>
       </plugin>
 
       <plugin>
@@ -354,10 +342,6 @@
 	  <artifactId>slf4j-log4j12</artifactId>
 	</exclusion>
       </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>de.unihalle.informatik.AlidaMiToBo</groupId>
-      <artifactId>help-resources</artifactId>
     </dependency>
     <!-- Runtime dependencies -->
     <dependency>

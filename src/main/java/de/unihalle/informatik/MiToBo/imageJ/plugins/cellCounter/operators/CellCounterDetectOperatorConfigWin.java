@@ -41,7 +41,6 @@ import de.unihalle.informatik.Alida.exceptions.ALDDataIOException;
 import de.unihalle.informatik.Alida.exceptions.ALDException;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException.OperatorExceptionType;
-import de.unihalle.informatik.Alida.gui.OnlineHelpDisplayer;
 import de.unihalle.informatik.MiToBo.apps.particles2D.ParticleDetectorUWT2D;
 import de.unihalle.informatik.MiToBo.core.helpers.MTBIcon;
 
@@ -225,13 +224,13 @@ public abstract class CellCounterDetectOperatorConfigWin extends ALDSwingCompone
 	 */
 	protected JMenu generateHelpMenu() {
 		JMenu helpM = new JMenu("Help");
-		JMenuItem itemHelp = new JMenuItem("Online Help");
-		itemHelp.addActionListener(OnlineHelpDisplayer.getHelpActionListener(
-				itemHelp, "welcome", this.mainFrame));
+//		JMenuItem itemHelp = new JMenuItem("Online Help");
+//		itemHelp.addActionListener(OnlineHelpDisplayer.getHelpActionListener(
+//				itemHelp, "welcome", this.mainFrame));
 		JMenuItem itemAbout = new JMenuItem("About MiToBo");
 		itemAbout.setActionCommand("helpM_about");
 		itemAbout.addActionListener(this);
-		helpM.add(itemHelp);
+//		helpM.add(itemHelp);
 		helpM.add(itemAbout);
 		return helpM;
 	}
