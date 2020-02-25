@@ -25,7 +25,10 @@
 package de.unihalle.informatik.MiToBo.apps.minirhizotron.datatypes;
 
 import de.unihalle.informatik.Alida.annotations.ALDDerivedClass;
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBPoint2DSet;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBTree;
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBTreeNode;
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBTreeNodeData;
 
 /**
  * Tree datatype to represent plant roots.
@@ -56,5 +59,35 @@ public class MTBRootTree extends MTBTree {
 	 */
 	public MTBRootTree(MTBRootTreeNodeData d) {
 		super(d);
+	}
+	
+	/**
+	 * Constructor with given root node.
+	 * <p>
+	 * The tree is initialized with the given node as the root node.
+	 */
+	public MTBRootTree(MTBTreeNode n) {
+		super(n);
+	}
+	
+	/**
+	 * Constructor with given set of 2D points.
+	 * @param point2DSet 2D points that are assumed to be in order and represent a line.
+	 */
+	public MTBRootTree(MTBPoint2DSet point2DSet) {
+		this();
+		
+		if(point2DSet.size() > 0) {
+			
+			MTBTreeNodeData rootData = new MTBRootTreeNodeData(point2DSet.get(0).getX(), point2DSet.get(0).getY());
+			MTBTreeNode currentNode = new MTBTreeNode(rootData);
+			this.root = currentNode;
+			
+			for(int i = 1; i < point2DSet.size(); i++) {
+				MTBTreeNode childNode = new MTBTreeNode(new MTBRootTreeNodeData(point2DSet.get(i).getX(), point2DSet.get(i).getY()));
+				currentNode.addChild(childNode);
+				currentNode = childNode;
+			}
+		}
 	}
 }
