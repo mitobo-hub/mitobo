@@ -29,6 +29,7 @@ import de.unihalle.informatik.MiToBo.core.datatypes.MTBPoint2DSet;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBTree;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBTreeNode;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBTreeNodeData;
+import ij.IJ;
 
 /**
  * Tree datatype to represent plant roots.
@@ -41,7 +42,7 @@ import de.unihalle.informatik.MiToBo.core.datatypes.MTBTreeNodeData;
  * @see MTBRootTreeNodeData
  */
 @ALDDerivedClass
-public class MTBRootTree extends MTBTree {
+public class MTBRootTree extends MTBTree implements Cloneable {
 
 	/**
 	 * Default constructor.
@@ -89,5 +90,16 @@ public class MTBRootTree extends MTBTree {
 				currentNode = childNode;
 			}
 		}
+	}
+
+	@Override
+	public MTBRootTree clone() {
+		MTBRootTreeNodeData nData = (MTBRootTreeNodeData) this.root.getData().clone();
+		MTBTreeNode newRoot = new MTBTreeNode(nData);
+		for (MTBTreeNode c : this.root.getChilds()) {
+			cloneChild(newRoot, c);
+		}
+		MTBRootTree newTree = new MTBRootTree(newRoot);
+		return newTree;
 	}
 }
