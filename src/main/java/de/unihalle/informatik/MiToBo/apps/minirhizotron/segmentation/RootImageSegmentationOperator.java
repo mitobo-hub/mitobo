@@ -174,7 +174,7 @@ public abstract class RootImageSegmentationOperator
 	 * @return The map of input treelines indexed with layer as key.
 	 */
 	public HashMap<Integer, Vector<MTBRootTree>> getAllInputTreelines() {
-		return this.resultTreelines;	
+		return this.inputTreelines;	
 	}
 
 	/**
