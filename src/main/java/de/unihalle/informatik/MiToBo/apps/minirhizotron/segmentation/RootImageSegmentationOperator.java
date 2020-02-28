@@ -25,10 +25,9 @@
 package de.unihalle.informatik.MiToBo.apps.minirhizotron.segmentation;
 
 import java.util.HashMap;
+import java.util.EnumSet;
 import java.util.Vector;
 
-import de.unihalle.informatik.Alida.annotations.Parameter;
-import de.unihalle.informatik.Alida.annotations.Parameter.ExpertMode;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.operator.ALDOperatorCollectionElement;
 import de.unihalle.informatik.MiToBo.apps.minirhizotron.datatypes.MTBRootTree;
@@ -65,25 +64,25 @@ public abstract class RootImageSegmentationOperator
 		 */
 		ACTIVE,
 		/**
+		 * Layer preceeding active layer.
+		 */
+		PREVIOUS,
+		/**
+		 * Layer following the active layer.
+		 */
+		NEXT,
+		/**
 		 * All layers.
 		 */
 		ALL,
 		/**
-		 * Layers from zero to active one, including the active one.
+		 * Layers from zero to the one preceeding the active layer.
 		 */
-		FIRST_TO_ACTIVE,
+		FIRST_TO_PREVIOUS,
 		/**
-		 * Layers from zero to active one, excluding the active one.
+		 * Layers from layer after the active one to last one.
 		 */
-		FIRST_TO_ACTIVE_WITHOUT_ACTIVE,
-		/**
-		 * Layers from active one to last, including active one.
-		 */
-		ACTIVE_TO_LAST,
-		/**
-		 * Layers from active one to last, excluding active one.
-		 */
-		ACTIVE_TO_LAST_WITHOUT_ACTIVE
+		NEXT_TO_LAST,
 	}
 
   /**
@@ -117,13 +116,19 @@ public abstract class RootImageSegmentationOperator
 	 * Request the set of layers from which to provide images to the operator.
 	 * @return	Subset of layers from which the operator wants to get the images.
 	 */
-	public abstract LayerSubset getLayerSubsetForInputImages();
+	public abstract EnumSet<LayerSubset> getLayerSubsetForInputImages();
 
 	/**
 	 * Request the set of layers from which to provide treelines to the operator.
 	 * @return	Subset of layers from which the operator wants to get treeline annotations.
 	 */
-	public abstract LayerSubset getLayerSubsetForInputTreelines();
+	public abstract EnumSet<LayerSubset> getLayerSubsetForInputTreelines();
+
+	/**
+	 * Ask operator if only selected or all treelines should be provided.
+	 * @return	True if only selected treelines are desired, otherwise false.
+	 */
+	public abstract boolean getOnlySelectedTreelines();
 
 	/**
 	 * Request working mode of the operator, i.e., how the operator deals with treelines.
@@ -135,7 +140,7 @@ public abstract class RootImageSegmentationOperator
 	 * Setter for the input image.
 	 * @param imgs - ImagePlus images per layer to be processed.
 	 */
-	public void setImages(HashMap<Integer, ImagePlus> images) {
+	public void setInputImages(HashMap<Integer, ImagePlus> images) {
 		this.inputImages = images;
 	}
 	
@@ -169,7 +174,7 @@ public abstract class RootImageSegmentationOperator
 	 * @return The map of input treelines indexed with layer as key.
 	 */
 	public HashMap<Integer, Vector<MTBRootTree>> getAllInputTreelines() {
-		return this.resultTreelines;	
+		return this.inputTreelines;	
 	}
 
 	/**
