@@ -102,6 +102,8 @@ public class MTBRootTreeNodeData extends MTBTreeNodeData {
 		nData.layer = this.layer;
 		nData.radius = this.radius;
 		nData.status = this.status;
+		nData.nx = this.nx;
+		nData.ny = this.ny;
 		nData.connectorIDs = null == this.connectorIDs ? null : this.connectorIDs.clone();
 		return nData;
 	}
