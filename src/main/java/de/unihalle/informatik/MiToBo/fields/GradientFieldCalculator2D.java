@@ -165,7 +165,7 @@ public class GradientFieldCalculator2D extends MTBOperator {
 		/**
 		 * Set the used gradient mode for field calculation.
 		 */
-		public void getGradientMode(GradientMode mode) {
+		public void setGradientMode(GradientMode mode) {
 				this.gradientMode = mode;
 		}
 
