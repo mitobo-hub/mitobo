@@ -177,6 +177,13 @@ public class GradientFieldCalculator2D extends MTBOperator {
 		}
 
 		/**
+		 * Get the resulting 2D vector field image.
+		 */
+		public MTBImageDouble getVectorFieldImage() {
+			return this.vectorFieldImage;
+		}
+
+		/**
 		 * Get image width.
 		 */
 		public int getWidth() {
