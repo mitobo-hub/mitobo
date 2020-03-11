@@ -102,13 +102,19 @@ public class Measure_OdetsCriteria extends EvaluationMeasureContours {
 	private MTBGroundtruthEvaluationData ComputeOdetsCriteria () {
 		HashMap<Integer, Double> mapOCO = new HashMap<Integer,Double>();
 		HashMap<Integer, Double> mapOCU = new HashMap<Integer,Double>();
+		int i;
 		for (int j = 0; j < this.gtRegionLabels.size(); j++) {
-			for (int i = 0; i < this.segRegionLabels.size(); i++) {
-				if (this.matchingMatrix[i][j] == 1) {
+			for (i = 0; i < this.segRegionLabels.size(); i++) {
+				if (this.matchingMatrix[j][i] == 1) {
 					mapOCO.put(this.gtRegionLabels.get(j), new Double(this.OCO(j, i)));
 					mapOCU.put(this.gtRegionLabels.get(j), new Double(this.OCU(j, i)));
 					break;
 				}
+			}
+			// region not matched!
+			if (i ==  this.segRegionLabels.size()) {
+				mapOCO.put(this.gtRegionLabels.get(j), Double.NaN);
+				mapOCU.put(this.gtRegionLabels.get(j), Double.NaN);
 			}
 		}
 		HashMap< String, HashMap<Integer, Double> > resultMap =

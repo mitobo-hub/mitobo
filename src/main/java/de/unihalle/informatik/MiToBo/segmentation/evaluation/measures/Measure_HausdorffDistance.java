@@ -87,17 +87,22 @@ public class Measure_HausdorffDistance extends EvaluationMeasureContours {
 	 */
 	private MTBGroundtruthEvaluationData HAU () {
 		HashMap<Integer, Double> mapHausdorff = new HashMap<Integer,Double>();
+		int i;
 		for (int j = 0; j < this.gtRegionLabels.size(); j++) {
 			// search for corresponding segmented region
-			for (int i = 0; i < this.segRegionLabels.size(); i++) {
-				if (this.matchingMatrix[i][j] == 1) {
+			for (i = 0; i < this.segRegionLabels.size(); i++) {
+				if (this.matchingMatrix[j][i] == 1) {
 					mapHausdorff.put(this.gtRegionLabels.get(j), 
 							new Double(Math.max(
 								h(this.segContours.get(i), this.gtContours.get(j)), 
 									h(this.gtContours.get(j),	this.segContours.get(i)))));
 					// leave the loop
-					i = this.segRegionLabels.size();
+					break;
 				}
+			}
+			// region not matched!
+			if (i == this.segRegionLabels.size()) {
+				mapHausdorff.put(this.gtRegionLabels.get(j), Double.NaN);
 			}
 		}
 		HashMap< String, HashMap<Integer, Double> > resultMap =

@@ -85,13 +85,18 @@ public class Measure_PrattsFigureOfMerit extends EvaluationMeasureContours {
 	 */
 	protected MTBGroundtruthEvaluationData PRA () {
 		HashMap<Integer, Double> mapPratt = new HashMap<Integer,Double>();
+		int i;
 		for (int j = 0; j < this.gtRegionLabels.size(); j++) {
-			for (int i = 0; i < this.segRegionLabels.size(); i++) {
-				if (this.matchingMatrix[i][j] == 1) {
+			for (i = 0; i < this.segRegionLabels.size(); i++) {
+				if (this.matchingMatrix[j][i] == 1) {
 					mapPratt.put(
 						this.gtRegionLabels.get(j), new Double(this.compute(j, i)));
 					break;
 				}
+			}
+			// region not matched
+			if (i == this.segRegionLabels.size()) {
+				mapPratt.put(this.gtRegionLabels.get(j), Double.NaN);
 			}
 		}
 		HashMap< String, HashMap<Integer, Double> > resultMap =

@@ -123,7 +123,8 @@ public class Measure_RecallPrecisionF extends EvaluationMeasure {
 					break;
 				}
 			}
-			if (segEntry >= this.sgIDs.length) {
+			// region not matched
+			if (segEntry == -1) {
 				if (this.verbose.booleanValue())
 					System.out.println("Warning: GT-Region " + gtLab + " not matched!");
 				mapTruePositives.put(gtLab, new Double(0));
@@ -135,8 +136,8 @@ public class Measure_RecallPrecisionF extends EvaluationMeasure {
 				// recall of element
 				mapRecalls.put(gtLab, new Double(0));
 				mapPrecisions.put(gtLab, new Double(0));
-				mapFScores.put(gtLab, new Double(0));
-				mapJaccardIDs.put(gtLab, new Double(0));
+				mapFScores.put(gtLab, Double.NaN);
+				mapJaccardIDs.put(gtLab, Double.NaN);
 				mapAssignments.put(gtLab, new Integer(-1));
 
 				if(this.sgIDs.length == 0)

@@ -94,8 +94,9 @@ public class Measure_DetectionErrors extends EvaluationMeasureContours {
 		HashMap<Integer, Double> mapODE = new HashMap<Integer,Double>();
 		HashMap<Integer, Double> mapUDE = new HashMap<Integer,Double>();
 		HashMap<Integer, Double> mapLE = new HashMap<Integer,Double>();
+		int i;
 		for (int j = 0; j < this.gtRegionLabels.size(); j++) {
-			for (int i = 0; i < this.segRegionLabels.size(); i++) {
+			for (i = 0; i < this.segRegionLabels.size(); i++) {
 				if (this.matchingMatrix[j][i] == 1) {
 					mapODE.put(this.gtRegionLabels.get(j), new Double(this.ODE(j, i)));
 					mapUDE.put(this.gtRegionLabels.get(j), new Double(this.UDE(j, i)));
@@ -103,6 +104,12 @@ public class Measure_DetectionErrors extends EvaluationMeasureContours {
 					break;
 				}
 			}
+			// region not matched
+			if (i == this.segRegionLabels.size()) {
+				mapODE.put(this.gtRegionLabels.get(j), Double.NaN);
+				mapUDE.put(this.gtRegionLabels.get(j), Double.NaN);
+				mapLE.put(this.gtRegionLabels.get(j), Double.NaN);
+			} 
 		}
 
 		if(this.segRegionLabels.size() == 0)
