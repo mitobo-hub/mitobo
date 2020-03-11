@@ -321,6 +321,14 @@ public class GroundtruthEvaluation extends MTBOperator {
 				this.matchingMatrix = matcher.getMatching();
 			}
 
+			// safety check of matching matrix: if there is no overlap, erase match
+			for (int r=0;r<this.maxRegionCount;++r) {
+				for (int c=0;c<this.maxRegionCount;++c) {
+					if (this.matchingMatrix[r][c] == 1 && this.scoreMatrix[r][c] == 0)
+						this.matchingMatrix[r][c] = 0;
+				}
+			}
+
 			// do the actual evaluation
 			HashMap<String,HashMap<Integer,Double> > evalData = this.doEvaluation();
 			if (evalData == null) {
@@ -522,6 +530,7 @@ public class GroundtruthEvaluation extends MTBOperator {
 			Measure_HausdorffDistance hausdorff = new Measure_HausdorffDistance(
 					this.segLabelImage, this.gtLabelImage, segContours, gtContours,
 					this.labelListSG, this.labelListGT, this.matchingMatrix);
+			hausdorff.setVerbose(this.verbose);
 			hausdorff.runOp();
 			HashMap< String, HashMap<Integer, Double> > resultData =
 					hausdorff.getResult().getResultData();
@@ -536,6 +545,7 @@ public class GroundtruthEvaluation extends MTBOperator {
 			Measure_DetectionErrors detection = new Measure_DetectionErrors(
 					this.segLabelImage, this.gtLabelImage, segContours, gtContours,
 					this.labelListSG, this.labelListGT, this.matchingMatrix);
+			detection.setVerbose(this.verbose);
 			detection.runOp();
 			HashMap< String, HashMap<Integer, Double> > resultData =
 					detection.getResult().getResultData();
@@ -550,6 +560,7 @@ public class GroundtruthEvaluation extends MTBOperator {
 			Measure_PrattsFigureOfMerit pratt = new Measure_PrattsFigureOfMerit(
 					this.segLabelImage, this.gtLabelImage,	segContours, gtContours,
 					this.labelListSG, this.labelListGT, this.matchingMatrix);
+			pratt.setVerbose(this.verbose);
 			pratt.runOp();
 			HashMap< String, HashMap<Integer, Double> > resultData =
 					pratt.getResult().getResultData();
@@ -563,6 +574,7 @@ public class GroundtruthEvaluation extends MTBOperator {
 			Measure_OdetsCriteria odet = new Measure_OdetsCriteria(
 					this.segLabelImage, this.gtLabelImage, segContours, gtContours,
 					this.labelListSG, this.labelListGT, this.matchingMatrix, this.n);
+			odet.setVerbose(this.verbose);
 			odet.runOp();
 			HashMap< String, HashMap<Integer, Double> > resultData =
 					odet.getResult().getResultData();
@@ -579,6 +591,7 @@ public class GroundtruthEvaluation extends MTBOperator {
 					this.sizesGT, this.sizesSG,
 					this.minRegionCount, this.maxRegionCount,
 					this.scoreMatrix, this.matchingMatrix);
+			rpf.setVerbose(this.verbose);
 			rpf.runOp();
 			HashMap< String, HashMap<Integer, Double> > resultData =
 					rpf.getResult().getResultData();
@@ -603,15 +616,21 @@ public class GroundtruthEvaluation extends MTBOperator {
 		// iterate over groundtruth regions and extract corresp. segmented region
 		int line = 0;
 		for (int j=0; j<this.labelListGT.size(); ++j) {
-			int segID = 0;
+			int segID = -1;
 			for (int i = 0; i < this.labelListSG.size(); i++) {
-				if (this.matchingMatrix[i][j] == 1) {
+				if (this.matchingMatrix[j][i] == 1) {
 					segID = i;
 					break;
 				}
 			}
 			this.resultTable.setValueAt(this.labelListGT.get(j),line, 0);
-			this.resultTable.setValueAt(this.labelListSG.get(segID), line, 1);
+			if (segID > -1) {
+				this.resultTable.setValueAt(this.labelListSG.get(segID), line, 1);
+			}
+			// region not matched
+			else {
+				this.resultTable.setValueAt(-1, line, 1);
+			}
 			++line;
 		}
 
