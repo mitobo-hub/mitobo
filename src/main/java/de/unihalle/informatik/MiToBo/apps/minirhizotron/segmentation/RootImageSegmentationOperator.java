@@ -99,6 +99,13 @@ public abstract class RootImageSegmentationOperator
    */
 	protected HashMap<Integer, Vector<MTBRootTree>> inputTreelines;
 
+  /**
+	 * Metadata for layers.
+	 * <p>
+	 * The hashmap stores for each layer available metadata objects.
+   */
+	protected HashMap<Integer, RhizoProjectLayerMetadataContainer> layerMetadata;
+
 	/**
    * Resulting enhanced treeline annotations.
    */
@@ -153,6 +160,14 @@ public abstract class RootImageSegmentationOperator
 	}
 
 	/**
+	 * Provide layer metadata for each layer.
+	 * @param md		Set of metadata objects.
+	 */
+	public void setLayerMetadata(HashMap<Integer, RhizoProjectLayerMetadataContainer> lmd) {
+		this.layerMetadata = lmd;
+	}
+
+	/**
 	 * Getter for all input images.
 	 * @return The map of input images indexed with layer as key.
 	 */
@@ -184,6 +199,23 @@ public abstract class RootImageSegmentationOperator
 	 */
 	public Vector<MTBRootTree> getInputTreelines(int layer) {
 		return this.resultTreelines.get(layer);	
+	}
+
+	/**
+	 * Getter for complete set of metadata objects of all layers.
+	 * @return Set of metadata objects.
+	 */
+	public HashMap<Integer, RhizoProjectLayerMetadataContainer> getAllLayerMetadata() {
+		return this.layerMetadata;
+	}
+
+	/**
+	 * Getter for layer metadata object of specified layer.
+	 * @param layer		Input layer for which metadata is requested.
+	 * @return Corresponding metadata object, or null if non-existent.
+	 */
+	public RhizoProjectLayerMetadataContainer getLayerMetadata(int layer) {
+		return this.layerMetadata.get(layer);
 	}
 
 	/**
