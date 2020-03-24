@@ -24,8 +24,7 @@
 
 package de.unihalle.informatik.MiToBo.apps.minirhizotron.segmentation;
 
-import java.util.HashMap;
-
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBLineSegment2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBPolygon2D;
 
 /** 
@@ -57,11 +56,19 @@ public class RhizoProjectLayerMetadataContainer {
 	protected double gravitationalDirection;
 	
 	/**
+	 * Reference segment for gravitational direction providing a suggestion 
+	 * where to best position image marker. 
+	 */
+	protected MTBLineSegment2D gravDirRefSegment;
+	
+	/**
 	 * Default constructor.
 	 * @param z	Z coordinate of layer.
 	 */
 	public RhizoProjectLayerMetadataContainer(int z) {
 		this.layerZ = z;
+		this.gravitationalDirection = Double.NaN;
+		this.gravDirRefSegment = null;
 	}
 
 	/**
@@ -104,4 +111,19 @@ public class RhizoProjectLayerMetadataContainer {
 		return this.gravitationalDirection;
 	}
 	
+	/**
+	 * Set reference line segment for gravitational direction.
+	 * @param	ls	Reference line segment.
+	 */
+	public void setGravitationalDirectionRefSegment(MTBLineSegment2D ls) {
+		this.gravDirRefSegment = ls;
+	}
+	
+	/**
+	 * Get reference line segment for gravitational direction.
+	 * @return	Reference line segment.
+	 */
+	public MTBLineSegment2D getGravitationalDirectionRefSegment() {
+		return this.gravDirRefSegment;
+	}
 }
