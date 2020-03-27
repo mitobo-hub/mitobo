@@ -4,7 +4,7 @@
 
   <groupId>de.unihalle.informatik.MiToBo</groupId>
   <artifactId>mitobo</artifactId>
-  <version>1.8.18-SNAPSHOT</version>
+  <version>1.8.18</version>
   <packaging>jar</packaging>
 
   <name>mitobo</name>
