@@ -405,6 +405,11 @@
       <groupId>net.imglib2</groupId>
       <artifactId>imglib2-algorithm-gpl</artifactId>
     </dependency>
+    <!-- API, java.xml.bind module -->
+    <dependency>
+      <groupId>jakarta.xml.bind</groupId>
+      <artifactId>jakarta.xml.bind-api</artifactId>
+    </dependency>
     <!-- MLU stuff -->
     <dependency>
       <groupId>de</groupId>
@@ -432,6 +437,10 @@
       <artifactId>formats-gpl</artifactId>
       <scope>runtime</scope>
     </dependency>
+    <dependency>
+      <groupId>org.glassfish.jaxb</groupId>
+      <artifactId>jaxb-runtime</artifactId>
+    </dependency>    
     <!-- Native dependencies -->
     <dependency>
       <groupId>de.unihalle.informatik.MiToBo.native</groupId>
