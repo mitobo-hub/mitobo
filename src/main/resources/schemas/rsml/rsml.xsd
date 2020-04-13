@@ -1,0 +1,189 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <!-- rsml root node -->
+    <xs:element name="rsml">
+    <xs:complexType>
+      <xs:all>
+        <!-- metadata -->
+        <xs:element name="metadata">
+          <xs:complexType>
+            <xs:all>
+              <!-- general metadata tags -->
+              <xs:element name="version" type="xs:string" />
+              <xs:element name="unit" type="xs:string" />
+              <xs:element name="resolution" type="xs:decimal" />
+              <xs:element name="last-modified" type="xs:dateTime" />
+              <xs:element name="software" type="xs:string" />
+              <xs:element name="user" type="xs:string" />
+              <xs:element name="file-key" type="xs:string" />
+              <!-- metadata.property-definitions -->
+              <xs:element name="property-definitions" minOccurs="0">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="property-definition" minOccurs="0" maxOccurs="unbounded">
+                      <xs:complexType>
+                        <xs:all>
+                          <xs:element name="label" type="xs:string" />
+                          <xs:element name="type" type="xs:string" />
+                          <xs:element name="unit" type="xs:string" minOccurs="0" />
+                          <xs:element name="default" type="xs:string" minOccurs="0"/>
+                        </xs:all>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <!-- metadata.time-sequence -->
+              <xs:element name="time-sequence" minOccurs="0">
+                <xs:complexType>
+                  <xs:all>
+                    <xs:element name="label" type="xs:string"/>
+                    <xs:element name="index" type="xs:integer"/>
+                    <xs:element name="unified" type="xs:boolean"/>
+                  </xs:all>
+                </xs:complexType>
+              </xs:element>
+              <!-- metadata.image -->
+              <xs:element name="image" minOccurs="0">
+                <xs:complexType>
+                  <xs:all>
+                    <xs:element name="name" type="xs:string" minOccurs="0"/>
+                    <xs:element name="sha256" type="xs:string" minOccurs="0"/>
+                    <xs:element name="captured" type="xs:dateTime" minOccurs="0"/>
+                  </xs:all>
+                </xs:complexType>
+              </xs:element>
+            </xs:all>
+          </xs:complexType>
+        </xs:element>
+        
+        <!-- scene -->
+        <xs:element name="scene">
+          <xs:complexType>
+            <xs:sequence>
+              <!-- scene.properties -->
+              <xs:element name="properties" minOccurs="0" maxOccurs="1" type="propertyListType" />
+              <!-- plant -->
+              <xs:element name="plant" minOccurs="1" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:sequence>
+                    <!-- plant.properties -->
+                    <xs:element name="properties" minOccurs="0" maxOccurs="1" type="propertyListType" />
+                    <!-- root -->
+                    <xs:element name="root" type="rootType" minOccurs="1" maxOccurs="unbounded"/>
+                    <!-- End of root element-->
+                    <!-- plant.annotations -->
+                    <xs:element name="annotations" minOccurs="0" maxOccurs="1" type="annotationListType" />
+                                    </xs:sequence>
+                  <!-- plant tag attributes -->
+                  <xs:attributeGroup ref="labelid" />
+                </xs:complexType>
+              </xs:element>
+              <!-- End of plant element -->
+              <!-- scene.annotations -->
+              <xs:element name="annotations" minOccurs="0" maxOccurs="1" type="annotationListType" />
+                        </xs:sequence>
+                    </xs:complexType>
+        </xs:element>
+        <!-- End of scene element -->
+            </xs:all>
+        </xs:complexType>
+    </xs:element>
+  
+  <!-- point type -->
+  <xs:complexType name="pointType">
+    <xs:attribute name="x" type="xs:decimal" use="required" />
+    <xs:attribute name="y" type="xs:decimal" use="required" />
+    <xs:attribute name="z" type="xs:decimal" use="optional" />
+  </xs:complexType>
+
+  <!-- property list type -->
+  <xs:complexType name="propertyListType">
+  <xs:sequence>
+    <xs:any processContents="skip" minOccurs="0" maxOccurs="unbounded" />
+  </xs:sequence>
+  </xs:complexType>
+
+  <!-- annotation list type -->
+  <xs:complexType name ="annotationListType">
+    <xs:sequence>
+      <!-- annotation -->
+      <xs:element name="annotation" minOccurs="0" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="point" type="pointType" minOccurs="1" maxOccurs="unbounded" />
+            <xs:element name="value" type="xs:string" minOccurs="1" maxOccurs="1" />
+            <xs:element name="software" type="xs:string" minOccurs="1" maxOccurs="1" />
+          </xs:sequence>
+          <xs:attribute name="name" type="xs:string" use="optional"/>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- root type -->
+<xs:complexType name="rootType">
+    <xs:sequence>
+      <!-- root.properties -->
+      <xs:element name="properties" minOccurs="0" maxOccurs="1" type="propertyListType" />
+      <!-- root.geometry -->
+      <xs:element name="geometry" minOccurs="1" maxOccurs="1">
+        <xs:complexType>
+          <xs:sequence>
+            <!-- polyline -->
+            <xs:element name="polyline" minOccurs="1" maxOccurs="1">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="point" type="pointType" minOccurs="2" maxOccurs="unbounded" />
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+            <!-- Other geometry types -->
+            <xs:any minOccurs="0" maxOccurs="unbounded" />
+          </xs:sequence>
+        </xs:complexType>  
+      </xs:element>
+      <!-- root.functions -->
+      <xs:element name="functions" minOccurs="0" maxOccurs="1">
+        <xs:complexType>
+          <xs:sequence>
+            <!-- function -->
+            <xs:element name="function" minOccurs="0" maxOccurs="unbounded">
+              <xs:complexType>
+                <xs:sequence>
+		  <!-- original 
+                  <xs:element name="sample" minOccurs="1" maxOccurs="unbounded">
+                    <xs:complexType>
+                      <xs:attribute name="position" type="xs:decimal" use="optional"/>
+                      <xs:attribute name="value" type="xs:decimal" use="required"/>
+                    </xs:complexType>
+                  </xs:element>
+                  -->
+                  <xs:any processContents="skip" minOccurs="0" maxOccurs="unbounded" />
+                </xs:sequence>
+                <xs:attribute name="name" type="xs:string" use="required"/>
+                <xs:attribute name="domain" type="xs:string" use="required"/>
+                <xs:attribute name="origin" type="xs:string" use="optional" default="base" />
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element> 
+      <!-- root.annotations -->
+      <xs:element name="annotations" minOccurs="0" maxOccurs="1" type="annotationListType" />
+      <!-- children roots -->
+      <xs:element name="root" minOccurs="0" maxOccurs="unbounded" type="rootType" />
+    </xs:sequence>
+    <!-- root tag attributes -->
+    <xs:attributeGroup ref="labelid" />
+    <xs:attribute name="accession" type="xs:string" use="optional" />
+    
+</xs:complexType>
+
+
+  <!-- Label / id attributes-->
+  <xs:attributeGroup name="labelid">
+    <xs:attribute name="label" type="xs:string" use="optional" />
+    <xs:attribute name="id" type="xs:string" use="optional" />
+  </xs:attributeGroup>
+</xs:schema>

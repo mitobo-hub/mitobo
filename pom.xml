@@ -139,6 +139,89 @@
       </plugin>
 
       <plugin>
+        <groupId>org.jvnet.jaxb2.maven2</groupId>
+	<artifactId>maven-jaxb2-plugin</artifactId>
+	<version>${maven.plugin.jaxb2.version}</version>
+        <executions>
+          <execution>
+            <id>xjc-rsml</id>
+            <phase>process-resources</phase>
+	    <goals>
+	      <goal>generate</goal>
+	    </goals>
+            <configuration>
+	      <schemas>
+		<schema>
+		  <fileset>
+		    <!-- Defaults to schemaDirectory. -->
+		    <directory>src/main/resources/schemas/rsml</directory>
+                    <!-- Defaults to schemaIncludes. -->
+		    <includes>
+		      <include>*.xsd</include>
+		    </includes>
+		  </fileset>
+		</schema>
+	      </schemas>
+	      <generateDirectory>${project.build.directory}/generated-sources/xjc/rsml</generateDirectory>
+	      <generatePackage>de.unihalle.informatik.MiToBo.xsd.rsml</generatePackage>
+	      <writeCode>true</writeCode>
+	      <noFileHeader>false</noFileHeader>
+	      <removeOldOutput>false</removeOldOutput>
+	      <enableIntrospection>true</enableIntrospection>
+            </configuration>
+          </execution>
+          <execution>
+            <id>xjc-config</id>
+            <phase>process-resources</phase>
+	    <goals>
+	      <goal>generate</goal>
+	    </goals>
+            <configuration>
+	      <schemas>
+                <schema>
+		  <fileset>
+		    <!-- Defaults to schemaDirectory. -->
+		    <directory>src/main/resources/schemas/config</directory>
+                    <!-- Defaults to schemaIncludes. -->
+		    <includes>
+		      <include>*.xsd</include>
+		    </includes>
+		  </fileset>
+		</schema>
+	      </schemas>
+	      <generateDirectory>${project.build.directory}/generated-sources/xjc/config</generateDirectory>
+	      <generatePackage>de.unihalle.informatik.MiToBo.xsd.config</generatePackage>
+	      <writeCode>true</writeCode>
+	      <noFileHeader>false</noFileHeader>
+	      <removeOldOutput>false</removeOldOutput>
+	      <enableIntrospection>true</enableIntrospection>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+	<groupId>org.codehaus.mojo</groupId>
+	<artifactId>build-helper-maven-plugin</artifactId>
+	<version>${maven.plugin.buildhelper.version}</version>
+	<executions>
+          <execution>
+            <id>add-source</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>${project.build.directory}/generated-sources/xjc/rsml</source>
+                <source>${project.build.directory}/generated-sources/xjc/config</source>
+              </sources>
+            </configuration>
+          </execution>
+	</executions>
+      </plugin>
+      
+      <plugin>
 	<groupId>org.apache.maven.plugins</groupId>
 	<artifactId>maven-compiler-plugin</artifactId>
       </plugin>
