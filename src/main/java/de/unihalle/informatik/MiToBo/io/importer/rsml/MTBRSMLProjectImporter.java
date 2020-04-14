@@ -28,9 +28,12 @@ import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 
 import java.io.File;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.ListIterator;
+import java.util.Set;
 import java.util.Vector;
 
 import javax.xml.bind.JAXBContext;
@@ -47,8 +50,11 @@ import de.unihalle.informatik.Alida.datatypes.ALDDirectoryString;
 import de.unihalle.informatik.MiToBo.apps.minirhizotron.datatypes.MTBRootTree;
 import de.unihalle.informatik.MiToBo.apps.minirhizotron.datatypes.MTBRootTreeNodeData;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBTreeNode;
+import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType;
+import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageRGB;
 import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
 import de.unihalle.informatik.MiToBo.io.dirs.DirectoryTree;
+import de.unihalle.informatik.MiToBo.io.images.ImageReaderMTB;
 import de.unihalle.informatik.MiToBo.xsd.rsml.PointType;
 import de.unihalle.informatik.MiToBo.xsd.rsml.RootType;
 import de.unihalle.informatik.MiToBo.xsd.rsml.Rsml;
@@ -57,7 +63,9 @@ import de.unihalle.informatik.MiToBo.xsd.rsml.RootType.Functions.Function;
 import de.unihalle.informatik.MiToBo.xsd.rsml.Rsml.Scene;
 
 /**
- * Reads the contents of the RSML files in the given directory.
+ * Reads the contents of the RSML project files in the given directory.
+ * <p>
+ * The importer assumes that all files belong to a single project or time-series.
  *   
  * @author Birgit Moeller
  * @author Stefan Posch
@@ -65,12 +73,24 @@ import de.unihalle.informatik.MiToBo.xsd.rsml.Rsml.Scene;
 @ALDAOperator(genericExecutionMode=ExecutionMode.ALL)
 public class MTBRSMLProjectImporter extends MTBOperator {
 	
-	private static final String PROPERTY_NAME_PARENTNODE = "parent-node";
 	private static final String FUNCTION_NAME_DIAMETER = "diameter";
 	private static final String FUNCTION_NAME_STATUSLABEL = "statusLabel";
+	private static final String PROPERTY_NAME_PARENTNODE = "parent-node";
 
+	/*
+	 * Some status predefines.
+	 */
+	
+	/**
+	 * Undefined status.
+	 */
 	public static final int STATUS_UNDEFINED = -1;
 	
+	/**
+	 * Segments of a connector treeline.
+	 */
+	public static final int STATUS_CONNECTOR = -3;
+
 	/**
 	 * to represent (virtual) segments to connect 
 	 * branches (polylines) of a root to form one (connected) treeline
@@ -89,29 +109,36 @@ public class MTBRSMLProjectImporter extends MTBOperator {
 	 */
 	public static final int STATUS_VIRTUAL_RSML = -4;
 
-	/**
-	 * segments of a connector treeline
-	 */
-	public static final int STATUS_CONNECTOR = -3;
 
+	/**
+	 * Default status label for segments.
+	 */
 	private static byte default_statuslabel = 0;
 
 	/**
-	 * maximal distance allowed for parent nodes to deviate from precise location w
+	 * Maximal distance allowed for parent nodes to deviate from precise location.
 	 */
 	private static final Double EPSILON = 0.01;
+
+	/**
+	 * Operator identifier.
+	 */
+	private static String opIdentifier = "[MTBRSMLFileReader]";
 
 	/**
 	 * Directory of RSML files.
 	 */
 	@Parameter( label= "RSML Directory", required = true,
 		direction=Direction.IN, dataIOOrder=0, mode=ExpertMode.STANDARD,
-		description = "RSML input directory.")
+		description = "RSML input directory." )
 	protected ALDDirectoryString rsmlDir = null;
 
-	MTBRSMLProjectInfo rsmlProjectInfo;
-	
-	private static String opIdentifier = "[MTBRSMLFileReader]";
+	/**
+	 * Resulting info object containing all information parsed from input files.
+	 */
+	@Parameter( label= "Result RSML Info Object",
+		direction=Direction.OUT, dataIOOrder=0,	description = "RSML info object." )
+	protected MTBRSMLProjectInfo rsmlProjectInfo;
 	
 	/**
 	 * Default constructor.
@@ -124,49 +151,76 @@ public class MTBRSMLProjectImporter extends MTBOperator {
 	@Override
 	protected void operate() throws ALDOperatorException {
 		
+		// init the result object
 		this.rsmlProjectInfo = new MTBRSMLProjectInfo();
 		
-		// parse input directory (non-recursively)
-		DirectoryTree dt = new DirectoryTree(this.rsmlDir.getDirectoryName(), false);
+		// parse input directory (non-recursively) for files.
+		DirectoryTree dt = new DirectoryTree( this.rsmlDir.getDirectoryName(), false );
 		this.rsmlProjectInfo.baseDir = this.rsmlDir.getDirectoryName();
 		
 		// parse all RSML files
-		for (String fileName : dt.getFileList()) {
-			File rsmlFile = new File(fileName);
+		Vector<Rsml> rsmls = new Vector<Rsml>();
+		Vector<File> rsmlFiles = new Vector<File>();
+		for ( String fileName : dt.getFileList() ) {
+			File rsmlFile = new File( fileName );
 			try {
-				JAXBContext context = JAXBContext.newInstance( Rsml.class);
+				JAXBContext context = JAXBContext.newInstance( Rsml.class );
 				Unmarshaller um = context.createUnmarshaller();
-				this.rsmlProjectInfo.rsmls.add( (Rsml) um.unmarshal( rsmlFile));
-			} catch (Exception e) {
+				rsmls.add( (Rsml) um.unmarshal( rsmlFile ));
+			} catch ( Exception e ) {
 				e.printStackTrace();
 				System.err.println(opIdentifier +	
 					" cannot read RSML from " + rsmlFile.getName() + "... skipping!");
 				continue;
 			}
-			this.rsmlProjectInfo.rsmlFiles.add(rsmlFile);
+			rsmlFiles.add( rsmlFile );
 		}
 
+		// sort files according to time-sequence order
+		HashMap<Integer, Rsml> rsmlMap = new HashMap<Integer, Rsml>();
+		HashMap<Integer, File> fileMap = new HashMap<Integer, File>();
+		int id=0;
+		for ( Rsml rsml : rsmls ) {
+			rsmlMap.put( rsml.getMetadata().getTimeSequence().getIndex().intValue(), rsml );
+			fileMap.put( rsml.getMetadata().getTimeSequence().getIndex().intValue(), rsmlFiles.get(id) );
+			++id;
+		}
+		Set<Integer> keyset = rsmlMap.keySet();
+		ArrayList<Integer> sortedKeys = new ArrayList<Integer>();
+		for ( Integer k : keyset )
+			sortedKeys.add(k);
+		Collections.sort( sortedKeys );
+		for ( Integer k : sortedKeys ) {
+			this.rsmlProjectInfo.rsmlFiles.add( fileMap.get(k) );
+			this.rsmlProjectInfo.rsmls.add( rsmlMap.get(k) );
+		}
+		
 		// get status labels from RSML files
-		for(int i = 0; i < this.rsmlProjectInfo.rsmls.size(); i++) {
-			HashMap<Integer, String> rsmlMap = getStatusLabelMappingFromScene(this.rsmlProjectInfo.rsmls.get(i));
-			if(null != rsmlMap && rsmlMap.size() > 0) {
-				for(int j: rsmlMap.keySet()) {
+		for( int i = 0; i < this.rsmlProjectInfo.rsmls.size(); i++ ) {
+			HashMap<Integer, String> statusMap = 
+				this.getStatusLabelMappingFromScene( this.rsmlProjectInfo.rsmls.get(i) );
+			if( 		null != statusMap 
+					&& 	statusMap.size() > 0 ) {
+				for( int j : statusMap.keySet() ) {
 					MTBRSMLProjectInfo.MTBRSMLStatusLabel rsl = new MTBRSMLProjectInfo.MTBRSMLStatusLabel(
-						rsmlMap.get(j),	rsmlMap.get(j).substring(0, 1), 
-							MTBRSMLProjectInfo.MTBRSMLStatusLabel.DEFAULT_STATUS_COLOR);
+						statusMap.get(j),	statusMap.get(j).substring(0, 1), j,
+							MTBRSMLProjectInfo.MTBRSMLStatusLabel.DEFAULT_STATUS_COLOR );
 					this.rsmlProjectInfo.statusLabels.add(rsl);
 				}
 			}
 			else {
-				System.out.println("No label mapping was defined in " + this.rsmlProjectInfo.rsmlFiles.get(i).getName() + ".\n");
+				System.out.println( opIdentifier + " info: no label mapping was found in " 
+						+ this.rsmlProjectInfo.rsmlFiles.get(i).getName() + ".\n" );
 			}
 		}
 
-		// check for unified in all files
+		// check for "unified" flag in all files
 		boolean allUnified = true;
 		for(Rsml rsml: this.rsmlProjectInfo.rsmls) {
-			if(null != rsml.getMetadata() && null != rsml.getMetadata().getTimeSequence()) {
-				if(!rsml.getMetadata().getTimeSequence().isUnified()) {
+			if(		 null != rsml.getMetadata() 
+					&& null != rsml.getMetadata().getTimeSequence()) {
+				
+				if( !rsml.getMetadata().getTimeSequence().isUnified() ) {
 					allUnified = false;
 					break;
 				}
@@ -176,16 +230,16 @@ public class MTBRSMLProjectImporter extends MTBOperator {
 				break;
 			}
 		}
-		if(!allUnified) {
-			System.out.println("At least one unified flag has not been set or does not exist in the selected RSML files.\n"
+		if( !allUnified ) {
+			System.out.println(opIdentifier + " info: at least one unified flag has not been set " 
+				+ "or does not exist in the selected RSML files.\n"
 					+ "Consequently connectors will not be created on import.");
 		}
 
 		// loop over the RSML files and parse plant and root data
 		for ( int i = 0 ; i < this.rsmlProjectInfo.rsmls.size() ; i++ ) {
-			MTBRSMLFileInfo info = this.parseRsmlFile(
-					this.rsmlProjectInfo.rsmls.get(i), this.rsmlProjectInfo.rsmlFiles.get(i)); //, topLevelIdTreelineListMap);
-			this.rsmlProjectInfo.rsmlInfos.add(info);
+			MTBRSMLFileInfo info = this.parseRsmlFile( this.rsmlProjectInfo.rsmls.get(i) );
+			this.rsmlProjectInfo.rsmlInfos.add( info );
 		}
 
 //
@@ -241,13 +295,26 @@ public class MTBRSMLProjectImporter extends MTBOperator {
 //		}
 //
 		
-		this.rsmlProjectInfo.print();
+//		try {
+//			ImageReaderMTB reader = new ImageReaderMTB("/home/moeller/work/data/Ecotron-EInsect-2018-AnnotationKevin-Projects/T24/CTS/EInsect_T024_CTS_13.06.18_000000_4_HCM.tif");
+//			reader.runOp();
+//			MTBImageRGB im = (MTBImageRGB)reader.getResultMTBImage().convertType(MTBImageType.MTB_RGB, true);
+//			Set<Integer> keys = this.rsmlProjectInfo.rsmlInfos.get(3).rootSystems.keySet();
+//			for (Integer k: keys) {
+//				for (MTBRootTree tr: this.rsmlProjectInfo.rsmlInfos.get(3).rootSystems.get(k))
+//					tr.drawToImage(im);
+//			}
+//			im.show();
+//		} catch (Exception e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 	}
 	
 	/**
-	 * Parses the status label mapping from an RSML file.
-	 * @param rsml 
-	 * @return A HashMap of the status label mapping or null if none is defined in the RSML file
+	 * Parse the status label mapping from given RSML file.
+	 * @param rsml 	RSML file.
+	 * @return Map of the status label mappings or null if none is defined in the RSML file.
 	 */
 	private HashMap<Integer, String> getStatusLabelMappingFromScene(Rsml rsml) {
 		
@@ -272,20 +339,23 @@ public class MTBRSMLProjectImporter extends MTBOperator {
 		return map;
 	}
 	
-	/** import the RSML file  <code>file</code> into rhizoTrak for <code>layer</code>.
-	 * @param rsml
-	 * @param layer
-	 * @param imageFilePath Is <code> null </code> if image has not been found for this rsml file
-	 * @param topLevelIdTreelineListMap 
+	/** 
+	 * Parse the given RSML file.
+	 * @param rsml	RSML data structure read from file.
+	 * @return Info object with data from file.
 	 */
-	private MTBRSMLFileInfo parseRsmlFile(Rsml rsml, File rsmlFile ) { //, String imageFilePath) {
-		//, HashMap<String, List<Treeline>> topLevelIdTreelineListMap) {
-	
+	private MTBRSMLFileInfo parseRsmlFile(Rsml rsml) { 
+		
 		MTBRSMLFileInfo info = new MTBRSMLFileInfo();
 		
-		if( null != rsml.getMetadata() && null != rsml.getMetadata().getImage() ) {
-			info.imageSHA256 = rsml.getMetadata().getImage().getSha256();
-			info.imageName = rsml.getMetadata().getImage().getName();
+		// extract some general meta data from file
+		if( null != rsml.getMetadata() ) {
+			info.timeSeriesID = rsml.getMetadata().getTimeSequence().getIndex().intValue();
+			
+			if ( null != rsml.getMetadata().getImage() ) {
+				info.imageSHA256 = rsml.getMetadata().getImage().getSha256();
+				info.imageName = rsml.getMetadata().getImage().getName();
+			}
 		}
 		
 		try {
@@ -313,51 +383,46 @@ public class MTBRSMLProjectImporter extends MTBOperator {
 		return info;
 	}
 
-	/** Create a treeline for the toplevel <code>root</code>
-	 * 
-	 * @param root
-	 * @param layer project layer in which to insert the treeline
-	 * @return
+	/** 
+	 * Create a root tree from the given root object.
+	 * @param root	Root object to convert to {@link MTBRootTree}.
+	 * @return Resulting root tree.
 	 */
 	private MTBRootTree createTreeForRoot(RootType root) {
-		MTBRootTree rt = new MTBRootTree();
-		this.fillTreeFromRoot( root, rt, null);
-		return rt;
+		MTBRootTree rootTree = new MTBRootTree();
+		this.fillTreeFromRoot( root, rootTree, null );
+		return rootTree;
 	}
 	
-	/** This adds one root/polyline to the treeline
-	 * 
-	 * @param root to be added
-	 * @param treeline to add the root to
-	 * @param parentTreelineNodes hashmap of indices in the root as represented in RSML to the corresponding RadiusNode
-	 * @param layer
+	/** 
+	 * Recursively parses all polylines belonging to the given root.
+	 * @param root 									Root object to be parsed.
+	 * @param tree									Target root tree.
+	 * @param parentTreelineNodes 	Map of root tree nodes indexed by IDs from RSML.
 	 */
 	private void fillTreeFromRoot( RootType root, MTBRootTree tree, 
 			HashMap<Integer, MTBTreeNode> parentTreelineNodes) {
 		
 		Geometry geometry = root.getGeometry();
-		Function diameters = this.getFunctionByName( root, FUNCTION_NAME_DIAMETER);
-		Function statuslabels = this.getFunctionByName( root, FUNCTION_NAME_STATUSLABEL);
+		Function diameters = this.getFunctionByName( root, FUNCTION_NAME_DIAMETER );
+		Function statuslabels = this.getFunctionByName( root, FUNCTION_NAME_STATUSLABEL );
 				
 		Iterator<PointType> pointItr = geometry.getPolyline().getPoint().iterator();
-		if ( ! pointItr.hasNext()) {
+		if ( !pointItr.hasNext() ) {
 			// no nodes at all
 			return;
 		}
 		
-		// create the rhizoTrak nodes and segments for the polyline/root
-		// index of the next node to insert into the treeline
+		// index of the next node to insert into the root tree
 		int pointIndex = 0;
 		
-		// hash map to map the index of a point in the RSML polyline to  treeline nodes created for this RSML point
-		// coordinates are as in the RSML polyline
-		// indices start at 0
 		HashMap<Integer,MTBTreeNode> treelineNodes = 
-				new HashMap<Integer, MTBTreeNode>( geometry.getPolyline().getPoint().size());
+				new HashMap<Integer, MTBTreeNode>( geometry.getPolyline().getPoint().size() );
 		
-		// this radius node is the last one when we will iterate the nodes of this treeline
+		// reference to node last added
 		MTBTreeNode previousnode;
 		
+		// get first point
 		PointType firstPoint = pointItr.next();
 		double firstPointX = firstPoint.getX().doubleValue();
 		double firstPointY = firstPoint.getY().doubleValue();
@@ -367,25 +432,26 @@ public class MTBRSMLProjectImporter extends MTBOperator {
 		 */
 
 		// toplevel root/polyline
-		if ( parentTreelineNodes == null) {
+		if (parentTreelineNodes == null) {
 			
 			MTBRootTreeNodeData nd = new MTBRootTreeNodeData(
-					firstPoint.getX().doubleValue(), firstPoint.getY().doubleValue());
-			nd.setRadius(this.getRadiusFromRsml( diameters, pointIndex));
-			nd.setStatus((byte)0);
+					firstPoint.getX().doubleValue(), firstPoint.getY().doubleValue() );
+			nd.setRadius( this.getRadiusFromRsml( diameters, pointIndex ) );
+			nd.setStatus( (byte)0 );
 			tree.getRoot().setData(nd);
 			previousnode = tree.getRoot();
-			treelineNodes.put( pointIndex, previousnode);
+			treelineNodes.put( pointIndex, previousnode );
+			
 		} 
 		// non-toplevel root/polyline 
 		else {
 
 			// find the parent node in the tree from which the current root/polyline branches 
-			int parentNodeIndex = getParentNodeIndex( root);
+			int parentNodeIndex = this.getParentNodeIndex( root );
 			
 			MTBTreeNode parentNode = null;
 			if ( parentNodeIndex != (-1) ) {
-				parentNode = parentTreelineNodes.get( parentNodeIndex );
+				parentNode = parentTreelineNodes.get( parentNodeIndex-1 );
 			}
 			
 			boolean foundParentNode;
@@ -415,21 +481,21 @@ public class MTBRSMLProjectImporter extends MTBOperator {
 			}
 			
 			// create the first treeline node linking it into the treeline
-			byte statuslabel = this.getStatuslabelFromRsml( statuslabels, pointIndex);
+			byte statuslabel = this.getStatuslabelFromRsml( statuslabels, pointIndex );
  
-			if (	 this.isStatuslabelFromRsmlDefined(statuslabels, pointIndex) 
+			if (	 this.isStatuslabelFromRsmlDefined( statuslabels, pointIndex ) 
 					&& statuslabel == STATUS_UNDEFINED 
-					&& minDist < EPSILON) {
+					&& Math.sqrt(minDist) < EPSILON ) {
 				
-				// skip the first node of this root/polyline if there are mode nodes
-				if ( pointItr.hasNext()) {
-					pointIndex++;
+				// skip the first node of this root/polyline if there are more nodes
+				if ( pointItr.hasNext() ) {
+					++pointIndex;
 					firstPoint = pointItr.next();
-					statuslabel = this.getStatuslabelFromRsml( statuslabels, pointIndex);	
+					statuslabel = this.getStatuslabelFromRsml( statuslabels, pointIndex );	
 				}
 			} 
 			else {
-				if ( ! foundParentNode ) {
+				if ( !foundParentNode ) {
 					statuslabel = STATUS_VIRTUAL_RSML;
 				} 
 				else {
@@ -437,41 +503,44 @@ public class MTBRSMLProjectImporter extends MTBOperator {
 				}
 			}
 			
+			// finally add the node
 			MTBRootTreeNodeData nd = new MTBRootTreeNodeData(
 					firstPoint.getX().doubleValue(), firstPoint.getY().doubleValue());
-			nd.setRadius(this.getRadiusFromRsml( diameters, pointIndex));
+			nd.setRadius(this.getRadiusFromRsml( diameters, pointIndex ));
 			nd.setStatus(statuslabel);
 			MTBTreeNode childNode = new MTBTreeNode(nd); 
 			parentNode.addChild(childNode);
+			treelineNodes.put( pointIndex, childNode);
 			previousnode = childNode;
-			treelineNodes.put( pointIndex, previousnode);
 		}
 		// increase point index
 		++pointIndex;
 		
 		// loop over the remaining points
+		MTBTreeNode node;
 		while ( pointItr.hasNext() ) {
 			PointType point = pointItr.next();			
 			MTBRootTreeNodeData nd = new MTBRootTreeNodeData(
-					point.getX().doubleValue(), point.getY().doubleValue());
-			nd.setRadius(this.getRadiusFromRsml( diameters, pointIndex));
-			nd.setStatus(this.getStatuslabelFromRsml( statuslabels, pointIndex));
-			MTBTreeNode node = new MTBTreeNode(nd); 
+				point.getX().doubleValue(), point.getY().doubleValue());
+			nd.setRadius(this.getRadiusFromRsml( diameters, pointIndex ));
+			nd.setStatus(this.getStatuslabelFromRsml( statuslabels, pointIndex ));
+			node = new MTBTreeNode(nd); 
 			previousnode.addChild(node);
-			treelineNodes.put( pointIndex, node);
+			treelineNodes.put( pointIndex, node );
 			previousnode = node;
 			++pointIndex;
 		}
 		
 		// recursively add the child roots
 		for ( RootType childRoot : root.getRoot() ) {
-			this.fillTreeFromRoot( childRoot, tree, treelineNodes);
+			this.fillTreeFromRoot( childRoot, tree, treelineNodes );
 		}
 	}
 
-	/** Parse the parent-node or parentNode attribute from the root
-	 * @param root
-	 * @return parent node index (starting with 1 by RSML convetions) or <code>-1</code> if not found
+	/**
+	 * Parse the parent node or parent node attribute from the root.
+	 * @param root	Root to analyze.
+	 * @return Parent node index (starting with 1 by RSML convetions) or <code>-1</code> if not found.
 	 */
 	private int getParentNodeIndex(RootType root) {
 		int parentNodeIndex = -1;
@@ -486,43 +555,41 @@ public class MTBRSMLProjectImporter extends MTBOperator {
 		return parentNodeIndex;
 	}
 
-	/**Get the status label for index <code>pointIndex</code> from the function <code>statuslabels</code>
-	 * or <code>default_statuslabel</code> if function <code>statuslabels</code> is null or index out of range
-	 * @param statuslabels
-	 * @param pointIndex
-	 * @return
+	/**
+	 * Get status label for index <code>pointIndex</code> from the function <code>statuslabels</code>.
+	 * @param statuslabels	RSML function.
+	 * @param pointIndex		Index of point for which to get the status label.
+	 * @return Status label or <code>default_statuslabel</code> if function is null or index out of range.
 	 */
 	private byte getStatuslabelFromRsml(Function statuslabels, int pointIndex) {
-		if ( statuslabels != null && statuslabels.getAny().size() > pointIndex && pointIndex >= 0) {
-			return getSampleValue( statuslabels.getAny().get( pointIndex)).byteValue();
-		} else {
-			return default_statuslabel;
-		}
-
+		if (	 statuslabels != null 
+				&& statuslabels.getAny().size() > pointIndex 
+				&& pointIndex >= 0 ) {
+			return getSampleValue( statuslabels.getAny().get( pointIndex) ).byteValue();
+		} 
+		return default_statuslabel;
 	}
 	
 	private boolean isStatuslabelFromRsmlDefined( Function statuslabels, int pointIndex) {
-		// original xsd schema with sample values as attributes
-//		if ( statuslabels != null && statuslabels.getSample().size() >= pointIndex && pointIndex >= 0) {
-//			return true;
-//		} else {
-//			return false;
-//		}
-		if ( statuslabels != null && statuslabels.getAny().size() > pointIndex && pointIndex >= 0) {
+		if (	 statuslabels != null 
+				&& statuslabels.getAny().size() > pointIndex 
+				&& pointIndex >= 0 ) {
 			return true;
-		} else {
-			return false;
 		}
+		return false;
 	}
 
 	/**
-	 * @param root
-	 * @param name
+	 * Get RSML function by name.
+	 * @param root	Root object.
+	 * @param name	Function name.
 	 * 
-	 * @return the first function with name <code>name</code>, null if none exists
+	 * @return First function with name <code>name</code>, null if none exists.
 	 */
 	private Function getFunctionByName(RootType root, String name) {
-		if ( root.getFunctions() == null || root.getFunctions().getFunction() == null ) {
+		
+		if (	 root.getFunctions() == null 
+				|| root.getFunctions().getFunction() == null ) {
 			return null;
 		}
 		
@@ -537,42 +604,39 @@ public class MTBRSMLProjectImporter extends MTBOperator {
 		return null;
 	}
 
-	/** Get the radius for index <code>pointIndex</code> from the function <code>diameters</code>
-	 * or null if  <code>diameters</code> is null or index out of range
-	 * @param diameters
-	 * @param pointIndex
-	 * @return
+	/** 
+	 * Get the radius for index <code>pointIndex</code> from the function <code>diameters</code>.
+	 * @param diameters		Function.
+	 * @param pointIndex	Index of point for which to get the diameter.
+	 * @return	Radius or null if <code>diameters</code> is null or index out of range.
 	 */
 	private float getRadiusFromRsml(Function diameters, int pointIndex) {
-		// original xsd schema with sample values as attributes
-		//	if ( diameters != null && diameters.getSample().size() > pointIndex && pointIndex >= 0) {
-		//		return 0.5f * diameters.getSample().get( pointIndex).getValue().floatValue();
-		//	} else {
-		//		return 0.0f;
-		//	}
-		if ( diameters != null && diameters.getAny().size() > pointIndex && pointIndex >= 0) {
-			return 0.5f * getSampleValue( diameters.getAny().get( pointIndex)).floatValue();
-		} else {
-			return 0.0f;
-		}
+		if (	 diameters != null 
+				&& diameters.getAny().size() > pointIndex 
+				&& pointIndex >= 0 ) {
+			return 0.5f * getSampleValue( diameters.getAny().get( pointIndex) ).floatValue();
+		} 
+		return 0.0f;
 	}
 	
-	/** Get the value of a sample element in a function.
-	 * Use the value attribute or the text content
+	/** 
+	 * Get the value of a sample element in a function.
 	 * 
-	 * @param element
-	 * @return null, if neither value attribute nor the text content defined
+	 * @param element	Element to process.
+	 * @return Value, otherwise null if neither value attribute nor the text content is defined.
 	 */ 
 	private BigDecimal getSampleValue(Element element) {
-		if ( element == null) {
+		if ( element == null ) {
 			return null;
-		} else if ( element.getAttribute( "value") != null && ! element.getAttribute( "value").isEmpty()) {
-			return BigDecimal.valueOf( Double.valueOf( element.getAttribute( "value")));
-		} else if ( element.getTextContent() != null ) {
-			return BigDecimal.valueOf( Double.valueOf( element.getTextContent()));
-		} else {
-			return null;
-		}
+		} 
+		if (	 	element.getAttribute( "value" ) != null 
+				&& !element.getAttribute( "value" ).isEmpty() ) {
+			return BigDecimal.valueOf( Double.valueOf( element.getAttribute( "value" ) ) );
+		} 
+		if ( element.getTextContent() != null ) {
+			return BigDecimal.valueOf( Double.valueOf( element.getTextContent() ) );
+		} 
+		return null;
 	}
 
 }

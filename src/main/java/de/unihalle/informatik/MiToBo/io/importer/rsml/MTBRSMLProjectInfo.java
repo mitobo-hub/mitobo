@@ -33,22 +33,40 @@ import java.util.TreeSet;
 import de.unihalle.informatik.MiToBo.xsd.rsml.Rsml;
 
 /**
- * Class to hold all information about a set of RSML files, i.e., a project.
+ * Class to hold all information about a set of RSML files, i.e., a time-series project.
  *   
  * @author Birgit Moeller
  */
 public class MTBRSMLProjectInfo {
 
-	public String baseDir;
+	/**
+	 * Base directory of the project.
+	 */
+	protected String baseDir;
 	
-	public List<File> rsmlFiles = new LinkedList<File>();;
+	/**
+	 * List of RSML files belonging to the project.
+	 */
+	protected List<File> rsmlFiles = new LinkedList<File>();;
 
-	public List<Rsml> rsmls = new LinkedList<Rsml>();
+	/**
+	 * List of RSML objects belonging to the project.
+	 */
+	protected List<Rsml> rsmls = new LinkedList<Rsml>();
 
-	public TreeSet<MTBRSMLStatusLabel> statusLabels = new TreeSet<MTBRSMLStatusLabel>();
+	/**
+	 * Set of status labels as defined in RSML files.
+	 */
+	protected TreeSet<MTBRSMLStatusLabel> statusLabels = new TreeSet<MTBRSMLStatusLabel>();
 	
-	public List<MTBRSMLFileInfo> rsmlInfos = new LinkedList<MTBRSMLFileInfo>();
+	/**
+	 * RSML info objects for each RSML file.
+	 */
+	protected List<MTBRSMLFileInfo> rsmlInfos = new LinkedList<MTBRSMLFileInfo>();
 
+	/**
+	 * Prints project information to standard output.
+	 */
 	public void print() {
 		System.out.println();
 		System.out.println("======================");
@@ -70,62 +88,138 @@ public class MTBRSMLProjectInfo {
 		}
 	}
 	
+	/**
+	 * Access the basis directory of the project.
+	 * @return	Basis directory.
+	 */
+	public String getBaseDir() {
+		return this.baseDir;
+	}
+	
+	/**
+	 * Get list of RSML files belonging to project.
+	 * @return	List of files.
+	 */
+	public List<File> getRSMLFileList() {
+		return this.rsmlFiles;
+	}
+	
+	/**
+	 * Get set of status labels.
+	 * @return	Set of labels.
+	 */
+	public TreeSet<MTBRSMLStatusLabel> getStatusLabels() {
+		return this.statusLabels;
+	}
+	
+	/**
+	 * Get RSML file info objects.
+	 * @return	List of RSML info objects.
+	 */
+	public List<MTBRSMLFileInfo> getRSMLFileInfos() {
+		return this.rsmlInfos;
+	}
+	
+	/**
+	 * Class to represent rhizoTrak status labels.
+	 */
 	public static class MTBRSMLStatusLabel implements Comparable<MTBRSMLStatusLabel> {
 
+		/**
+		 * Default status color.
+		 */
 		public static final Color DEFAULT_STATUS_COLOR = new Color( 255, 255, 0);
 
+		/**
+		 * Name of the status label.
+		 */
 		private String name;
+		
+		/**
+		 * Abbreviation.
+		 */
 		private String abbrev = "";
+		
+		/**
+		 * Numerical identifier.
+		 */
+		private int numericalIdentifier;
+		
+		/**
+		 * Color used when visualizing status in graphical environments. 
+		 */
 		private Color color;
+		
+		/**
+		 * Transparency level of color.
+		 */
 		private int alpha = 255;
 
-		public MTBRSMLStatusLabel(String name, String abbrev, Color color) {
+		/**
+		 * Constructor.
+		 * @param name		Name of status label.
+		 * @param abbrev	Abbreviation.
+		 * @param nID			Numerical ID.
+		 * @param color		Color of status.
+		 */
+		public MTBRSMLStatusLabel(String name, String abbrev, int nID, Color color) {
 			this.name = name;
 			this.abbrev = abbrev;
+			this.numericalIdentifier = nID;
 			this.color = color;
-		}
-
-		public MTBRSMLStatusLabel(String name, String abbrev, Color color, int alpha) {
-			this.name = name;
-			this.abbrev = abbrev;
-			this.color = color;
-			this.alpha = alpha;
-		}
-
-		public MTBRSMLStatusLabel(String name, Color color, int alpha) {
-			this.name = name;
-			this.color = color;
-			this.alpha = alpha;
-		}
-
-		public MTBRSMLStatusLabel(String name, String abbrev) {
-			this.name = name;
-			this.abbrev = abbrev;
 		}
 
 		/**
-		 * @return the name
+		 * Constructor.
+		 * @param name		Name of status label.
+		 * @param abbrev	Abbreviation.
+		 * @param nID			Numerical ID.
+		 * @param color		Color of status.
+		 * @param alpha		Alpha value of color.
+		 */
+		public MTBRSMLStatusLabel(String name, String abbrev, int nID, Color color, int alpha) {
+			this.name = name;
+			this.abbrev = abbrev;
+			this.numericalIdentifier = nID;
+			this.color = color;
+			this.alpha = alpha;
+		}
+
+		/**
+		 * Get the status label name.
+		 * @return Name of status.
 		 */
 		public String getName() {
 			return name;
 		} 
 
 		/**
-		 * @return the abbrev
+		 * Get abbreviation.
+		 * @return Status abbreviation.
 		 */
 		public String getAbbrev() {
 			return abbrev;
 		}
 
 		/**
-		 * @return the color
+		 * Get the numerical identifier.
+		 * @return Numerical ID.
+		 */
+		public int getNumericalIdentifier() {
+			return this.numericalIdentifier;
+		}
+
+		/**
+		 * Get the status color.
+		 * @return Color.
 		 */
 		public Color getColor() {
 			return color;
 		}
 
 		/**
-		 * @return the alpha
+		 * Get the alpha value.
+		 * @return Transparency value.
 		 */
 		public int getAlpha() {
 			return alpha;
@@ -136,10 +230,12 @@ public class MTBRSMLProjectInfo {
 			return this.name.compareTo(((MTBRSMLStatusLabel)obj).name.toString());
 		}
 		
+		/**
+		 * Prints the status label information to standard output.
+		 */
 		public void print( ) {
-			System.out.println(this.name + " " + this.abbrev + " " + this.color + " " + this.alpha);
+			System.out.println(this.name + " " + this.abbrev + " (ID= " + this.numericalIdentifier + ") " 
+				+ this.color + " " + this.alpha);
 		}
-
 	}
-
 }

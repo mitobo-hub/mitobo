@@ -27,9 +27,6 @@ package de.unihalle.informatik.MiToBo.io.importer.rsml;
 import java.util.HashMap;
 import java.util.Vector;
 
-import de.unihalle.informatik.Alida.annotations.Parameter;
-import de.unihalle.informatik.Alida.annotations.Parameter.Direction;
-import de.unihalle.informatik.Alida.annotations.Parameter.ExpertMode;
 import de.unihalle.informatik.MiToBo.apps.minirhizotron.datatypes.MTBRootTree;
 
 /**
@@ -39,19 +36,69 @@ import de.unihalle.informatik.MiToBo.apps.minirhizotron.datatypes.MTBRootTree;
  */
 public class MTBRSMLFileInfo {
 
-	@Parameter( label= "Root Systems",  
-		direction=Direction.OUT, dataIOOrder=0, mode=ExpertMode.STANDARD,
-		description = "Root systems indexed with plant ID.")
-	protected HashMap<Integer, Vector<MTBRootTree>> rootSystems;
+	/**
+	 * Image hash.
+	 */
+	protected String imageSHA256;
 
-	public String imageSHA256;
+	/**
+	 * Full image name including path.
+	 */
+	protected String imageName;
+	
+	/**
+	 * ID in time-series.
+	 */
+	protected int timeSeriesID;
+	
+	/**
+	 * Number of plants.
+	 */
+	protected int plantCount;
+	
+	/**
+	 * Map holding the number of roots for each plant.
+	 */
+	protected HashMap<Integer, Integer> rootCountPerPlant = new HashMap<Integer, Integer>();
 
-	public String imageName;
+	/**
+	 * Map holding for each plant the root trees.
+	 */
+	protected HashMap<Integer, Vector<MTBRootTree>> rootSystems = 
+			new HashMap<Integer, Vector<MTBRootTree>>();
+
+	/**
+	 * Get image hash code.
+	 * @return	Hash code.
+	 */
+	public String getImageSHA256() {
+		return this.imageSHA256;
+	}
 	
-	public int plantCount;
-	
-	public HashMap<Integer, Integer> rootCountPerPlant = new HashMap<Integer, Integer>();
-	
+	/**
+	 * Get image name.
+	 * @return	Name of image including full path.
+	 */
+	public String getImageName() {
+		return this.imageName;
+	}
+
+	/**
+	 * Get ID of file in time-series.
+	 * @return	Time-series ID.
+	 */
+	public int getTimeSeriesID() {
+		return this.timeSeriesID;
+	}
+
+	/**
+	 * Get number of plants in scene.
+	 * @return	Number of plants.
+	 */
+	public int getPlantCount() {
+		return this.plantCount;
+	}
+
 	/**
 	 * Get root systems from RSML file.
 	 * @return	Hashmap of root systems indexed with plant ID.
@@ -60,6 +107,9 @@ public class MTBRSMLFileInfo {
 		return this.rootSystems;
 	}
 	
+	/**
+	 * Prints file information to standard output.
+	 */
 	public void print() {
 		System.out.println("\t===================");
 		System.out.println("\tMTB-RSML File Info:");
@@ -67,7 +117,7 @@ public class MTBRSMLFileInfo {
 		System.out.println("\t- image name: " + this.imageName);
 		System.out.println("\t- plant count: " + this.plantCount);
 		for (int i=0; i<this.plantCount; ++i) {
-			System.out.println("\t\t- plant " + i + " => " + this.rootCountPerPlant.get(i) + " roots");
+			System.out.println("\t\t- plant " + i + " => " + this.rootCountPerPlant.get(i) + " root(s)");
 		}
 	}
 }
