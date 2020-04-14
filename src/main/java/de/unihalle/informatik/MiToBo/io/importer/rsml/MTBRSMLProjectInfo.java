@@ -60,6 +60,11 @@ public class MTBRSMLProjectInfo {
 	protected TreeSet<MTBRSMLStatusLabel> statusLabels = new TreeSet<MTBRSMLStatusLabel>();
 	
 	/**
+	 * Set of connector identifiers.
+	 */
+	protected TreeSet<String> connectorIDs = new TreeSet<String>();
+
+	/**
 	 * RSML info objects for each RSML file.
 	 */
 	protected List<MTBRSMLFileInfo> rsmlInfos = new LinkedList<MTBRSMLFileInfo>();
@@ -112,6 +117,14 @@ public class MTBRSMLProjectInfo {
 		return this.statusLabels;
 	}
 	
+	/**
+	 * Get set of connector IDs.
+	 * @return	Set of connector IDs.
+	 */
+	public TreeSet<String> getConnectorIDs() {
+		return this.connectorIDs;
+	}
+
 	/**
 	 * Get RSML file info objects.
 	 * @return	List of RSML info objects.

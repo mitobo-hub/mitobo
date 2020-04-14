@@ -63,9 +63,12 @@ public class MTBRSMLFileInfo {
 
 	/**
 	 * Map holding for each plant the root trees.
+	 * <p>
+	 * The map of root trees per plant is indexed with the root identifier. Root trees being 
+	 * conencted over time share the same identifier.
 	 */
-	protected HashMap<Integer, Vector<MTBRootTree>> rootSystems = 
-			new HashMap<Integer, Vector<MTBRootTree>>();
+	protected HashMap<Integer, HashMap<String, MTBRootTree>> rootSystems = 
+			new HashMap<Integer, HashMap<String, MTBRootTree>>();
 
 	/**
 	 * Get image hash code.
@@ -100,11 +103,12 @@ public class MTBRSMLFileInfo {
 	}
 
 	/**
-	 * Get root systems from RSML file.
-	 * @return	Hashmap of root systems indexed with plant ID.
+	 * Get root systems for plant with given ID.
+	 * @param plantID	ID of plant.
+	 * @return	Hashmap of root systems indexed with root identifier.
 	 */
-	public HashMap<Integer, Vector<MTBRootTree>> getRootSystems() {
-		return this.rootSystems;
+	public HashMap<String, MTBRootTree> getRootSystem(int plantID) {
+		return this.rootSystems.get(plantID);
 	}
 	
 	/**

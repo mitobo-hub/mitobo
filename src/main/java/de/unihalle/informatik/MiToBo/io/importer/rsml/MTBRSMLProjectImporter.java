@@ -241,59 +241,6 @@ public class MTBRSMLProjectImporter extends MTBOperator {
 			MTBRSMLFileInfo info = this.parseRsmlFile( this.rsmlProjectInfo.rsmls.get(i) );
 			this.rsmlProjectInfo.rsmlInfos.add( info );
 		}
-
-//
-//
-//		if(allUnified)
-//		{
-//			// collect connectors before the loop so we dont get the newly created ones
-//			List<Connector> connectors = RhizoUtils.getConnectorsBelowRootstacks(rhizoMain.getProject());
-//			// create connector -> id map of current connectors
-//			Map<String, Connector> connectorIds = new HashMap<String, Connector>();
-//			for(Connector connector: connectors)
-//			{
-//				connectorIds.put(getRsmlIdForTreeline(null, connector), connector);
-//			}
-//
-//			for(String id: topLevelIdTreelineListMap.keySet())
-//			{
-//				List<Treeline> treelineList = topLevelIdTreelineListMap.get(id);
-//
-//				boolean connectorFound = false;
-//
-//				// find connector
-//				Connector c = connectorIds.get(id);
-//				if(null != c)
-//				{
-//					for(Treeline treeline: treelineList)
-//					{
-//						if(!c.addConTreeline(treeline))
-//						{
-//							Utils.log("rhizoTrak", "Can not add treeline to connector " + c.getId());
-//						}
-//					}
-//
-//					connectorFound = true;
-//				}
-//
-//				// no connector found and more than one treeline in list
-//				// then create new connector
-//				if(!connectorFound && treelineList.size() > 1)
-//				{
-//					List<Displayable> connector = RhizoUtils.addDisplayableToProject(rhizoMain.getProject(), "connector", 1);
-//					Connector newConnector = (Connector) connector.get(0);
-//
-//					for(Treeline treeline: treelineList)
-//					{
-//						if(!newConnector.addConTreeline(treeline))
-//						{
-//							Utils.log("rhizoTrak", "Can not add treeline to connector " + newConnector.getId());
-//						}
-//					}
-//				}
-//			}
-//		}
-//
 		
 //		try {
 //			ImageReaderMTB reader = new ImageReaderMTB("/home/moeller/work/data/Ecotron-EInsect-2018-AnnotationKevin-Projects/T24/CTS/EInsect_T024_CTS_13.06.18_000000_4_HCM.tif");
@@ -301,7 +248,8 @@ public class MTBRSMLProjectImporter extends MTBOperator {
 //			MTBImageRGB im = (MTBImageRGB)reader.getResultMTBImage().convertType(MTBImageType.MTB_RGB, true);
 //			Set<Integer> keys = this.rsmlProjectInfo.rsmlInfos.get(3).rootSystems.keySet();
 //			for (Integer k: keys) {
-//				for (MTBRootTree tr: this.rsmlProjectInfo.rsmlInfos.get(3).rootSystems.get(k))
+//				HashMap<String, MTBRootTree> trees = this.rsmlProjectInfo.rsmlInfos.get(3).rootSystems.get(k); 
+//				for (MTBRootTree tr: trees.values())
 //					tr.drawToImage(im);
 //			}
 //			im.show();
@@ -359,7 +307,7 @@ public class MTBRSMLProjectImporter extends MTBOperator {
 		}
 		
 		try {
-			
+
 			// extract some general scene information
 			info.plantCount = rsml.getScene().getPlant().size();
 
@@ -369,14 +317,21 @@ public class MTBRSMLProjectImporter extends MTBOperator {
 				
 				info.rootCountPerPlant.put(plantID, plant.getRoot().size());
 
-				Vector<MTBRootTree> roots = new Vector<MTBRootTree>();
+				HashMap<String, MTBRootTree> roots = new HashMap<String, MTBRootTree>();
 				for ( RootType root : plant.getRoot() ) {
+					
+					// remember connector ID, identifiers of roots linked to connectors start with C-...
+					if (root.getId().startsWith("C-"))
+						this.rsmlProjectInfo.connectorIDs.add(root.getId());
+					
+					// convert root
 					MTBRootTree rt = this.createTreeForRoot(root);
-					roots.add(rt);
+					roots.put(root.getId(), rt);
 				}
 				info.rootSystems.put(plantID, roots);
 				++plantID;
 			}
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
