@@ -148,6 +148,22 @@ public class MTBRSMLProjectImporter extends MTBOperator {
 		// nothing happens here
 	}
 	
+	/**
+	 * Specify input directory.
+	 * @param dir	Input directory where to find the RSML files.
+	 */
+	public void setInputDirectory(ALDDirectoryString dir) {
+		this.rsmlDir = dir;
+	}
+	
+	/**
+	 * Get resulting info object.
+	 * @return	Info object with all RSML data.
+	 */
+	public MTBRSMLProjectInfo getRSMLProjectInfo() {
+		return this.rsmlProjectInfo;
+	}
+	
 	@Override
 	protected void operate() throws ALDOperatorException {
 		
