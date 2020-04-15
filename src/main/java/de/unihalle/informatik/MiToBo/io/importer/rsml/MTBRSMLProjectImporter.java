@@ -124,7 +124,12 @@ public class MTBRSMLProjectImporter extends MTBOperator {
 	 * Operator identifier.
 	 */
 	private static String opIdentifier = "[MTBRSMLFileReader]";
-
+	
+	/**
+	 * Flag indicating if identifiers in a time-series are unified.
+	 */
+	private boolean allUnified = false;
+	
 	/**
 	 * Directory of RSML files.
 	 */
@@ -231,22 +236,22 @@ public class MTBRSMLProjectImporter extends MTBOperator {
 		}
 
 		// check for "unified" flag in all files
-		boolean allUnified = true;
+		this.allUnified = true;
 		for(Rsml rsml: this.rsmlProjectInfo.rsmls) {
 			if(		 null != rsml.getMetadata() 
 					&& null != rsml.getMetadata().getTimeSequence()) {
 				
 				if( !rsml.getMetadata().getTimeSequence().isUnified() ) {
-					allUnified = false;
+					this.allUnified = false;
 					break;
 				}
 			}
 			else {
-				allUnified = false;
+				this.allUnified = false;
 				break;
 			}
 		}
-		if( !allUnified ) {
+		if( ! this.allUnified ) {
 			System.out.println(opIdentifier + " info: at least one unified flag has not been set " 
 				+ "or does not exist in the selected RSML files.\n"
 					+ "Consequently connectors will not be created on import.");
@@ -337,7 +342,7 @@ public class MTBRSMLProjectImporter extends MTBOperator {
 				for ( RootType root : plant.getRoot() ) {
 					
 					// remember connector ID, identifiers of roots linked to connectors start with C-...
-					if (root.getId().startsWith("C-"))
+					if ( this.allUnified && root.getId().startsWith("C-") )
 						this.rsmlProjectInfo.connectorIDs.add(root.getId());
 					
 					// convert root
