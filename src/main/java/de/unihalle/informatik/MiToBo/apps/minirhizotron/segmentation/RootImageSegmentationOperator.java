@@ -142,7 +142,19 @@ public abstract class RootImageSegmentationOperator
 	 * @return	Working mode of the operator.
 	 */
 	public abstract OpWorkingMode getOperatorWorkingMode();
-
+	
+	/**
+	 * Ask operator if diameter of previous nodes should be transfered to new nodes on update.
+	 * @return True if diameter should be transfered, otherwise false.
+	 */
+	public abstract boolean isToTransferDiameterOnUpdate();
+	
+	/**
+	 * Ask operator if status labels of previous nodes should be transfered to new nodes on update.
+	 * @return True if status labels should be transfered, otherwise false.
+	 */
+	public abstract boolean isToTransferStatusOnUpdate();
+	
 	/**
 	 * Setter for the input image.
 	 * @param imgs - ImagePlus images per layer to be processed.
