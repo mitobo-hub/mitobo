@@ -170,4 +170,31 @@ public class MTBTreeNode {
 		}
 		return subtreeNodes;
 	}
+	
+	/**
+	 * Sets this node as the new root of its tree.
+	 */
+	public void setRoot()
+	{
+		Stack<MTBTreeNode> path = new Stack<>();
+		path.push(this);
+		MTBTreeNode parent = this.getParent();
+		
+		while(null != parent)
+		{
+			path.push(parent);
+			parent = parent.getParent();
+		}
+		
+		MTBTreeNode newChild = path.pop();
+		while(!path.isEmpty())
+		{
+			MTBTreeNode newParent = path.pop();
+			newChild.removeChild(newParent);
+			newChild.setParent(newParent);
+			newChild = newParent;
+		}
+	}
+	
+	
 }

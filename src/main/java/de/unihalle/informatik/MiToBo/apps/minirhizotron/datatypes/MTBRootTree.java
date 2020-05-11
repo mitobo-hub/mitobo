@@ -91,6 +91,22 @@ public class MTBRootTree extends MTBTree implements Cloneable {
 			}
 		}
 	}
+	
+	/**
+	 * Sets the given node as the new root.
+	 * @param node A node that is part of this tree.
+	 * @return Success or failure.
+	 */
+	public boolean reroot(MTBTreeNode node)
+	{
+		if(null == node) return false;
+		if(!getAllNodesDepthFirst().contains(node)) return false;
+		
+		node.setRoot();
+		this.root = node;
+		
+		return true;
+	}
 
 	@Override
 	public MTBRootTree clone() {
