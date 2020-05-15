@@ -14,6 +14,30 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 
 ### Fixed
 
+## [2.0] - 2020-05-15
+Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
+- Released MiToBo 2.0
+
+### Added
+- apps/minirhizotron/utils/Drawing.java: drawing utilities for rhizoTrak
+- FeatureColorMapper: for overlay of feature values over segmented cell regions
+- GradientFieldCalculator2D: getter for vector field image
+- MTBPoint2DSet: new datatype to handle sets of 2D points and related algorithms
+- MTBRootTree: new constructor from MTBPoint2DSet and clone() method
+- PaCeQuant: new largest empty circle feature, individual ROIs are now saved to sub-folder
+- Region2DSkeletonAnalyzer: new new largest empty circle feature
+- RootImageSegmentationOperator: new operator interface for segmentation operators in rhizoTrak
+
+### Changed
+- Online Help: switched to new concept based on operator annotations
+
+### Removed
+- RootSegmentationOperator: operator interface for rhizoTrak operators no longer needed
+
+### Fixed
+- DrawLine: fixed bug if points lie outside of image domain
+- Segmentation Evaluation Measures: fixed index errors when accessing matching matrix
+
 ## [1.8.18] - 2020-03-27
 Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
 - Released MiToBo 1.8.18
