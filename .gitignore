@@ -4,6 +4,7 @@
 .factorypath
 .project
 .settings/
+.vscode/
 native/export/lib32
 native/export/lib64
 target

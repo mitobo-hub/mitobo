@@ -26,6 +26,7 @@ package de.unihalle.informatik.MiToBo.apps.cellMorphology;
 
 import java.awt.geom.Point2D;
 import java.io.File;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Random;
 import java.util.TreeSet;
@@ -651,6 +652,8 @@ public class PaCeQuant extends MTBOperator {
 	 */
 	private transient Vector<MTBImageRGB> addResultImages;
 	
+	private transient static HashMap<String, String> featureNameMapper = new HashMap<>();
+
 	/**
 	 * Default constructor.
 	 * @throws ALDOperatorException Thrown if construction fails.
@@ -690,6 +693,38 @@ public class PaCeQuant extends MTBOperator {
 		this.morphFeatureOp.setFractionalDigits(5);
 		this.morphFeatureOp.setDrawCurvatureInfoImage(true);
 		this.morphFeatureOp.setDrawSkeletonInfoImage(true);
+
+		// initialize mapper table to map operator feature names to PaCeQuant convention
+		featureNameMapper.put(
+			MorphologyAnalyzer2D.FeatureNames.AvgDistBranchEndpointsToBackground.toString(), 
+			"AvgEndpointDist"); 
+		featureNameMapper.put(
+			MorphologyAnalyzer2D.FeatureNames.MinCoreRegionWidth.toString(), 
+			"MinCoreWidth"); 
+		featureNameMapper.put(
+			MorphologyAnalyzer2D.FeatureNames.MaxCoreRegionWidth.toString(), 
+			"MaxCoreWidth"); 
+		featureNameMapper.put(
+			MorphologyAnalyzer2D.FeatureNames.NumberOfProtrusions.toString(), 
+			"LobeCount"); 
+		featureNameMapper.put(
+			MorphologyAnalyzer2D.FeatureNames.NonProtrusionArea.toString(), 
+			"NonLobeArea"); 
+		featureNameMapper.put(
+			MorphologyAnalyzer2D.FeatureNames.AvgLengthProtrusions.toString(), 
+			"AvgLobeLength");
+		featureNameMapper.put(
+			MorphologyAnalyzer2D.FeatureNames.AvgLengthApicalProtrusions.toString(), 
+			"AvgApicalLobeLength");
+		featureNameMapper.put(
+			MorphologyAnalyzer2D.FeatureNames.AvgLengthBasalProtrusions.toString(),
+			"AvgBasalLobeLength");
+		featureNameMapper.put(
+			MorphologyAnalyzer2D.FeatureNames.AvgLengthBaselineProtrusions.toString(), 
+			"AvgBasalLobeWidth");
+		featureNameMapper.put(
+			MorphologyAnalyzer2D.FeatureNames.AvgLengthEquatorProtrusions.toString(), 
+			"AvgEquatorLobeWidth");
 
 		this.setParameter("gapMode", GapCloseMode.WATERSHED);
 		this.setParameter("phasesToRun", 
@@ -1111,13 +1146,20 @@ public class PaCeQuant extends MTBOperator {
 						this.width = this.inImg.getSizeX();
 						this.height = this.inImg.getSizeY();
 						
+						MTBImage workImg = null; 
+						
+						// relabel image to ensure consecutive labeling
+						labler = new LabelComponentsSequential(this.inImg, true);
+						labler.runOp();
+						workImg = labler.getLabelImage();
+
 						// check for pixel calibration mode and set calibration values
 						if (this.pixCalibMode.equals(PixelCalibration.AUTO)) {
-							this.pixelLengthXYinternal = this.inImg.getStepsizeX();
-							this.pixelUnitString = this.inImg.getUnitX();
+							this.pixelLengthXYinternal = workImg.getStepsizeX();
+							this.pixelUnitString = workImg.getUnitX();
 							
 							// safety check for square pixels
-							double lengthY = this.inImg.getStepsizeY();
+							double lengthY = workImg.getStepsizeY();
 							if (  Math.abs(this.pixelLengthXYinternal - lengthY)
 									> 0.0000001) {
 								// write a warning to standard error and skip image
@@ -1140,14 +1182,14 @@ public class PaCeQuant extends MTBOperator {
 							}
 						}
 						
-						binarySegmentationImage = (MTBImageByte)this.inImg.duplicate();
+						binarySegmentationImage = (MTBImageByte)workImg.duplicate();
 						for (int y=0; y<this.height; ++y)
 							for (int x=0; x<this.width; ++x) 
 								if (binarySegmentationImage.getValueInt(x, y) > 0)
 									binarySegmentationImage.putValueInt(x, y, 255);
 						imgToProcess = binarySegmentationImage;
-						labelImgToProcess = this.inImg;
-						regionsToProcess = LabelAreasToRegions.getRegions(this.inImg, 0);
+						labelImgToProcess = workImg;
+						regionsToProcess = LabelAreasToRegions.getRegions(workImg, 0);
 						break;
 						
 					case IMAGEJ_ROIs:
@@ -1261,6 +1303,13 @@ public class PaCeQuant extends MTBOperator {
 									OperatorExceptionType.OPERATE_FAILED, operatorID 
 									+ " could not init result folder... exiting!");
 					}
+					String resultDirRois = resultDir + File.separator + "roiFiles_singleCells"; 
+					if (!new File(resultDirRois).exists()) {
+						if (!new File(resultDirRois).mkdir())
+							throw new ALDOperatorException(
+									OperatorExceptionType.OPERATE_FAILED, operatorID 
+									+ " could not init result folder for ROIs... exiting!");
+					}
 					
 					// reset operator - just in case...
 					this.reinitOperator();
@@ -1294,6 +1343,9 @@ public class PaCeQuant extends MTBOperator {
 												+ " --> reading image <" + file + ">..."));
 
 								MTBImage img = imRead.getResultMTBImage();
+								// make sure that you don't work on other than byte images
+								if (!img.getType().equals(MTBImageType.MTB_BYTE))
+									img = img.convertType(MTBImageType.MTB_BYTE, true);
 
 								// check for pixel calibration mode
 								if (this.pixCalibMode.equals(PixelCalibration.AUTO)) {
@@ -1537,6 +1589,15 @@ public class PaCeQuant extends MTBOperator {
 									
 									this.width = img.getSizeX();
 									this.height = img.getSizeY();
+									
+									// relabel image to ensure consecutive labeling
+									LabelComponentsSequential labler = 
+											new LabelComponentsSequential();
+									labler.setInputImage(img);
+									labler.setDiagonalNeighborsFlag(true);
+									labler.runOp();
+									img = labler.getLabelImage();
+									
 									binarySegmentationImage = (MTBImageByte)img.convertType(
 											MTBImageType.MTB_BYTE, true);
 									for (int y=0; y<this.height; ++y)
@@ -1720,7 +1781,7 @@ public class PaCeQuant extends MTBOperator {
   		// save each single region to a ROI file
   		roiString = String.format("%03d", new Integer(roiID));
 				
-  		rw.setOutputFile(resultDir + File.separator +
+  		rw.setOutputFile(resultDir + File.separator + "roiFiles_singleCells" + File.separator +
   				fileRoot + "-roi_" + roiString + ".roi");
   		rw.setData(creg);
   		rw.runOp();
@@ -1787,12 +1848,17 @@ public class PaCeQuant extends MTBOperator {
 		MTBRegion2DSet validRegions = this.filterValidCellRegions(binSegResult);
 		
 		// init and fill result images
-		MTBImageRGB overlayImg = (MTBImageRGB)MTBImage.createMTBImage(
-				this.width, this.height, 1, 1, 1, MTBImageType.MTB_RGB);
+//		MTBImageRGB overlayImg = (MTBImageRGB)MTBImage.createMTBImage(
+//				this.width, this.height, 1, 1, 1, MTBImageType.MTB_RGB);
+//		img.show();
+		MTBImageRGB overlayImg = (MTBImageRGB)(img.convertType(MTBImageType.MTB_RGB, true));
+		overlayImg.fillBlack();
 		overlayImg.setTitle("Pseudo-colored cell regions " 
 				+ "of image <" + img.getTitle() + "> with IDs");
-		MTBImageRGB overlayImgWONumbers = (MTBImageRGB)MTBImage.createMTBImage(
-				this.width, this.height, 1, 1, 1, MTBImageType.MTB_RGB);
+//		MTBImageRGB overlayImgWONumbers = (MTBImageRGB)MTBImage.createMTBImage(
+//				this.width, this.height, 1, 1, 1, MTBImageType.MTB_RGB);
+		MTBImageRGB overlayImgWONumbers = (MTBImageRGB)(img.convertType(MTBImageType.MTB_RGB, true));
+		overlayImgWONumbers.fillBlack();
 		overlayImgWONumbers.setTitle("Pseudo-colored cell regions " 
 				+ "of image <" + img.getTitle() + ">");
 		for (int y = 0; y < this.height; y++) {
@@ -1805,14 +1871,16 @@ public class PaCeQuant extends MTBOperator {
 				overlayImgWONumbers.putValueB(x, y, img.getValueInt(x, y));
 			}
 		}
-		MTBImageShort labelImg =	(MTBImageShort)MTBImage.createMTBImage(
-				this.width, this.height, 1, 1, 1, MTBImageType.MTB_SHORT);
+//		MTBImageShort labelImg =	(MTBImageShort)MTBImage.createMTBImage(
+//				this.width, this.height, 1, 1, 1, MTBImageType.MTB_SHORT);
+		MTBImageShort labelImg = (MTBImageShort)(img.convertType(MTBImageType.MTB_SHORT, true));
 		labelImg.setTitle("Valid cell regions label image");
 		labelImg.fillBlack();
 		MTBImageShort labelImageWONumbers = (MTBImageShort)labelImg.duplicate();
 		
-		MTBImageRGB binImg = 	(MTBImageRGB)MTBImage.createMTBImage(
-				this.width, this.height, 1, 1, 1, MTBImageType.MTB_RGB);
+//		MTBImageRGB binImg = 	(MTBImageRGB)MTBImage.createMTBImage(
+//				this.width, this.height, 1, 1, 1, MTBImageType.MTB_RGB);
+		MTBImageRGB binImg = (MTBImageRGB)(img.convertType(MTBImageType.MTB_RGB, true));
 		binImg.setTitle("Valid cell regions binary image");
 		binImg.fillBlack();
 		if (this.showAdditionalResultImages) {
@@ -2728,13 +2796,13 @@ public class PaCeQuant extends MTBOperator {
 			Vector<String> header = new Vector<String>();
 			header.add(FeatureNames.Object.toString());
 			header.add("Type");
-			header.add("EquatorLength ("+ this.unitXY + ")");
-			header.add("BaselineLength ("+ this.unitXY + ")");
-			header.add("ApicalLength ("+ this.unitXY + ")");
-			header.add("BasalLength ("+ this.unitXY + ")");
-			header.add("TotalLength ("+ this.unitXY + ")");
-			header.add("ApicalContourLong ("+ this.unitXY + ")");
-			header.add("ApicalContourShort ("+ this.unitXY + ")");
+			header.add("EquatorLength_("+ this.pixelUnitString + ")");
+			header.add("BaselineLength_("+ this.pixelUnitString + ")");
+			header.add("ApicalLength_("+ this.pixelUnitString + ")");
+			header.add("BasalLength_("+ this.pixelUnitString + ")");
+			header.add("TotalLength_("+ this.pixelUnitString + ")");
+			header.add("ApicalContourLong_("+ this.pixelUnitString + ")");
+			header.add("ApicalContourShort_("+ this.pixelUnitString + ")");
 		
 			// iterate over all regions, and for each region over all lobes,
 			// and count for each lobe the number of adjacent labels
@@ -2888,7 +2956,7 @@ public class PaCeQuant extends MTBOperator {
 		if (this.resultCellLabelImg == null) {
 			this.resultCellLabelImg = (MTBImageShort)
 					this.morphFeatureOp.getLabelImage().convertType(
-							MTBImageType.MTB_SHORT, true);
+							MTBImageType.MTB_SHORT, false);
 			// mark center of masses by region IDs
 			if (this.drawRegionIDsToOutputImages) {
 				int regionID = 1;
@@ -2912,44 +2980,19 @@ public class PaCeQuant extends MTBOperator {
 		}
 		
 		// initialize result feature table, region IDs range from 1 to N
-		int featureNum = 28;
+		int featureNum = 29;
 		MTBTableModel featureTable = new MTBTableModel(regions.size(), 
 				featureNum);
 		// select relevant columns and update names
+		String colName, featureName;
 		for (int c=0; c<featureNum; ++c) {
-			featureTable.setColumnName(c, 
-					morphTab.getColumnName(c).replace(" ", "_"));
+			colName = morphTab.getColumnName(c);
+			featureName = colName.split(" ")[0];
+			if (featureNameMapper.get(featureName) != null)
+				colName = morphTab.getColumnName(c).replace(
+					featureName, featureNameMapper.get(featureName));
+			featureTable.setColumnName(c, colName.replace(" ", "_"));
 		}
-		// 12: AvgDistBranchEndpointsToBackground -> AvgEndpointDist
-		featureTable.setColumnName(11, featureTable.getColumnName(11).replace(
-				"AvgDistBranchEndpointsToBackground", "AvgEndpointDist")); 
-		// 14: MinCoreRegionWidth -> MinCoreWidth
-		featureTable.setColumnName(13, featureTable.getColumnName(13).replace(
-				"MinCoreRegionWidth", "MinCoreWidth")); 
-		// 15: MaxCoreRegionWidth -> MaxCoreWidth
-		featureTable.setColumnName(14, featureTable.getColumnName(14).replace(
-				"MaxCoreRegionWidth", "MaxCoreWidth")); 
-		// 22: NumberOfProtrusions -> LobeNumber
-		featureTable.setColumnName(21, featureTable.getColumnName(21).replace(
-				"NumberOfProtrusions", "LobeNumber")); 
-		// 23: NonProtrusionArea -> NoneLobeArea
-		featureTable.setColumnName(22, featureTable.getColumnName(22).replace(
-				"NonProtrusionArea", "NoneLobeArea")); 
-		// 24: AvgLengthProtrusions -> 	AvgLobeLength
-		featureTable.setColumnName(23, featureTable.getColumnName(23).replace(
-				"AvgLengthProtrusions", "AvgLobeLength")); 		
-		// 25: AvgLengthApicalProtrusions -> AvgApicalLobeLength
-		featureTable.setColumnName(24, featureTable.getColumnName(24).replace(
-				"AvgLengthApicalProtrusions", "AvgApicalLobeLength")); 		
-		// 26: AvgLengthBasalProtrusions -> AvgBasalLobeLength
-		featureTable.setColumnName(25, featureTable.getColumnName(25).replace(
-				"AvgLengthBasalProtrusions", "AvgBasalLobeLength")); 		
-		// 27: AvgLengthBaselineProtrusions -> AvgBasalLobeWidth
-		featureTable.setColumnName(26, featureTable.getColumnName(26).replace(
-				"AvgLengthBaselineProtrusions", "AvgBasalLobeWidth")); 		
-		// 28: AvgLengthEquatorProtrusions -> AvgEquatorLobeWidth	
-		featureTable.setColumnName(27, featureTable.getColumnName(27).replace(
-				"AvgLengthEquatorProtrusions", "AvgEquatorLobeWidth")); 
 
 		// copy and convert data
 		for (int r=0; r<morphTab.getRowCount(); ++r) {

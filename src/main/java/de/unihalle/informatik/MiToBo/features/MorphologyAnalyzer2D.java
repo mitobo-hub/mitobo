@@ -222,7 +222,15 @@ public class MorphologyAnalyzer2D extends MTBOperator
 		 * nearest neighbors, i.e. no midpoint has a larger distance to its 
 		 * closest neighbor than this value.
 		 */
-		MaxCoreRegionWidth
+		MaxCoreRegionWidth,
+		/**
+		 * Radius of largest circle that completely fits into the region boundary.
+		 * <p>
+		 * The radius is defined as the Euclidean distance of the point farest away
+		 * from the boundary to the corresponding boundary. The point is determined
+		 * as the global maximum of a distance transformation of the region. 
+		 */
+		LargestEmptyCircle
 	}
 
 	@Parameter(label = "Label image", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "label image", dataIOOrder = 0,
@@ -444,7 +452,8 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	
 	private Vector<Double> minCoreRegionWidths;
 	private Vector<Double> maxCoreRegionWidths;
-	
+	private Vector<Double> radiiMaxInscribedEmptyCircles;
+
 	private Vector<Integer> protrusionCounts;
 	private Vector<Double> nonProtrusionAreas;
 	
@@ -597,6 +606,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 		
 		this.minCoreRegionWidths = new Vector<Double>();
 		this.maxCoreRegionWidths = new Vector<Double>();
+		this.radiiMaxInscribedEmptyCircles = new Vector<>();
 
 		this.protrusionCounts = new Vector<Integer>();
 		this.nonProtrusionAreas = new Vector<Double>();
@@ -762,6 +772,8 @@ public class MorphologyAnalyzer2D extends MTBOperator
 				Region2DSkeletonAnalyzer.FeatureNames.MinCoreRegionWidth.toString());
 			int maxCoreRegionWidthIndex = skeletonData.findColumn(
 				Region2DSkeletonAnalyzer.FeatureNames.MaxCoreRegionWidth.toString());
+			int radiiMaxEmptyCircleIndex = skeletonData.findColumn(
+					Region2DSkeletonAnalyzer.FeatureNames.LargestEmptyCircle.toString());
 			for (int i = 0; i<skeletonData.getRowCount(); ++i) {
 				this.branchCounts.add(Double.valueOf(
 					(String)skeletonData.getValueAt(i, branchCountIndex)));
@@ -775,6 +787,8 @@ public class MorphologyAnalyzer2D extends MTBOperator
 					(String)skeletonData.getValueAt(i, minCoreRegionWidthIndex)));
 				this.maxCoreRegionWidths.add(Double.valueOf(
 					(String)skeletonData.getValueAt(i, maxCoreRegionWidthIndex)));
+				this.radiiMaxInscribedEmptyCircles.add(Double.valueOf(
+					(String)skeletonData.getValueAt(i, radiiMaxEmptyCircleIndex)));
 			}
 		}
 	}
@@ -829,6 +843,8 @@ public class MorphologyAnalyzer2D extends MTBOperator
 			header.add(FeatureNames.MinCoreRegionWidth.toString()
 					+ " ("+ this.unitXY + ")" );
 			header.add(FeatureNames.MaxCoreRegionWidth.toString()
+					+ " ("+ this.unitXY + ")" );
+			header.add(FeatureNames.LargestEmptyCircle.toString()
 					+ " ("+ this.unitXY + ")" );
 		}
 		if (this.calcConcavityData) 
@@ -937,6 +953,9 @@ public class MorphologyAnalyzer2D extends MTBOperator
 				col++;
 				this.table.setValueAt(this.nf.format(
 						this.maxCoreRegionWidths.elementAt(i)), i, col);
+				col++;
+				this.table.setValueAt(this.nf.format(
+						this.radiiMaxInscribedEmptyCircles.elementAt(i)), i, col);
 				col++;
 			}
 			if (this.calcConcavityData) 
