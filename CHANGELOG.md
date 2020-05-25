@@ -5,6 +5,9 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 
 ## [Unreleased]
 ### Added
+- MTBRootTree: added reroot method
+- RhizoProjectLayerMetadataContainer: new container class to exchange project metadata between rhizoTrak and MiToBo
+- RootImageSegmentationOperator: new methods to request transfer of diameter and status during data import into rhizoTrak
 
 ### Changed
 
