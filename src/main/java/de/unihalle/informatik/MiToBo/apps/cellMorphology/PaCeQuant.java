@@ -1182,7 +1182,7 @@ public class PaCeQuant extends MTBOperator {
 							}
 						}
 						
-						binarySegmentationImage = (MTBImageByte)workImg.duplicate();
+						binarySegmentationImage = (MTBImageByte)workImg.convertType(MTBImageType.MTB_BYTE, true);
 						for (int y=0; y<this.height; ++y)
 							for (int x=0; x<this.width; ++x) 
 								if (binarySegmentationImage.getValueInt(x, y) > 0)
