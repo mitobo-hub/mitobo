@@ -2247,21 +2247,23 @@ public class PaCeQuant extends MTBOperator {
 		morphOp.setMode(BasicMorphology.opMode.ERODE);
 		morphOp.runOp(HidingMode.HIDE_CHILDREN);
 		skelImg = (MTBImageByte)morphOp.getResultImage();
+		
+//		// fill holes in region components
+//		this.fireOperatorExecutionProgressEvent(
+//				new ALDOperatorExecutionProgressEvent(this, operatorID 
+//					+ " -> filling holes..."));
+//		FillHoles2D holeFiller = new FillHoles2D(skelImg);
+//		holeFiller.runOp(HidingMode.HIDE_CHILDREN);
+//		MTBImageByte filledImg = (MTBImageByte)holeFiller.getResultImage();
+//		if (this.showAdditionalResultImages) {
+//			this.addResultImages.add((MTBImageRGB)(
+//				filledImg.convertType(MTBImageType.MTB_RGB, false)));
+//			this.addResultImages.get(this.addResultImages.size()-1).
+//				setTitle("Result after erosion and hole filling");
+//		}
 
-		// fill holes in region components
-		this.fireOperatorExecutionProgressEvent(
-				new ALDOperatorExecutionProgressEvent(this, operatorID 
-					+ " -> filling holes..."));
-		FillHoles2D holeFiller = new FillHoles2D(skelImg);
-		holeFiller.runOp(HidingMode.HIDE_CHILDREN);
-		MTBImageByte filledImg = (MTBImageByte)holeFiller.getResultImage();
-		if (this.showAdditionalResultImages) {
-			this.addResultImages.add((MTBImageRGB)(
-				filledImg.convertType(MTBImageType.MTB_RGB, false)));
-			this.addResultImages.get(this.addResultImages.size()-1).
-				setTitle("Result after erosion and hole filling");
-		}
-
+		MTBImageByte filledImg = skelImg;
+	
 		// invert image again, boundaries white again
 		for (int y=0; y<this.height; ++y)
 			for (int x=0; x<this.width; ++x)
@@ -2664,6 +2666,27 @@ public class PaCeQuant extends MTBOperator {
 		postOp.runOp(HidingMode.HIDE_CHILDREN);
 		tmpImg = (MTBImageByte) postOp.getResultImage();
 				
+		// remove components touching the image border by filling them in black
+		boolean touchingBorder;
+		LabelComponentsSequential labler = new LabelComponentsSequential(tmpImg, true);
+		labler.runOp();
+		MTBRegion2DSet regs = labler.getResultingRegions();
+		for (MTBRegion2D r: regs) {
+			touchingBorder = false;
+			for (Point2D.Double p: r.getPoints()) {
+				if (   p.x == 0 || p.x == tmpImg.getSizeX()-1
+						|| p.y == 0 || p.y == tmpImg.getSizeY()-1) {
+					touchingBorder = true;
+					break;
+				}
+			}
+			if (touchingBorder) {
+				for (Point2D.Double p: r.getPoints()) {
+					tmpImg.putValueInt((int)p.x, (int)p.y, 0);
+				}
+			}
+		}
+
 		// fill holes in region components
 		this.fireOperatorExecutionProgressEvent(
 				new ALDOperatorExecutionProgressEvent(this, operatorID 
@@ -2676,12 +2699,11 @@ public class PaCeQuant extends MTBOperator {
 		this.fireOperatorExecutionProgressEvent(
 				new ALDOperatorExecutionProgressEvent(this, operatorID 
 					+ " -> running sequential component labeling..."));
-		LabelComponentsSequential labler = 
-				new LabelComponentsSequential(tmpImg, true);
+		labler = new LabelComponentsSequential(tmpImg, true);
 		labler.runOp(HidingMode.HIDE_CHILDREN);
 		MTBRegion2DSet regions = labler.getResultingRegions();
 		
-		// filter regions which are touching the image border
+		// filter regions which are touching the image border (with larger margin)
 		this.fireOperatorExecutionProgressEvent(
 				new ALDOperatorExecutionProgressEvent(this, operatorID 
 					+ " -> finally filtering regions, found " + regions.size() 
@@ -2690,7 +2712,7 @@ public class PaCeQuant extends MTBOperator {
 		MTBRegion2DSet validRegions = new MTBRegion2DSet(regions.getXmin(), 
 				regions.getYmin(), regions.getXmax(), regions.getYmax());
 		
-		boolean touchingBorder = false;
+		touchingBorder = false;
 		for (MTBRegion2D r: regions) {
 			
 			// eliminate region if touching image border; 
