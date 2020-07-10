@@ -1502,6 +1502,13 @@ public class MorphologyAnalyzer2D extends MTBOperator
 		gaussFilter.setSigma(this.gaussianSigma);
 		int i=0;
 		for (double[] values: curvatureValues) {
+			// make sure that we have enough curvature values 
+			// to apply cyclic Gaussian smoothing
+			if (values.length < (int)this.gaussianSigma) {
+				curvatureValues.setElementAt(null, i);
+				++i;
+				continue;
+			}
 			gaussFilter.setInputArray(values);
 			gaussFilter.runOp(HidingMode.HIDE_CHILDREN);
 			curvatureValues.setElementAt(gaussFilter.getResultArray(), i);
@@ -1513,12 +1520,17 @@ public class MorphologyAnalyzer2D extends MTBOperator
 			// from curvatures to be found on an optimal circle
 			double curvSum = 0;
 			for (double[] values: curvatureValues) {
+				// if contour is too short, we don't have curvature values,
+				// hence, likewise no margin roughness
+				if (values == null) {
+					this.marginRoughnessValues.add(Double.NaN);
+					continue;
+				}
 				curvSum = 0;
 				for (double d: values)
 					curvSum += Math.abs(d);
 				double expectedValue = 360.0/values.length;
-				this.marginRoughnessValues.add(
-						new Double(curvSum/values.length - expectedValue));
+				this.marginRoughnessValues.add(curvSum/values.length - expectedValue);
 			}
 		}
 		

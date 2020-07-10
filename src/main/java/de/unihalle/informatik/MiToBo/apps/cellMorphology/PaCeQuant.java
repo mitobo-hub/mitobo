@@ -1438,9 +1438,12 @@ public class PaCeQuant extends MTBOperator {
 										String c;
 										for (int i=0; i<regionsToProcess.size(); ++i) {
 											lobeTab = this.resultLobeFeatureTables.elementAt(i);
-											c = String.format("%03d", new Integer(i+1));
-											lobeTab.saveTable(new File(resultDir + File.separator 
-												+ fileRoot + "-cell-" + c + "-lobe-table.txt"));
+											// skip cells where lobe analysis failed
+											if (lobeTab != null) {
+												c = String.format("%03d", i+1);
+												lobeTab.saveTable(new File(resultDir + File.separator 
+													+ fileRoot + "-cell-" + c + "-lobe-table.txt"));
+											}
 										}
 									}
 
@@ -1692,9 +1695,12 @@ public class PaCeQuant extends MTBOperator {
 										String c;
 										for (int i=0; i<regionsToProcess.size(); ++i) {
 											lobeTab = this.resultLobeFeatureTables.elementAt(i);
-											c = String.format("%03d", new Integer(i+1));
-											lobeTab.saveTable(new File(resultDir + File.separator 
-												+ fileRoot + "-cell-" + c + "-lobe-table.txt"));
+											// skip cells where lobe analysis failed
+											if (lobeTab != null) {
+												c = String.format("%03d", i+1);
+												lobeTab.saveTable(new File(resultDir + File.separator 
+													+ fileRoot + "-cell-" + c + "-lobe-table.txt"));
+											}
 										}
 									}
 									
@@ -2834,120 +2840,125 @@ public class PaCeQuant extends MTBOperator {
 
 				LinkedList<InProContourSegment> segs = mipd.getProtrusionSegments();
 
-				MTBTableModel lobeTab = 
-						new MTBTableModel(segs.size(), header.size(), header);
+				MTBTableModel lobeTab;
+				if (segs.isEmpty()) {
+					lobeTab = null;
+				}
+				else {
+					lobeTab =	new MTBTableModel(segs.size(), header.size(), header);
 
-				int segID = 0;
-				double leftLength, rightLength;
-				for (InProContourSegment ipc: segs) {
-		
-					leftLength= 0;
-					rightLength= 0;
+					int segID = 0;
+					double leftLength, rightLength;
+					for (InProContourSegment ipc: segs) {
 
-					labels.clear();
-					for (Point2D.Double p: ipc.initialSegmentPoints) {
-						int px = (int)p.x;
-						int py = (int)p.y;
-						for (int dy=-nbSize;dy<=nbSize;++dy) {
-							for (int dx=-nbSize;dx<=nbSize;++dx) {
-								if (   px+dx>=0 && px+dx<this.width 
-										&& py+dy>=0 && py+dy<this.height)
-									labels.add(
-											new Integer(finalLabelImg.getValueInt(px+dx, py+dy)));
-							}						
-						}
-					}
-					LobeTypes lobeClass = LobeTypes.UNDEFINED;
-					int color = 0;
-					// type 1: two regions, no background
-					if (labels.size() == 2 && !labels.contains(new Integer(0))) {
-						color = 1;
-						lobeClass = LobeTypes.TYPE_1;
-					}
-					// type 2: three regions, no background 
-					else if (labels.size() == 3 && !labels.contains(new Integer(0))) {
-						color = 2;
-						lobeClass = LobeTypes.TYPE_2;
-						
-						// search for contact point closest to contour
-						int minID=-1;
-						double minDist = Double.MAX_VALUE;
-						int id = 0;
+						leftLength= 0;
+						rightLength= 0;
+
+						labels.clear();
 						for (Point2D.Double p: ipc.initialSegmentPoints) {
-							for (Point2D.Double t: threeContactPoints) {
-								if (p.distance(t) < minDist) {
-									minDist = p.distance(t);
-									minID = id;
-								}
+							int px = (int)p.x;
+							int py = (int)p.y;
+							for (int dy=-nbSize;dy<=nbSize;++dy) {
+								for (int dx=-nbSize;dx<=nbSize;++dx) {
+									if (   px+dx>=0 && px+dx<this.width 
+											&& py+dy>=0 && py+dy<this.height)
+										labels.add(
+												new Integer(finalLabelImg.getValueInt(px+dx, py+dy)));
+								}						
 							}
-							++id;
 						}
-						// draw 3-contact-point to result image
-						this.resultLobeTypeImage.drawCircle2D(
-							(int)ipc.initialSegmentPoints.get(minID).x, 
-								(int)ipc.initialSegmentPoints.get(minID).y, 0, 2, 0);
-						// calculate segment lengths
-						for (int i=0; i<minID; ++i) {
-							leftLength += ipc.initialSegmentPoints.get(i).distance(
-									ipc.initialSegmentPoints.get(i+1));
+						LobeTypes lobeClass = LobeTypes.UNDEFINED;
+						int color = 0;
+						// type 1: two regions, no background
+						if (labels.size() == 2 && !labels.contains(new Integer(0))) {
+							color = 1;
+							lobeClass = LobeTypes.TYPE_1;
 						}
-						leftLength *= this.pixelLengthXYinternal;
-						for (int i=minID; i<ipc.initialSegmentPoints.size()-1; ++i) {
-							rightLength += ipc.initialSegmentPoints.get(i).distance(
-									ipc.initialSegmentPoints.get(i+1));
+						// type 2: three regions, no background 
+						else if (labels.size() == 3 && !labels.contains(new Integer(0))) {
+							color = 2;
+							lobeClass = LobeTypes.TYPE_2;
+
+							// search for contact point closest to contour
+							int minID=-1;
+							double minDist = Double.MAX_VALUE;
+							int id = 0;
+							for (Point2D.Double p: ipc.initialSegmentPoints) {
+								for (Point2D.Double t: threeContactPoints) {
+									if (p.distance(t) < minDist) {
+										minDist = p.distance(t);
+										minID = id;
+									}
+								}
+								++id;
+							}
+							// draw 3-contact-point to result image
+							this.resultLobeTypeImage.drawCircle2D(
+									(int)ipc.initialSegmentPoints.get(minID).x, 
+									(int)ipc.initialSegmentPoints.get(minID).y, 0, 2, 0);
+							// calculate segment lengths
+							for (int i=0; i<minID; ++i) {
+								leftLength += ipc.initialSegmentPoints.get(i).distance(
+										ipc.initialSegmentPoints.get(i+1));
+							}
+							leftLength *= this.pixelLengthXYinternal;
+							for (int i=minID; i<ipc.initialSegmentPoints.size()-1; ++i) {
+								rightLength += ipc.initialSegmentPoints.get(i).distance(
+										ipc.initialSegmentPoints.get(i+1));
+							}
+							rightLength *= this.pixelLengthXYinternal;		
 						}
-						rightLength *= this.pixelLengthXYinternal;		
-					}
-					// undefined: cell close to unsegmented background
-					else {
-						color = 0;
-						lobeClass = LobeTypes.UNDEFINED;
-					}
-					for (Point2D.Double p: ipc.initialSegmentPoints) {
-						int px = (int)p.x;
-						int py = (int)p.y;
-						switch(color) 
-						{
-						case 0:
-							this.resultLobeTypeImage.putValueR(px, py, color);
-							this.resultLobeTypeImage.putValueG(px, py, color);
-							this.resultLobeTypeImage.putValueB(px, py, color);
-							break;
-						case 1:
-							this.resultLobeTypeImage.putValueR(px, py, 0);
-							this.resultLobeTypeImage.putValueG(px, py, 0);
-							this.resultLobeTypeImage.putValueB(px, py, 255);
-							break;
-						case 2:
-							this.resultLobeTypeImage.putValueR(px, py, 255);
-							this.resultLobeTypeImage.putValueG(px, py, 120);
-							this.resultLobeTypeImage.putValueB(px, py, 80);
-							break;
+						// undefined: cell close to unsegmented background
+						else {
+							color = 0;
+							lobeClass = LobeTypes.UNDEFINED;
 						}
-					}
-					lobeTab.setValueAt(new Integer(segID+1), segID, 0);
-					lobeTab.setValueAt(lobeClass.toString(), segID, 1);			
-					lobeTab.setValueAt(new Double(ipc.getEquatorLength()), segID, 2);
-					lobeTab.setValueAt(new Double(ipc.getBaselineLength()), segID, 3);
-					lobeTab.setValueAt(new Double(ipc.getApicalLength()), segID, 4);
-					lobeTab.setValueAt(new Double(ipc.getBasalLength()), segID, 5);
-					lobeTab.setValueAt(new Double(ipc.getTotalLength()), segID, 6);
-					if (   lobeClass.equals(LobeTypes.TYPE_1)
-							|| lobeClass.equals(LobeTypes.UNDEFINED)) {
-						lobeTab.setValueAt(new Double(Double.NaN), segID, 7);			
-						lobeTab.setValueAt(new Double(Double.NaN), segID, 8);									
-					}
-					else {
-						if (leftLength > rightLength) {
-							lobeTab.setValueAt(new Double(leftLength), segID, 7);			
-							lobeTab.setValueAt(new Double(rightLength), segID, 8);
+						for (Point2D.Double p: ipc.initialSegmentPoints) {
+							int px = (int)p.x;
+							int py = (int)p.y;
+							switch(color) 
+							{
+							case 0:
+								this.resultLobeTypeImage.putValueR(px, py, color);
+								this.resultLobeTypeImage.putValueG(px, py, color);
+								this.resultLobeTypeImage.putValueB(px, py, color);
+								break;
+							case 1:
+								this.resultLobeTypeImage.putValueR(px, py, 0);
+								this.resultLobeTypeImage.putValueG(px, py, 0);
+								this.resultLobeTypeImage.putValueB(px, py, 255);
+								break;
+							case 2:
+								this.resultLobeTypeImage.putValueR(px, py, 255);
+								this.resultLobeTypeImage.putValueG(px, py, 120);
+								this.resultLobeTypeImage.putValueB(px, py, 80);
+								break;
+							}
+						}
+						lobeTab.setValueAt(new Integer(segID+1), segID, 0);
+						lobeTab.setValueAt(lobeClass.toString(), segID, 1);			
+						lobeTab.setValueAt(new Double(ipc.getEquatorLength()), segID, 2);
+						lobeTab.setValueAt(new Double(ipc.getBaselineLength()), segID, 3);
+						lobeTab.setValueAt(new Double(ipc.getApicalLength()), segID, 4);
+						lobeTab.setValueAt(new Double(ipc.getBasalLength()), segID, 5);
+						lobeTab.setValueAt(new Double(ipc.getTotalLength()), segID, 6);
+						if (   lobeClass.equals(LobeTypes.TYPE_1)
+								|| lobeClass.equals(LobeTypes.UNDEFINED)) {
+							lobeTab.setValueAt(new Double(Double.NaN), segID, 7);			
+							lobeTab.setValueAt(new Double(Double.NaN), segID, 8);									
 						}
 						else {
-							lobeTab.setValueAt(new Double(rightLength), segID, 7);			
-							lobeTab.setValueAt(new Double(leftLength), segID, 8);							
+							if (leftLength > rightLength) {
+								lobeTab.setValueAt(new Double(leftLength), segID, 7);			
+								lobeTab.setValueAt(new Double(rightLength), segID, 8);
+							}
+							else {
+								lobeTab.setValueAt(new Double(rightLength), segID, 7);			
+								lobeTab.setValueAt(new Double(leftLength), segID, 8);							
+							}
 						}
+						++segID;
 					}
-					++segID;
 				}
 				// store table to result vector
 				this.resultLobeFeatureTables.add(lobeTab);
