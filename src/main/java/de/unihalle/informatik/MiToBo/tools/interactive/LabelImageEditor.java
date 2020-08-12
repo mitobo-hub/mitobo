@@ -58,7 +58,7 @@ import de.unihalle.informatik.Alida.operator.ALDOperator;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType;
-import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageByte;
+import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageShort;
 import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
 import de.unihalle.informatik.MiToBo.io.dirs.DirectoryTree;
 import de.unihalle.informatik.MiToBo.io.images.ImageReaderMTB;
@@ -137,7 +137,7 @@ public class LabelImageEditor extends MTBOperator
 	/**
 	 * Image currently under processing.
 	 */
-	private MTBImageByte activeImage;
+	private MTBImageShort activeImage;
 	
 	/**
 	 * Reference to currently active image.
@@ -267,8 +267,8 @@ public class LabelImageEditor extends MTBOperator
 				reader.setFileName(f);
 				reader.runOp();
 				this.originalImage = reader.getResultMTBImage();
-				this.activeImage = (MTBImageByte)this.originalImage.convertType(
-								MTBImageType.MTB_BYTE, true);
+				this.activeImage = (MTBImageShort)this.originalImage.convertType(
+								MTBImageType.MTB_SHORT, true);
 				
 				// init frame with first image
 				if (this.activePlus == null) {
@@ -530,9 +530,9 @@ public class LabelImageEditor extends MTBOperator
 		// relabel image
 		else if (c.equals("relabel")) {
 			
-			MTBImageByte binImage = 
-					(MTBImageByte)this.activeImage.duplicate().convertType(
-							MTBImageType.MTB_BYTE, true);
+			MTBImageShort binImage = 
+					(MTBImageShort)this.activeImage.duplicate().convertType(
+							MTBImageType.MTB_SHORT, true);
 			binImage.fillBlack();
 			for (int y=0; y<this.activeProcessor.getHeight();++y) {
 				for (int x=0; x<this.activeProcessor.getWidth();++x) {
@@ -577,8 +577,9 @@ public class LabelImageEditor extends MTBOperator
 				int width = this.activeProcessor.getWidth();
 				
 				// background image with boundaries and holes in white
-				MTBImageByte backImage = 
-					(MTBImageByte)this.activeImage.duplicate();
+				MTBImageShort backImage = 
+					(MTBImageShort)this.activeImage.duplicate().convertType(
+							MTBImageType.MTB_SHORT, true);
 				backImage.fillBlack();
 				for (int y=0; y<height;++y) {
 					for (int x=0; x<width;++x) {
@@ -593,12 +594,12 @@ public class LabelImageEditor extends MTBOperator
 				bm.setMask(BasicMorphology.maskShape.CIRCLE, 1);
 				bm.setMode(opMode.ERODE);
 				bm.runOp();
-				backImage = (MTBImageByte)bm.getResultImage();
+				backImage = (MTBImageShort)bm.getResultImage();
 				bm.setInImg(backImage);
 				bm.setMask(BasicMorphology.maskShape.CIRCLE, 1);
 				bm.setMode(opMode.DILATE);
 				bm.runOp();
-				backImage = (MTBImageByte)bm.getResultImage();
+				backImage = (MTBImageShort)bm.getResultImage();
 				
 				// label hole regions
 				LabelComponentsSequential lop = 
