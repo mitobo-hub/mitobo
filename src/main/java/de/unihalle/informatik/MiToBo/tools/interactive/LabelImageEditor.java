@@ -28,6 +28,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -288,7 +289,6 @@ public class LabelImageEditor extends MTBOperator
 					Thread.sleep(100);
 				}
 				if (this.finished) {
-					System.out.println("Finished!");
 					return;
 				}
 			} catch (Exception e) {
@@ -310,6 +310,7 @@ public class LabelImageEditor extends MTBOperator
 	 */
 	@Override
 	public void mouseClicked(MouseEvent e) {
+		
 		// get mouse position in image 
 		int mx = this.ic.offScreenX(e.getX());
 		int my = this.ic.offScreenY(e.getY());
@@ -317,19 +318,29 @@ public class LabelImageEditor extends MTBOperator
 		// get label at click position
 		int label = this.activeProcessor.getPixel(mx, my);
 		
+		int onmask = InputEvent.META_DOWN_MASK;
+    if ((e.getModifiersEx() & onmask) == onmask) {
+    	System.out.println("Meta down");
+    }
+		
+    boolean fillInRegion = false;
+    if (label == 0 && IJ.shiftKeyDown() && IJ.controlKeyDown()) {
+			fillInRegion = true;
+		}
+    
 		// ignore clicks to the background except in memory mode
 		// => filling in background regions is allowed
-		if (label == 0 && !this.memoryMode)
+		if ( label == 0 && !( this.memoryMode || fillInRegion ))
 			return;
 		
-		if (IJ.shiftKeyDown()) {
+		if (IJ.shiftKeyDown() && !IJ.controlKeyDown()) {
 			this.memoryMode = true;
 			this.lastLabel = label;
 			return;
 		}
 
 		boolean newLabel = false;
-		if (IJ.controlKeyDown()) {
+		if (IJ.controlKeyDown() && !IJ.shiftKeyDown()) {
 			newLabel = true;
 		}
 		
@@ -370,6 +381,29 @@ public class LabelImageEditor extends MTBOperator
 			}
 			newLabel = false;
 		}
+		// fill-in the clicked (background) region
+		else if (fillInRegion) {
+
+			// determine new label to assign
+			int clabel;
+			int maxLabel = 0;
+			TreeSet<Integer> labels = new TreeSet<>();
+			for (int y=0; y<this.activeProcessor.getHeight();++y) {
+				for (int x=0; x<this.activeProcessor.getWidth();++x) {
+					clabel = this.activeProcessor.getPixel(x, y);
+					labels.add(new Integer(clabel));
+					if (clabel > maxLabel)
+						maxLabel = clabel;
+				}
+			}
+			// search for next free label to assign
+			for (int nl = maxLabel; nl > 0; --nl) {
+				if (labels.contains(new Integer(nl)))
+					continue;
+				labelNeighbors(this.activeProcessor, mx, my, nl);
+			}
+		}
+		// remove the clicked region
 		else {
 			for (int y=0; y<this.activeProcessor.getHeight();++y) {
 				for (int x=0; x<this.activeProcessor.getWidth();++x) {
@@ -385,6 +419,54 @@ public class LabelImageEditor extends MTBOperator
 		this.ic.repaint();
 	}
 
+	/**
+	 * Recursively label neighbors until approaching next region. 
+	 * 
+	 * @param ip		Image processor to modify.
+	 * @param px		Position in x where to start.
+	 * @param py		Position in y where to start.
+	 * @param label	Label to assign to new region.
+	 */
+	private static void labelNeighbors(ImageProcessor ip, 
+			int px, int py, int label) {
+		
+		int borderWidth = 3;
+		
+		// if pixel is already labeled, it is not of interest for us
+		if (ip.getPixel(px, py) != 0)
+			return;
+		
+		int nx = -1, ny = -1;
+		// check all neighbors
+		for (int dy=-borderWidth; dy<=borderWidth; ++dy) {
+			for (int dx=-borderWidth; dx<=borderWidth; ++dx) {
+				nx = px+dx;
+				ny = py+dy;
+				if (nx<0 || nx>=ip.getWidth() || ny<0 || ny>=ip.getHeight()) 
+					continue;
+				// if we have foreign neighbors, cancel further processing
+				if (ip.getPixel(nx, ny) != 0 && ip.getPixel(nx, ny) != label) {
+					return;
+				}
+			}
+		}
+		// there are no foreign neighbors => label pixel
+		ip.putPixel(px, py, label);
+		for (int dy=-borderWidth; dy<=borderWidth; ++dy) {
+			for (int dx=-borderWidth; dx<=borderWidth; ++dx) {
+				// skip pixel itself
+				if (dx==0 && dy==0)
+					continue;
+				nx = px+dx;
+				ny = py+dy;
+				if (nx<0 || nx>=ip.getWidth() || ny<0 || ny>=ip.getHeight()) 
+					continue;
+				// continue recursively
+				labelNeighbors(ip, nx, ny, label);
+			}
+		}
+	}
+	
 	@Override
 	public void mousePressed(MouseEvent e) {
 		
