@@ -62,6 +62,7 @@ import de.unihalle.informatik.MiToBo.features.MorphologyAnalyzer2DInProData;
 import de.unihalle.informatik.MiToBo.features.MorphologyAnalyzer2D.FeatureNames;
 import de.unihalle.informatik.MiToBo.features.MorphologyAnalyzer2DInProData.InProContourSegment;
 import de.unihalle.informatik.MiToBo.filters.linear.GaussFilter;
+import de.unihalle.informatik.MiToBo.filters.linear.GaussFilter.SigmaInterpretation;
 import de.unihalle.informatik.MiToBo.filters.linear.anisotropic.GaussPDxxFilter2D;
 import de.unihalle.informatik.MiToBo.filters.linear.anisotropic.OrientedFilter2DBatchAnalyzer;
 import de.unihalle.informatik.MiToBo.filters.nonlinear.RankOperator;
@@ -478,6 +479,15 @@ public class PaCeQuant extends MTBOperator {
 			direction = Parameter.Direction.IN, dataIOOrder = 12,
 			mode = ExpertMode.STANDARD, description = "Enable/disable lobe types.")
 	private boolean classifyLobes = false;
+
+	/**
+	 * Gaussian smoothing configuration.
+	 */
+	@Parameter(label = "Gaussian Sigma Interpretation", required = false, 
+		direction = Parameter.Direction.IN,	dataIOOrder = -6, 
+		mode = ExpertMode.ADVANCED, 
+		description = "Interpretation of Gaussian sigma.")
+	public SigmaInterpretation sigmaMeaning = SigmaInterpretation.PHYSICALSIZE; 
 
 	/**
 	 * Niblack threshold.
@@ -2087,6 +2097,10 @@ public class PaCeQuant extends MTBOperator {
 		if (!(this.imType == ImageType.AGAROSE_IMPRINT)) {
 			GaussFilter gaussOp = new GaussFilter();
 			gaussOp.setInputImg(enhancedImg);
+			// usually and by default sigma is interpreted in terms of real phyical
+			// pixel sizes, but in case of uncommon calibrations it might be 
+			// necessary to switch to pixel interpretation mode by the user
+			gaussOp.setSigmaInterpretation(this.sigmaMeaning);
 			gaussOp.runOp(HidingMode.HIDE_CHILDREN);
 			this.gaussFilterImg = gaussOp.getResultImg();
 			MTBImageRGB gaussFilterResult = 
