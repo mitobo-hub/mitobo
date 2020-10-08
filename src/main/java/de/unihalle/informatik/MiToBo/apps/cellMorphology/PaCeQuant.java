@@ -428,14 +428,6 @@ public class PaCeQuant extends MTBOperator {
 	private int naiveGapThreshold = 20;
 	
 	/**
-	 * Units for size thresholds.
-	 */
-	@Parameter(label = "Unit for Size Thresholds", required = true, 
-			direction = Parameter.Direction.IN, dataIOOrder = 8,
-			description = "Unit of specified size thresholds.")
-	private MeasurementUnits thresholdUnits = MeasurementUnits.PIXELS;
-	
-	/**
 	 * Threshold for the minimal admissible cell size.
 	 * <p>
 	 * Cell regions falling below this threshold are ignored.
@@ -456,10 +448,18 @@ public class PaCeQuant extends MTBOperator {
 	private double maximalCellSize = 1000000;
 
 	/**
+	 * Units for size thresholds.
+	 */
+	@Parameter(label = "Unit for Size Thresholds", required = true, 
+			direction = Parameter.Direction.IN, dataIOOrder = 10,
+			description = "Unit of specified size thresholds.")
+	private MeasurementUnits thresholdUnits = MeasurementUnits.PIXELS;
+	
+	/**
 	 * Info string for segmentation phase configuration parameters.
 	 */
 	@Parameter(label = "Configure feature extraction phase:", required = true, 
-			direction = Parameter.Direction.IN, dataIOOrder = 10, info = true,
+			direction = Parameter.Direction.IN, dataIOOrder = 15, info = true,
 			mode = ExpertMode.STANDARD, description = "Info string.")
 	private String phaseBInfo = 
 		"<html><u>Configure feature extraction phase:</u></html>";
@@ -468,7 +468,7 @@ public class PaCeQuant extends MTBOperator {
 	 * Operator to analyze morphology of cells.
 	 */
 	@Parameter(label = "Feature Extraction", required = true,
-			direction = Parameter.Direction.IN, dataIOOrder = 11,
+			direction = Parameter.Direction.IN, dataIOOrder = 16,
 			mode = ExpertMode.STANDARD, description = "Feature extraction operator.")
 	private MorphologyAnalyzer2D morphFeatureOp = null;
 	
@@ -476,7 +476,7 @@ public class PaCeQuant extends MTBOperator {
 	 * Flag to classify lobes into different type classes.
 	 */
 	@Parameter(label = "Analyze lobe types?", required = true,
-			direction = Parameter.Direction.IN, dataIOOrder = 12,
+			direction = Parameter.Direction.IN, dataIOOrder = 17,
 			mode = ExpertMode.STANDARD, description = "Enable/disable lobe types.")
 	private boolean classifyLobes = false;
 
