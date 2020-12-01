@@ -318,6 +318,10 @@ public class CytoskeletonAnalyzer2D extends MTBOperator {
   protected void operate()
   		throws ALDOperatorException, ALDProcessingDAGException {
 
+		// reset some internal local variables
+		this.imageWidth = -1;
+		this.imageHeight = -1;
+		
 		// for each image calculate feature vectors (if requested)
 		if (this.doFeatureCalculation) {
 			if (this.verbose.booleanValue())
