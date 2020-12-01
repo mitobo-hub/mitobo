@@ -5,9 +5,6 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 
 ## [Unreleased]
 ### Added
-- MTBRootTree: added reroot method
-- RhizoProjectLayerMetadataContainer: new container class to exchange project metadata between rhizoTrak and MiToBo
-- RootImageSegmentationOperator: new methods to request transfer of diameter and status during data import into rhizoTrak
 
 ### Changed
 
@@ -16,6 +13,23 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 ### Removed
 
 ### Fixed
+
+## [2.1] - 2020-12-01
+Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
+- Released MiToBo 2.1
+
+### Added
+- MTBRootTree: added reroot method
+- RhizoProjectLayerMetadataContainer: new container class to exchange project metadata between rhizoTrak and MiToBo
+- RootImageSegmentationOperator: new methods to request transfer of diameter and status during data import into rhizoTrak
+
+### Changed
+- GaussFilter: operator is now visible in operator chooser tree by default
+- Region2DSkeletonAnalyzer: speed-up in calculations of LEC 
+
+### Fixed
+- CytoskeletonAnalyzer2D: fixed issues with file separators on Windows and added workaround to get image dimensions from feature files
+- CytoskeletonFeatureExtractor: now considering also zipped ROI files with multiple ROIs
 
 ## [2.0] - 2020-05-15
 Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
