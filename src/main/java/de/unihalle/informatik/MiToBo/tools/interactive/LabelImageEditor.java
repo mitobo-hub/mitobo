@@ -56,6 +56,7 @@ import de.unihalle.informatik.Alida.datatypes.ALDDirectoryString;
 import de.unihalle.informatik.Alida.exceptions.ALDException;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.operator.ALDOperator;
+import de.unihalle.informatik.Alida.operator.events.ALDOperatorExecutionProgressEvent;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType;
@@ -91,6 +92,11 @@ import ij.process.ImageProcessor;
 	level=Level.APPLICATION, allowBatchMode = false)
 public class LabelImageEditor extends MTBOperator 
 		implements MouseListener, MouseMotionListener, ActionListener {
+
+	/**
+	 * Class identifier.
+	 */
+	private static final String classID = "[LabelImageEditor]";
 
 	/**
 	 * Image directory to process.
@@ -219,6 +225,10 @@ public class LabelImageEditor extends MTBOperator
 	protected void operate() 
 			throws ALDOperatorException {
 
+		this.fireOperatorExecutionProgressEvent(
+				new ALDOperatorExecutionProgressEvent(this, classID 
+					+ "... editor is ready to go!"));
+
 		// (re-)init operator
 		this.activePlus = null;
 		this.activeProcessor = null;
@@ -254,6 +264,9 @@ public class LabelImageEditor extends MTBOperator
 
 			if (this.verbose.booleanValue())
 				System.out.println("Processing image " + f + "...");
+			this.fireOperatorExecutionProgressEvent(
+					new ALDOperatorExecutionProgressEvent(this, classID 
+						+ " processing image " + f + "..."));
 			
 			// if file name does not match filter, skip it
 			if (p != null) {
@@ -320,11 +333,17 @@ public class LabelImageEditor extends MTBOperator
 		
 		int onmask = InputEvent.META_DOWN_MASK;
     if ((e.getModifiersEx() & onmask) == onmask) {
-    	System.out.println("Meta down");
+  		this.fireOperatorExecutionProgressEvent(
+  				new ALDOperatorExecutionProgressEvent(this, classID 
+  					+ " -> registered mouse-click, meta key is down!"));
     }
 		
     boolean fillInRegion = false;
     if (label == 0 && IJ.shiftKeyDown() && IJ.controlKeyDown()) {
+  		this.fireOperatorExecutionProgressEvent(
+  				new ALDOperatorExecutionProgressEvent(this, classID 
+  					+ " -> registered mouse-click, shift and control keys down, " 
+  						+ "preparing to fill region..."));
 			fillInRegion = true;
 		}
     
@@ -334,6 +353,10 @@ public class LabelImageEditor extends MTBOperator
 			return;
 		
 		if (IJ.shiftKeyDown() && !IJ.controlKeyDown()) {
+  		this.fireOperatorExecutionProgressEvent(
+  				new ALDOperatorExecutionProgressEvent(this, classID 
+  					+ " -> registered mouse-click, shift key down, control key up, " 
+  						+ "preparing to join regions..."));
 			this.memoryMode = true;
 			this.lastLabel = label;
 			return;
@@ -341,6 +364,10 @@ public class LabelImageEditor extends MTBOperator
 
 		boolean newLabel = false;
 		if (IJ.controlKeyDown() && !IJ.shiftKeyDown()) {
+  		this.fireOperatorExecutionProgressEvent(
+  				new ALDOperatorExecutionProgressEvent(this, classID 
+  					+ " -> registered mouse-click, control key down, shift key up, " 
+  						+ "preparing to assign new label..."));
 			newLabel = true;
 		}
 		
@@ -950,5 +977,4 @@ public class LabelImageEditor extends MTBOperator
     	e.printStackTrace();
     }
 	}
-
 }
