@@ -127,6 +127,14 @@ public class LabelImageEditor extends MTBOperator
 	private ALDDirectoryString outputDir = null;
 
 	/**
+	 * Optional output file suffix.
+	 */
+	@Parameter(label = "Output file ending", required = false, 
+		direction = Parameter.Direction.IN, description = "Output file ending.",
+		dataIOOrder = 2)
+	private String outFileEnding = "-edited.tif";
+
+	/**
 	 * Main window frame.
 	 */
 	private JFrame mainFrame;
@@ -933,7 +941,8 @@ public class LabelImageEditor extends MTBOperator
 				this.currentFile.substring(this.currentFile.lastIndexOf(File.separator)+1);
 		String withoutEnding = 
 				withoutPath.substring(0, withoutPath.lastIndexOf("."));
-		String nf = this.internalOutputDir + File.separator + withoutEnding + "-edited.tif";
+		String nf = 
+			this.internalOutputDir + File.separator + withoutEnding	+ this.outFileEnding;
 		ImageWriterMTB iw;
 		try {
 			if (this.verbose.booleanValue())
