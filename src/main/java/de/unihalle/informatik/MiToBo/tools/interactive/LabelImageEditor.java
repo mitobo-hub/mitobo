@@ -886,7 +886,7 @@ public class LabelImageEditor extends MTBOperator
 		// relabel image to ensure consecutive labels
 		try {
 			LabelComponentsSequential lop = 
-				new LabelComponentsSequential(newLabelImage, true);
+				new LabelComponentsSequential(newLabelImage, false);
 			lop.runOp();
 
 			// Hack: make sure to preserve calibration information
