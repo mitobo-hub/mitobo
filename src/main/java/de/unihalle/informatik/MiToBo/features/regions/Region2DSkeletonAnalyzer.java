@@ -650,73 +650,67 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 		 		this.width, this.height, 1, 1, 1, MTBImageType.MTB_DOUBLE); 
 
 		int label = 0;
+		MTBImageDouble distImage = (MTBImageDouble)skelImg.convertType(
+				MTBImageType.MTB_DOUBLE,  false);
+		for (int y=0; y<this.height; ++y) {
+			for (int x=0; x<this.width; ++x) {
+				distImage.putValueDouble(x, y, -1);
+			}
+		}
 		for (int y=0; y<this.height; ++y) {
 			for (int x=0; x<this.width; ++x) {
 				// only consider skeleton pixels
 				if (skelImg.getValueInt(x, y) > 0) {
 					for (int dy=-5; dy<=5; ++dy) {
-					for (int dx=-5; dx<=5; ++dx) {
-						if (   dx+x < 0 || dx+x>=this.workImage.getSizeX() 
-								|| y+dy<0 || dy+y >= this.workImage.getSizeY())
-							continue;
-					label = this.workImage.getValueInt(dx+x, dy+y);
-					if (label == 0)
-						continue;
-					// search only inside the bounding box of this region (plus one pix)
-					dims = regionBoxes.get(label);
-					xmin = dims[0];
-					xmax = dims[2];
-					ymin = dims[1];
-					ymax = dims[3];
-					minSkelPointDist = Double.MAX_VALUE;
-
-					MTBBorder2D c = contours.elementAt(label-1);
-					for (Point2D.Double p: c.getPoints()) {
-						for (int by=-1;by<=1;++by) {
-							for (int bx=-1;bx<=1;++bx) {
-								int px = (int)(p.x+bx);
-								int py = (int)(p.y+by);
-								if (   px < 0 || px >= this.workImage.getSizeX() 
-										|| py < 0 || py >= this.workImage.getSizeY())
-									continue;
-								if (this.workImage.getValueInt(px, py) > 0)
-									continue;
-								dist = (dx+x-px)*(dx+x-px) + (dy+y-py)*(dy+y-py);
-								if (dist < minSkelPointDist) {
-									minSkelPointDist = dist;
-									localSkelMinPoint = new Point2D.Double(dx+x, dy+y);
-								}
+						for (int dx=-5; dx<=5; ++dx) {
+							if (   dx+x < 0 || dx+x>=this.workImage.getSizeX() 
+									|| y+dy<0 || dy+y >= this.workImage.getSizeY())
+								continue;
+							label = this.workImage.getValueInt(dx+x, dy+y);
+							if (label == 0)
+								continue;
+							
+							minSkelPointDist = Double.MAX_VALUE;
+							if (distImage.getValueDouble(dx+x, dy+y) != -1) {
+								minSkelPointDist = distImage.getValueDouble(dx+x, dy+y);
 							}
+							else {
+								MTBBorder2D c = contours.elementAt(label-1);
+								for (Point2D.Double p: c.getPoints()) {
+									for (int by=-1;by<=1;++by) {
+										for (int bx=-1;bx<=1;++bx) {
+											int px = (int)(p.x+bx);
+											int py = (int)(p.y+by);
+											if (   px < 0 || px >= this.workImage.getSizeX() 
+													|| py < 0 || py >= this.workImage.getSizeY())
+												continue;
+											if (this.workImage.getValueInt(px, py) > 0)
+												continue;
+											dist = (dx+x-px)*(dx+x-px) + (dy+y-py)*(dy+y-py);
+											if (dist < minSkelPointDist) {
+												minSkelPointDist = dist;
+												localSkelMinPoint = new Point2D.Double(dx+x, dy+y);
+											}
+										}
+									}
+								}
+								distImage.putValueDouble(dx+x, dy+y, minSkelPointDist);
+							}
+							if (minSkelPointDist > maxDistPerRegion[label]) {
+								maxDistPoints[label] = localSkelMinPoint;
+								maxDistPerRegion[label] = minSkelPointDist;
+							}
+							// remember final non-squared distance (in pixels) for non-branch pixels
+							if (dx==0 && dy==0 && nonBranchPixelImg.getValueInt(x, y) != 0)
+								nonBranchDistImg.putValueDouble(x, y, Math.sqrt(minSkelPointDist));
 						}
 					}
-					// search within bounding box of corresponding region
-// 					for (int yy=ymin; yy<=ymax; ++yy) {
-// 						for (int xx=xmin; xx<=xmax; ++xx) {
-// 							// ignore non-background pixels
-// 							if (this.inImg.getValueInt(xx, yy) > 0)
-// 								continue;
-// //							dist = (x-xx)*(x-xx) + (y-yy)*(y-yy);
-// 							dist = (dx+x-xx)*(dx+x-xx) + (dy+y-yy)*(dy+y-yy);
-// 							if (dist < minSkelPointDist) {
-// 								minSkelPointDist = dist;
-// 								localSkelMinPoint = new Point2D.Double(dx+x, dy+y);
-// 							}
-// 						}
-// 					}
-					if (minSkelPointDist > maxDistPerRegion[label]) {
-						maxDistPoints[label] = localSkelMinPoint;
-						maxDistPerRegion[label] = minSkelPointDist;
-					}
-					// remember final non-squared distance (in pixels) for non-branch pixels
-					if (dx==0 && dy==0 && nonBranchPixelImg.getValueInt(x, y) != 0)
-						nonBranchDistImg.putValueDouble(x, y, Math.sqrt(minSkelPointDist));
-				}
-				}
 				}
 			}
 		}
 		for (int l=1; l<=maxLabel; ++l) {
-			radiiMaxInscribedCircles[l] =  Math.sqrt(maxDistPerRegion[l]) * this.pixelLength;
+			radiiMaxInscribedCircles[l] = 
+					Math.sqrt(maxDistPerRegion[l]) * this.pixelLength;
 			if (this.visualizeAnalysisResults) {
 				this.analysisDisplayImg.drawPoint2D(
 					(int)maxDistPoints[l].x, (int)maxDistPoints[l].y, 0, 0xFFFF00, 1);
@@ -725,7 +719,7 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 						(int)Math.sqrt(maxDistPerRegion[l]), yellow);
 			}
 		}
-
+		
 		// calculate distances to the background for all non-branch pixels
 		// MTBImageDouble nonBranchDistImg = (MTBImageDouble)MTBImage.createMTBImage(
 		// 		this.width, this.height, 1, 1, 1, MTBImageType.MTB_DOUBLE); 
@@ -761,7 +755,7 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 		// 		}
 		// 	}
 		// }
-		
+
 		// collect set of distances along non-branch skeleton
 		Double distVal;
 		HashMap<Integer, Double> quartileFirst = new HashMap<>();

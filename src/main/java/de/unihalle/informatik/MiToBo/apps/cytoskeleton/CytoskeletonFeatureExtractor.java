@@ -152,6 +152,22 @@ public abstract class CytoskeletonFeatureExtractor extends MTBOperator {
 		description = "Tile shift in y-direction.")
 	protected int tileShiftY = 32;
 	
+	/**
+	 * Image width of first input image as reference.
+	 */
+	@Parameter( label= "Image width", 
+		dataIOOrder = 0, direction = Parameter.Direction.OUT, 
+		mode = ExpertMode.ADVANCED, description = "Reference image width.")
+	protected int imageWidth = -1;
+
+	/**
+	 * Image height of first input image as reference.
+	 */
+	@Parameter( label= "Image height", 
+		dataIOOrder = 1, direction = Parameter.Direction.OUT, 
+		mode = ExpertMode.ADVANCED, description = "Reference image height.")
+	protected int imageHeight = -1;
+
 	/*
 	 * some helper variables
 	 */
@@ -160,16 +176,6 @@ public abstract class CytoskeletonFeatureExtractor extends MTBOperator {
 	 * Identifier string for the operator class.
 	 */
 	protected transient String operatorID;
-
-	/**
-	 * Width of the images, taking first image as reference.
-	 */
-	protected transient int imageWidth = -1;
-	
-	/**
-	 * Height of the images, taking first image as reference.
-	 */
-	protected transient int imageHeight = -1;
 
 	/**
 	 * Operator for reading image files from disk.
@@ -257,6 +263,22 @@ public abstract class CytoskeletonFeatureExtractor extends MTBOperator {
 		this.tileShiftY = tShiftY;
 	}
 	
+	/**
+	 * Get width of first image as reference for expected input data width.
+	 * @return	Width of first image.
+	 */
+	public int getImageWidth() {
+		return this.imageWidth;
+	}
+
+	/**
+	 * Get height of first image as reference for expected input data height.
+	 * @return	Height of first image.
+	 */
+	public int getImageHeight() {
+		return this.imageHeight;
+	}
+
 	@Override
   protected void operate() 
   		throws ALDOperatorException, ALDProcessingDAGException {
@@ -400,7 +422,7 @@ public abstract class CytoskeletonFeatureExtractor extends MTBOperator {
 				}
 				break;
 			case IJ_ROIS:
-				String maskName_A= maskDir + File.separator + basename + "-mask.zip";
+				String maskName_A= maskDir + File.separator + basename + "-mask.roi.zip";
 				String maskName_B= maskDir + File.separator + basename + "-mask.roi";
 				maskName = null;
 				if ((new File(maskName_A)).exists()) 
