@@ -453,7 +453,7 @@ public class NuclearParticleDetector2D extends MTBOperator {
 
 						// detect particles with ParticleDetectorUWT2D
 						this.partDetector.setInputImage(this.partImage);
-						this.partDetector.setMinRegionSize(10);
+						this.partDetector.setMinRegionSize(this.nucDetector.getMinNucleusSize());
 						this.partDetector.runOp();
 
 						// temporary detected particles

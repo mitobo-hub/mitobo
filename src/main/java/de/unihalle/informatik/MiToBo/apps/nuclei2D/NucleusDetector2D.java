@@ -220,6 +220,14 @@ public class NucleusDetector2D extends MTBOperator {
 	}
 	
 	/**
+	 * Request minimal size of valid nuclei.
+	 * @return	Minimal size threshold.
+	 */
+	public int getMinNucleusSize() {
+		return this.minNucleusSize;
+	}
+	
+	/**
 	 * Get the result label image.
 	 * @return	Reference to result label image, might be null.
 	 */
