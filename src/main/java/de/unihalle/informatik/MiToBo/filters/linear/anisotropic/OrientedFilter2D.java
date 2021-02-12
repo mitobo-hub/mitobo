@@ -26,8 +26,6 @@ package de.unihalle.informatik.MiToBo.filters.linear.anisotropic;
 
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import net.imglib2.Cursor;
 import net.imglib2.algorithm.fft2.FFTConvolution;
 import net.imglib2.img.Img;
@@ -243,6 +241,14 @@ public abstract class OrientedFilter2D extends MTBOperator
 	 */
 	public void setAngle(double _angle) {
 		this.angle = new Double(_angle);
+	}
+	
+	/**
+	 * Set application mode for the filter.
+	 * @param m	Mode in which the filter should run.
+	 */
+	public void setApplicationMode(ApplicationMode m) {
+		this.mode = m;
 	}
 
 	/**
