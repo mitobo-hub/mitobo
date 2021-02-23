@@ -5,6 +5,8 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 
 ## [Unreleased]
 ### Added
+- NucleusDetector2D: added setter for minimal nuclei size threshold
+- OrientedFilter2D: added setter for application mode (via direct convolution or fft)
 
 ### Changed
 
@@ -13,6 +15,7 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 ### Removed
 
 ### Fixed
+- NuclearParticleDetector2D: replacing constant for minimal nuclei size threshold with user-configurable parameter value
 
 ## [2.1] - 2020-12-01
 Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
