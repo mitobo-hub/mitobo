@@ -5,6 +5,7 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 
 ## [Unreleased]
 ### Added
+- FillHoles2D: added option to consider 4-neighborhood in foreground instead of just 8-neighborhood
 - NucleusDetector2D: added setter for minimal nuclei size threshold
 - OrientedFilter2D: added setter for application mode (via direct convolution or fft)
 

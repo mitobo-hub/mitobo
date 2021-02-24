@@ -75,14 +75,22 @@ public class FillHoles2D extends MTBOperator implements StatusReporter {
 	 */
 	@Parameter(label= "Input image", required = true, direction = Direction.IN,
 		mode = ExpertMode.STANDARD, dataIOOrder = 1, 
-		description = "Input image, binary or label image")
+		description = "Input image, binary or label image.")
 	private transient MTBImage inImg = null;
 
+	/**
+	 * Flag to toggle neighborhood relation in foreground regions.
+	 */
+	@Parameter(label= "Use 8-neighborhood in region?", required = true, direction = Direction.IN,
+			mode = ExpertMode.STANDARD, dataIOOrder = 2, 
+			description = "Neighborhood to assume for foreground regions.")
+	private boolean useDiagonalNeighborhood = true;
+	
 	/**
 	 * Result image.
 	 */
 	@Parameter(label= "Result image", required = true, direction = Direction.OUT,
-		mode = ExpertMode.STANDARD, dataIOOrder = 2, description = "Result image")
+		mode = ExpertMode.STANDARD, dataIOOrder = 0, description = "Result image")
 	private transient MTBImage resultImg = null;
 	
 	/** vector of installed StatusListeners */
@@ -161,6 +169,14 @@ public class FillHoles2D extends MTBOperator implements StatusReporter {
 	}
 	
 	/**
+	 * Specify neighborhood context to be applied in foreground regions.
+	 * @param b	If true, 8-neighborhood is applied.
+	 */
+	public void setUseDiagonalNeighbors(boolean b) {
+		this.useDiagonalNeighborhood = b;
+	}
+	
+	/**
 	 * Get the resulting image.
 	 * @return Result image with holes filled.
 	 */
@@ -182,7 +198,7 @@ public class FillHoles2D extends MTBOperator implements StatusReporter {
 		MTBRegion2DSet regs;
 		boolean isBinary = true;
 		int value = 0;
-		
+
 		// post ImageJ status
 		String msg = opIdentifier + "checking if image is binary...";	
 		this.notifyListeners(new StatusEvent(msg));
@@ -200,7 +216,7 @@ public class FillHoles2D extends MTBOperator implements StatusReporter {
 				}
 			}
 		}
-		
+			
 		// check remaining pixels
 		for ( y = 0 ; y < this.inImg.getSizeY() && isBinary ; y++) {
 			for ( x = 0 ; x < this.inImg.getSizeX() && isBinary ; x++) {
@@ -216,13 +232,13 @@ public class FillHoles2D extends MTBOperator implements StatusReporter {
 
 		if ( isBinary ) {
 			LabelComponentsSequential lcs = 
-					new LabelComponentsSequential(this.inImg,true);
+					new LabelComponentsSequential(this.inImg, this.useDiagonalNeighborhood);
 			lcs.runOp(HidingMode.HIDE_CHILDREN);
 			regs = lcs.getResultingRegions();
 		} else {
 			regs = new MTBRegion2DSet(this.inImg);
 		}
-
+		
 		msg = opIdentifier + "filling holes...";	
 		this.notifyListeners(new StatusEvent(msg));
 
@@ -299,7 +315,7 @@ public class FillHoles2D extends MTBOperator implements StatusReporter {
 					invInImg.putValueInt(x, y, 255);
 
 		LabelComponentsSequential lcs = 
-			new LabelComponentsSequential(invInImg, false);
+			new LabelComponentsSequential(invInImg, !this.useDiagonalNeighborhood);
 		lcs.runOp(HidingMode.HIDDEN);
 		
 		MTBRegion2DSet holes = lcs.getResultingRegions();
@@ -390,7 +406,7 @@ public class FillHoles2D extends MTBOperator implements StatusReporter {
 			iw.putValueInt((int)pt.getX()-xmin, (int)pt.getY()-ymin, 0);
 		}
 		
-		LabelComponentsSequential lcs = new LabelComponentsSequential(iw, false);
+		LabelComponentsSequential lcs = new LabelComponentsSequential(iw, !this.useDiagonalNeighborhood);
 		lcs.runOp(HidingMode.HIDDEN);
 		
 		MTBRegion2DSet regs = lcs.getResultingRegions();
