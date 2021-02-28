@@ -35,6 +35,7 @@ import de.unihalle.informatik.Alida.exceptions.ALDOperatorException.OperatorExce
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageDouble;
+import de.unihalle.informatik.MiToBo.core.datatypes.wrapper.MTBBooleanData;
 
 /**
  * 2D linear filter implementing first partial derivative of a Gaussian in x.
@@ -83,7 +84,7 @@ public class GaussPDxFilter2D extends OrientedFilter2D {
 	@Parameter( label= "Invert Mask", required = false, dataIOOrder = 5,
 		direction= Parameter.Direction.IN, mode=ExpertMode.STANDARD, 
 	  description = "If true, filter mask is inverted.")
-	protected boolean invertMask = false;
+	protected MTBBooleanData invertMask = new MTBBooleanData(false);
 
 	/**
 	 * Flag to normalize sum of kernel elements to zero.
@@ -91,7 +92,7 @@ public class GaussPDxFilter2D extends OrientedFilter2D {
 	@Parameter( label= "Normalize Mask", required = false, dataIOOrder = 4,
 		direction= Parameter.Direction.IN, mode=ExpertMode.STANDARD, 
 	  description = "If true, mask is normalized to a sum of zero.")
-	protected boolean normalizeMask = true;
+	protected MTBBooleanData normalizeMask = new MTBBooleanData(true);
 
 	/**
 	 * Default constructor.
@@ -181,7 +182,7 @@ public class GaussPDxFilter2D extends OrientedFilter2D {
 				else {
 					double val = - x_orig / (Math.sqrt(2*Math.PI) * sigma_3) *
 						Math.exp(-x_orig*x_orig / (2*sigma_2));
-					if (this.invertMask)
+					if (this.invertMask.getValue())
 						val = val * -1;
 					kernelImg.putValueDouble(x+kernelSizeHalf, y+kernelSizeHalf, val);
 					nonNullMask[x+kernelSizeHalf][y+kernelSizeHalf] = true;
@@ -191,7 +192,7 @@ public class GaussPDxFilter2D extends OrientedFilter2D {
 			}
 		}
 		// subtract mean value
-		if (this.normalizeMask) {
+		if (this.normalizeMask.getValue()) {
 			kernelMean = kernelMean / kernelCount;
 			for (int x = 0; x < kernelSize; ++x) {
 				for (int y = 0; y < kernelSize; ++y) {
@@ -209,29 +210,53 @@ public class GaussPDxFilter2D extends OrientedFilter2D {
 	 * @param b		Flag for inversion.
 	 */
 	public void setInvertMask(boolean b) {
-		this.invertMask = b;
+		this.invertMask = new MTBBooleanData(b);
 	}
 
+	/** 
+	 * Enable or disable mask inversion.
+	 * <p>
+	 * Using this method with MiToBo wrapper datatypes instead of passing over
+	 * directly a boolean preserves consistency in the processing history.
+	 * 
+	 * @param m		Value for the mask inversion flag.
+	 */
+	public void setInvertMask(MTBBooleanData m) {
+		this.invertMask = m;
+	}
+	
 	/**
 	 * Enable kernel normalization.
 	 */
 	public void enableNormalization() {
-		this.normalizeMask = true;
+		this.normalizeMask = new MTBBooleanData(true);
 	}
 
 	/**
 	 * Disable kernel normalization.
 	 */
 	public void disableNormalization() {
-		this.normalizeMask = false;
+		this.normalizeMask = new MTBBooleanData(false);
 	}
 
+	/** 
+	 * Enable or disable kernel normalization.
+	 * <p>
+	 * Using this method with MiToBo wrapper datatypes instead of passing over
+	 * directly a boolean preserves consistency in the processing history.
+	 * 
+	 * @param kn	Value for the kernel normalization flag.
+	 */
+	public void setKernelNormalization(MTBBooleanData kn) {
+		this.normalizeMask = kn;
+	}
+	
 	/**
 	 * Specify standard deviation of Gaussian.
 	 * @param s		Standard deviation sigma.
 	 */
 	public void setStandardDeviation(double s) {
-		this.gaussStdDev = new Double(s);
+		this.gaussStdDev = Double.valueOf(s);
 	}
 
 	/**
@@ -239,7 +264,7 @@ public class GaussPDxFilter2D extends OrientedFilter2D {
 	 * @param h		Height of mask.
 	 */
 	public void setHeight(int h) {
-		this.height = new Integer(h);
+		this.height = Integer.valueOf(h);
 	}
 }
 

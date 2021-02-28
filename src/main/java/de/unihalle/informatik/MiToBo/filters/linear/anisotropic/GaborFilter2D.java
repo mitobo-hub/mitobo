@@ -36,6 +36,7 @@ import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageDouble;
+import de.unihalle.informatik.MiToBo.core.datatypes.wrapper.MTBBooleanData;
 import de.unihalle.informatik.MiToBo.filters.linear.LinearFilter;
 
 /**
@@ -145,7 +146,7 @@ public class GaborFilter2D extends OrientedFilter2D {
 	@Parameter( label= "Invert Mask", required = false, dataIOOrder = 4,
 		direction= Parameter.Direction.IN, mode=ExpertMode.STANDARD, 
 	  description = "If true, filter mask is inverted.")
-	protected boolean invertMask = false;
+	protected MTBBooleanData invertMask = new MTBBooleanData(false);
 
 	/**
 	 * Desired type of result.
@@ -341,7 +342,7 @@ public class GaborFilter2D extends OrientedFilter2D {
 				if (this.kPart == KernelPart.REAL) {
 					response = 
 							gaussKernel.getValueDouble(x, y) * cosKernel.getValueDouble(x, y);
-					if (!this.invertMask)
+					if (!this.invertMask.getValue())
 						kernelImg.putValueDouble(x, y,  response);
 					else
 						kernelImg.putValueDouble(x, y, -response);
@@ -350,7 +351,7 @@ public class GaborFilter2D extends OrientedFilter2D {
 				else {
 					response = 
 							gaussKernel.getValueDouble(x, y) * sinKernel.getValueDouble(x, y);
-					if (!this.invertMask)
+					if (!this.invertMask.getValue())
 						kernelImg.putValueDouble(x, y,  response);
 					else
 						kernelImg.putValueDouble(x, y, -response);
@@ -505,7 +506,19 @@ public class GaborFilter2D extends OrientedFilter2D {
 	 * @param b		Flag for inversion.
 	 */
 	public void setInvertMask(boolean b) {
-		this.invertMask = b;
+		this.invertMask = new MTBBooleanData(b);
+	}
+
+	/** 
+	 * Enable or disable mask inversion.
+	 * <p>
+	 * Using this method with MiToBo wrapper datatypes instead of passing over
+	 * directly a boolean preserves consistency in the processing history.
+	 * 
+	 * @param m		Value for the mask inversion flag.
+	 */
+	public void setInvertMask(MTBBooleanData m) {
+		this.invertMask = m;
 	}
 
 	/**
