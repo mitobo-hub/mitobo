@@ -32,6 +32,7 @@ import de.unihalle.informatik.Alida.annotations.ALDDataIOProvider;
 import de.unihalle.informatik.Alida.dataio.provider.cmdline.ALDStandardizedDataIOCmdline;
 import de.unihalle.informatik.Alida.exceptions.ALDDataIOProviderException;
 import de.unihalle.informatik.Alida.exceptions.ALDDataIOProviderException.ALDDataIOProviderExceptionType;
+import de.unihalle.informatik.MiToBo.core.datatypes.wrapper.MTBBooleanData;
 import de.unihalle.informatik.MiToBo.core.datatypes.wrapper.MTBDoubleData;
 import de.unihalle.informatik.MiToBo.core.datatypes.wrapper.MTBIntegerData;
 import de.unihalle.informatik.MiToBo.core.datatypes.wrapper.MTBStringData;
@@ -55,6 +56,7 @@ public class MTBWrapperDataIOCmdline extends ALDStandardizedDataIOCmdline {
     public Collection<Class<?>> providedClasses() {
 		LinkedList<Class<?>> classes = new LinkedList<Class<?>>();
 
+		classes.add( MTBBooleanData.class);
 		classes.add( MTBDoubleData.class);
 		classes.add( MTBStringData.class);
 		classes.add( MTBIntegerData.class);
@@ -71,6 +73,8 @@ public class MTBWrapperDataIOCmdline extends ALDStandardizedDataIOCmdline {
 		try {
 	
 			// MiToBo wrapper
+			if (cl.equals(MTBBooleanData.class))
+				return new MTBBooleanData( Boolean.getBoolean(iname));
 			if (cl.equals(MTBDoubleData.class))
 				return new MTBDoubleData( Double.valueOf(iname));
 			if (cl.equals(MTBIntegerData.class))
@@ -97,6 +101,8 @@ public class MTBWrapperDataIOCmdline extends ALDStandardizedDataIOCmdline {
 
 		if ( obj.getClass().equals(MTBDoubleData.class))
 			str = new String(((MTBDoubleData)obj).getValue().toString() + "\n");
+		else if ( obj.getClass().equals(MTBBooleanData.class))
+			str = Boolean.toString(((MTBBooleanData)obj).getValue()) + "\n";
 		else if ( obj.getClass().equals(MTBIntegerData.class))
 			str = new String(((MTBIntegerData)obj).getValue().toString() + "\n");
 		else if ( obj.getClass().equals(MTBStringData.class))
