@@ -205,6 +205,30 @@ public class GaborFilter2D extends OrientedFilter2D {
 		return super.readResolve();
 	}
 
+	@Override
+	public GaborFilter2D clone() {
+		GaborFilter2D newOp;
+		try {
+			newOp = new GaborFilter2D();
+			// super class fields
+			newOp.inputImg = this.inputImg;
+			newOp.angle = this.angle;
+			newOp.mode = this.mode;
+			newOp.statusListeners = this.statusListeners;
+			// local fields
+			newOp.gaussStdDevX = this.gaussStdDevX;
+			newOp.gaussStdDevY = this.gaussStdDevY;
+			newOp.frequency = this.frequency;
+			newOp.invertMask = this.invertMask; 
+			newOp.resultType = this.resultType;
+			newOp.kernelSize = this.kernelSize;
+			newOp.kPart = this.kPart;
+			return newOp;
+		} catch (ALDOperatorException e) {
+			return null;
+		}
+	}
+
 	/* (non-Javadoc)
 	 * @see de.unihalle.informatik.Alida.operator.ALDOperator#operate()
 	 */

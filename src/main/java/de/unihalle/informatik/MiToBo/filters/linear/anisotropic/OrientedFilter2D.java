@@ -69,7 +69,7 @@ import de.unihalle.informatik.MiToBo.filters.linear.LinearFilter;
  * @author Birgit Moeller
  */
 public abstract class OrientedFilter2D extends MTBOperator 
-	implements StatusReporter {
+	implements Cloneable, StatusReporter {
 
 	/**
 	 * Modes how to apply the filter to an image.
@@ -99,7 +99,7 @@ public abstract class OrientedFilter2D extends MTBOperator
 	@Parameter( label= "Orientation", required = true, dataIOOrder = -9,
 		direction= Parameter.Direction.IN, mode=ExpertMode.STANDARD, 
     description = "Orientation of the filter to apply (in degrees).")	
-	protected Double angle = new Double(0.0);
+	protected Double angle = Double.valueOf(0.0);
 
 	/**
 	 * Mode of application.
@@ -139,6 +139,9 @@ public abstract class OrientedFilter2D extends MTBOperator
 		this.statusListeners = new Vector<StatusListener>(1);
 		return this;
 	}
+	
+	@Override
+	public abstract OrientedFilter2D clone();
 
 	/**
 	 * Calculates kernel for the given orientation.
@@ -240,7 +243,7 @@ public abstract class OrientedFilter2D extends MTBOperator
 	 * @param _angle	Orientation to use.
 	 */
 	public void setAngle(double _angle) {
-		this.angle = new Double(_angle);
+		this.angle = Double.valueOf(_angle);
 	}
 	
 	/**

@@ -66,7 +66,7 @@ public class GaussPDxxFilter2D extends OrientedFilter2D {
 	@Parameter( label= "\u03C3 of Gaussian", required = false, dataIOOrder = 2,
 		direction= Parameter.Direction.IN, mode=ExpertMode.STANDARD, 
 	  description = "Std. deviation of Gaussian.")
-	protected Double gaussStdDev = new Double(2.0);
+	protected Double gaussStdDev = Double.valueOf(2.0);
 
 	/**
 	 * Height of the filter mask.
@@ -76,7 +76,7 @@ public class GaussPDxxFilter2D extends OrientedFilter2D {
 	@Parameter( label= "Mask Height", required = false, dataIOOrder = 3,
 		direction= Parameter.Direction.IN, mode=ExpertMode.STANDARD, 
     description = "Height of the filter mask.")	
-	protected Integer height = new Integer(9);
+	protected Integer height = Integer.valueOf(9);
 
 	/**
 	 * Flag to invert filter mask.
@@ -117,6 +117,27 @@ public class GaussPDxxFilter2D extends OrientedFilter2D {
 					"please set it to a larger value!");
 	}
 	
+	@Override
+	public GaussPDxxFilter2D clone() {
+		GaussPDxxFilter2D newOp;
+		try {
+			newOp = new GaussPDxxFilter2D();
+			// super class fields
+			newOp.inputImg = this.inputImg;
+			newOp.angle = this.angle;
+			newOp.mode = this.mode;
+			newOp.statusListeners = this.statusListeners;
+			// local fields
+			newOp.gaussStdDev = this.gaussStdDev;
+			newOp.height = this.height;
+			newOp.invertMask = this.invertMask;
+			newOp.normalizeMask = this.normalizeMask;
+			return newOp;
+		} catch (ALDOperatorException e) {
+			return null;
+		}
+	}
+
 	/**
 	 * Calculates Gaussian derivative kernel for given parameters.
 	 * @param _angle		Rotation angle in degrees.
