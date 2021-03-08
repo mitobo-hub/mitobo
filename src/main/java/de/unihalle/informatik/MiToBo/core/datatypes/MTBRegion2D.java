@@ -586,14 +586,41 @@ public class MTBRegion2D implements MTBRegionInterface {
 		 *          oder of y-component
 		 * @return Moment as double value.
 		 */
-		@SuppressWarnings("javadoc")
     public double getMoment(int p, int q) {
-				double Mpq = 0.0;
+			
+			if (p == 0 && q == 0)
+				return this.area;
+
+			double Mpq = 0.0;
+
+			if (p == 1 && q == 0) {
 				for (int i = 0; i < this.area; i++) {
-						Point2D.Double pt = this.points.elementAt(i);
-						Mpq += Math.pow(pt.x, p) * Math.pow(pt.y, q);
+					Mpq += this.points.elementAt(i).x;
 				}
 				return Mpq;
+			}
+				
+			if (p == 0 && q == 1) {
+				for (int i = 0; i < this.area; i++) {
+					Mpq += this.points.elementAt(i).y;
+				}
+				return Mpq;				
+			}
+
+			if (p == 1 && q == 1) {
+				for (int i = 0; i < this.area; i++) {
+					Mpq += this.points.elementAt(i).x * this.points.elementAt(i).y;
+				}
+				return Mpq;				
+			}
+
+			// moments of arbitrary order
+			Point2D.Double pt;
+			for (int i = 0; i < this.area; i++) {
+				pt = this.points.elementAt(i);
+				Mpq += Math.pow(pt.x, p) * Math.pow(pt.y, q);
+			}
+			return Mpq;
 		}
 
 		/**
@@ -612,17 +639,57 @@ public class MTBRegion2D implements MTBRegionInterface {
 		 *          oder of y-component
 		 * @return Central moment as double value.
 		 */
-		@SuppressWarnings("javadoc")
-    public double getCentralMoment(int p, int q) {
-				double m00 = this.getMoment(0, 0);
-				double xCtr = this.getMoment(1, 0) / m00;
-				double yCtr = this.getMoment(0, 1) / m00;
-				double cMpq = 0.0;
+		public double getCentralMoment(int p, int q) {
+			
+			if (p == 0 && q == 0) {
+				return this.area;
+			}
+
+			double m00 = this.area;
+			double xCtr = this.getMoment(1, 0) / m00;
+			double yCtr = this.getMoment(0, 1) / m00;
+
+			double cMpq = 0.0;
+			
+			if (p == 1 && q == 0) {
 				for (int i = 0; i < this.area; i++) {
-						Point2D.Double pt = this.points.elementAt(i);
-						cMpq += Math.pow(pt.x - xCtr, p) * Math.pow(pt.y - yCtr, q);
+					cMpq += this.points.elementAt(i).x - xCtr;
 				}
 				return cMpq;
+			}
+			if (p == 0 && q == 1) {
+				for (int i = 0; i < this.area; i++) {
+					cMpq += this.points.elementAt(i).y - yCtr;
+				}
+				return cMpq;
+			}
+			if (p == 1 && q == 1) {
+				for (int i = 0; i < this.area; i++) {
+					cMpq += (this.points.elementAt(i).x - xCtr) * (this.points.elementAt(i).y - yCtr);
+				}
+				return cMpq;
+			}
+			if (p == 2 && q == 0) {
+				for (int i = 0; i < this.area; i++) {
+					cMpq += (this.points.elementAt(i).x - xCtr) * (this.points.elementAt(i).x - xCtr);
+				}
+				return cMpq;
+			}
+			if (p == 0 && q == 2) {
+				for (int i = 0; i < this.area; i++) {
+					cMpq += (this.points.elementAt(i).y - yCtr) * (this.points.elementAt(i).y - yCtr);
+				}
+				return cMpq;
+			}
+
+			// central moment of arbitrary order
+			Point2D.Double pt;
+			for (int i = 0; i < this.area; i++) {
+				pt = this.points.elementAt(i);
+				cMpq += Math.pow(pt.x - xCtr, p) * Math.pow(pt.y - yCtr, q);
+			}
+			return cMpq;
+
 		}
 
 		/**
@@ -640,9 +707,8 @@ public class MTBRegion2D implements MTBRegionInterface {
 		 *          oder of y-component
 		 * @return Normalized central moment as double value.
 		 */
-		@SuppressWarnings("javadoc")
     public double getNormalCentralMoment(int p, int q) {
-				double m00 = this.getMoment(0, 0);
+				double m00 = this.area;
 				double norm = Math.pow(m00, (double) (p + q + 2) / 2);
 				return this.getCentralMoment(p, q) / norm;
 		}
@@ -672,15 +738,13 @@ public class MTBRegion2D implements MTBRegionInterface {
 		 * 
 		 * @return Orientation of region main axis in radians.
 		 */
-		@SuppressWarnings("javadoc")
     public double getOrientation() {
 				// calculate different moments
 				double m11 = this.getCentralMoment(1, 1);
 				double m20 = this.getCentralMoment(2, 0);
 				double m02 = this.getCentralMoment(0, 2);
 				// calculate orientation of principal axis
-				double ori = 0.5 * Math.atan2((2.0 * m11), (m20 - m02));
-				return ori;
+				return 0.5 * Math.atan2((2.0 * m11), (m20 - m02));
 		}
 
 		/**
@@ -700,16 +764,14 @@ public class MTBRegion2D implements MTBRegionInterface {
 		 * 
 		 * @return Eccentricity as double value.
 		 */
-		@SuppressWarnings("javadoc")
     public double getEccentricity() {
-				// calculate different moments
-				double m11 = this.getCentralMoment(1, 1);
-				double m20 = this.getCentralMoment(2, 0);
-				double m02 = this.getCentralMoment(0, 2);
-				// calculate eccentricity
-				double ecc = (Math.pow((m20 - m02), 2) + 4 * Math.pow(m11, 2))
-				    / (Math.pow((m20 + m02), 2));
-				return ecc;
+			// calculate different moments
+			double m11 = this.getCentralMoment(1, 1);
+			double m20 = this.getCentralMoment(2, 0);
+			double m02 = this.getCentralMoment(0, 2);
+			// calculate eccentricity
+			return ( (m20 - m02)*(m20 - m02) + 4 * m11 * m11)
+					 / ( (m20 + m02) * (m20 + m02) );
 		}
 
 		/*
@@ -876,6 +938,30 @@ public class MTBRegion2D implements MTBRegionInterface {
 					Math.sqrt(4 * u11 * u11 + (u20 - u02) * (u20 - u02) ) ) / u00);
 		}
 
+		/**
+		 * Calculates length of axes of the ellipse best fitting.
+		 * <p>
+		 * This method combines the two methods for indepently calculating axes lengths
+		 * of this class thereby saving computation time.
+		 * 
+		 * @see MTBRegion2D#getMinorAxisLength()
+		 * @see MTBRegion2D#getMajorAxisLength()
+		 * @return	Array of lengths of minor (index 0) and major (index 1) axes.
+		 */
+		public double[] getMajorMinorAxisLengths() {
+//			double u00 = this.getCentralMoment(0, 0);
+			double u00 = this.area;
+			double u11 = this.getCentralMoment(1, 1);
+			double u02 = this.getCentralMoment(0, 2);
+			double u20 = this.getCentralMoment(2, 0);
+			double intermediateRoot = 
+					Math.sqrt(4 * u11 * u11 + (u20 - u02) * (u20 - u02) );
+			return new double[] {
+					2 * Math.sqrt(2 * (u20 + u02 - intermediateRoot) / u00),
+					2 * Math.sqrt(2 * (u20 + u02 + intermediateRoot) / u00)
+			};
+		}
+		
 		/**
 		 * Create a random connected 2D region of size <code>maxArea</code> in a hypothetical image of
 		 * a random size between <code>1</code> and <code>maxArea</code>.
