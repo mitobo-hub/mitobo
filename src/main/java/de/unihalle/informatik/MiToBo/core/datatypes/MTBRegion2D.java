@@ -465,22 +465,37 @@ public class MTBRegion2D implements MTBRegionInterface {
 		 * 
 		 * @throws ALDOperatorException
 		 */
-		public MTBContour2D getContour() throws ALDOperatorException,
-		    ALDProcessingDAGException {
-				/*
-				 * Calculate the bounding box to get the maximum x and y value of the
-				 * region.
-				 */
-				double[] boundingBox = this.getBoundingBox();
-				int imageSizeX = (int) Math.round(boundingBox[2] + 1);
-				int imageSizeY = (int) Math.round(boundingBox[3] + 1);
-				
-				MTBRegion2DSet regions = new MTBRegion2DSet(0, 0, imageSizeX, imageSizeY);
-				regions.add(this);
-				ContourOnLabeledComponents clc = new ContourOnLabeledComponents(regions,
-				    ContourType.OUT_IN_CONTOUR, 1);
-				clc.runOp(null);
-				return clc.getResultContours().elementAt(0);
+		public MTBContour2D getContour() 
+				throws ALDOperatorException, ALDProcessingDAGException {
+			return this.getContour(ContourType.OUT_IN_CONTOUR);
+		}
+
+		/**
+		 * Method to get contour objects from the current 2D region of specified type.
+		 * <p>
+		 * The image size, including the region, is calculated by the minimum and 
+		 * maximum x- and y-coordinate of the bounding box of the region.
+		 * 
+		 * @return Contours of requested type of the given region.
+		 * 
+		 * @throws ALDOperatorException
+		 */
+		public MTBContour2D getContour(ContourType ctype) 
+				throws ALDOperatorException, ALDProcessingDAGException {
+			/*
+			 * Calculate the bounding box to get the maximum x and y 
+			 * coordinates of the region.
+			 */
+			double[] boundingBox = this.getBoundingBox();
+			int imageSizeX = (int) Math.round(boundingBox[2] + 1);
+			int imageSizeY = (int) Math.round(boundingBox[3] + 1);
+
+			MTBRegion2DSet regions = new MTBRegion2DSet(0, 0, imageSizeX, imageSizeY);
+			regions.add(this);
+			ContourOnLabeledComponents clc = 
+					new ContourOnLabeledComponents(regions, ctype, 1);
+			clc.runOp(null);
+			return clc.getResultContours().elementAt(0);
 		}
 
 		/**
