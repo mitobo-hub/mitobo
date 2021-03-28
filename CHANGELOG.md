@@ -6,10 +6,14 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 ## [Unreleased]
 ### Added
 - FillHoles2D: added option to consider 4-neighborhood in foreground instead of just 8-neighborhood
+- GaussFilterDouble1D: added setter for kernel function to avoid internal regeneration
+- MTBRegion2D: added new method to extract contours of specific type only
 - NucleusDetector2D: added setter for minimal nuclei size threshold
 - OrientedFilter2D: added setter for application mode (via direct convolution or fft)
+- TestGaussFilterDouble1D: new test class for Gaussian filter in 1D
 
 ### Changed
+- MTBRegion2D: speed-up of moment calculations by explicit implementations for frequently used moments
 
 ### Deprecated
 
