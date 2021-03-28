@@ -5,6 +5,21 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 
 ## [Unreleased]
 ### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+
+## [2.1.1] - 2021-03-28
+Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
+- Released MiToBo 2.1.1
+
+### Added
 - FillHoles2D: added option to consider 4-neighborhood in foreground instead of just 8-neighborhood
 - GaussFilterDouble1D: added setter for kernel function to avoid internal regeneration
 - MTBRegion2D: added new method to extract contours of specific type only
@@ -14,10 +29,6 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 
 ### Changed
 - MTBRegion2D: speed-up of moment calculations by explicit implementations for frequently used moments
-
-### Deprecated
-
-### Removed
 
 ### Fixed
 - NuclearParticleDetector2D: replacing constant for minimal nuclei size threshold with user-configurable parameter value
