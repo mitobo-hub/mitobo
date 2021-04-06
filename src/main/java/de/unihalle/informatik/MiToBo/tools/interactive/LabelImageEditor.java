@@ -26,6 +26,7 @@ package de.unihalle.informatik.MiToBo.tools.interactive;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
@@ -45,8 +46,10 @@ import java.util.regex.Pattern;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
 import de.unihalle.informatik.Alida.annotations.Parameter;
@@ -88,7 +91,7 @@ import ij.process.ImageProcessor;
  * 
  * @author Birgit Moeller
  */
-@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.SWING, 
+@ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL, 
 	level=Level.APPLICATION, allowBatchMode = false)
 public class LabelImageEditor extends MTBOperator 
 		implements MouseListener, MouseMotionListener, ActionListener {
@@ -219,6 +222,15 @@ public class LabelImageEditor extends MTBOperator
 	private Point2D.Double lastPathPoint;
 	
 	/**
+	 * Window for setting some options and configuration parameters.
+	 */
+	private JFrame optionsFrame;
+	
+	private JTextField optionsBorderMaxWidth;
+	
+	private JTextField optionsDrawWidth;
+	
+	/**
 	 * Default constructor.
 	 * @throws ALDOperatorException Thrown if construction fails.
 	 */
@@ -296,6 +308,9 @@ public class LabelImageEditor extends MTBOperator
 				if (this.activePlus == null) {
 					this.initMainFrame();
 				}
+				
+				// init the options window
+				this.initOptionsFrame();
 				
 				this.mainFrame.setTitle(this.activeImage.getTitle());
 				this.activeProcessor = this.activeImage.getImagePlus().getProcessor();
@@ -599,6 +614,11 @@ public class LabelImageEditor extends MTBOperator
 			// run over the image and search for background pixels having two or 
 			// more components with the same label in their neighborhood
 			int neighborhoodSize = 3;
+			try {
+				int maxWidth = Integer.parseInt(this.optionsBorderMaxWidth.getText());
+				neighborhoodSize = (int)(maxWidth/2.0);
+			}
+			catch (Exception exp) {}
 			int neighborhoodPixelNum = (2*neighborhoodSize + 1) * (2*neighborhoodSize + 1);
 			for (int y=0; y<this.activeProcessor.getHeight();++y) {
 				for (int x=0; x<this.activeProcessor.getWidth();++x) {
@@ -772,10 +792,20 @@ public class LabelImageEditor extends MTBOperator
 		// save the current processing result and close the frame
 		else if (c.equals("quit")) {
 			this.saveFile();
-			this.stillActive = false; 
+			this.stillActive = false;
+			this.optionsFrame.setVisible(false);
+			this.optionsFrame.dispose();
 			this.mainFrame.setVisible(false);
 			this.mainFrame.dispose();
 			this.finished = true;
+		}
+		// open window with options
+		else if (c.equals("options")) {
+			this.optionsFrame.setVisible(true);
+		}
+		// open window with options
+		else if (c.equals("optionsOk")) {
+			this.optionsFrame.setVisible(false);
 		}
 	}
 	
@@ -834,6 +864,12 @@ public class LabelImageEditor extends MTBOperator
 		undo.setActionCommand("undo");
 		undo.setMnemonic(KeyEvent.VK_U);
 		buttons.add(undo);
+		JButton options = new JButton("Options");
+		options.addActionListener(this);
+		options.setToolTipText("Configuration options.");
+		options.setActionCommand("options");
+		options.setMnemonic(KeyEvent.VK_O);
+		buttons.add(options);
 		JButton quit = new JButton("Quit");
 		quit.addActionListener(this);
 		quit.setToolTipText("Save current image and quit the editor.");
@@ -855,6 +891,46 @@ public class LabelImageEditor extends MTBOperator
 		this.mainFrame.setSize(1200, 1200);
 		this.mainFrame.setVisible(true);
 		
+	}
+	
+	/**
+	 * Initialize the options window.
+	 */
+	private void initOptionsFrame() {
+		
+		// main window
+		this.optionsFrame = new JFrame();
+		this.optionsFrame.setLayout(new BorderLayout());
+		
+		JPanel paramPanel = new JPanel();
+		paramPanel.setLayout(new GridLayout(2,2));
+
+		// border max width for configuring neighborhood size in fix borders
+		JPanel labelPanel = new JPanel();
+		JLabel label = new JLabel("Maximal border width:");
+		labelPanel.add(label);
+		paramPanel.add(labelPanel);
+		this.optionsBorderMaxWidth = new JTextField("7");
+		paramPanel.add(this.optionsBorderMaxWidth);
+		// width of line when drawing new borders
+		labelPanel = new JPanel();
+		label = new JLabel("Drawing width:");
+		labelPanel.add(label);
+		paramPanel.add(labelPanel);
+		this.optionsDrawWidth = new JTextField("1");
+		paramPanel.add(this.optionsDrawWidth);
+		
+		this.optionsFrame.add(paramPanel, BorderLayout.CENTER);
+		
+		JPanel buttons = new JPanel();
+		JButton optionsOk = new JButton("Ok");
+		optionsOk.addActionListener(this);
+		optionsOk.setToolTipText("Close the options window.");
+		optionsOk.setActionCommand("optionsOk");
+		buttons.add(optionsOk);
+		this.optionsFrame.add(buttons, BorderLayout.SOUTH);
+		
+		this.optionsFrame.setSize(350, 150);
 	}
 	
 	/**
