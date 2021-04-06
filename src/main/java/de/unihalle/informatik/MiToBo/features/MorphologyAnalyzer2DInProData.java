@@ -143,6 +143,9 @@ public class MorphologyAnalyzer2DInProData {
 	public MorphologyAnalyzer2DInProData(MTBContour2D c, int id) {
 		this.contour = c;
 		this.contourID = id;
+		this.protrusionSegs = new LinkedList<MorphologyAnalyzer2DInProData.InProContourSegment>();
+		this.indentationSegs = new LinkedList<MorphologyAnalyzer2DInProData.InProContourSegment>();
+		this.inflectionPoints = new LinkedList<InflectionPoint>();
 	}
 	
 	/**

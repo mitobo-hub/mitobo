@@ -62,6 +62,7 @@ import de.unihalle.informatik.MiToBo.features.MorphologyAnalyzer2DInProData;
 import de.unihalle.informatik.MiToBo.features.MorphologyAnalyzer2D.FeatureNames;
 import de.unihalle.informatik.MiToBo.features.MorphologyAnalyzer2DInProData.InProContourSegment;
 import de.unihalle.informatik.MiToBo.filters.linear.GaussFilter;
+import de.unihalle.informatik.MiToBo.filters.linear.GaussFilter.SigmaInterpretation;
 import de.unihalle.informatik.MiToBo.filters.linear.anisotropic.GaussPDxxFilter2D;
 import de.unihalle.informatik.MiToBo.filters.linear.anisotropic.OrientedFilter2DBatchAnalyzer;
 import de.unihalle.informatik.MiToBo.filters.nonlinear.RankOperator;
@@ -427,14 +428,6 @@ public class PaCeQuant extends MTBOperator {
 	private int naiveGapThreshold = 20;
 	
 	/**
-	 * Units for size thresholds.
-	 */
-	@Parameter(label = "Unit for Size Thresholds", required = true, 
-			direction = Parameter.Direction.IN, dataIOOrder = 8,
-			description = "Unit of specified size thresholds.")
-	private MeasurementUnits thresholdUnits = MeasurementUnits.PIXELS;
-	
-	/**
 	 * Threshold for the minimal admissible cell size.
 	 * <p>
 	 * Cell regions falling below this threshold are ignored.
@@ -455,10 +448,18 @@ public class PaCeQuant extends MTBOperator {
 	private double maximalCellSize = 1000000;
 
 	/**
+	 * Units for size thresholds.
+	 */
+	@Parameter(label = "Unit for Size Thresholds", required = true, 
+			direction = Parameter.Direction.IN, dataIOOrder = 10,
+			description = "Unit of specified size thresholds.")
+	private MeasurementUnits thresholdUnits = MeasurementUnits.PIXELS;
+	
+	/**
 	 * Info string for segmentation phase configuration parameters.
 	 */
 	@Parameter(label = "Configure feature extraction phase:", required = true, 
-			direction = Parameter.Direction.IN, dataIOOrder = 10, info = true,
+			direction = Parameter.Direction.IN, dataIOOrder = 15, info = true,
 			mode = ExpertMode.STANDARD, description = "Info string.")
 	private String phaseBInfo = 
 		"<html><u>Configure feature extraction phase:</u></html>";
@@ -467,7 +468,7 @@ public class PaCeQuant extends MTBOperator {
 	 * Operator to analyze morphology of cells.
 	 */
 	@Parameter(label = "Feature Extraction", required = true,
-			direction = Parameter.Direction.IN, dataIOOrder = 11,
+			direction = Parameter.Direction.IN, dataIOOrder = 16,
 			mode = ExpertMode.STANDARD, description = "Feature extraction operator.")
 	private MorphologyAnalyzer2D morphFeatureOp = null;
 	
@@ -475,9 +476,18 @@ public class PaCeQuant extends MTBOperator {
 	 * Flag to classify lobes into different type classes.
 	 */
 	@Parameter(label = "Analyze lobe types?", required = true,
-			direction = Parameter.Direction.IN, dataIOOrder = 12,
+			direction = Parameter.Direction.IN, dataIOOrder = 17,
 			mode = ExpertMode.STANDARD, description = "Enable/disable lobe types.")
 	private boolean classifyLobes = false;
+
+	/**
+	 * Gaussian smoothing configuration.
+	 */
+	@Parameter(label = "Gaussian Sigma Interpretation", required = false, 
+		direction = Parameter.Direction.IN,	dataIOOrder = -6, 
+		mode = ExpertMode.ADVANCED, 
+		description = "Interpretation of Gaussian sigma.")
+	public SigmaInterpretation sigmaMeaning = SigmaInterpretation.PHYSICALSIZE; 
 
 	/**
 	 * Niblack threshold.
@@ -1182,7 +1192,7 @@ public class PaCeQuant extends MTBOperator {
 							}
 						}
 						
-						binarySegmentationImage = (MTBImageByte)workImg.duplicate();
+						binarySegmentationImage = (MTBImageByte)workImg.convertType(MTBImageType.MTB_BYTE, true);
 						for (int y=0; y<this.height; ++y)
 							for (int x=0; x<this.width; ++x) 
 								if (binarySegmentationImage.getValueInt(x, y) > 0)
@@ -1438,9 +1448,12 @@ public class PaCeQuant extends MTBOperator {
 										String c;
 										for (int i=0; i<regionsToProcess.size(); ++i) {
 											lobeTab = this.resultLobeFeatureTables.elementAt(i);
-											c = String.format("%03d", new Integer(i+1));
-											lobeTab.saveTable(new File(resultDir + File.separator 
-												+ fileRoot + "-cell-" + c + "-lobe-table.txt"));
+											// skip cells where lobe analysis failed
+											if (lobeTab != null) {
+												c = String.format("%03d", i+1);
+												lobeTab.saveTable(new File(resultDir + File.separator 
+													+ fileRoot + "-cell-" + c + "-lobe-table.txt"));
+											}
 										}
 									}
 
@@ -1692,9 +1705,12 @@ public class PaCeQuant extends MTBOperator {
 										String c;
 										for (int i=0; i<regionsToProcess.size(); ++i) {
 											lobeTab = this.resultLobeFeatureTables.elementAt(i);
-											c = String.format("%03d", new Integer(i+1));
-											lobeTab.saveTable(new File(resultDir + File.separator 
-												+ fileRoot + "-cell-" + c + "-lobe-table.txt"));
+											// skip cells where lobe analysis failed
+											if (lobeTab != null) {
+												c = String.format("%03d", i+1);
+												lobeTab.saveTable(new File(resultDir + File.separator 
+													+ fileRoot + "-cell-" + c + "-lobe-table.txt"));
+											}
 										}
 									}
 									
@@ -2081,6 +2097,10 @@ public class PaCeQuant extends MTBOperator {
 		if (!(this.imType == ImageType.AGAROSE_IMPRINT)) {
 			GaussFilter gaussOp = new GaussFilter();
 			gaussOp.setInputImg(enhancedImg);
+			// usually and by default sigma is interpreted in terms of real phyical
+			// pixel sizes, but in case of uncommon calibrations it might be 
+			// necessary to switch to pixel interpretation mode by the user
+			gaussOp.setSigmaInterpretation(this.sigmaMeaning);
 			gaussOp.runOp(HidingMode.HIDE_CHILDREN);
 			this.gaussFilterImg = gaussOp.getResultImg();
 			MTBImageRGB gaussFilterResult = 
@@ -2247,21 +2267,23 @@ public class PaCeQuant extends MTBOperator {
 		morphOp.setMode(BasicMorphology.opMode.ERODE);
 		morphOp.runOp(HidingMode.HIDE_CHILDREN);
 		skelImg = (MTBImageByte)morphOp.getResultImage();
+		
+//		// fill holes in region components
+//		this.fireOperatorExecutionProgressEvent(
+//				new ALDOperatorExecutionProgressEvent(this, operatorID 
+//					+ " -> filling holes..."));
+//		FillHoles2D holeFiller = new FillHoles2D(skelImg);
+//		holeFiller.runOp(HidingMode.HIDE_CHILDREN);
+//		MTBImageByte filledImg = (MTBImageByte)holeFiller.getResultImage();
+//		if (this.showAdditionalResultImages) {
+//			this.addResultImages.add((MTBImageRGB)(
+//				filledImg.convertType(MTBImageType.MTB_RGB, false)));
+//			this.addResultImages.get(this.addResultImages.size()-1).
+//				setTitle("Result after erosion and hole filling");
+//		}
 
-		// fill holes in region components
-		this.fireOperatorExecutionProgressEvent(
-				new ALDOperatorExecutionProgressEvent(this, operatorID 
-					+ " -> filling holes..."));
-		FillHoles2D holeFiller = new FillHoles2D(skelImg);
-		holeFiller.runOp(HidingMode.HIDE_CHILDREN);
-		MTBImageByte filledImg = (MTBImageByte)holeFiller.getResultImage();
-		if (this.showAdditionalResultImages) {
-			this.addResultImages.add((MTBImageRGB)(
-				filledImg.convertType(MTBImageType.MTB_RGB, false)));
-			this.addResultImages.get(this.addResultImages.size()-1).
-				setTitle("Result after erosion and hole filling");
-		}
-
+		MTBImageByte filledImg = skelImg;
+	
 		// invert image again, boundaries white again
 		for (int y=0; y<this.height; ++y)
 			for (int x=0; x<this.width; ++x)
@@ -2664,6 +2686,27 @@ public class PaCeQuant extends MTBOperator {
 		postOp.runOp(HidingMode.HIDE_CHILDREN);
 		tmpImg = (MTBImageByte) postOp.getResultImage();
 				
+		// remove components touching the image border by filling them in black
+		boolean touchingBorder;
+		LabelComponentsSequential labler = new LabelComponentsSequential(tmpImg, true);
+		labler.runOp();
+		MTBRegion2DSet regs = labler.getResultingRegions();
+		for (MTBRegion2D r: regs) {
+			touchingBorder = false;
+			for (Point2D.Double p: r.getPoints()) {
+				if (   p.x == 0 || p.x == tmpImg.getSizeX()-1
+						|| p.y == 0 || p.y == tmpImg.getSizeY()-1) {
+					touchingBorder = true;
+					break;
+				}
+			}
+			if (touchingBorder) {
+				for (Point2D.Double p: r.getPoints()) {
+					tmpImg.putValueInt((int)p.x, (int)p.y, 0);
+				}
+			}
+		}
+
 		// fill holes in region components
 		this.fireOperatorExecutionProgressEvent(
 				new ALDOperatorExecutionProgressEvent(this, operatorID 
@@ -2676,12 +2719,11 @@ public class PaCeQuant extends MTBOperator {
 		this.fireOperatorExecutionProgressEvent(
 				new ALDOperatorExecutionProgressEvent(this, operatorID 
 					+ " -> running sequential component labeling..."));
-		LabelComponentsSequential labler = 
-				new LabelComponentsSequential(tmpImg, true);
+		labler = new LabelComponentsSequential(tmpImg, true);
 		labler.runOp(HidingMode.HIDE_CHILDREN);
 		MTBRegion2DSet regions = labler.getResultingRegions();
 		
-		// filter regions which are touching the image border
+		// filter regions which are touching the image border (with larger margin)
 		this.fireOperatorExecutionProgressEvent(
 				new ALDOperatorExecutionProgressEvent(this, operatorID 
 					+ " -> finally filtering regions, found " + regions.size() 
@@ -2690,7 +2732,7 @@ public class PaCeQuant extends MTBOperator {
 		MTBRegion2DSet validRegions = new MTBRegion2DSet(regions.getXmin(), 
 				regions.getYmin(), regions.getXmax(), regions.getYmax());
 		
-		boolean touchingBorder = false;
+		touchingBorder = false;
 		for (MTBRegion2D r: regions) {
 			
 			// eliminate region if touching image border; 
@@ -2812,120 +2854,125 @@ public class PaCeQuant extends MTBOperator {
 
 				LinkedList<InProContourSegment> segs = mipd.getProtrusionSegments();
 
-				MTBTableModel lobeTab = 
-						new MTBTableModel(segs.size(), header.size(), header);
+				MTBTableModel lobeTab;
+				if (segs.isEmpty()) {
+					lobeTab = null;
+				}
+				else {
+					lobeTab =	new MTBTableModel(segs.size(), header.size(), header);
 
-				int segID = 0;
-				double leftLength, rightLength;
-				for (InProContourSegment ipc: segs) {
-		
-					leftLength= 0;
-					rightLength= 0;
+					int segID = 0;
+					double leftLength, rightLength;
+					for (InProContourSegment ipc: segs) {
 
-					labels.clear();
-					for (Point2D.Double p: ipc.initialSegmentPoints) {
-						int px = (int)p.x;
-						int py = (int)p.y;
-						for (int dy=-nbSize;dy<=nbSize;++dy) {
-							for (int dx=-nbSize;dx<=nbSize;++dx) {
-								if (   px+dx>=0 && px+dx<this.width 
-										&& py+dy>=0 && py+dy<this.height)
-									labels.add(
-											new Integer(finalLabelImg.getValueInt(px+dx, py+dy)));
-							}						
-						}
-					}
-					LobeTypes lobeClass = LobeTypes.UNDEFINED;
-					int color = 0;
-					// type 1: two regions, no background
-					if (labels.size() == 2 && !labels.contains(new Integer(0))) {
-						color = 1;
-						lobeClass = LobeTypes.TYPE_1;
-					}
-					// type 2: three regions, no background 
-					else if (labels.size() == 3 && !labels.contains(new Integer(0))) {
-						color = 2;
-						lobeClass = LobeTypes.TYPE_2;
-						
-						// search for contact point closest to contour
-						int minID=-1;
-						double minDist = Double.MAX_VALUE;
-						int id = 0;
+						leftLength= 0;
+						rightLength= 0;
+
+						labels.clear();
 						for (Point2D.Double p: ipc.initialSegmentPoints) {
-							for (Point2D.Double t: threeContactPoints) {
-								if (p.distance(t) < minDist) {
-									minDist = p.distance(t);
-									minID = id;
-								}
+							int px = (int)p.x;
+							int py = (int)p.y;
+							for (int dy=-nbSize;dy<=nbSize;++dy) {
+								for (int dx=-nbSize;dx<=nbSize;++dx) {
+									if (   px+dx>=0 && px+dx<this.width 
+											&& py+dy>=0 && py+dy<this.height)
+										labels.add(
+												new Integer(finalLabelImg.getValueInt(px+dx, py+dy)));
+								}						
 							}
-							++id;
 						}
-						// draw 3-contact-point to result image
-						this.resultLobeTypeImage.drawCircle2D(
-							(int)ipc.initialSegmentPoints.get(minID).x, 
-								(int)ipc.initialSegmentPoints.get(minID).y, 0, 2, 0);
-						// calculate segment lengths
-						for (int i=0; i<minID; ++i) {
-							leftLength += ipc.initialSegmentPoints.get(i).distance(
-									ipc.initialSegmentPoints.get(i+1));
+						LobeTypes lobeClass = LobeTypes.UNDEFINED;
+						int color = 0;
+						// type 1: two regions, no background
+						if (labels.size() == 2 && !labels.contains(new Integer(0))) {
+							color = 1;
+							lobeClass = LobeTypes.TYPE_1;
 						}
-						leftLength *= this.pixelLengthXYinternal;
-						for (int i=minID; i<ipc.initialSegmentPoints.size()-1; ++i) {
-							rightLength += ipc.initialSegmentPoints.get(i).distance(
-									ipc.initialSegmentPoints.get(i+1));
+						// type 2: three regions, no background 
+						else if (labels.size() == 3 && !labels.contains(new Integer(0))) {
+							color = 2;
+							lobeClass = LobeTypes.TYPE_2;
+
+							// search for contact point closest to contour
+							int minID=-1;
+							double minDist = Double.MAX_VALUE;
+							int id = 0;
+							for (Point2D.Double p: ipc.initialSegmentPoints) {
+								for (Point2D.Double t: threeContactPoints) {
+									if (p.distance(t) < minDist) {
+										minDist = p.distance(t);
+										minID = id;
+									}
+								}
+								++id;
+							}
+							// draw 3-contact-point to result image
+							this.resultLobeTypeImage.drawCircle2D(
+									(int)ipc.initialSegmentPoints.get(minID).x, 
+									(int)ipc.initialSegmentPoints.get(minID).y, 0, 2, 0);
+							// calculate segment lengths
+							for (int i=0; i<minID; ++i) {
+								leftLength += ipc.initialSegmentPoints.get(i).distance(
+										ipc.initialSegmentPoints.get(i+1));
+							}
+							leftLength *= this.pixelLengthXYinternal;
+							for (int i=minID; i<ipc.initialSegmentPoints.size()-1; ++i) {
+								rightLength += ipc.initialSegmentPoints.get(i).distance(
+										ipc.initialSegmentPoints.get(i+1));
+							}
+							rightLength *= this.pixelLengthXYinternal;		
 						}
-						rightLength *= this.pixelLengthXYinternal;		
-					}
-					// undefined: cell close to unsegmented background
-					else {
-						color = 0;
-						lobeClass = LobeTypes.UNDEFINED;
-					}
-					for (Point2D.Double p: ipc.initialSegmentPoints) {
-						int px = (int)p.x;
-						int py = (int)p.y;
-						switch(color) 
-						{
-						case 0:
-							this.resultLobeTypeImage.putValueR(px, py, color);
-							this.resultLobeTypeImage.putValueG(px, py, color);
-							this.resultLobeTypeImage.putValueB(px, py, color);
-							break;
-						case 1:
-							this.resultLobeTypeImage.putValueR(px, py, 0);
-							this.resultLobeTypeImage.putValueG(px, py, 0);
-							this.resultLobeTypeImage.putValueB(px, py, 255);
-							break;
-						case 2:
-							this.resultLobeTypeImage.putValueR(px, py, 255);
-							this.resultLobeTypeImage.putValueG(px, py, 120);
-							this.resultLobeTypeImage.putValueB(px, py, 80);
-							break;
+						// undefined: cell close to unsegmented background
+						else {
+							color = 0;
+							lobeClass = LobeTypes.UNDEFINED;
 						}
-					}
-					lobeTab.setValueAt(new Integer(segID+1), segID, 0);
-					lobeTab.setValueAt(lobeClass.toString(), segID, 1);			
-					lobeTab.setValueAt(new Double(ipc.getEquatorLength()), segID, 2);
-					lobeTab.setValueAt(new Double(ipc.getBaselineLength()), segID, 3);
-					lobeTab.setValueAt(new Double(ipc.getApicalLength()), segID, 4);
-					lobeTab.setValueAt(new Double(ipc.getBasalLength()), segID, 5);
-					lobeTab.setValueAt(new Double(ipc.getTotalLength()), segID, 6);
-					if (   lobeClass.equals(LobeTypes.TYPE_1)
-							|| lobeClass.equals(LobeTypes.UNDEFINED)) {
-						lobeTab.setValueAt(new Double(Double.NaN), segID, 7);			
-						lobeTab.setValueAt(new Double(Double.NaN), segID, 8);									
-					}
-					else {
-						if (leftLength > rightLength) {
-							lobeTab.setValueAt(new Double(leftLength), segID, 7);			
-							lobeTab.setValueAt(new Double(rightLength), segID, 8);
+						for (Point2D.Double p: ipc.initialSegmentPoints) {
+							int px = (int)p.x;
+							int py = (int)p.y;
+							switch(color) 
+							{
+							case 0:
+								this.resultLobeTypeImage.putValueR(px, py, color);
+								this.resultLobeTypeImage.putValueG(px, py, color);
+								this.resultLobeTypeImage.putValueB(px, py, color);
+								break;
+							case 1:
+								this.resultLobeTypeImage.putValueR(px, py, 0);
+								this.resultLobeTypeImage.putValueG(px, py, 0);
+								this.resultLobeTypeImage.putValueB(px, py, 255);
+								break;
+							case 2:
+								this.resultLobeTypeImage.putValueR(px, py, 255);
+								this.resultLobeTypeImage.putValueG(px, py, 120);
+								this.resultLobeTypeImage.putValueB(px, py, 80);
+								break;
+							}
+						}
+						lobeTab.setValueAt(new Integer(segID+1), segID, 0);
+						lobeTab.setValueAt(lobeClass.toString(), segID, 1);			
+						lobeTab.setValueAt(new Double(ipc.getEquatorLength()), segID, 2);
+						lobeTab.setValueAt(new Double(ipc.getBaselineLength()), segID, 3);
+						lobeTab.setValueAt(new Double(ipc.getApicalLength()), segID, 4);
+						lobeTab.setValueAt(new Double(ipc.getBasalLength()), segID, 5);
+						lobeTab.setValueAt(new Double(ipc.getTotalLength()), segID, 6);
+						if (   lobeClass.equals(LobeTypes.TYPE_1)
+								|| lobeClass.equals(LobeTypes.UNDEFINED)) {
+							lobeTab.setValueAt(new Double(Double.NaN), segID, 7);			
+							lobeTab.setValueAt(new Double(Double.NaN), segID, 8);									
 						}
 						else {
-							lobeTab.setValueAt(new Double(rightLength), segID, 7);			
-							lobeTab.setValueAt(new Double(leftLength), segID, 8);							
+							if (leftLength > rightLength) {
+								lobeTab.setValueAt(new Double(leftLength), segID, 7);			
+								lobeTab.setValueAt(new Double(rightLength), segID, 8);
+							}
+							else {
+								lobeTab.setValueAt(new Double(rightLength), segID, 7);			
+								lobeTab.setValueAt(new Double(leftLength), segID, 8);							
+							}
 						}
+						++segID;
 					}
-					++segID;
 				}
 				// store table to result vector
 				this.resultLobeFeatureTables.add(lobeTab);
