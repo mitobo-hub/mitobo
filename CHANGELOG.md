@@ -5,15 +5,25 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 
 ## [Unreleased]
 ### Added
+- LabelImageEditor:
+	- added region fill-in mode on Ctrl + Shift + Left-Click
+	- ending of edited files now configurable by the user
+	- new configuration window with options for, e.g., line width in drawing or maximal boundary width
 
 ### Changed
+- LabelImageEditor:
+	- editor now supports up to 65535 regions
+	- labeling with 4-NB before saving to preserve thin boundaries
 
 ### Deprecated
 
 ### Removed
 
 ### Fixed
-
+- MTBNeuriteSkelGraph: added coordinate checks to avoid accessing pixels outside image
+- PaCeQuant: 
+	- added several safety checks to handle cases like too small cells
+	- added switch for interpretation of Gaussian sigma value in preprocessing
 
 ## [2.1.1] - 2021-03-28
 Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
