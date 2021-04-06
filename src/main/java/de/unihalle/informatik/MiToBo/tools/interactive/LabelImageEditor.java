@@ -102,6 +102,16 @@ public class LabelImageEditor extends MTBOperator
 	private static final String classID = "[LabelImageEditor]";
 
 	/**
+	 * Maximal border width default value.
+	 */
+	private static final int defaultMaxBorderWidth = 7;
+
+	/**
+	 * Default width of freehand border lines.
+	 */
+	private static final int defaultDrawLineWidth = 3;
+
+	/**
 	 * Image directory to process.
 	 */
 	@Parameter(label = "Input Directory", required = true, 
@@ -226,9 +236,15 @@ public class LabelImageEditor extends MTBOperator
 	 */
 	private JFrame optionsFrame;
 	
+	/**
+	 * Text field with current maximal border width.
+	 */
 	private JTextField optionsBorderMaxWidth;
 	
-	private JTextField optionsDrawWidth;
+	/**
+	 * Text field with current width of lines when drawing boundaries.
+	 */
+	private JTextField optionsDrawLineWidth;
 	
 	/**
 	 * Default constructor.
@@ -559,6 +575,16 @@ public class LabelImageEditor extends MTBOperator
 			int mx = this.ic.offScreenX(e.getX());
 			int my = this.ic.offScreenY(e.getY());
 			
+			// get line width from options window
+			int lineWidth = defaultDrawLineWidth;
+			try {
+				int w = Integer.parseInt(this.optionsDrawLineWidth.getText());
+				lineWidth = w;
+			}
+			catch (Exception exp) {
+				// if there is any problem, just ignore...
+			}
+			this.activeProcessor.setLineWidth(lineWidth);
 			this.activeProcessor.drawLine(
 					(int)this.lastPathPoint.x, (int)this.lastPathPoint.y, mx, my);
 			this.lastPathPoint.x = mx;
@@ -613,12 +639,14 @@ public class LabelImageEditor extends MTBOperator
 
 			// run over the image and search for background pixels having two or 
 			// more components with the same label in their neighborhood
-			int neighborhoodSize = 3;
+			int neighborhoodSize = (int)(defaultMaxBorderWidth/2.0);
 			try {
 				int maxWidth = Integer.parseInt(this.optionsBorderMaxWidth.getText());
 				neighborhoodSize = (int)(maxWidth/2.0);
 			}
-			catch (Exception exp) {}
+			catch (Exception exp) {
+				// if there is any problem, just ignore...
+			}
 			int neighborhoodPixelNum = (2*neighborhoodSize + 1) * (2*neighborhoodSize + 1);
 			for (int y=0; y<this.activeProcessor.getHeight();++y) {
 				for (int x=0; x<this.activeProcessor.getWidth();++x) {
@@ -900,6 +928,7 @@ public class LabelImageEditor extends MTBOperator
 		
 		// main window
 		this.optionsFrame = new JFrame();
+		this.optionsFrame.setTitle("LabelImageEditor - Options");
 		this.optionsFrame.setLayout(new BorderLayout());
 		
 		JPanel paramPanel = new JPanel();
@@ -908,17 +937,19 @@ public class LabelImageEditor extends MTBOperator
 		// border max width for configuring neighborhood size in fix borders
 		JPanel labelPanel = new JPanel();
 		JLabel label = new JLabel("Maximal border width:");
+		label.setToolTipText("Maximal width of boundaries, used in fixing boundaries.");
 		labelPanel.add(label);
 		paramPanel.add(labelPanel);
-		this.optionsBorderMaxWidth = new JTextField("7");
+		this.optionsBorderMaxWidth = new JTextField(String.valueOf(defaultMaxBorderWidth));
 		paramPanel.add(this.optionsBorderMaxWidth);
 		// width of line when drawing new borders
 		labelPanel = new JPanel();
 		label = new JLabel("Drawing width:");
+		label.setToolTipText("Line width for drawing new freehand boundaries.");
 		labelPanel.add(label);
 		paramPanel.add(labelPanel);
-		this.optionsDrawWidth = new JTextField("1");
-		paramPanel.add(this.optionsDrawWidth);
+		this.optionsDrawLineWidth = new JTextField(String.valueOf(defaultDrawLineWidth));
+		paramPanel.add(this.optionsDrawLineWidth);
 		
 		this.optionsFrame.add(paramPanel, BorderLayout.CENTER);
 		
@@ -930,7 +961,7 @@ public class LabelImageEditor extends MTBOperator
 		buttons.add(optionsOk);
 		this.optionsFrame.add(buttons, BorderLayout.SOUTH);
 		
-		this.optionsFrame.setSize(350, 150);
+		this.optionsFrame.setSize(350, 120);
 	}
 	
 	/**
