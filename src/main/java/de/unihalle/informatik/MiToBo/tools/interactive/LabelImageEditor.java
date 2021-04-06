@@ -429,13 +429,13 @@ public class LabelImageEditor extends MTBOperator
 			for (int y=0; y<this.activeProcessor.getHeight();++y) {
 				for (int x=0; x<this.activeProcessor.getWidth();++x) {
 					clabel = this.activeProcessor.getPixel(x, y);
-					labels.add(new Integer(clabel));
+					labels.add(Integer.valueOf(clabel));
 					if (clabel > maxLabel)
 						maxLabel = clabel;
 				}
 			}
 			for (int nl = maxLabel; nl > 0; --nl) {
-				if (labels.contains(new Integer(nl)))
+				if (labels.contains(Integer.valueOf(nl)))
 					continue;
 				for (int y=0; y<this.activeProcessor.getHeight();++y) {
 					for (int x=0; x<this.activeProcessor.getWidth();++x) {
@@ -457,14 +457,14 @@ public class LabelImageEditor extends MTBOperator
 			for (int y=0; y<this.activeProcessor.getHeight();++y) {
 				for (int x=0; x<this.activeProcessor.getWidth();++x) {
 					clabel = this.activeProcessor.getPixel(x, y);
-					labels.add(new Integer(clabel));
+					labels.add(Integer.valueOf(clabel));
 					if (clabel > maxLabel)
 						maxLabel = clabel;
 				}
 			}
 			// search for next free label to assign
 			for (int nl = maxLabel; nl > 0; --nl) {
-				if (labels.contains(new Integer(nl)))
+				if (labels.contains(Integer.valueOf(nl)))
 					continue;
 				labelNeighbors(this.activeProcessor, mx, my, nl);
 			}
@@ -664,7 +664,7 @@ public class LabelImageEditor extends MTBOperator
 								nLabel = this.activeProcessor.getPixel(x+dx,  y+dy);
 								if (nLabel == 0)
 									continue;
-								labels.add(nLabel);
+								labels.add(Integer.valueOf(nLabel));
 							}						
 						}
 					}
@@ -784,7 +784,7 @@ public class LabelImageEditor extends MTBOperator
 								y = (int)(p.y+dy);
 								if (x >= 0 && x < width && y>= 0 && y < height) {
 									if (this.activeProcessor.getPixelValue(x, y) > 0)
-										neighborLabels.add(new Integer(
+										neighborLabels.add(Integer.valueOf(
 											(int)this.activeProcessor.getPixelValue(x, y)));
 								}
 							}							
@@ -976,7 +976,7 @@ public class LabelImageEditor extends MTBOperator
 		TreeSet<Integer> labels = new TreeSet<>();
 		for (int y=0; y<ip.getHeight();++y) {
 			for (int x=0; x<ip.getWidth();++x) {
-				labels.add(new Integer(ip.getPixel(x, y)));
+				labels.add(Integer.valueOf(ip.getPixel(x, y)));
 			}
 		}
 		LinkedList<Integer> sortedLabels = new LinkedList<>();
@@ -998,7 +998,7 @@ public class LabelImageEditor extends MTBOperator
 		int n = 0, newLabel;
 		for (Integer i: sortedLabels) {
 			newLabel = max - n * step;
-			labelMap.put(i, new Integer(newLabel));
+			labelMap.put(i, Integer.valueOf(newLabel));
 			++n;
 		}
 		
@@ -1007,7 +1007,7 @@ public class LabelImageEditor extends MTBOperator
 				int label = ip.getPixel(x, y);
 				if (label == 0)
 					continue;
-				newLabel = labelMap.get(new Integer(label)).intValue();
+				newLabel = labelMap.get(Integer.valueOf(label)).intValue();
 				ip.putPixel(x, y, newLabel);
 			}
 		}
