@@ -31,6 +31,7 @@ import org.junit.Test;
 
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
+import de.unihalle.informatik.MiToBo.core.datatypes.wrapper.MTBBooleanData;
 import de.unihalle.informatik.MiToBo.filters.linear.anisotropic.GaussPDxxFilter2D;
 import de.unihalle.informatik.MiToBo.filters.linear.anisotropic.OrientedFilter2DBatchAnalyzer.JoinMode;
 import de.unihalle.informatik.MiToBo.io.images.ImageReaderMTB;
@@ -161,16 +162,78 @@ public class TestOrientedFilter2DBatchAnalyzer {
 			}
 		}
 		// compare max image
+		for (int y=0; y<this.inputImage.getSizeY(); ++y) {
+			for (int x=0; x<this.inputImage.getSizeX(); ++x) {
+				assertTrue("Pixel difference! Position " + "(" + x + "," + y + ") => " 
+						+ " expected = " + this.resultMaxImage.getValueDouble(x, y) 
+						+ " , found = " + testResultMaxImage.getValueDouble(x, y),
+						Math.abs(this.resultMaxImage.getValueDouble(x, y) 
+								- testResultMaxImage.getValueDouble(x, y)) < accuracy);
+			}			
+		}
+		
+		/*
+		 * Re-run operator in parallel mode.
+		 */
+		
+		thrown = false;
+		try {
+			this.testObject = new OrientedFilter2DBatchAnalyzer();
+			this.testObject.setInputImage(this.inputImage);
+			this.testObject.setAngleSampling(15);
+			this.testObject.setMinAngle(0);
+			this.testObject.setMaxAngle(180);
+			this.testObject.setParameter("jMode", JoinMode.JOIN_MAXIMUM);
+			
+			testFilter = new GaussPDxxFilter2D();
+			this.testObject.setOrientedFilter(testFilter);
+		} catch (ALDOperatorException e) {
+			e.printStackTrace();
+			thrown = true;
+		}
+		assertFalse(classID + " could not initialize operator!", thrown);
+		
+		testFilter.setStandardDeviation(2.0);
+		testFilter.setHeight(9);
+		testFilter.enableNormalization();
+		testFilter.setInvertMask(false);
+		
+		this.testObject.setRunParallel(new MTBBooleanData(true));
+		
+		// run test operator
+		thrown = false;
+		try {
+			this.testObject.runOp();
+		} catch (Exception e) {
+			thrown = true;
+		}
+		assertFalse(classID + " problems running the operator in parallel!", thrown);
+
+		testResultStack = this.testObject.getFilterResponseStack();
+		testResultMaxImage = this.testObject.getResultImage();
+		
+		// compare stack
 		for (int z=0; z<this.inputImage.getSizeZ(); ++z) {
 			for (int y=0; y<this.inputImage.getSizeY(); ++y) {
 				for (int x=0; x<this.inputImage.getSizeX(); ++x) {
 					assertTrue("Pixel difference! Position " + "(" + x + "," + y + ") => " 
-						+ " expected = " + this.resultMaxImage.getValueDouble(x, y, z) 
-							+ " , found = " + testResultMaxImage.getValueDouble(x, y, z),
-								Math.abs(this.resultMaxImage.getValueDouble(x, y, z) 
-										- testResultMaxImage.getValueDouble(x, y, z)) < accuracy);
+						+ " expected = " + this.resultStack.getValueDouble(x, y, z) 
+							+ " , found = " + testResultStack.getValueDouble(x, y, z),
+								Math.abs(this.resultStack.getValueDouble(x, y, z) 
+										- testResultStack.getValueDouble(x, y, z)) < accuracy);
 				}			
 			}
 		}
+		// compare max image
+		for (int y=0; y<this.inputImage.getSizeY(); ++y) {
+			for (int x=0; x<this.inputImage.getSizeX(); ++x) {
+				assertTrue("Pixel difference! Position " + "(" + x + "," + y + ") => " 
+						+ " expected = " + this.resultMaxImage.getValueDouble(x, y) 
+						+ " , found = " + testResultMaxImage.getValueDouble(x, y),
+						Math.abs(this.resultMaxImage.getValueDouble(x, y) 
+								- testResultMaxImage.getValueDouble(x, y)) < accuracy);
+			}			
+		}
+
 	}
 }
