@@ -24,6 +24,7 @@
 
 package de.unihalle.informatik.MiToBo.filters.linear.anisotropic;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
@@ -221,7 +222,7 @@ public class OrientedFilter2DBatchAnalyzer extends MTBOperator
 		
 		// apply all convolutions to image
 		double angle;
-		MTBImageDouble[] filteredImages = new MTBImageDouble[steps];
+		List<MTBImageDouble> resultImages = new ArrayList<MTBImageDouble>();
 
 		// run in standard sequential mode
 		if (!this.runParallel.getValue()) {
@@ -244,7 +245,7 @@ public class OrientedFilter2DBatchAnalyzer extends MTBOperator
 				}
 				this.oFilter.setAngle(angle);
 				this.oFilter.runOp();
-				filteredImages[s] = this.oFilter.getResultImage();
+				resultImages.add(this.oFilter.getResultImage());
 			}
 		}
 		// run in parallel
@@ -270,16 +271,10 @@ public class OrientedFilter2DBatchAnalyzer extends MTBOperator
 					e.printStackTrace();
 				}
 			});
-			List<MTBImageDouble> results = opList.stream()
+			resultImages = opList.stream()
 					.parallel()
 					.map(OrientedFilter2D::getResultImage)
-					.collect(Collectors.toList());
-		
-			// copy result images data structure for further processing
-			for (int s=0; s<steps; ++s) {
-				filteredImages[s] = results.get(s);
-			}
-			
+					.collect(Collectors.toList());		
 		}
 
 		// figure out maximal response at each pixel position
@@ -289,10 +284,10 @@ public class OrientedFilter2DBatchAnalyzer extends MTBOperator
 		this.maxIndexMap.setTitle("Map of indices of maximal responses for "
 			+ "<" + this.inputImg.getTitle() + ">");
 		if (this.jMode == JoinMode.JOIN_MAXIMUM) {
-			this.resultImg = (MTBImageDouble)filteredImages[0].duplicate();
+			this.resultImg = (MTBImageDouble)resultImages.get(0).duplicate();
 			this.maxIndexMap.fillBlack();
 			for (int s=1; s<steps; ++s) {
-				filterResponse = filteredImages[s];
+				filterResponse = resultImages.get(s);
 				for (int y=0; y<height; ++y) {
 					for (int x=0; x<width; ++x) {
 						if (  filterResponse.getValueDouble(x, y) 
@@ -308,14 +303,14 @@ public class OrientedFilter2DBatchAnalyzer extends MTBOperator
 		else {
 			// scale all responses to an interval of [0,1]
 			for (int s=0; s<steps; ++s) {
-				filteredImages[s] = filteredImages[s].scaleValues(0, 0, 
-					filteredImages[s].getMinMaxDouble()[0], 
-					filteredImages[s].getMinMaxDouble()[1], 0, 1);				
+				resultImages.set(s, resultImages.get(s).scaleValues(0, 0, 
+						resultImages.get(s).getMinMaxDouble()[0], 
+						resultImages.get(s).getMinMaxDouble()[1], 0, 1));				
 			}
 			// calculate product of all normalized responses
-			this.resultImg = (MTBImageDouble)filteredImages[0].duplicate();
+			this.resultImg = (MTBImageDouble)resultImages.get(0).duplicate();
 			for (int s=1; s<steps; ++s) {
-				filterResponse = filteredImages[s];
+				filterResponse = resultImages.get(s);
 				for (int y=0; y<height; ++y) {
 					for (int x=0; x<width; ++x) {
 						this.resultImg.putValueDouble(x, y, 
@@ -332,7 +327,7 @@ public class OrientedFilter2DBatchAnalyzer extends MTBOperator
 		this.responseStack = (MTBImageDouble)(MTBImage.createMTBImage(
 			width, height, 1, 1, steps, MTBImage.MTBImageType.MTB_DOUBLE));
 		for (int s=0; s<steps; ++s) {
-			this.responseStack.setImagePart(filteredImages[s], 0, 0, 0, 0, s);
+			this.responseStack.setImagePart(resultImages.get(s), 0, 0, 0, 0, s);
 			this.responseStack.setSliceLabel("Angle = " + 
 				(this.angleSampling*s+this.minAngle) + " degrees", 0, 0, s);
 		}
