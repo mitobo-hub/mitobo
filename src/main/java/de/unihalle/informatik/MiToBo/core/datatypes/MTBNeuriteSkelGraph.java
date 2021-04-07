@@ -1169,6 +1169,9 @@ public class MTBNeuriteSkelGraph extends MTBGraph {
 		 * @return Skeleton image with labeled branch/special points.
 		 */
 		private MTBImageByte markBranchPoints(MTBImageByte skelImg) {
+			
+			int value;
+			
 				Vector<Point> branchPoints = new Vector<Point>();
 				for (int y = 0; y < this.height; y++) {
 						for (int x = 0; x < this.width; x++) {
@@ -1187,7 +1190,7 @@ public class MTBNeuriteSkelGraph extends MTBGraph {
 														continue;
 												if (ny < 0 || ny >= this.height)
 														continue;
-												int value = skelImg.getValueInt(nx, ny);
+												value = skelImg.getValueInt(nx, ny);
 												if (value == this.skeleton_color) {
 														oldVal = 1;
 												}
@@ -1198,20 +1201,22 @@ public class MTBNeuriteSkelGraph extends MTBGraph {
 														oldVal = 0;
 												}
 										}
-										int nx = x + delta[0][0];
-										int ny = y + delta[0][1];
+										int nx = x + this.delta[0][0];
+										int ny = y + this.delta[0][1];
 
-										int value = skelImg.getValueInt(nx, ny);
+										if (ny >= 0) {
+											value = skelImg.getValueInt(nx, ny);
 
-										if (value == this.skeleton_color) {
+											if (value == this.skeleton_color) {
 												oldVal = 1;
-										}
-										if (value == this.background_color) {
+											}
+											if (value == this.background_color) {
 												if (oldVal == 1) {
-														gapCount++;
+													gapCount++;
 
 												}
 												oldVal = 0;
+											}
 										}
 										if (gapCount > 2) {
 												branchPoints.addElement(new Point(x, y));
@@ -1222,8 +1227,8 @@ public class MTBNeuriteSkelGraph extends MTBGraph {
 										int count = 0;
 
 										for (int i = 2; i < 5; i++) {
-												nx = x + delta[i][0];
-												ny = y + delta[i][1];
+												nx = x + this.delta[i][0];
+												ny = y + this.delta[i][1];
 												if (nx < 0 || nx >= this.width)
 														continue;
 												if (ny < 0 || ny >= this.height)

@@ -110,30 +110,42 @@ public class MorphologyAnalyzer2DInProHelper {
 		// iterate over all contours
 		int contourID = 0;
 		for (double[] curvVals: curvatureValues) {
-
-			MTBContour2D c = contours.elementAt(contourID);
 			
-			// init object for result data
-			MorphologyAnalyzer2DInProData levelResult = 
-					new MorphologyAnalyzer2DInProData(contours.elementAt(contourID),
-							contourID);
-
-			this.detectProtrusionsIndentations(c, levelResult, curvVals, 
-					minProtrusionLength, minIndentationLength);
+			MorphologyAnalyzer2DInProData levelResult; 
 			
-			// further process indentation segments to learn more about protrusions
-			this.postprocessIndentationSegments(levelResult);
-
-			// further process protrusion segments to learn more about indentations
-			this.postprocessProtrusionSegments(levelResult);
-			
-			// if we detected just one protrusion/indentation this does not fit 
-			// in our model, thus, we eliminate this protrusion
-			if (levelResult.numberOfProtrusions == 1) {
+			// sanity check: if there are not enough curvature values skip contour
+			if (curvVals == null || curvVals.length < 2*(minProtrusionLength + minIndentationLength)) {
+				levelResult =	new MorphologyAnalyzer2DInProData(contours.elementAt(contourID), 
+						contourID);
 				levelResult.numberOfProtrusions = 0;
 				levelResult.nonProtrusionArea = 0;
 				levelResult.avgEquatorIndentationLength = Double.NaN;
 				levelResult.avgEquatorProtrusionLength = Double.NaN;
+			}
+			else {
+				MTBContour2D c = contours.elementAt(contourID);
+
+				// init object for result data
+				levelResult =	new MorphologyAnalyzer2DInProData(contours.elementAt(contourID),
+						contourID);
+
+				this.detectProtrusionsIndentations(c, levelResult, curvVals, 
+						minProtrusionLength, minIndentationLength);
+
+				// further process indentation segments to learn more about protrusions
+				this.postprocessIndentationSegments(levelResult);
+
+				// further process protrusion segments to learn more about indentations
+				this.postprocessProtrusionSegments(levelResult);
+
+				// if we detected just one protrusion/indentation this does not fit 
+				// in our model, thus, we eliminate this protrusion
+				if (levelResult.numberOfProtrusions == 1) {
+					levelResult.numberOfProtrusions = 0;
+					levelResult.nonProtrusionArea = 0;
+					levelResult.avgEquatorIndentationLength = Double.NaN;
+					levelResult.avgEquatorProtrusionLength = Double.NaN;
+				}
 			}
 			
 			// add result for current contour to collection

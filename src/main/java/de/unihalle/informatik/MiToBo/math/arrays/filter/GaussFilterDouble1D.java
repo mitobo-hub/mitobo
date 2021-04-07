@@ -35,11 +35,14 @@ import de.unihalle.informatik.Alida.annotations.Parameter;
  * The size of the filter kernel mask is chosen as two times the given
  * standard deviation plus one, truncated to the next full integer
  * value.
+ * <p>
+ * If a kernel array is provided, that one is used. Otherwise 
+ * a kernel is automatically created from the given standard deviation.
  *
  * @author moeller
  */
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL,
-		level=Level.APPLICATION)
+		level=Level.STANDARD)
 public class GaussFilterDouble1D extends ArrayFilterDouble1D {
 
 	/**
@@ -50,6 +53,12 @@ public class GaussFilterDouble1D extends ArrayFilterDouble1D {
 			description = "Standard deviation \u03A3 of Gaussian kernel.")
 	private double sigma = 1.0;
 
+	/**
+	 * Kernel array, either provided externally or filled internally based on
+	 * given standard deviation. 
+	 */
+	private double[] kernel = null;
+	
 	/**
 	 * Default constructor.
 	 * @throws ALDOperatorException 
@@ -65,6 +74,31 @@ public class GaussFilterDouble1D extends ArrayFilterDouble1D {
 	 */
 	public void setSigma(double s) {
 		this.sigma = s;
+		this.kernel = null;
+	}
+	
+	/**
+	 * Set Gaussian kernel.
+	 * <p>
+	 * If provided, sigma is ignored. Note that no checks are included,
+	 * thus, the user has to take care of correct values and scaling.
+	 * <p>
+	 * This function is especially useful if the same kernel has to be
+	 * applied many, many times to different data. Then it needs to be
+	 * generated only once and can be reused.
+	 * 
+	 * @param k	Gaussian kernel array to be used.
+	 */
+	public void setKernel(double[] k) {
+		this.kernel = k;
+	}
+
+	/**
+	 * Get the kernel which is currently in use.
+	 * @return	Active kernel.
+	 */
+	public double[] getKernel() {
+		return this.kernel;
 	}
 	
 	/**
@@ -72,16 +106,19 @@ public class GaussFilterDouble1D extends ArrayFilterDouble1D {
 	 */
 	@Override
 	protected void operate() {
-		// generate Gaussian kernel
-		double[] kernel = this.getGaussKernel();
-		int kernelSize = kernel.length;
+		
+		// generate Gaussian kernel if none given
+		if (this.kernel == null)
+			this.kernel = this.getGaussKernel();
+		int kernelSize = this.kernel.length;
 		int kernelWidth = (kernelSize-1)/2;
 		
 		// convolve the input array
 		this.outputArray = new double[this.inputArray.length];
-		double arrayVal = 0;
+		
+		double arrayVal = 0, sum = 0;
 		for (int x=0; x<this.inputArray.length; ++x) {
-			double sum = 0;			
+			sum = 0;			
 			for (int dx=-kernelWidth; dx<=kernelWidth; ++dx) {
 				if (x+dx < 0) {
 					if (this.dataIsPeriodic)
@@ -97,10 +134,11 @@ public class GaussFilterDouble1D extends ArrayFilterDouble1D {
 				}
 				else
 					arrayVal = this.inputArray[x+dx];
-				sum += kernel[dx+kernelWidth] * arrayVal;
+				sum += this.kernel[dx+kernelWidth] * arrayVal;
 			}
 			this.outputArray[x] = sum;
 		}
+
 	}
 
 	/**
@@ -108,16 +146,24 @@ public class GaussFilterDouble1D extends ArrayFilterDouble1D {
 	 * @return Gaussian kernel.
 	 */
 	protected double[] getGaussKernel() {
+		return GaussFilterDouble1D.getGaussKernel(this.sigma);
+	}
+
+	/**
+	 * Get normalized Gaussian kernel for given parameters.
+	 * @return Gaussian kernel.
+	 */
+	public static double[] getGaussKernel(double sigma) {
 
 		// calculate kernel size
-		int kSize = (int)(this.sigma*2.0) + 1;
+		int kSize = (int)(sigma*2.0) + 1;
 		int kAnchor = (kSize-1)/2;
 
 		double[] kernel = new double[kSize];
 		double kernelSum = 0;
 		for (int x = 0; x < kSize; ++x) {
 			kernel[x] = Math.exp(-0.5*(x-kAnchor)*(x-kAnchor)
-					/(this.sigma*this.sigma));
+					/(sigma*sigma));
 			kernelSum += kernel[x];
 		}
 		for (int x = 0; x < kSize; ++x) {

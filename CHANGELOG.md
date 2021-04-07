@@ -5,15 +5,40 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 
 ## [Unreleased]
 ### Added
-- FillHoles2D: added option to consider 4-neighborhood in foreground instead of just 8-neighborhood
-- NucleusDetector2D: added setter for minimal nuclei size threshold
-- OrientedFilter2D: added setter for application mode (via direct convolution or fft)
+- LabelImageEditor:
+	- added region fill-in mode on Ctrl + Shift + Left-Click
+	- ending of edited files now configurable by the user
+	- new configuration window with options for, e.g., line width in drawing or maximal boundary width
 
 ### Changed
+- LabelImageEditor:
+	- editor now supports up to 65535 regions
+	- labeling with 4-NB before saving to preserve thin boundaries
 
 ### Deprecated
 
 ### Removed
+
+### Fixed
+- MTBNeuriteSkelGraph: added coordinate checks to avoid accessing pixels outside image
+- PaCeQuant: 
+	- added several safety checks to handle cases like too small cells
+	- added switch for interpretation of Gaussian sigma value in preprocessing
+
+## [2.1.1] - 2021-03-28
+Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
+- Released MiToBo 2.1.1
+
+### Added
+- FillHoles2D: added option to consider 4-neighborhood in foreground instead of just 8-neighborhood
+- GaussFilterDouble1D: added setter for kernel function to avoid internal regeneration
+- MTBRegion2D: added new method to extract contours of specific type only
+- NucleusDetector2D: added setter for minimal nuclei size threshold
+- OrientedFilter2D: added setter for application mode (via direct convolution or fft)
+- TestGaussFilterDouble1D: new test class for Gaussian filter in 1D
+
+### Changed
+- MTBRegion2D: speed-up of moment calculations by explicit implementations for frequently used moments
 
 ### Fixed
 - NuclearParticleDetector2D: replacing constant for minimal nuclei size threshold with user-configurable parameter value
