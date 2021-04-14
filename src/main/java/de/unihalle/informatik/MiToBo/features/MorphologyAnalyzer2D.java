@@ -364,18 +364,29 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	 * <p>
 	 * Refer to operator {@link Contour2DConcavityCalculator} for details.
 	 */
-	@Parameter(label = "    - Concavity Masksize", 
+	@Parameter(label = "    - Concavity masksize", 
 		required = false, direction = Parameter.Direction.IN, 
 		supplemental = false, dataIOOrder = 19,
 		description = "Size of local mask in concavity calculations.") 
 	private int concavityMaskSize = 11;
 
 	/**
+	 * Normalize concavity values?
+	 * <p>
+	 * Refer to operator {@link Contour2DConcavityCalculator} for details.
+	 */
+	@Parameter(label = "    - Normalize concavity values?", 
+		required = false, direction = Parameter.Direction.IN, 
+		supplemental = false, dataIOOrder = 20,
+		description = "If true, values are scaled to the range of [0,1].") 
+	private boolean concavityNormalizeValues = false;
+
+	/**
 	 * Flag to turn on/off analysis of convex hull.
 	 */
 	@Parameter(label = "Calculate convex hull measures", 
 		required = false, direction = Parameter.Direction.IN, 
-		supplemental = false, dataIOOrder = 20,
+		supplemental = false, dataIOOrder = 21,
 		description = "If true some measures of the convex hull "
 			+ "are calculated.")
 	private boolean calcConvexHullMeasures = true;
@@ -383,7 +394,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	@Parameter(label = "Fractional digits", required = false, 
 		direction = Parameter.Direction.IN, 
 		supplemental = false, description = "fractional digits", 
-		dataIOOrder = 21, mode=ExpertMode.ADVANCED)
+		dataIOOrder = 22, mode=ExpertMode.ADVANCED)
 	private Integer fracDigits = new Integer(3);
 	
 	/**
@@ -1328,6 +1339,17 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	}
 	
 	/**
+	 * Enable/disable normalization for concavity values.
+	 * <p>
+	 * Refer to operator {@link Contour2DConcavityCalculator} for details.
+	 *
+	 * @param b		If true, values are normalized to a range of [0,1].
+	 */
+	public void setConcavityNormalizeValues(boolean b) {
+		this.concavityNormalizeValues = b;
+	}
+
+	/**
 	 * Turn on/off calculation of convex hull measures. 
 	 * @param flag If true, convex hull measures are calculated.
 	 */
@@ -1764,25 +1786,26 @@ public class MorphologyAnalyzer2D extends MTBOperator
 				new Contour2DConcavityCalculator(this.labelImg);
 		concavityOp.setContours(contExtractor.getResultContours());
 		concavityOp.setRadius(this.concavityMaskSize);
+		concavityOp.setNormalize(Boolean.valueOf(this.concavityNormalizeValues));
 		concavityOp.runOp(HidingMode.HIDE_CHILDREN);
-		Vector<int[]> concavities = concavityOp.getConcavenessValues();
+		Vector<double[]> concavities = concavityOp.getConcavenessValues();
 
 		// calculate average concavities and their standard deviations
-		int concavitySum;
-		for (int[] concavityValues: concavities) {
+		double concavitySum;
+		for (double[] concavityValues: concavities) {
 			concavitySum = 0;
-			for (int d: concavityValues)
+			for (double d: concavityValues)
 				concavitySum += d;
 			this.avgConcavities.add(
-					new Double(concavitySum/concavityValues.length));
+					Double.valueOf(concavitySum/concavityValues.length));
 		}
 		int id = 0;
-		for (int[] concavityValues: concavities) {
+		for (double[] concavityValues: concavities) {
 			concavitySum = 0;
 			double avg = this.avgConcavities.get(id).doubleValue(); 
-			for (int d: concavityValues)
+			for (double d: concavityValues)
 				concavitySum += (d-avg)*(d-avg);
-			this.stdDevConcavities.add(new Double(
+			this.stdDevConcavities.add(Double.valueOf(
 					Math.sqrt(concavitySum/concavityValues.length)));
 			++id;
 		}		
