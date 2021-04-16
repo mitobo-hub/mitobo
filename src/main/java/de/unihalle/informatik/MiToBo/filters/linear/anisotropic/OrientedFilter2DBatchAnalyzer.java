@@ -265,7 +265,7 @@ public class OrientedFilter2DBatchAnalyzer extends MTBOperator
 			// apply filters via a parallel stream
 			opList.stream().parallel().forEach(op -> {
 				try {
-					op.runOp();
+					op.runOp(HidingMode.HIDDEN);
 				} catch (ALDOperatorException | ALDProcessingDAGException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
