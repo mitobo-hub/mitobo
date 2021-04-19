@@ -137,6 +137,7 @@ public class ChaudhuriMatchedFilter2D extends OrientedFilter2D {
 			newOp.inputImg = this.inputImg;
 			newOp.angle = this.angle;
 			newOp.mode = this.mode;
+			newOp.paddingVariant = this.paddingVariant;
 			newOp.statusListeners = this.statusListeners;
 			// local fields
 			newOp.gaussStdDev = this.gaussStdDev;

@@ -113,13 +113,13 @@ public abstract class OrientedFilter2D extends MTBOperator
 	/**
 	 * Padding variant in standard convolutional mode.
 	 * <p>
-	 * The default value is set to mirroring which is the padding variant 
-	 * used by ImgLib2 in FFT mode.
+	 * The default value is set to zero padding for compatibility reasons. Note that
+	 * ImgLib2 in FFT mode uses mirroring.
 	 */
 	@Parameter( label= "Image padding variant", required = true, 
 		dataIOOrder = -7, direction= Parameter.Direction.IN, 
 		mode=ExpertMode.ADVANCED, description = "Image padding variant in standard mode.")	
-	protected BoundaryPadding paddingVariant = BoundaryPadding.PADDING_MIRROR;	
+	protected BoundaryPadding paddingVariant = BoundaryPadding.PADDING_ZERO;	
 
 	/**
 	 * Filtered image.
