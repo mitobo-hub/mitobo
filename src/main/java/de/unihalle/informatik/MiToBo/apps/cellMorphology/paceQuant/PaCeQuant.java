@@ -28,6 +28,7 @@ import java.awt.geom.Point2D;
 import java.io.File;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Random;
 import java.util.TreeSet;
 import java.util.Vector;
@@ -43,12 +44,19 @@ import de.unihalle.informatik.Alida.exceptions.ALDOperatorException.OperatorExce
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.unihalle.informatik.Alida.helpers.ALDFilePathManipulator;
 import de.unihalle.informatik.Alida.operator.events.ALDOperatorExecutionProgressEvent;
+import de.unihalle.informatik.MiToBo.apps.cellMorphology.paceQuant.datatypes.Cell;
+import de.unihalle.informatik.MiToBo.apps.cellMorphology.paceQuant.segmentation.anisotropicFilters.SegConfigFilters;
+//import de.unihalle.informatik.MiToBo.apps.cellMorphology.paceQuant.segmentation.ridgeDetector.PavementCellDetector;
+//import de.unihalle.informatik.MiToBo.apps.cellMorphology.paceQuant.segmentation.ridgeDetector.SegConfigRidges;
+//import de.unihalle.informatik.MiToBo.apps.cellMorphology.paceQuant.stomata.CellClassifier;
+//import de.unihalle.informatik.MiToBo.apps.cellMorphology.paceQuant.stomata.ClassificationResult;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBContour2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBContour2DSet;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2DSet;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType;
+import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageWindow.BoundaryPadding;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageByte;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageDouble;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageRGB;
@@ -62,9 +70,9 @@ import de.unihalle.informatik.MiToBo.features.MorphologyAnalyzer2DInProData;
 import de.unihalle.informatik.MiToBo.features.MorphologyAnalyzer2D.FeatureNames;
 import de.unihalle.informatik.MiToBo.features.MorphologyAnalyzer2DInProData.InProContourSegment;
 import de.unihalle.informatik.MiToBo.filters.linear.GaussFilter;
-import de.unihalle.informatik.MiToBo.filters.linear.GaussFilter.SigmaInterpretation;
 import de.unihalle.informatik.MiToBo.filters.linear.anisotropic.GaussPDxxFilter2D;
 import de.unihalle.informatik.MiToBo.filters.linear.anisotropic.OrientedFilter2DBatchAnalyzer;
+import de.unihalle.informatik.MiToBo.filters.linear.anisotropic.OrientedFilter2D.ApplicationMode;
 import de.unihalle.informatik.MiToBo.filters.nonlinear.RankOperator;
 import de.unihalle.informatik.MiToBo.filters.nonlinear.RankOperator.RankOpMode;
 import de.unihalle.informatik.MiToBo.gui.MTBTableModel;
@@ -78,6 +86,8 @@ import de.unihalle.informatik.MiToBo.morphology.ComponentPostprocess.ProcessMode
 import de.unihalle.informatik.MiToBo.morphology.SkeletonExtractor;
 import de.unihalle.informatik.MiToBo.morphology.BinaryImageEndpointTools;
 import de.unihalle.informatik.MiToBo.morphology.WatershedBinary;
+import de.unihalle.informatik.MiToBo.segmentation.contours.extraction.ContourOnLabeledComponents;
+import de.unihalle.informatik.MiToBo.segmentation.contours.extraction.ContourOnLabeledComponents.ContourType;
 import de.unihalle.informatik.MiToBo.segmentation.regions.filling.FillHoles2D;
 import de.unihalle.informatik.MiToBo.segmentation.regions.labeling.LabelAreasToRegions;
 import de.unihalle.informatik.MiToBo.segmentation.regions.labeling.LabelComponentsSequential;
@@ -109,7 +119,7 @@ import ij.process.ImageProcessor;
  * @author moeller
  */
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL, 
-	level=Level.STANDARD, allowBatchMode = false)
+	level=Level.APPLICATION, allowBatchMode = false)
 public class PaCeQuant extends MTBOperator {
 
 	/**
@@ -142,6 +152,20 @@ public class PaCeQuant extends MTBOperator {
 		 * Process images / ROIs in the given directory.
 		 */
 		BATCH
+	}
+
+	/**
+	 * Segmentation algorithm selection.
+	 */
+	public static enum SegmentationAlgorithm {
+		/**
+		 * Use original PaCeQuant algorithm for segmentation based on anisotropic filters.
+		 */
+		SEGMENTATION_ANISOTROPIC_FILTERS,
+		/**
+		 * Use segmentation approach based on Steger's ridge detection.
+		 */
+//		SEGMENTATION_RIDGE_DETECTION
 	}
 	
 	/**
@@ -237,6 +261,20 @@ public class PaCeQuant extends MTBOperator {
 	}
 
 	/**
+	 * Mode for providing maximum length of admissible spines.
+	 */
+	public static enum SpineLengthDefine {
+		/**
+		 * Spine length is provided as absolute length in pixels.
+		 */
+		ABSOLUTE,
+		/**
+		 * Spine length is provided relative to region perimeter.
+		 */
+		RELATIVE				
+	}
+
+	/**
 	 * Different types of lobes.
 	 */
 	public static enum LobeTypes {
@@ -263,9 +301,16 @@ public class PaCeQuant extends MTBOperator {
 	 * List of parameters relevant for segmentation phase.
 	 */
 	private static transient String[] segmentationParameters = {
-			"phaseAInfo", "borderContrast", "gapMode",
-			"thresholdUnits",	"minimalCellSize", "maximalCellSize"
+			"phaseAInfo", "borderContrast", //"gapMode",
+			"thresholdUnits",	"minimalCellSize", "maximalCellSize",
+			"segVersion", "segConfFilters"//, "segConfRidges", "detectStomata"
 	};
+	
+//	private static transient String[] stomataDetectionParameters = {
+//			"stomataDetectionInfo", "cellStomaScoreThreshold", 
+//			"cellStomaSphericityThreshold", "cellStomaRatioCompactnessSolidityThreshold",
+//			"cellStomaMergeSphericityThreshold", "stomaMaxMergeCellCount"
+//	};
 	
 	/**
 	 * List of parameters relevant for feature extraction phase.
@@ -395,7 +440,7 @@ public class PaCeQuant extends MTBOperator {
 	 * Info string for segmentation phase configuration parameters.
 	 */
 	@Parameter(label = "Configure segmentation phase:", required = true, 
-			direction = Parameter.Direction.IN, dataIOOrder = 3, info = true,
+			direction = Parameter.Direction.IN, dataIOOrder = 12, info = true,
 			mode = ExpertMode.STANDARD, description = "Info string.")
 	private String phaseAInfo = 
 		"<html><u>Configure segmentation phase:</u></html>";
@@ -404,28 +449,48 @@ public class PaCeQuant extends MTBOperator {
 	 * Border to background relation.
 	 */
 	@Parameter(label = "Border Contrast", required = true, 
-		direction = Parameter.Direction.IN,	dataIOOrder = 4, 
+		direction = Parameter.Direction.IN,	dataIOOrder = 13, 
 		description = "Border to background relation.")
 	public BorderBackgroundContrast borderContrast = 
 		BorderBackgroundContrast.BRIGHT_ON_DARK;
 
 	/**
-	 * Mode for closing gaps.
+	 * Algorithm for segmentation.
 	 */
-	@Parameter(label = "Heuristic for Gap Closing", required = true, 
-			direction = Parameter.Direction.IN, dataIOOrder = 6,
-			description = "Choose mode for closing gaps.", 
-			callback = "switchGapCloseMode",
+	@Parameter(label = "Segmentation Algorithm", required = true, 
+			direction = Parameter.Direction.IN, dataIOOrder = 15,
+			description = "Configure segmentation algorithm.",
+			callback = "switchVersionParameter",
 			paramModificationMode = ParameterModificationMode.MODIFIES_INTERFACE)
-	private GapCloseMode gapMode = GapCloseMode.WATERSHED;
+	private SegmentationAlgorithm segVersion = SegmentationAlgorithm.SEGMENTATION_ANISOTROPIC_FILTERS;
 	
-	/**
-	 * Maximal distance of gaps in naive mode to be closed.
-	 */
-	@Parameter(label = "  End-point distance for naive heuristic", 
-			required = true, direction = Parameter.Direction.IN, dataIOOrder = 7,
-			description = "Maximal distance of end-points to be linked.")
-	private int naiveGapThreshold = 20;
+	@Parameter(label = "Segmentation Anisotropic Filters", required = true, 
+			direction = Parameter.Direction.IN, dataIOOrder = 16,
+			description = "Configure segmentation algorithm based on anisotropic filters.")
+	private SegConfigFilters segConfFilters = new SegConfigFilters();
+
+//	@Parameter(label = "Segmentation Ridge Detection", required = true, 
+//			direction = Parameter.Direction.IN, dataIOOrder = 17,
+//			description = "Configure segmentation algorithm based on ridge detection.")
+//	private SegConfigRidges segConfRidges = new SegConfigRidges();
+
+//	/**
+//	 * Mode for closing gaps.
+//	 */
+//	@Parameter(label = "Heuristic for Gap Closing", required = true, 
+//			direction = Parameter.Direction.IN, dataIOOrder = 16,
+//			description = "Choose mode for closing gaps.", 
+//			callback = "switchGapCloseMode",
+//			paramModificationMode = ParameterModificationMode.MODIFIES_INTERFACE)
+//	private GapCloseMode gapMode = GapCloseMode.WATERSHED;
+//	
+//	/**
+//	 * Maximal distance of gaps in naive mode to be closed.
+//	 */
+//	@Parameter(label = "  End-point distance for naive heuristic", 
+//			required = true, direction = Parameter.Direction.IN, dataIOOrder = 17,
+//			description = "Maximal distance of end-points to be linked.")
+//	private int naiveGapThreshold = 20;
 	
 	/**
 	 * Threshold for the minimal admissible cell size.
@@ -433,7 +498,7 @@ public class PaCeQuant extends MTBOperator {
 	 * Cell regions falling below this threshold are ignored.
 	 */
 	@Parameter(label = "Minimal Size of Cells", required = true, 
-			direction = Parameter.Direction.IN, dataIOOrder = 8,
+			direction = Parameter.Direction.IN, dataIOOrder = 18,
 			description = "Cells smaller than this threshold are discarded.")
 	private double minimalCellSize = 2500;
 
@@ -443,7 +508,7 @@ public class PaCeQuant extends MTBOperator {
 	 * Cell regions lying above this threshold are ignored.
 	 */
 	@Parameter(label = "Maximal Size of Cells", required = true, 
-			direction = Parameter.Direction.IN, dataIOOrder = 9,
+			direction = Parameter.Direction.IN, dataIOOrder = 19,
 			description = "Cells larger than this threshold are discarded.")
 	private double maximalCellSize = 1000000;
 
@@ -451,15 +516,34 @@ public class PaCeQuant extends MTBOperator {
 	 * Units for size thresholds.
 	 */
 	@Parameter(label = "Unit for Size Thresholds", required = true, 
-			direction = Parameter.Direction.IN, dataIOOrder = 10,
+			direction = Parameter.Direction.IN, dataIOOrder = 20,
 			description = "Unit of specified size thresholds.")
 	private MeasurementUnits thresholdUnits = MeasurementUnits.PIXELS;
 	
 	/**
+	 * Flag for the analysis of the stomata and their distribution
+	 */
+//	@Parameter(label = "Detect stomata?", required = true,
+//			direction = Parameter.Direction.IN, dataIOOrder = 21,
+//			mode = ExpertMode.STANDARD, 
+//			description = "Enable/disable analysis of stomata.",
+//			callback = "switchDetectStomataParameter",
+//			paramModificationMode = ParameterModificationMode.MODIFIES_INTERFACE)
+//	private boolean detectStomata = false;
+
+//	/**
+//	 * Flag for constant/dynamic cell perimeter width
+//	 */
+//	@Parameter(label="Use Dynamic Cell Perimeter", required = true,
+//			direction = Parameter.Direction.IN, dataIOOrder = 21,
+//			mode = ExpertMode.STANDARD, description = "Use constant/dynamic cell perimeter width. For images with high noise levels, this may cause significant variations in the results.")
+//	private boolean perimeterWidth = false;
+
+	/**
 	 * Info string for segmentation phase configuration parameters.
 	 */
 	@Parameter(label = "Configure feature extraction phase:", required = true, 
-			direction = Parameter.Direction.IN, dataIOOrder = 15, info = true,
+			direction = Parameter.Direction.IN, dataIOOrder = 30, info = true,
 			mode = ExpertMode.STANDARD, description = "Info string.")
 	private String phaseBInfo = 
 		"<html><u>Configure feature extraction phase:</u></html>";
@@ -468,7 +552,7 @@ public class PaCeQuant extends MTBOperator {
 	 * Operator to analyze morphology of cells.
 	 */
 	@Parameter(label = "Feature Extraction", required = true,
-			direction = Parameter.Direction.IN, dataIOOrder = 16,
+			direction = Parameter.Direction.IN, dataIOOrder = 31,
 			mode = ExpertMode.STANDARD, description = "Feature extraction operator.")
 	private MorphologyAnalyzer2D morphFeatureOp = null;
 	
@@ -476,33 +560,124 @@ public class PaCeQuant extends MTBOperator {
 	 * Flag to classify lobes into different type classes.
 	 */
 	@Parameter(label = "Analyze lobe types?", required = true,
-			direction = Parameter.Direction.IN, dataIOOrder = 17,
+			direction = Parameter.Direction.IN, dataIOOrder = 32,
 			mode = ExpertMode.STANDARD, description = "Enable/disable lobe types.")
 	private boolean classifyLobes = false;
 
+//	/**
+//	 * Gaussian smoothing configuration.
+//	 */
+//	@Parameter(label = "Gaussian Sigma Interpretation", required = false, 
+//		direction = Parameter.Direction.IN,	dataIOOrder = -6, 
+//		mode = ExpertMode.ADVANCED, 
+//		description = "Interpretation of Gaussian sigma.")
+//	public SigmaInterpretation sigmaMeaning = SigmaInterpretation.PHYSICALSIZE; 
+//
+//	/**
+//	 * Niblack threshold.
+//	 */
+//	@Parameter(label = "Niblack threshold", required = false, 
+//		direction = Parameter.Direction.IN,	dataIOOrder = -5,
+//		mode = ExpertMode.ADVANCED,
+//		description = "Threshold for variance check in Niblack binarization.")
+//	public double niblackVarianceThresh = 4.0; 
+	
+//	/**
+//	 * Info string for segmentation width Version2 for RidgeDetection
+//	 */
+//	@Parameter(label = "Configure Segmentation", required = false,
+//			direction = Parameter.Direction.IN, dataIOOrder = 0, info = true,
+//			mode = ExpertMode.STANDARD, description = "Info string")
+//	public String segmentationV2Info = "<html><u>Configure segmentation phase:</u></html>";
+	
+//	/**PaCeQuant2: ridge detection: line width **/
+//	@Parameter(label = "Maximum width of perimeter fragments to be detected:", required = false, 
+//			direction = Parameter.Direction.IN, dataIOOrder = 1,
+//			description = "Wider perimeter fragments are ignored as background noise.")
+//	private int maximalFragmentWidth = 10;
+//	
+//	/**PaCeQuant2: minimal line fragment length for further processing **/
+//	@Parameter(label = "Minimal Length of Perimeter fragments for processing:", required = false, 
+//			direction = Parameter.Direction.IN, dataIOOrder = 2,
+//			description = "Shorter perimeter fragments are ignored as background noise.")
+//	private int minimalFragmentLength = 5;
+//	
+//	/**PaCeQuant2: Maximum width for line break repair**/
+//	@Parameter(label = "Maximal line break width", required = false, 
+//			direction = Parameter.Direction.IN, dataIOOrder = 3,
+//			description = "Perimeter fragments width a larger distance are not connected afterwards")
+//	private int repairWidth = 15;
+//	
+//	/**PaCeQuant2: remove micro-cycles through merging graph nodes **/
+//	@Parameter(label = "Position correction of junctions:", required = false, 
+//			direction = Parameter.Direction.IN, dataIOOrder = 4,
+//			description = "Junctions that are within this radius are merged into one junction.")
+//	private int mergeRadius = 2;
+	
 	/**
-	 * Gaussian smoothing configuration.
+	 * Info string for stoma cell analysis
 	 */
-	@Parameter(label = "Gaussian Sigma Interpretation", required = false, 
-		direction = Parameter.Direction.IN,	dataIOOrder = -6, 
-		mode = ExpertMode.ADVANCED, 
-		description = "Interpretation of Gaussian sigma.")
-	public SigmaInterpretation sigmaMeaning = SigmaInterpretation.PHYSICALSIZE; 
+//	@Parameter(label = "Configure stomata cell analysis", required = false,
+//			direction = Parameter.Direction.IN, dataIOOrder = 6, info = true,
+//			mode = ExpertMode.STANDARD, description = "Info string")
+//	private String stomataDetectionInfo = 
+//		"<html><u>Configure stomata detection:</u></html>";
+//	
+//	/**
+//	 * Stoma score threshold.
+//	 */
+//	@Parameter(label = "Stomata score threshold", required = false, 
+//			direction = Parameter.Direction.IN,	dataIOOrder = 7,
+//			mode = ExpertMode.STANDARD,
+//			description = "Only cells with larger scores than the threshold" 
+//					+ "are considered as potential stomata cells.")
+//	private double cellStomaScoreThreshold = 0.4; //TODO *mark*
+//	
+//	/**
+//	 * Stoma sphericity threshold.
+//	 */
+//	@Parameter(label = "Stomata sphericity threshold", required = false, 
+//			direction = Parameter.Direction.IN,	dataIOOrder = 8,
+//			mode = ExpertMode.STANDARD,
+//			description = "Only cells with a larger sphericity are potential stoma cells.")
+//	private double cellStomaSphericityThreshold = 0.49; //TODO *mark*
+//	
+//	/**
+//	 * Stoma threshold on ratio between compactness and solidity.
+//	 */
+//	@Parameter(label = "Stomata compactness-solidity-ratio threshold", required = false, 
+//			direction = Parameter.Direction.IN,	dataIOOrder = 9,
+//			mode = ExpertMode.STANDARD,
+//			description = "Only cells with a ratio larger than the threshold are " 
+//					+ "potential stomata cells.")
+//	private double cellStomaRatioCompactnessSolidityThreshold = 0.92; //TODO *mark*
+//
+//	/**
+//	 * Stoma merge sphericity threshold.
+//	 */
+//	@Parameter(label = "Stomata merge sphericity threshold", required = false, 
+//			direction = Parameter.Direction.IN,	dataIOOrder = 10,
+//			mode = ExpertMode.STANDARD,
+//			description = "Sphericity threshold value for direct classification as stoma " 
+//					+ "in cell merging process.")
+//	private double cellStomaMergeSphericityThreshold = 0.75; //TODO *mark*
+//	
+//	/**
+//	 * Stoma merge count.
+//	 */
+//	@Parameter(label = "Maximal number of cells to merge", required = false, 
+//			direction = Parameter.Direction.IN, dataIOOrder = 11, 
+//			mode = ExpertMode.ADVANCED,
+//			description = "Maximal number of (guard) cells to form stomata. " 
+//					+ "The larger the count the higher the run time.")
+//	private int stomaMaxMergeCellCount = 4; //TODO *mark*
 
-	/**
-	 * Niblack threshold.
-	 */
-	@Parameter(label = "Niblack threshold", required = false, 
-		direction = Parameter.Direction.IN,	dataIOOrder = -5,
-		mode = ExpertMode.ADVANCED,
-		description = "Threshold for variance check in Niblack binarization.")
-	public double niblackVarianceThresh = 4.0; 
-
+	
 	/**
 	 * Info string for segmentation phase configuration parameters.
 	 */
 	@Parameter(label = "Configure result data:", required = false,
-			direction = Parameter.Direction.IN, dataIOOrder = 0, info = true,
+			direction = Parameter.Direction.IN, dataIOOrder = 20, info = true,
 			mode = ExpertMode.STANDARD, description = "Info string.")
 	private String resultInfo = "<html><u>Configure result data:</u></html>";
 
@@ -510,7 +685,7 @@ public class PaCeQuant extends MTBOperator {
 	 * Flag to enable/disable drawing region IDs.
 	 */
 	@Parameter(label = "Draw region IDs to output images?", 
-			required = false,	direction = Parameter.Direction.IN,	dataIOOrder = 10, 
+			required = false,	direction = Parameter.Direction.IN,	dataIOOrder = 21, 
 			mode = ExpertMode.STANDARD,
 			description = "Enable/disable drawing of region IDs.")
 	private boolean drawRegionIDsToOutputImages = false;
@@ -539,6 +714,19 @@ public class PaCeQuant extends MTBOperator {
 	private boolean showResultFeatureStack = false;
 
 	/**
+	 * Flag to enable/disable saving of cell ROI data.
+	 * <p>
+	 * Attention, if there are many cells in the images, 
+	 * saving to disk takes some time!
+	 */
+	@Parameter(label = "Save ImageJ ROI files to disk (in batch mode)?", 
+			required = false,	supplemental = true, 
+			direction = Parameter.Direction.IN,	dataIOOrder = 3, 
+			mode = ExpertMode.STANDARD,
+			description = "Enable/disable saving of ImageJ ROI files.")
+	private boolean saveImageJROIFiles = false;
+	
+	/**
 	 * Set of detected cell regions.
 	 */
 	@Parameter(label = "Detected cell regions", 
@@ -556,6 +744,25 @@ public class PaCeQuant extends MTBOperator {
 		direction = Parameter.Direction.OUT, 
 		description = "Result table of region features.")
 	private transient MTBTableModel resultFeatureTable = null;
+	
+	/** Table with stoma features.
+	 * <p>
+	 * Each row contains one stoma, each column corresponds to a feature.
+	 */
+	@Parameter(label = "Result Table of Stoma Feature Value", dataIOOrder = 2,
+		direction = Parameter.Direction.OUT, 
+		description = "Result table of stoma features.")
+	private transient MTBTableModel resultStomaFeatureTable = null; //TODO *mark*
+	
+	/**
+	 * Table with stoma distances.
+	 * <p>
+	 * Each row contains one stoma, each column corresponds to a distance type.
+	 */
+	@Parameter(label = "Result Table of Stoma Distances", dataIOOrder = 3,
+		direction = Parameter.Direction.OUT, 
+		description = "Result table of stoma distances.")
+	private transient MTBTableModel resultStomaDistanceTable = null; //TODO *mark*
 
 	/**
 	 * Overlay of input image with pseudo-colored cell regions.
@@ -564,6 +771,22 @@ public class PaCeQuant extends MTBOperator {
 			direction = Parameter.Direction.OUT, 
 			description = "Image of detected cell regions (overlay).")
 	private transient MTBImageRGB resultCellOverlayImg = null;
+
+	/**
+	 * Overlay of input image with pseudo-colored stoma regions.
+	 */
+	@Parameter(label = "Detected Stomata Image", dataIOOrder = 5, 
+			direction = Parameter.Direction.OUT, 
+			description = "Image of detected stomata (overlay).")
+	private transient MTBImageRGB resultStomaOverlayImg = null; //TODO *mark*
+	
+	/**
+	 * Overlay of input image with pseudo-colored stoma regions.
+	 */
+	@Parameter(label = "Detected Stomata Distance Image", dataIOOrder = 5, 
+			direction = Parameter.Direction.OUT, 
+			description = "Image of detected stomata distances (overlay).")
+	private transient MTBImageRGB resultStomaDistanceImg = null; //TODO *mark*
 
 	/**
 	 * Label image of detected cell regions.
@@ -662,7 +885,8 @@ public class PaCeQuant extends MTBOperator {
 	 */
 	private transient Vector<MTBImageRGB> addResultImages;
 	
-	private transient static HashMap<String, String> featureNameMapper = new HashMap<>();
+	private transient static HashMap<String, String> featureNameMapper = 
+			new HashMap<>();
 
 	/**
 	 * Default constructor.
@@ -736,7 +960,7 @@ public class PaCeQuant extends MTBOperator {
 			MorphologyAnalyzer2D.FeatureNames.AvgLengthEquatorProtrusions.toString(), 
 			"AvgEquatorLobeWidth");
 
-		this.setParameter("gapMode", GapCloseMode.WATERSHED);
+//		this.setParameter("gapMode", GapCloseMode.WATERSHED);
 		this.setParameter("phasesToRun", 
 				OperatorPhasesToRun.SEGMENTATION_AND_FEATURES);
 		this.setParameter("opMode", OperationMode.BATCH);
@@ -795,6 +1019,45 @@ public class PaCeQuant extends MTBOperator {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (ALDOperatorException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Callback routine called if PaCeQuant version is changed
+	 */
+	@SuppressWarnings("unused")
+	private void switchVersionParameter() {
+		try {
+			if (this.segVersion == null)
+				return;
+			if (this.segVersion.equals(SegmentationAlgorithm.SEGMENTATION_ANISOTROPIC_FILTERS)) {
+				// remove required parameters
+//				if (this.hasParameter("segConfRidges")) {
+//					this.removeParameter("segConfRidges");
+//				}
+				// add required parameters
+				if (!this.hasParameter("segConfFilters")) {
+					this.addParameter("segConfFilters");
+				}
+			}
+			else { // if (this.segVersion.equals(SegmentationAlgorithm.SEGMENTATION_RIDGE_DETECTION)) {
+				// remove required parameters
+				if (this.hasParameter("segConfFilters")) {
+					this.removeParameter("segConfFilters");
+				}
+				// add required parameters
+//				if (!this.hasParameter("segConfRidges")) {
+//					this.addParameter("segConfRidges");
+//				}
+			}
+		}
+		catch(SecurityException e)
+		{
+			e.printStackTrace();
+		}
+		catch(ALDOperatorException e)
+		{
 			e.printStackTrace();
 		}
 	}
@@ -882,6 +1145,7 @@ public class PaCeQuant extends MTBOperator {
 						this.addParameter(s);
 					}
 				}
+				this.switchVersionParameter();
 				for (String s: featureParameters) {
 					if (!this.hasParameter(s)) {
 						this.addParameter(s);
@@ -914,6 +1178,7 @@ public class PaCeQuant extends MTBOperator {
 						this.addParameter(s);
 					}
 				}
+				this.switchVersionParameter();
 			} 
 			else if (this.phasesToRun == OperatorPhasesToRun.FEATURES_ONLY) {
 				if (!this.hasParameter("segmentationInputFormat"))
@@ -976,28 +1241,30 @@ public class PaCeQuant extends MTBOperator {
 	}
 	
 	/**
-	 * Callback routine called if gap closing mode parameter changes.
+	 * Callback routine to add/remove parameters for stomata detection.
 	 */
 	@SuppressWarnings("unused")
-	private void switchGapCloseMode() {
-		try {
-			if (   this.gapMode.equals(GapCloseMode.NONE)
-					|| this.gapMode.equals(GapCloseMode.WATERSHED)) {
-				if (this.hasParameter("naiveGapThreshold"))
-					this.removeParameter("naiveGapThreshold");
-			} 
-			else {
-				if (!this.hasParameter("naiveGapThreshold"))
-					this.addParameter("naiveGapThreshold");
-			}
-		} catch (SecurityException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ALDOperatorException e) {
-			e.printStackTrace();
-		}
-	}
-
+//	private void switchDetectStomataParameter() {
+//		try {
+//			if (this.detectStomata) {
+//				for (String s: stomataDetectionParameters) {
+//					if (!this.hasParameter(s)) {
+//						this.addParameter(s);
+//					}
+//				}
+//			}
+//			else {
+//				for (String s: stomataDetectionParameters) {
+//					if (this.hasParameter(s)) {
+//						this.removeParameter(s);
+//					}
+//				}			
+//			}
+//		} catch(ALDOperatorException e) {
+//			e.printStackTrace();
+//		}
+//	}
+	
 	@Override
 	public void validateCustom() throws ALDOperatorException {
 		if (this.inImg != null) {
@@ -1020,6 +1287,15 @@ public class PaCeQuant extends MTBOperator {
 		MTBImage labelImgToProcess = null;
 		MTBImageByte binarySegmentationImage;		
 		MTBRegion2DSet regionsToProcess = null;
+		
+		//reset result data objects
+		this.resultCellLabelImg = null;
+		this.resultCellOverlayImg = null;
+		this.resultStomaFeatureTable = null;
+		this.resultStomaDistanceTable = null;
+		this.resultStomaDistanceImg = null;
+		this.resultStomaOverlayImg = null;
+
 		switch(this.opMode) 
 		{
 			/*
@@ -1078,7 +1354,8 @@ public class PaCeQuant extends MTBOperator {
 					}
 					
 					imgToProcess = this.inImg;
-					SegmentationResult segResult = this.runSegmentationPhase(this.inImg);
+					SegmentationResult segResult = 
+							this.runSegmentationPhase(this.inImg, "");
 					regionsToProcess = segResult.resultRegs;
 					labelImgToProcess = segResult.resultLableImgWithoutIDs;
 				
@@ -1313,12 +1590,14 @@ public class PaCeQuant extends MTBOperator {
 									OperatorExceptionType.OPERATE_FAILED, operatorID 
 									+ " could not init result folder... exiting!");
 					}
-					String resultDirRois = resultDir + File.separator + "roiFiles_singleCells"; 
-					if (!new File(resultDirRois).exists()) {
-						if (!new File(resultDirRois).mkdir())
-							throw new ALDOperatorException(
-									OperatorExceptionType.OPERATE_FAILED, operatorID 
-									+ " could not init result folder for ROIs... exiting!");
+					if (this.saveImageJROIFiles) {
+						String resultDirRois = resultDir + File.separator + "roiFiles_singleCells"; 
+						if (!new File(resultDirRois).exists()) {
+							if (!new File(resultDirRois).mkdir())
+								throw new ALDOperatorException(
+										OperatorExceptionType.OPERATE_FAILED, operatorID 
+										+ " could not init result folder for ROIs... exiting!");
+						}
 					}
 					
 					// reset operator - just in case...
@@ -1393,7 +1672,7 @@ public class PaCeQuant extends MTBOperator {
 								
 								imgToProcess = img;
 								SegmentationResult segResult = 
-										this.runSegmentationPhase(img);
+										this.runSegmentationPhase(img, resultDir);
 								regionsToProcess = segResult.resultRegs;
 								labelImgToProcess = segResult.resultLableImgWithoutIDs;
 								
@@ -1425,7 +1704,8 @@ public class PaCeQuant extends MTBOperator {
 								imWrite.runOp();
 
 								// save regions to files
-								this.saveRegionData(resultDir,fileRoot,this.resultCellRegions);
+								if (this.saveImageJROIFiles)
+									this.saveRegionData(resultDir,fileRoot,this.resultCellRegions);
 								
 								// check if also features have to be extracted, if so, do so
 								if (this.phasesToRun.equals(
@@ -1560,7 +1840,8 @@ public class PaCeQuant extends MTBOperator {
 									regionsToProcess = labler.getResultingRegions();
 									
 									// save extracted region data to file
-									this.saveRegionData(resultDir, fileRoot, regionsToProcess);
+									if (this.saveImageJROIFiles)
+										this.saveRegionData(resultDir, fileRoot, regionsToProcess);
 
 									break;
 								}
@@ -1622,7 +1903,8 @@ public class PaCeQuant extends MTBOperator {
 									regionsToProcess = LabelAreasToRegions.getRegions(img, 0);
 
 									// save extracted region data to file
-									this.saveRegionData(resultDir, fileRoot, regionsToProcess);
+									if (this.saveImageJROIFiles)
+										this.saveRegionData(resultDir, fileRoot, regionsToProcess);
 
 									break;
 								}
@@ -1826,20 +2108,245 @@ public class PaCeQuant extends MTBOperator {
 		}
   }
   
+  	/**
+  	 * calculate features for detected stomata
+  	 */
+//  private StomaFeatures calculateStomaFeatures(MTBImageByte segStomaImg, MTBImageByte img) throws ALDOperatorException, ALDProcessingDAGException 
+//	{
+//		SegmentationResult segResult = new SegmentationResult();
+////see: filterValidCellRegions()		
+//		MTBImageByte tmpImg;
+//		int minSizeThreshold = 0;
+//		int maxSizeThreshold = 0;
+//		if (this.thresholdUnits == MeasurementUnits.PIXELS) {
+//			minSizeThreshold = 100;
+//			maxSizeThreshold = (int)this.maximalCellSize;
+//		}
+//		else {
+//			minSizeThreshold = (int)(10 / 
+//					(this.pixelLengthXYinternal*this.pixelLengthXYinternal));
+//			maxSizeThreshold = (int)(this.maximalCellSize / 
+//					(this.pixelLengthXYinternal*this.pixelLengthXYinternal));
+//		}
+//		
+//		tmpImg = (MTBImageByte)segStomaImg.duplicate();
+//		ComponentPostprocess postOp = null;
+//		postOp = new ComponentPostprocess(segStomaImg, ProcessMode.ERASE_SMALL_COMPS);
+//		postOp.setMinimalComponentSize(minSizeThreshold);
+//		postOp.runOp(HidingMode.HIDE_CHILDREN);
+//		tmpImg = (MTBImageByte) postOp.getResultImage();
+//		
+//		postOp = new ComponentPostprocess(tmpImg, ProcessMode.ERASE_LARGE_COMPS);
+//		postOp.setMaximalComponentSize(maxSizeThreshold);
+//		postOp.runOp(HidingMode.HIDE_CHILDREN);
+//		tmpImg = (MTBImageByte) postOp.getResultImage();
+//		
+//		
+//		LabelComponentsSequential labler = new LabelComponentsSequential(tmpImg, true);
+//		labler.runOp(HidingMode.HIDE_CHILDREN);
+//		MTBRegion2DSet regions = labler.getResultingRegions();
+//		
+//		// filter regions which are touching the image border
+//		this.fireOperatorExecutionProgressEvent(
+//				new ALDOperatorExecutionProgressEvent(this, operatorID 
+//					+ " -> finally filtering regions, found " + regions.size() 
+//						+ " so far..."));
+//
+//		MTBRegion2DSet validRegions = new MTBRegion2DSet(regions.getXmin(), 
+//				regions.getYmin(), regions.getXmax(), regions.getYmax());
+//		
+//		boolean touchingBorder = false;
+//		for (MTBRegion2D r: regions) {
+//			
+//			// eliminate region if touching image border; 
+//			// border is assumed to be of width 2
+//			touchingBorder = false; 
+//			//TODO
+//			for (Point2D.Double p: r.getPoints()) {
+//				if (   (int)p.x < 2 || (int)p.x > this.width-2
+//						|| (int)p.y < 2 || (int)p.y > this.height-2) {
+//					touchingBorder = true;
+//					break;
+//				}
+//			}
+//			if (touchingBorder)
+//				continue;
+//			
+//			// add region to list of valid cell regions
+//			validRegions.add(r);
+//		}
+//		
+//		//work on validRegions
+////see: runSegmentationPhase()
+//		// init and fill result images
+//		MTBImageRGB overlayImg = (MTBImageRGB)MTBImage.createMTBImage(this.width, this.height, 1, 1, 1, MTBImageType.MTB_RGB);
+//		overlayImg.setTitle("Stoma pseudo-colored cell regions with IDs of <" + img.getTitle() + ">");
+//		MTBImageRGB overlayImgWONumbers = (MTBImageRGB)MTBImage.createMTBImage(this.width, this.height, 1, 1, 1, MTBImageType.MTB_RGB);
+//		overlayImgWONumbers.setTitle("Stoma Pseudo-colored cell regions of <" + img.getTitle() + ">");
+//		for (int y = 0; y < this.height; y++) {
+//			for (int x = 0; x < this.width; x++) {
+//				overlayImg.putValueR(x, y, img.getValueInt(x, y));
+//				overlayImg.putValueG(x, y, img.getValueInt(x, y));
+//				overlayImg.putValueB(x, y, img.getValueInt(x, y));
+//				overlayImgWONumbers.putValueR(x, y, img.getValueInt(x, y));
+//				overlayImgWONumbers.putValueG(x, y, img.getValueInt(x, y));
+//				overlayImgWONumbers.putValueB(x, y, img.getValueInt(x, y));
+//			}
+//		}
+//		MTBImageShort labelImg =	(MTBImageShort)MTBImage.createMTBImage(this.width, this.height, 1, 1, 1, MTBImageType.MTB_SHORT);
+//		labelImg.setTitle("Valid cell regions label image");
+//		labelImg.fillBlack();
+//		MTBImageShort labelImageWONumbers = (MTBImageShort)labelImg.duplicate();
+//				
+//		MTBImageRGB binImg = 	(MTBImageRGB)MTBImage.createMTBImage(this.width, this.height, 1, 1, 1, MTBImageType.MTB_RGB);
+//		binImg.setTitle("Valid cell regions binary image");
+//		binImg.fillBlack();
+//		// iterate over valid regions and draw them into the images
+//		int regionID = 0;
+//		int x, y, red, green, blue;
+//		Random rand = new Random();
+//		for (MTBRegion2D r: validRegions) {
+//			++regionID;
+//			// generate pseudo-color
+//			red = rand.nextInt(256);
+//			green = rand.nextInt(256);
+//			blue = rand.nextInt(256);
+//			// draw region points
+//			for (Point2D.Double p: r.getPoints()) {
+//				x = (int)p.x;
+//				y = (int)p.y;
+//				overlayImg.putValueR(x, y, red);
+//				overlayImg.putValueG(x, y, green);
+//				overlayImg.putValueB(x, y, blue);
+//				overlayImgWONumbers.putValueR(x, y, red);
+//				overlayImgWONumbers.putValueG(x, y, green);
+//				overlayImgWONumbers.putValueB(x, y, blue);
+//				labelImg.putValueInt(x, y, regionID);
+//				labelImageWONumbers.putValueInt(x, y, regionID);
+//				binImg.putValueR(x, y, 255);
+//				binImg.putValueG(x, y, 255);
+//				binImg.putValueB(x, y, 255);
+//			}
+//			
+//			// mark center of mass by region index
+//			int comX = (int)r.getCenterOfMass_X();
+//			int comY = (int)r.getCenterOfMass_Y();
+//			//			drawStringToImage(this.resultCellOverlayImg, Integer.toString(regionID), 
+//			//					255, 255, 255, comX-5, comY);
+//			drawStringToImage(overlayImg, 
+//					Integer.toString(regionID),	0, 0, 0, comX-5, comY);
+//			// ... and add IDs only to output result label image
+//			drawStringToImage(labelImg, 
+//					Integer.toString(regionID), 255-regionID, comX-5, comY);
+//		}
+//				
+//		// copy to result object
+//		segResult.resultBinaryImg = (MTBImageByte)binImg.convertType(MTBImageType.MTB_BYTE, true);
+//		segResult.resultOverlayImg = overlayImg;
+//		segResult.resultOverlayImgWithoutIDs = overlayImgWONumbers;
+//		segResult.resultLabelImg = labelImg;
+//		segResult.resultLableImgWithoutIDs = labelImageWONumbers;
+//		segResult.resultRegs = validRegions;
+//		
+////see: runFeatureExtractionPhase
+//		// calculate features for every region
+//		//this.resultStomaFeatureTable = this.calculateRegionFeatures(validRegions, labelImageWONumbers);
+//		overlayImg.setTitle("Pseudo-colored stomata");
+//		
+//		StomaFeatures sFeatures = new StomaFeatures();
+//		sFeatures.stomaFeatures = this.calculateRegionFeatures(validRegions, labelImageWONumbers);
+//		sFeatures.stomaRegions = overlayImg;
+//		
+//		return sFeatures;
+//		
+//	}
 	/**
 	 * Method that processes a single image.
 	 * @param img	Image to process.
+	 * @param resultDir store result directory
+	 * 	- batch mode: contains path to dir
+	 * 	- interactive mode: null or empty
 	 * @return Cell region segmentation result.
 	 * @throws ALDProcessingDAGException Thrown in case of failure.
 	 * @throws ALDOperatorException Thrown in case of failure.
 	 */
-	protected SegmentationResult runSegmentationPhase(MTBImage img) 
-		throws ALDOperatorException, ALDProcessingDAGException {
+	protected SegmentationResult runSegmentationPhase(MTBImage img, String resultDir) 
+		throws ALDOperatorException, ALDProcessingDAGException {	
 
 		SegmentationResult segResult = new SegmentationResult();
+		PavementcellDetectorResult pcDetectorResult = new PavementcellDetectorResult();
 		
-		// perform the segmentation
-		MTBImageByte binSegResult = this.segmentInputImage(img);
+		// perform the segmentation depending on PaCeQuant version
+		//TODO mark
+		MTBImageByte binSegResult = null;
+		if (this.segVersion == SegmentationAlgorithm.SEGMENTATION_ANISOTROPIC_FILTERS) {
+			System.out.println("[LOG] Using segmentation with anisotropic filters.");
+			//binSegResult = this.segmentInputImage(img);
+			pcDetectorResult.segImage = this.segmentInputImageVesselnessFilter(img);
+			pcDetectorResult.detectedCells = null;
+			pcDetectorResult.inImg = (MTBImageByte) img;
+		}
+//		else if (this.segVersion == SegmentationAlgorithm.SEGMENTATION_RIDGE_DETECTION) {
+//			System.out.println("[LOG] Using segmentation based on ridge detection.");
+//			pcDetectorResult = this.segmentInputImageRidgeGraph(img);
+//		}
+		else {
+			System.out.println("[LOG] No segmentation algorithm selected!");
+			return null;
+		}
+		
+		//start stomata classification
+//		if(detectStomata)
+//		{
+//			//classify cell types: stomata, pavementcells
+//			ClassificationResult cResult = classifyCelltypes(pcDetectorResult);
+//			
+//			//calculate stoma features
+//			this.fireOperatorExecutionProgressEvent(new ALDOperatorExecutionProgressEvent(this, operatorID + " Insertion: Calculate final properties of detected stomata."));
+//			
+//			StomaFeatures sFeatures = calculateStomaFeatures(cResult.segStomaImg, (MTBImageByte)pcDetectorResult.inImg);
+//			
+//			//save results
+//			if(this.opMode == OperationMode.INTERACTIVE)
+//			{
+//				//save to global result variables
+//				this.resultStomaFeatureTable = sFeatures.stomaFeatures;
+//				this.resultStomaOverlayImg = sFeatures.stomaRegions;
+//				this.resultStomaDistanceTable = cResult.distTable;
+//				this.resultStomaDistanceImg = cResult.distImg;
+//			}
+//			if(this.opMode == OperationMode.BATCH)
+//			{
+//				//save as files
+//	//see: operate, mode : BATCH
+//				String fileRoot = ALDFilePathManipulator.removeExtension(img.getTitle());
+//				ImageWriterMTB imWrite = new ImageWriterMTB();
+//				
+//				//images
+//				imWrite.setFileName(resultDir + File.separator + fileRoot + "-color-result_stoma.tif");
+//				imWrite.setInputMTBImage(sFeatures.stomaRegions);
+//				imWrite.runOp();
+//				imWrite.setFileName(resultDir + File.separator + fileRoot + "-dist-result_stoma.tif");
+//				imWrite.setInputMTBImage((MTBImageRGB) MTBImage.createMTBImage(cResult.distImg.getImagePlus().flatten()));
+//				imWrite.runOp();
+//				
+//				//tables
+//				sFeatures.stomaFeatures.saveTable(new File(resultDir + File.separator + fileRoot + "-table_stoma.txt"));
+//				cResult.distTable.saveTable(new File(resultDir + File.separator + fileRoot + "-dist-table.txt"));
+//			}
+//			
+//			
+//			
+//			this.fireOperatorExecutionProgressEvent(new ALDOperatorExecutionProgressEvent(this, operatorID + " Switch back: Calculate final properties of remaining pavementcells."));
+//			
+//			//continue calculation pavement cell features
+//			binSegResult = cResult.segPcImg;
+//		}
+//		else
+		{
+			//no classification
+			binSegResult = pcDetectorResult.segImage;
+		}
 	
 		// store preprocessed image as intermediate result
 		if (this.showAdditionalResultImages) {
@@ -1869,13 +2376,13 @@ public class PaCeQuant extends MTBOperator {
 //		img.show();
 		MTBImageRGB overlayImg = (MTBImageRGB)(img.convertType(MTBImageType.MTB_RGB, true));
 		overlayImg.fillBlack();
-		overlayImg.setTitle("Pseudo-colored cell regions " 
+		overlayImg.setTitle("Segmentation Anisotropic Filters: Pseudo-colored cell regions " 
 				+ "of image <" + img.getTitle() + "> with IDs");
 //		MTBImageRGB overlayImgWONumbers = (MTBImageRGB)MTBImage.createMTBImage(
 //				this.width, this.height, 1, 1, 1, MTBImageType.MTB_RGB);
 		MTBImageRGB overlayImgWONumbers = (MTBImageRGB)(img.convertType(MTBImageType.MTB_RGB, true));
 		overlayImgWONumbers.fillBlack();
-		overlayImgWONumbers.setTitle("Pseudo-colored cell regions " 
+		overlayImgWONumbers.setTitle("Segmentation Anisotropic Filters: Pseudo-colored cell regions " 
 				+ "of image <" + img.getTitle() + ">");
 		for (int y = 0; y < this.height; y++) {
 			for (int x = 0; x < this.width; x++) {
@@ -2061,7 +2568,7 @@ public class PaCeQuant extends MTBOperator {
 	}
 	
 	/**
-	 * Preprocessing and segmentation of input image.
+	 * Preprocessing and segmentation of input image (version 1)
 	 * @param img Image to process.
 	 * 
 	 * @return	Preprocessed image, i.e. binary image with cell regions.
@@ -2069,7 +2576,7 @@ public class PaCeQuant extends MTBOperator {
 	 * @throws ALDProcessingDAGException	
 	 * 		Thrown in case of problems with processing history.
 	 */
-	private MTBImageByte segmentInputImage(MTBImage img) 
+	private MTBImageByte segmentInputImageVesselnessFilter(MTBImage img) 
 			throws ALDOperatorException, ALDProcessingDAGException {
 
 		// perform image intensity stretching
@@ -2100,7 +2607,8 @@ public class PaCeQuant extends MTBOperator {
 			// usually and by default sigma is interpreted in terms of real phyical
 			// pixel sizes, but in case of uncommon calibrations it might be 
 			// necessary to switch to pixel interpretation mode by the user
-			gaussOp.setSigmaInterpretation(this.sigmaMeaning);
+//			gaussOp.setSigmaInterpretation(this.sigmaMeaning);
+			gaussOp.setSigmaInterpretation(this.segConfFilters.getSigmaMeaning());
 			gaussOp.runOp(HidingMode.HIDE_CHILDREN);
 			this.gaussFilterImg = gaussOp.getResultImg();
 			MTBImageRGB gaussFilterResult = 
@@ -2126,6 +2634,21 @@ public class PaCeQuant extends MTBOperator {
 			gFilter.setInvertMask(false);
 		else
 			gFilter.setInvertMask(true);
+		
+		if (this.segConfFilters.runParallelMode()) {
+			batchFilter.setRunParallel(true);
+			// if we use parallelization, don't run the filter in FFT mode, because 
+			// the filter itself will run multiple threads in FFT mode which might
+			// decrease overall performance due to too many threads being instantiated
+			gFilter.setApplicationMode(ApplicationMode.STANDARD);
+			// FFT mode uses image mirroring, thus, we try to remain consistent
+			gFilter.setPaddingVariant(BoundaryPadding.PADDING_MIRROR);
+		}
+		else {
+			batchFilter.setRunParallel(false);
+			gFilter.setApplicationMode(ApplicationMode.FFT);			
+		}
+		
 		batchFilter.setOrientedFilter(gFilter);
 		batchFilter.runOp(HidingMode.HIDE_CHILDREN);
 		this.vesselImg = batchFilter.getResultImage();
@@ -2154,9 +2677,12 @@ public class PaCeQuant extends MTBOperator {
 		this.vesselImg = rankOp.getResultImg();
 		
 		// binarize vesselness image, cell boundaries become foreground
+//		ImgThreshNiblack niblackThresholder = new ImgThreshNiblack(
+//			this.vesselImg, Mode.STD_LOCVARCHECK, 0.0, -1.0, 25, 25, 
+//				this.niblackVarianceThresh, null);
 		ImgThreshNiblack niblackThresholder = new ImgThreshNiblack(
-			this.vesselImg, Mode.STD_LOCVARCHECK, 0.0, -1.0, 25, 25, 
-				this.niblackVarianceThresh, null);
+				this.vesselImg, Mode.STD_LOCVARCHECK, 0.0, -1.0, 25, 25, 
+					this.segConfFilters.getNiblackVarianceThreshold(), null);
 		niblackThresholder.runOp(HidingMode.HIDE_CHILDREN);
 		MTBImageByte binVesselImg = niblackThresholder.getResultImage();
 		binVesselImg.setTitle("Binarized vesselness image");
@@ -2198,7 +2724,8 @@ public class PaCeQuant extends MTBOperator {
 		MTBImageByte skelImg = eroVesselImg;
 
 		// try to close gaps along cell borders
-		switch(this.gapMode)
+//		switch(this.gapMode)
+		switch(this.segConfFilters.getGapMode())
 		{
 		case WATERSHED:
 			{
@@ -2304,23 +2831,30 @@ public class PaCeQuant extends MTBOperator {
 			for (int x=0; x<this.width; ++x)
 				skelImg.putValueInt(x, y, 255 - skelImg.getValueInt(x, y));
 		skelImg.setTitle("Skeleton image before post-processing");
-		MTBImageRGB skelImgResult = 
-			(MTBImageRGB)skelImg.convertType(MTBImageType.MTB_RGB, false);
-		skelImgResult.setTitle("Skeleton image before post-processing");
-		if (this.showAdditionalResultImages)
+		
+		MTBImageRGB skelImgResult; 
+		if (this.showAdditionalResultImages) {
+			skelImgResult = 
+					(MTBImageRGB)skelImg.convertType(MTBImageType.MTB_RGB, false);
+			skelImgResult.setTitle("Skeleton image before post-processing");
 			this.addResultImages.add(skelImgResult);
+		}
 		
 		// postprocess the boundary skeleton, i.e. remove spines
 		SkeletonPostprocessor p = new SkeletonPostprocessor();
 		p.setInputImage(skelImg);
+		p.setSpineLengthDefine(this.segConfFilters.getSpineLengthInterpretation());
+		p.setMaximalSpineLength(this.segConfFilters.getMaxSpineLength());
+		p.allowBranchPointsInSpines(this.segConfFilters.isAllowedBranchPointsInSpines());
 		p.runOp(HidingMode.HIDE_CHILDREN);
 		skelImg = p.getResultImage();
 		skelImg.setTitle("Skeleton image after post-processing");
-		skelImgResult = 
-			(MTBImageRGB)skelImg.convertType(MTBImageType.MTB_RGB, false);
-		skelImgResult.setTitle("Skeleton image after post-processing");
-		if (this.showAdditionalResultImages)
+		if (this.showAdditionalResultImages) {
+			skelImgResult = 
+					(MTBImageRGB)skelImg.convertType(MTBImageType.MTB_RGB, false);
+			skelImgResult.setTitle("Skeleton image after post-processing");
 			this.addResultImages.add(skelImgResult);
+		}
 		
 		// erode the skeleton to extend boundaries
 		morphOp.setMask(maskShape.CIRCLE, 5);
@@ -2329,6 +2863,87 @@ public class PaCeQuant extends MTBOperator {
 		morphOp.runOp(HidingMode.HIDE_CHILDREN);
 		return (MTBImageByte)morphOp.getResultImage();
 	}
+	
+	/**
+	 * segmentation of input image (version2) using ridge detection
+	 * @param img
+	 * @return
+	 * @throws ALDOperatorException
+	 * @throws ALDProcessingDAGException
+	 */
+//	private PavementcellDetectorResult segmentInputImageRidgeGraph(MTBImage img) 
+//			throws ALDOperatorException, ALDProcessingDAGException {
+//		PavementcellDetectorResult result = new PavementcellDetectorResult();
+//		
+//		if(this.borderContrast == BorderBackgroundContrast.BRIGHT_ON_DARK)
+//		{
+////			PavementCellDetector detector = new PavementCellDetector(
+////					(MTBImageByte)img, maximalFragmentWidth, minimalFragmentLength, 
+////					repairWidth, mergeRadius, true, perimeterWidth);
+//			PavementCellDetector detector = new PavementCellDetector(
+//					(MTBImageByte)img, this.segConfRidges.getExpectedBoundaryWidth(), 
+//					this.segConfRidges.getMinFragmentLength(), 
+//					this.segConfRidges.getMaximalGapSize(),
+//					this.segConfRidges.getJunctionMergeRadius(), true, 
+//					this.segConfRidges.doExtractBoundaryWidth());
+//			detector.runOp();
+//			
+//			result.segImage = detector.getSegmentation();
+//			result.detectedCells = detector.getDetectedCells();
+//			result.inImg = (MTBImageByte)img;
+//		}
+//		else
+//		{
+//			PavementCellDetector detector = new PavementCellDetector(
+//					(MTBImageByte)img, this.segConfRidges.getExpectedBoundaryWidth(), 
+//					this.segConfRidges.getMinFragmentLength(), 
+//					this.segConfRidges.getMaximalGapSize(),
+//					this.segConfRidges.getJunctionMergeRadius(), false, 
+//					this.segConfRidges.doExtractBoundaryWidth());
+//			detector.runOp();
+//			
+//			result.segImage = detector.getSegmentation();
+//			result.detectedCells = detector.getDetectedCells();
+//			result.inImg = (MTBImageByte)img;
+//		}
+//		
+//		return result;
+//	}
+	
+	/**
+	 * 
+	 * @param pcResult: result from pavemenmtcell segmentation
+	 * Anisotropic filters: segImage != null, detectedCells == null --> preprocessing required
+	 * Ridge detection: segImage != null, detectedCells != null
+	 */
+//	private ClassificationResult classifyCelltypes(PavementcellDetectorResult pcResult) throws ALDOperatorException, ALDProcessingDAGException
+//	{
+//		//preprocessing
+//		if(pcResult.detectedCells == null)
+//		{
+//			PavementCellDetector detector = new PavementCellDetector(
+//					(MTBImageByte)pcResult.segImage, 
+//					this.segConfRidges.getExpectedBoundaryWidth(), 
+//					this.segConfRidges.getMinFragmentLength(), 
+//					this.segConfRidges.getMaximalGapSize(),
+//					this.segConfRidges.getJunctionMergeRadius(), false, 
+//					this.segConfRidges.doExtractBoundaryWidth());
+//			detector.runOp();
+//			
+//			pcResult.detectedCells = detector.getDetectedCells();
+//		}
+//		
+//		//classification
+//		CellClassifier cClassificator = new CellClassifier(
+//				pcResult.inImg, pcResult.detectedCells, pcResult.segImage);
+//		cClassificator.setRecursiveDepth(this.stomaMaxMergeCellCount);
+//		cClassificator.setSphericity(this.cellStomaSphericityThreshold);
+//		cClassificator.setStomaScore(this.cellStomaScoreThreshold);
+//		cClassificator.setDirectSphericity(this.cellStomaMergeSphericityThreshold);
+//		cClassificator.setRatioCompactnessSolidity(this.cellStomaRatioCompactnessSolidityThreshold);
+//		cClassificator.runOp();
+//		return cClassificator.getResults();
+//	}
 	
 	/**
 	 * Method to close gaps by watershed transformation.
@@ -2708,12 +3323,14 @@ public class PaCeQuant extends MTBOperator {
 		}
 
 		// fill holes in region components
-		this.fireOperatorExecutionProgressEvent(
-				new ALDOperatorExecutionProgressEvent(this, operatorID 
-					+ " -> filling holes..."));
-		FillHoles2D holeFiller = new FillHoles2D(tmpImg);
-		holeFiller.runOp(HidingMode.HIDE_CHILDREN);
-		tmpImg = (MTBImageByte)holeFiller.getResultImage();
+//		if (this.segVersion == SegmentationAlgorithm.SEGMENTATION_RIDGE_DETECTION) {
+//			this.fireOperatorExecutionProgressEvent(
+//					new ALDOperatorExecutionProgressEvent(this, operatorID 
+//						+ " -> filling holes..."));
+//			FillHoles2D holeFiller = new FillHoles2D(tmpImg);
+//			holeFiller.runOp(HidingMode.HIDE_CHILDREN);
+//			tmpImg = (MTBImageByte)holeFiller.getResultImage();
+//		}
 		
 		// label regions
 		this.fireOperatorExecutionProgressEvent(
@@ -2738,11 +3355,23 @@ public class PaCeQuant extends MTBOperator {
 			// eliminate region if touching image border; 
 			// border is assumed to be of width 15
 			touchingBorder = false;
-			for (Point2D.Double p: r.getPoints()) {
-				if (   (int)p.x < 10 || (int)p.x > this.width-11 
-						|| (int)p.y < 10 || (int)p.y > this.height-11) {
-					touchingBorder = true;
-					break;
+//			if (this.segVersion == PaCeQuant.SegmentationAlgorithm.SEGMENTATION_RIDGE_DETECTION) {
+//				for (Point2D.Double p: r.getPoints()) {
+//					if (   (int)p.x < 10 || (int)p.x > this.width-11 
+//							|| (int)p.y < 10 || (int)p.y > this.height-11) {
+//						touchingBorder = true;
+//						break;
+//					}
+//				}
+//			}
+//			else 
+				if (this.segVersion == SegmentationAlgorithm.SEGMENTATION_ANISOTROPIC_FILTERS)	{
+				for (Point2D.Double p: r.getPoints()) {
+					if (   (int)p.x < 2 || (int)p.x > this.width-2 
+							|| (int)p.y < 2 || (int)p.y > this.height-2) {
+						touchingBorder = true;
+						break;
+					}
 				}
 			}
 			if (touchingBorder)
@@ -3130,6 +3759,24 @@ public class PaCeQuant extends MTBOperator {
 		ip.setColor(g);
 		ip.drawString(s);
 	}
+	
+	/**
+	 * Internal class for representing the results of segmenting image with version 2
+	 */
+	private class PavementcellDetectorResult{
+		public MTBImageByte segImage, inImg;
+		public List<Cell> detectedCells;
+	}
+
+	
+	/**
+	 * Internal class for representing the stoma features
+	 */
+//	private class StomaFeatures{
+//		public MTBImageRGB stomaRegions;
+//		public MTBTableModel stomaFeatures;
+//	}
+	
 
 	/**
 	 * Internal class for representing the result data of segmenting an image.
@@ -3193,12 +3840,34 @@ public class PaCeQuant extends MTBOperator {
 		private transient MTBImageByte inputImg = null;
 
 		/**
+		 * Spine length interpretation.
+		 */
+		@Parameter(label = "Interpretation Mode for Spine Length", required = true, 
+				direction = Parameter.Direction.IN,	dataIOOrder = 10, 
+				description = "Interpretation of spine length.")
+		private SpineLengthDefine spineLengthDefine = SpineLengthDefine.RELATIVE; 
+
+		/**
 		 * Maximal allowed length of a branch to be accepted as spine.
+		 * <p>
+		 * The interpretation of the provided values depends on the settings of 
+		 * the parameter {@link #spineLengthDefine}, i.e., has to be either in 
+		 * absolute pixel values or as a relative value with regard to the region
+		 * perimeter (measured in terms of the number of border pixels).
 		 */
 		@Parameter(label = "Maximal Length of Spines", required = true,
 				direction = Parameter.Direction.IN, 
-				description = "Max. spine length.", dataIOOrder = 1)
-		private int maxSpineLength = 40;
+				description = "Max. spine length.", dataIOOrder = 11)
+		private double maxSpineLength = 0.2;
+
+		/**
+		 * Flag to enable/disable check for branch points in spines.
+		 */
+		@Parameter(label = "Allow Branch Points in Spines?", required = true,
+				direction = Parameter.Direction.IN, 
+				description = "Flag to enable/disable check for branch points in spines.", 
+				dataIOOrder = 12)
+		private boolean allowBranchPointsInSpines = false;
 
 		/**
 		 * Postprocessed skeleton image.
@@ -3228,14 +3897,33 @@ public class PaCeQuant extends MTBOperator {
 		}
 		
 		/**
+		 * Set interpretation mode for maximal length of spines.
+		 * @param sld 	Spine length interpretation mode (see {@link SpineLengthDefine}).
+		 */
+		public void setSpineLengthDefine(SpineLengthDefine sld) {
+			this.spineLengthDefine = sld;
+		}
+
+		/**
 		 * Set maximal length of spines.
 		 * @param maxLength	Maximal length of spines.
 		 */
-		@SuppressWarnings("unused")
-    public void setMaximalSpineLength(int maxLength) {
+		public void setMaximalSpineLength(double maxLength) {
 			this.maxSpineLength = maxLength;
 		}
-		
+
+		/**
+		 * Allow/deny branch points in spines.
+		 * <p>
+		 * Often branch points within spines are indicators for peculiar intensity
+		 * structures and it might be better to remove regions with such spines.
+		 * 
+		 * @param flag	If true branch points in spines are tolerated.
+		 */
+		public void allowBranchPointsInSpines(boolean flag) {
+			this.allowBranchPointsInSpines = flag;
+		}
+
 		/**
 		 * Returns postprocessed skeleton image.
 		 * @return	Result image.
@@ -3256,6 +3944,11 @@ public class PaCeQuant extends MTBOperator {
 					new ALDOperatorExecutionProgressEvent(this, opID 
 						+ " removing spines..."));
 
+			// global configurations
+			int admissibleBranchPointNum = 0;
+			if (this.allowBranchPointsInSpines)
+				admissibleBranchPointNum = Integer.MAX_VALUE;
+
 			// init the result image
 			this.postprocessedImg = (MTBImageByte)this.inputImg.duplicate();
 			
@@ -3263,60 +3956,111 @@ public class PaCeQuant extends MTBOperator {
 					new LabelComponentsSequential(this.inputImg, false);
 			cl.runOp();
 			MTBImage labelImg = cl.getLabelImage();
+			int labImgWidth = labelImg.getSizeX();
+			int labImgHeight = labelImg.getSizeY();
 			
+			ContourOnLabeledComponents cop = new ContourOnLabeledComponents(
+					cl.getResultingRegions(),	ContourType.OUTER_CONTOUR, 0);
+			cop.runOp();
+			
+			int label, neighborCount, index = 0;
+			int minX, minY, maxX, maxY, nx, ny;
+			int regImgWidth, regImgHeight;
+			boolean closeToRegion, foreignerFound;
+			MTBImageByte ebImg, regImg, spineImg;
+			MTBContour2D c;
+			MTBContour2DSet conts = cop.getResultContours();
 			MTBRegion2DSet regs = cl.getResultingRegions();
+			MTBRegion2DSet spineRegions;
+			Vector<Point2D.Double> srp;
+			
 			for (MTBRegion2D r: regs) {
-				int minX = (int)(r.getMinMaxCoordinates()[0]);
-				int minY = (int)(r.getMinMaxCoordinates()[1]);
-				int maxX = (int)(r.getMinMaxCoordinates()[2]);
-				int maxY = (int)(r.getMinMaxCoordinates()[3]);
-				MTBImageByte regImg = r.toMTBImageByte(null, maxX+1, maxY+1);
-				int regImgWidth = regImg.getSizeX();
-				int regImgHeight = regImg.getSizeY();
+				
+				c = conts.elementAt(index);
+				++index;
+				
+				minX = (int)(r.getMinMaxCoordinates()[0]);
+				minY = (int)(r.getMinMaxCoordinates()[1]);
+				maxX = (int)(r.getMinMaxCoordinates()[2]);
+				maxY = (int)(r.getMinMaxCoordinates()[3]);
+				regImg = r.toMTBImageByte(null, maxX+1, maxY+1);
+				regImgWidth = regImg.getSizeX();
+				regImgHeight = regImg.getSizeY();
 				
 				// if region touches border, just ignore
 				if (   minX == 0 || maxX == this.inputImg.getSizeX()-1 
 						|| minY == 0 || maxY == this.inputImg.getSizeY()-1)
 					continue;
 				
-				int label = labelImg.getValueInt(
+				// get region label
+				label = labelImg.getValueInt(
 						(int)r.getPoints().get(0).x,(int)r.getPoints().get(0).y);
 				
-				MTBImageByte spineImg = 
-						(MTBImageByte)regImg.duplicate(HidingMode.HIDDEN);
+				spineImg = (MTBImageByte)regImg.duplicate(HidingMode.HIDDEN);
 				spineImg.fillBlack();
-				int nx, ny;
 				for (int y=1; y<regImgHeight-1; ++y) {
 					for (int x=1; x<regImgWidth-1; ++x) {
-						if (regImg.getValueInt(x, y) > 0)
+						// exclude region pixels, just consider boundary pixels
+						if (labelImg.getValueInt(x, y) > 0)
 							continue;
+						
+//						// TEST
+//						// ===================
+//
+//						closeToRegion = false;
+//						foreignerFound = false;
+//						for (int dx=-1;dx<=1; ++dx) {
+//							for (int dy=-1;dy<=1; ++dy) {
+//								if (dx==0 && dy==0)
+//									continue;
+//								nx = x+dx;
+//								ny = y+dy;
+//								if (   nx<0 || nx>=labImgWidth
+//										|| ny<0 || ny>=labImgHeight)
+//									continue;
+//								if (!closeToRegion && labelImg.getValueInt(nx, ny) == label) {
+//									closeToRegion = true;
+//								}
+//								if (   labelImg.getValueInt(nx, ny) != 0
+//										&& labelImg.getValueInt(nx, ny) != label) {
+//									foreignerFound = true;
+//								}
+//							}
+//						}
+//						if (closeToRegion && !foreignerFound) {
+//							spineImg.putValueInt(x, y, 255);
+//						}
+//
+//						// ===================
+
 						// black pixel, check if it is close to region
-						boolean closeToRegion = false;
+						closeToRegion = false;
 						for (int dx=-1;dx<=1 && !closeToRegion; ++dx) {
 							for (int dy=-1;dy<=1 && !closeToRegion; ++dy) {
 								if (dx==0 && dy==0)
 									continue;
 								nx = x+dx;
 								ny = y+dy;
-								if (   nx<0 || nx>=labelImg.getSizeX()
-										|| ny<0 || ny>=labelImg.getSizeY())
+								if (   nx<0 || nx>=labImgWidth
+										|| ny<0 || ny>=labImgHeight)
 									continue;
-								if (labelImg.getValueInt(nx, ny) == label)
+								if (labelImg.getValueInt(nx, ny) == label) {
 									closeToRegion = true;
+								}
 							}
 						}
 						if (!closeToRegion)
 							continue;
 						
-						boolean foreignerFound = false;
+						foreignerFound = false;
 						for (int dx=-1;dx<=1 && !foreignerFound; ++dx) {
 							for (int dy=-1;dy<=1 && !foreignerFound; ++dy) {
 								if (dx==0 && dy==0)
 									continue;
 								nx = x+dx;
 								ny = y+dy;
-								if (   nx<0 || nx>=labelImg.getSizeX()
-										|| ny<0 || ny>=labelImg.getSizeY())
+								if (   nx<0 || nx>=labImgWidth
+										|| ny<0 || ny>=labImgHeight)
 									continue;
 								if (   labelImg.getValueInt(nx, ny) != 0
 										&& labelImg.getValueInt(nx, ny) != label) {
@@ -3324,18 +4068,21 @@ public class PaCeQuant extends MTBOperator {
 								}
 							}
 						}
-						if (!foreignerFound)
+						if (!foreignerFound) {
 							spineImg.putValueInt(x, y, 255);
+						}
+						
 					}
 				}
 				
 				// find endpoints (value=100) and branch points (value=200)
-				MTBImageByte ebImg = 
-						(MTBImageByte)spineImg.duplicate(HidingMode.HIDDEN);
-				ebImg.fillBlack();
-				int neighborCount = 0;
-				for (int y=1; y<spineImg.getSizeY()-1; ++y) {
-					for (int x=1; x<spineImg.getSizeX()-1; ++x) {
+//				MTBImageByte ebImg = 
+//						(MTBImageByte)spineImg.duplicate(HidingMode.HIDDEN);
+//				ebImg.fillBlack();
+				ebImg = (MTBImageByte)MTBImage.createMTBImage(regImgWidth, regImgHeight, 
+						1, 1, 1, MTBImageType.MTB_BYTE);
+				for (int y=1; y<regImgHeight-1; ++y) {
+					for (int x=1; x<regImgWidth-1; ++x) {
 						if (spineImg.getValueInt(x, y) == 0)
 							continue;
 						neighborCount=0;
@@ -3345,8 +4092,8 @@ public class PaCeQuant extends MTBOperator {
 									continue;
 								nx = x+dx;
 								ny = y+dy;
-								if (   nx<0 || nx>=spineImg.getSizeX()
-										|| ny<0 || ny>=spineImg.getSizeY())
+								if (   nx<0 || nx>=regImgWidth
+										|| ny<0 || ny>=regImgHeight)
 									continue;
 								if (spineImg.getValueInt(nx, ny) == 255)
 									++neighborCount;
@@ -3363,20 +4110,36 @@ public class PaCeQuant extends MTBOperator {
 				cl.setInputImage(spineImg);
 				cl.setDiagonalNeighborsFlag(true);
 				cl.runOp();
-				MTBRegion2DSet spineRegions = cl.getResultingRegions();
+				spineRegions = cl.getResultingRegions();
 
 				boolean spineSurviving = false;
+				double spineLengthThreshold = 0;
+				switch(this.spineLengthDefine)
+				{
+				case ABSOLUTE:
+					spineLengthThreshold = this.maxSpineLength;
+					break;
+				case RELATIVE:
+//					spineLengthThreshold = r.getBorder().getPointNum() * this.maxSpineLength;
+					spineLengthThreshold = c.getPointNum() * this.maxSpineLength;
+					break;
+				}
+
+				int branchPointCount;
+				
 				for (MTBRegion2D sr : spineRegions) {
-					Vector<Point2D.Double> srp = sr.getPoints();
-					int branchPointCount = 0;
+					srp = sr.getPoints();
+					branchPointCount = 0;
 					for (Point2D.Double p: srp) {
 						if (ebImg.getValueInt((int)p.x, (int)p.y) == 200)
 							++branchPointCount;						
 					}
 					
 					// check region
-					if (   sr.getArea() < this.maxSpineLength 
-							&& branchPointCount == 0) {
+//					if (   sr.getArea() < this.maxSpineLength 
+//							&& branchPointCount == 0) {
+					if (   sr.getArea() < spineLengthThreshold
+							&& branchPointCount <= admissibleBranchPointNum) { 
 						for (Point2D.Double p: srp) {
 							this.postprocessedImg.putValueInt((int)p.x,(int)p.y,255);
 						}						
@@ -3386,7 +4149,7 @@ public class PaCeQuant extends MTBOperator {
 						break;
 					}
 				}
-				
+
 				// there are long and/or branching spines remaining, kill region
 				if (spineSurviving) {
 					for (Point2D.Double p: r.getPoints()) {
