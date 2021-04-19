@@ -32,12 +32,14 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
+import java.util.regex.Matcher;
 
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
@@ -62,6 +64,7 @@ import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType
 import de.unihalle.informatik.MiToBo.core.operator.*;
 import de.unihalle.informatik.MiToBo.gui.MTBTableModel;
 import de.unihalle.informatik.MiToBo.io.dirs.DirectoryTree;
+import de.unihalle.informatik.MiToBo.io.images.ImageReaderMTB;
 import de.unihalle.informatik.MiToBo.io.images.ImageWriterMTB;
 import de.unihalle.informatik.MiToBo.math.statistics.PCA;
 import de.unihalle.informatik.MiToBo.math.statistics.PCA.ReductionMode;
@@ -315,6 +318,10 @@ public class CytoskeletonAnalyzer2D extends MTBOperator {
   protected void operate()
   		throws ALDOperatorException, ALDProcessingDAGException {
 
+		// reset some internal local variables
+		this.imageWidth = -1;
+		this.imageHeight = -1;
+		
 		// for each image calculate feature vectors (if requested)
 		if (this.doFeatureCalculation) {
 			if (this.verbose.booleanValue())
@@ -360,6 +367,11 @@ public class CytoskeletonAnalyzer2D extends MTBOperator {
 					this.featureExtractor.setTileShiftY(this.tileShiftY);
 					this.featureExtractor.setVerbose(this.verbose);
 					this.featureExtractor.runOp();
+					// remember dimensions of first image if image size is unknown so far
+					if (this.imageHeight == -1)
+						this.imageHeight = this.featureExtractor.getImageHeight();
+					if (this.imageWidth == -1)
+						this.imageWidth = this.featureExtractor.getImageWidth();
 				}
 			}
 		}
@@ -666,7 +678,6 @@ public class CytoskeletonAnalyzer2D extends MTBOperator {
     }
 
 		// identify group names -> identical to sub-directories
-		int lastSlash;
 		String gName;
 		this.cellGroupNames =  new TreeSet<String>();
 		for (String dir : subdirs) {
@@ -676,8 +687,7 @@ public class CytoskeletonAnalyzer2D extends MTBOperator {
 				continue;
 
 			gName = dir.replace(File.separator + "results_features", "");
-			lastSlash = gName.lastIndexOf(File.separator);
-			gName = gName.substring(lastSlash+1, gName.length());
+			gName = Paths.get(gName).getFileName().toString();
 			this.cellGroupNames.add(gName);
 		}
 		
@@ -691,13 +701,50 @@ public class CytoskeletonAnalyzer2D extends MTBOperator {
 		lineID = 0;
 		for (String file : featureFileList) {
 
+			// if we don't know the image size yet (e.g., because feature files
+			// already existed), read first line of feature file, open the 
+			// corresponding image file and try to figure out its size
+			if (this.imageHeight == -1 || this.imageWidth == -1) {
+				if (this.verbose.booleanValue()) {
+					System.out.println("\t ... don't know image size yet, "
+							+ "trying to get directly from input image file...");
+				}
+				this.fireOperatorExecutionProgressEvent(
+						new ALDOperatorExecutionProgressEvent(this,
+								"\t ... don't know image size yet, "
+										+ "trying to get directly from input image file..."));
+				try {
+					BufferedReader fRead = 
+							new BufferedReader(new FileReader(new File(file)));
+					String imgFile = fRead.readLine().split(" ")[2];
+					ImageReaderMTB ir = new ImageReaderMTB(imgFile);
+					ir.runOp();
+					this.imageWidth = ir.getResultMTBImage().getSizeX();
+					this.imageHeight = ir.getResultMTBImage().getSizeY();
+					fRead.close();
+					if (this.verbose.booleanValue()) {
+						System.out.println("\t ... got it!");
+					}
+					this.fireOperatorExecutionProgressEvent(
+							new ALDOperatorExecutionProgressEvent(this, "\t ... got it!"));
+				} catch (Exception e) {
+					// there is nothing which could be done in this case...
+					if (this.verbose.booleanValue()) {
+						System.out.println("\t ... not successful, no mask data available!");
+					}
+					this.fireOperatorExecutionProgressEvent(
+							new ALDOperatorExecutionProgressEvent(this,
+									"\t ... not successful, no mask data available!"));
+				}
+			}
+			
 			baseName = ALDFilePathManipulator.getFileName(file);
 			baseName = baseName.replaceAll("-features", "");
-			
+
 			groupName = ALDFilePathManipulator.getPath(file);
-			groupName = groupName.replaceAll(File.separator + "results_features", "");
-			lastSlash = groupName.lastIndexOf(File.separator);
-			groupName = groupName.substring(lastSlash+1, groupName.length());
+			groupName = groupName.replaceAll(
+					Matcher.quoteReplacement(File.separator) + "results_features", "");
+			groupName = Paths.get(groupName).getFileName().toString();
 
 			if (this.verbose.booleanValue())
 				System.out.println("\t Processing feature file " + file + "...");
@@ -707,13 +754,14 @@ public class CytoskeletonAnalyzer2D extends MTBOperator {
 
 			// read mask for cell-wise calculations
 			maskFolder = file.replace("features", "segmentation");
-			lastSlash = maskFolder.lastIndexOf(File.separator);
-			maskFolder = maskFolder.substring(0, lastSlash);
+			maskFolder = maskFolder.replaceAll(
+					Paths.get(maskFolder).getFileName().toString(), "");
+
 			MTBImage maskImage = CytoskeletonFeatureExtractor.readMaskImage(
 				maskFolder,	baseName,	this.maskFormat, 
 					0, 0,	this.imageWidth-1, this.imageHeight-1, 
 						this.verbose.booleanValue());
-
+			
 			// contains cluster distribution per cell, the key refers to the cell ID
 			// in the image, the double array contains the relative frequencies
 			HashMap<Integer, double[]> labelDistros =
@@ -900,7 +948,6 @@ public class CytoskeletonAnalyzer2D extends MTBOperator {
 
 			// figure out to which group the cell belongs
 			group = k.split("_")[0];
-
 			// update the distribution lists for all clusters in that group
 			for (int n = 0; n<this.clusterNum; ++n) {
 				// get the list

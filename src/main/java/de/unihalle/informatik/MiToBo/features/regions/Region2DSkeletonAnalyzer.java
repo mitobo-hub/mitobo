@@ -37,6 +37,8 @@ import de.unihalle.informatik.Alida.annotations.ALDAOperator.Level;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.unihalle.informatik.Alida.operator.events.ALDOperatorExecutionProgressEvent;
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBBorder2D;
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBBorder2DSet;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBNeuriteSkelGraph;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2DSet;
@@ -51,6 +53,8 @@ import de.unihalle.informatik.MiToBo.morphology.DistanceTransform;
 import de.unihalle.informatik.MiToBo.morphology.SkeletonExtractor;
 import de.unihalle.informatik.MiToBo.morphology.DistanceTransform.DistanceMetric;
 import de.unihalle.informatik.MiToBo.morphology.DistanceTransform.ForegroundColor;
+import de.unihalle.informatik.MiToBo.segmentation.contours.extraction.BordersOnLabeledComponents;
+import de.unihalle.informatik.MiToBo.segmentation.contours.extraction.BordersOnLabeledComponents.BorderType;
 import de.unihalle.informatik.MiToBo.segmentation.regions.labeling.LabelComponentsSequential;
 import de.unihalle.informatik.MiToBo.segmentation.thresholds.ImgThresh;
 
@@ -148,7 +152,11 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 		/**
 		 * Thrid quartile width of core region (non-branch section).
 		 */
-		MaxCoreRegionWidth
+		MaxCoreRegionWidth,
+		/**
+		 * Radius of maximal empty circle inscribed in region.
+		 */
+		LargestEmptyCircle
 	}
 
 	/**
@@ -214,9 +222,15 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 	 * Height of input label image.
 	 */
 	private transient int height;
+
+	/**
+	 * Internal image to work on.
+	 */
+	private MTBImage workImage;
 	
 	/**
 	 * Default constructor.
+	 * 
 	 * @throws ALDOperatorException Thrown on construction failure.
 	 */
 	public Region2DSkeletonAnalyzer() throws ALDOperatorException {
@@ -225,7 +239,8 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 
 	/**
 	 * Set input label image to process.
-	 * @param img	Input label image.
+	 * 
+	 * @param img Input label image.
 	 */
 	public void setInputLabelImage(MTBImage img) {
 		this.inImg = img;
@@ -241,7 +256,8 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 
 	/**
 	 * Enable/disable creation of image with analysis data.
-	 * @param flag	If true, creation of image is enabled.
+	 * 
+	 * @param flag If true, creation of image is enabled.
 	 */
 	public void setVisualizeAnalysisResults(boolean flag) {
 		this.visualizeAnalysisResults = flag;
@@ -249,7 +265,8 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 	
 	/**
 	 * Get table of calculated features.
-	 * @return	Table with feature values.
+	 * 
+	 * @return Table with feature values.
 	 */
 	public MTBTableModel getResultTable() {
 		return this.resultFeatureTable;
@@ -290,12 +307,26 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 		// set some variables
 		this.width = this.inImg.getSizeX();
 		this.height = this.inImg.getSizeY();
+
+		// relabel image to ensure consecutive labeling
+		LabelComponentsSequential labler = new LabelComponentsSequential();
+		labler.setInputImage(this.inImg);
+		labler.setDiagonalNeighborsFlag(true);
+		labler.runOp();
+		this.workImage = labler.getLabelImage();
+		
+		// extracting boundaries
+		BordersOnLabeledComponents cExtractor = new BordersOnLabeledComponents();
+		cExtractor.setBorderType(BorderType.OUTER_BORDERS);
+		cExtractor.setInputImage((MTBImageByte)this.workImage.convertType(MTBImageType.MTB_BYTE, true));
+		cExtractor.runOp();
+		MTBBorder2DSet contours = cExtractor.getResultBorders();
 		
 		this.fireOperatorExecutionProgressEvent(
 				new ALDOperatorExecutionProgressEvent(this, operatorID 
 					+ " binarizing label image..."));
 
-		ImgThresh thresholder = new ImgThresh(this.inImg, 0);
+		ImgThresh thresholder = new ImgThresh(this.workImage, 0);
 		thresholder.runOp(HidingMode.HIDE_CHILDREN);
 		MTBImageByte binImg = (MTBImageByte)thresholder.getResultImage();
 		
@@ -332,7 +363,7 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 			// mark skeleton in red
 			for (int y=0; y<this.height; ++y) {
 				for (int x=0; x<this.width; ++x) {
-					grayVal = this.inImg.getValueInt(x, y);
+					grayVal = this.workImage.getValueInt(x, y);
 					if (grayVal == 0) 
 						this.analysisDisplayImg.putValue(x, y, 
 							grayVal, grayVal, grayVal);
@@ -349,8 +380,8 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 		int maxLabel = 0;
 		for (int y=0;y<this.height;++y) {
 			for (int x=0;x<this.width;++x) {
-				if (this.inImg.getValueInt(x, y) > maxLabel)
-					maxLabel = this.inImg.getValueInt(x, y);
+				if (this.workImage.getValueInt(x, y) > maxLabel)
+					maxLabel = this.workImage.getValueInt(x, y);
 			}
 		}
 
@@ -412,9 +443,9 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 						if (done) {
 							Vector<Point2D.Double> branch = nsg.getLongestPath(true);
 							double size = this.calcBranchLength(branch);
-							if (size > longestPathLengths[this.inImg.getValueInt(x, y)]) {
-								longestPathLengths[this.inImg.getValueInt(x, y)] = size; 
-								longestPath.set(this.inImg.getValueInt(x, y)-1,branch);
+							if (size > longestPathLengths[this.workImage.getValueInt(x, y)]) {
+								longestPathLengths[this.workImage.getValueInt(x, y)] = size; 
+								longestPath.set(this.workImage.getValueInt(x, y)-1,branch);
 							}
 						}
 					}
@@ -445,8 +476,8 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 			regionWithLabelFound[i] = false;
 		for (int y=0;y<this.height;++y) {
 			for (int x=0;x<this.width;++x) {
-				if (this.inImg.getValueInt(x, y) > 0)
-					regionWithLabelFound[this.inImg.getValueInt(x, y)-1] = true;
+				if (this.workImage.getValueInt(x, y) > 0)
+					regionWithLabelFound[this.workImage.getValueInt(x, y)-1] = true;
 			}
 		}
 		
@@ -460,19 +491,19 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 					if (nCount == 0) {
 						// we have only a single skeleton point which is by our definition
 						// also a branch (appears, e.g., in skeletons of perfect circles)
-						++branchCounts[this.inImg.getValueInt(x, y)-1];
+						++branchCounts[this.workImage.getValueInt(x, y)-1];
 					}
 					else if (nCount == 1) {
 						// found an endpoint, mark as processed
 						memImg.putValueInt(x, y, 0);
-						++branchCounts[this.inImg.getValueInt(x, y)-1];
+						++branchCounts[this.workImage.getValueInt(x, y)-1];
 						
 						// calculate branch length...
 						length = traceBranch(skelImg, x, y, null);
-						branchLengths[this.inImg.getValueInt(x, y)-1] += length;
+						branchLengths[this.workImage.getValueInt(x, y)-1] += length;
 						
 						// ... and endpoint distance to background
-						branchDistances[this.inImg.getValueInt(x, y)-1] += 
+						branchDistances[this.workImage.getValueInt(x, y)-1] += 
 								distTransImg.getValueInt(x, y) * this.pixelLength;
 						
 						// visualize if requested
@@ -521,9 +552,9 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 		HashMap<Integer, int[]> regionBoxes = new  HashMap<>();
 		for (int y=0;y<this.height;++y) {
 			for (int x=0;x<this.width;++x) {
-				if (this.inImg.getValueInt(x, y) == 0)
+				if (this.workImage.getValueInt(x, y) == 0)
 					continue;
-				Integer label = new Integer(this.inImg.getValueInt(x, y));
+				Integer label = new Integer(this.workImage.getValueInt(x, y));
 				if (regionBoxes.get(label) == null)
 					// Array: [x-min, y-min, x-max, y-max]
 					regionBoxes.put(label, new int[]{x,y,x,y}); 
@@ -566,7 +597,6 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 			(MTBImageByte)skelImg.duplicate().convertType(MTBImageType.MTB_BYTE, true);
 		
 		// extract set of components from skeleton image
-		LabelComponentsSequential labler = new LabelComponentsSequential();
 		labler.setInputImage(skelImg);
 		labler.setDiagonalNeighborsFlag(true);
 		labler.runOp();
@@ -608,43 +638,125 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 			}
 		}
 		
-		// calculate distances to the background for all non-branch pixels
+		// determine radii of maximum inscribed circles by finding for each region 
+		// skeleton point with maximum minimal distance to background; 
+		// in parallel store distances of non-branch skeleton pixels to background
+		double minSkelPointDist, dist;
+		double[] radiiMaxInscribedCircles = new double[maxLabel+1];
+		double[] maxDistPerRegion = new double[maxLabel+1];
+		Point2D.Double localSkelMinPoint = null;
+		Point2D.Double[] maxDistPoints = new Point2D.Double[maxLabel+1];
 		MTBImageDouble nonBranchDistImg = (MTBImageDouble)MTBImage.createMTBImage(
-				this.width, this.height, 1, 1, 1, MTBImageType.MTB_DOUBLE); 
-		Point2D.Double[][] nonBranchDistImgPoints = 
-				new Point2D.Double[this.width][this.height];
-		double dist, minDist;
-		Integer label;
-		for (int y=0;y<this.height;++y) {
-			for (int x=0;x<this.width; ++x) {
-				if (nonBranchPixelImg.getValueInt(x, y) != 0) {
-					// search only inside the bounding box of this region (plus one pix)
-					label = new Integer(this.inImg.getValueInt(x, y));
-					dims = regionBoxes.get(label);
-					xmin = dims[0];
-					xmax = dims[2];
-					ymin = dims[1];
-					ymax = dims[3];
-					minDist = Double.MAX_VALUE;
-					for (int yy=ymin; yy<=ymax; ++yy) {
-						for (int xx=xmin; xx<=xmax; ++xx) {
-							// ignore non-background pixels
-							if (binImg.getValueInt(xx, yy) != 0)
+		 		this.width, this.height, 1, 1, 1, MTBImageType.MTB_DOUBLE); 
+
+		int label = 0;
+		MTBImageDouble distImage = (MTBImageDouble)skelImg.convertType(
+				MTBImageType.MTB_DOUBLE,  false);
+		for (int y=0; y<this.height; ++y) {
+			for (int x=0; x<this.width; ++x) {
+				distImage.putValueDouble(x, y, -1);
+			}
+		}
+		for (int y=0; y<this.height; ++y) {
+			for (int x=0; x<this.width; ++x) {
+				// only consider skeleton pixels
+				if (skelImg.getValueInt(x, y) > 0) {
+					for (int dy=-5; dy<=5; ++dy) {
+						for (int dx=-5; dx<=5; ++dx) {
+							if (   dx+x < 0 || dx+x>=this.workImage.getSizeX() 
+									|| y+dy<0 || dy+y >= this.workImage.getSizeY())
 								continue;
-							dist = (x-xx)*(x-xx) + (y-yy)*(y-yy);
-							if (dist < minDist) {
-								minDist = dist;
-								nonBranchDistImgPoints[x][y] = new Point2D.Double(xx, yy);
+							label = this.workImage.getValueInt(dx+x, dy+y);
+							if (label == 0)
+								continue;
+							
+							minSkelPointDist = Double.MAX_VALUE;
+							if (distImage.getValueDouble(dx+x, dy+y) != -1) {
+								minSkelPointDist = distImage.getValueDouble(dx+x, dy+y);
 							}
+							else {
+								MTBBorder2D c = contours.elementAt(label-1);
+								for (Point2D.Double p: c.getPoints()) {
+									for (int by=-1;by<=1;++by) {
+										for (int bx=-1;bx<=1;++bx) {
+											int px = (int)(p.x+bx);
+											int py = (int)(p.y+by);
+											if (   px < 0 || px >= this.workImage.getSizeX() 
+													|| py < 0 || py >= this.workImage.getSizeY())
+												continue;
+											if (this.workImage.getValueInt(px, py) > 0)
+												continue;
+											dist = (dx+x-px)*(dx+x-px) + (dy+y-py)*(dy+y-py);
+											if (dist < minSkelPointDist) {
+												minSkelPointDist = dist;
+												localSkelMinPoint = new Point2D.Double(dx+x, dy+y);
+											}
+										}
+									}
+								}
+								distImage.putValueDouble(dx+x, dy+y, minSkelPointDist);
+							}
+							if (minSkelPointDist > maxDistPerRegion[label]) {
+								maxDistPoints[label] = localSkelMinPoint;
+								maxDistPerRegion[label] = minSkelPointDist;
+							}
+							// remember final non-squared distance (in pixels) for non-branch pixels
+							if (dx==0 && dy==0 && nonBranchPixelImg.getValueInt(x, y) != 0)
+								nonBranchDistImg.putValueDouble(x, y, Math.sqrt(minSkelPointDist));
 						}
 					}
-					// remember final non-squared distance (in pixels)
-					nonBranchDistImg.putValueDouble(x, y, Math.sqrt(minDist));
 				}
 			}
 		}
+		for (int l=1; l<=maxLabel; ++l) {
+			radiiMaxInscribedCircles[l] = 
+					Math.sqrt(maxDistPerRegion[l]) * this.pixelLength;
+			if (this.visualizeAnalysisResults) {
+				this.analysisDisplayImg.drawPoint2D(
+					(int)maxDistPoints[l].x, (int)maxDistPoints[l].y, 0, 0xFFFF00, 1);
+				this.analysisDisplayImg.drawCircle2D(
+					(int)maxDistPoints[l].x, (int)maxDistPoints[l].y, 0, 
+						(int)Math.sqrt(maxDistPerRegion[l]), yellow);
+			}
+		}
 		
-		// coolect set of distances along non-branch skeleton
+		// calculate distances to the background for all non-branch pixels
+		// MTBImageDouble nonBranchDistImg = (MTBImageDouble)MTBImage.createMTBImage(
+		// 		this.width, this.height, 1, 1, 1, MTBImageType.MTB_DOUBLE); 
+		// Point2D.Double[][] nonBranchDistImgPoints = 
+		// 		new Point2D.Double[this.width][this.height];
+		// double minDist;
+		// Integer label;
+		// for (int y=0;y<this.height;++y) {
+		// 	for (int x=0;x<this.width; ++x) {
+		// 		if (nonBranchPixelImg.getValueInt(x, y) != 0) {
+		// 			// search only inside the bounding box of this region (plus one pix)
+		// 			label = new Integer(this.inImg.getValueInt(x, y));
+		// 			dims = regionBoxes.get(label);
+		// 			xmin = dims[0];
+		// 			xmax = dims[2];
+		// 			ymin = dims[1];
+		// 			ymax = dims[3];
+		// 			minDist = Double.MAX_VALUE;
+		// 			for (int yy=ymin; yy<=ymax; ++yy) {
+		// 				for (int xx=xmin; xx<=xmax; ++xx) {
+		// 					// ignore non-background pixels
+		// 					if (binImg.getValueInt(xx, yy) != 0)
+		// 						continue;
+		// 					dist = (x-xx)*(x-xx) + (y-yy)*(y-yy);
+		// 					if (dist < minDist) {
+		// 						minDist = dist;
+		// 						nonBranchDistImgPoints[x][y] = new Point2D.Double(xx, yy);
+		// 					}
+		// 				}
+		// 			}
+		// 			// remember final non-squared distance (in pixels)
+		// 			nonBranchDistImg.putValueDouble(x, y, Math.sqrt(minDist));
+		// 		}
+		// 	}
+		// }
+
+		// collect set of distances along non-branch skeleton
 		Double distVal;
 		HashMap<Integer, Double> quartileFirst = new HashMap<>();
 		HashMap<Integer, Double> quartileThird = new HashMap<>();
@@ -653,7 +765,7 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 		for (int y=0;y<this.height;++y) {
 			for (int x=0;x<this.width; ++x) {
 				if (nonBranchDistImg.getValueDouble(x, y) > 0) {
-					label = new Integer(this.inImg.getValueInt(x, y));
+					label = new Integer(this.workImage.getValueInt(x, y));
 					distVal = new Double(nonBranchDistImg.getValueDouble(x, y));
 					if (!distances.containsKey(label)) {
 						distances.put(label, new ArrayList<Double>());
@@ -679,7 +791,7 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 			if (regionWithLabelFound[i])
 				++regionCount;
 		}
-		this.resultFeatureTable = new MTBTableModel(regionCount, 7);
+		this.resultFeatureTable = new MTBTableModel(regionCount, 8);
 		this.resultFeatureTable.setColumnName(0, 
 				FeatureNames.RegionID.toString());
 		this.resultFeatureTable.setColumnName(1, 
@@ -694,6 +806,8 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 				FeatureNames.MinCoreRegionWidth.toString());
 		this.resultFeatureTable.setColumnName(6, 
 				FeatureNames.MaxCoreRegionWidth.toString());
+		this.resultFeatureTable.setColumnName(7, 
+				FeatureNames.LargestEmptyCircle.toString());
 		int rowID = 0;
 		for (int i=0; i<regionWithLabelFound.length; ++i) {
 			if (!regionWithLabelFound[i])
@@ -710,17 +824,19 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 			// set core region dimensions, note that estimated distances 
 			// refer to half of the actual widths, i.e. are multiplied by 2 here
 			if (quartileFirst.get(new Integer(i+1)) == null)
-				this.resultFeatureTable.setValueAt(new Double(Double.NaN), rowID, 5);
+				this.resultFeatureTable.setValueAt(Double.NaN, rowID, 5);
 			else
 				this.resultFeatureTable.setValueAt(Double.toString(
 					quartileFirst.get(new Integer(i+1)).doubleValue() 
 						* 2.0 * this.pixelLength), rowID, 5);
 			if (quartileThird.get(new Integer(i+1)) == null)
-				this.resultFeatureTable.setValueAt(new Double(Double.NaN), rowID, 6);
+				this.resultFeatureTable.setValueAt(Double.NaN, rowID, 6);
 			else
 				this.resultFeatureTable.setValueAt(Double.toString(
 					quartileThird.get(new Integer(i+1)).doubleValue()
 						* 2.0 * this.pixelLength), rowID, 6);
+			this.resultFeatureTable.setValueAt(
+				Double.toString(radiiMaxInscribedCircles[i+1]), rowID, 7);
 			++rowID;
 		}		
 	}

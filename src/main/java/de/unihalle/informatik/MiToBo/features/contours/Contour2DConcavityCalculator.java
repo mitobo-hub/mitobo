@@ -43,7 +43,7 @@ import de.unihalle.informatik.MiToBo.segmentation.contours.extraction.ContourOnL
 import de.unihalle.informatik.MiToBo.segmentation.regions.labeling.LabelComponentsSequential;
 
 /**
- * class for calculating concaveness of contour pixels according to the method proposed in:
+ * Class for calculating concaveness of contour pixels according to the method proposed in:
  * 
  * Fernandez, G., Kunt, M. & Zryd, J.P. (1995) A new plant image segmentation algorithm. 
  * Proceedings of the Eighth International Conference on Image Analysis and Processing, 
@@ -56,23 +56,58 @@ import de.unihalle.informatik.MiToBo.segmentation.regions.labeling.LabelComponen
 public class Contour2DConcavityCalculator extends MTBOperator
 {		
 	
-	@Parameter(label = "input image", required = true, direction = Parameter.Direction.IN, supplemental = false, description = "input image")
+	@Parameter(label = "input image", required = true, 
+			direction = Parameter.Direction.IN, 
+			supplemental = false, description = "input image")
 	private MTBImage inImg = null;
 	
-	@Parameter(label = "contours", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "contours whose concaveness has to be calculated")
+	@Parameter(label = "contours", required = false, 
+			direction = Parameter.Direction.IN, 
+			supplemental = false, description = "contours whose concaveness has to be calculated")
 	private MTBContour2DSet contours = null;
 	
-	@Parameter(label = "radius", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "radius of considered neighbors")
+	@Parameter(label = "radius", required = false,
+			direction = Parameter.Direction.IN, 
+			supplemental = false, description = "radius of considered neighbors")
 	private Integer radius = 2;
 	
-	@Parameter(label = "is foreground eightconnected", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "are foreground pixels 8-connected or 4-connected")
-	private Boolean eightconnected = true;
+	@Parameter(label = "is foreground eightconnected", required = false, 
+			direction = Parameter.Direction.IN,
+			supplemental = false, description = "are foreground pixels 8-connected or 4-connected")
+	private Boolean eightconnected = Boolean.TRUE;
 	
-	@Parameter(label = "result image", required = true, direction = Parameter.Direction.OUT, supplemental = false, description = "resulting image")
-	private MTBImageInt resultImg = null;
+	/**
+	 * Normalize values by scaling them to a range of [0,1].
+	 * <p>
+	 * In the original paper the values are given by the sum of the concavity values of each 
+	 * three adjacent contour pixels. Each concavity value is equal to the number of pixels
+	 * in the neighborhood of the contour pixel which lie inside the region. The neighborhood
+	 * size is defined by the given radius.
+	 * <p>
+	 * In case of normalization the neighborhood size is used as normalization factor and 
+	 * the average of each three adjacent concavity values is used. Thus, the resulting values
+	 * are scaled to a range of [0,1]. 
+	 */
+	@Parameter(label = "Normalize values to [0,1]?", 
+			direction = Parameter.Direction.IN,
+			supplemental = false, description = "Normalize values by radius and use local average?")
+	private Boolean normalizeConcavities = Boolean.FALSE;
+
+	/**
+	 * Result image with concavity values.
+	 * <p>
+	 * If non-normalized concavity values are to be computed, the returned image is of type
+	 * {@link MTBImageInt}, in case of normalized values it is of type {@link MTBImageDouble}.
+	 */
+	@Parameter(label = "result image", required = true, 
+			direction = Parameter.Direction.OUT, 
+			supplemental = false, description = "resulting image")
+	private MTBImage resultImg = null;
 	
-	@Parameter(label = "concavenessValues", required = true, direction = Parameter.Direction.OUT, supplemental = false, description = "resulting concaveness values for each region")
-	private Vector<int[]> concavenessValues = null;
+	@Parameter(label = "concavenessValues", required = true, 
+			direction = Parameter.Direction.OUT, 
+			supplemental = false, description = "resulting concaveness values for each region")
+	private Vector<double[]> concavenessValues = null;
 	
 	private MTBContour2DSet contourWorkSet;
 	
@@ -120,6 +155,14 @@ public class Contour2DConcavityCalculator extends MTBOperator
 		this.radius = new Integer(r);
 	}
 	
+	/**
+	 * Enable/disable normalization.
+	 * @param b		If true, normalization is enabled.
+	 */
+	public void setNormalize(Boolean b) {
+		this.normalizeConcavities = b;
+	}
+	
 	@Override
 	protected void operate() throws ALDOperatorException, ALDProcessingDAGException
 	{
@@ -137,24 +180,41 @@ public class Contour2DConcavityCalculator extends MTBOperator
 			this.contourWorkSet = this.contours;
 		}
 		
-		resultImg = (MTBImageInt)MTBImage.createMTBImage(
-				inImg.getSizeX(), inImg.getSizeY(), 1, 1, 1, 
+		if (this.normalizeConcavities.booleanValue()) {
+			this.resultImg = MTBImage.createMTBImage(this.inImg.getSizeX(), this.inImg.getSizeY(), 1, 1, 1, 
+					MTBImage.MTBImageType.MTB_DOUBLE);			
+		}
+		else {
+			this.resultImg = MTBImage.createMTBImage(this.inImg.getSizeX(), this.inImg.getSizeY(), 1, 1, 1, 
 					MTBImage.MTBImageType.MTB_INT);
-			
-		concavenessValues = new Vector<int[]>();
+		}
 		
+		concavenessValues = new Vector<double[]>();
+
+		Point2D.Double p;
 		for(int i = 0; i < contourWorkSet.size(); i++)
 		{
 			Vector<Point2D.Double> points = contourWorkSet.elementAt(i).getPoints();
 			int[] concValues = getConcaveness(points);
-			
-			concavenessValues.add(concValues.clone());
-			
-			for(int j = 0; j < points.size(); j++)
-			{
-				Point2D.Double p = points.elementAt(j);
-				
-				resultImg.putValueInt((int)p.x, (int)p.y, concValues[j]);
+
+			if (this.normalizeConcavities.booleanValue()) {
+				double[] concavitiesNormed = new double[points.size()];
+				for (int j = 0; j < points.size(); j++) {
+					concavitiesNormed[j] = (double)concValues[j] / 
+						(double)( (2*this.radius.intValue()+1) * (2*this.radius.intValue()+1) * 3);
+					p = points.elementAt(j);
+					this.resultImg.putValueDouble((int)p.x, (int)p.y, concavitiesNormed[j]);
+				}
+				this.concavenessValues.add(concavitiesNormed);
+			}
+			else {
+				double[] concavities = new double[points.size()];
+				for (int j = 0; j < points.size(); j++) {
+					concavities[j] = concValues[j];
+					p = points.elementAt(j);
+					this.resultImg.putValueInt((int)p.x, (int)p.y, concValues[j]);
+				}
+				this.concavenessValues.add(concavities);
 			}
 		}
 	}
@@ -233,7 +293,7 @@ public class Contour2DConcavityCalculator extends MTBOperator
 	}
 	
 	
-	public Vector<int[]> getConcavenessValues()
+	public Vector<double[]> getConcavenessValues()
 	{
 		return this.concavenessValues;
 	}

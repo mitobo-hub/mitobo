@@ -27,26 +27,11 @@ package de.unihalle.informatik.MiToBo.segmentation.regions.filling;
 
 import static org.junit.Assert.*;
 
-import ij.io.ImageWriter;
-
-import java.io.IOException;
-
-import loci.common.services.DependencyException;
-import loci.common.services.ServiceException;
-import loci.formats.FormatException;
-
-import org.junit.Before;
 import org.junit.Test;
 
-import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.operator.ALDOperator.HidingMode;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
-import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageByte;
-import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType;
 import de.unihalle.informatik.MiToBo.io.images.ImageReaderMTB;
-import de.unihalle.informatik.MiToBo.io.images.ImageWriterMTB;
-import de.unihalle.informatik.MiToBo.math.images.ImageArithmetics;
-import de.unihalle.informatik.MiToBo.math.images.ImageArithmetics.ArithOp;
 import de.unihalle.informatik.MiToBo.math.images.MTBImageArithmetics;
 
 /**
@@ -66,23 +51,29 @@ public class TestFillHoles2D {
 
 		ImageReaderMTB reader;
 		try {
-			// first test the label image
 			
 			// read the label image with holes
-			reader = new ImageReaderMTB("./share/testimages/testLabelImage-withholes.tif");
+			reader = new ImageReaderMTB(TestFillHoles2D.class.getResource(
+					"testLabelImage-withholes.tif").getFile());
 			reader.runOp(true);
-			holeImage = (MTBImageByte)reader.getResultMTBImage();
+			holeImage = reader.getResultMTBImage();
 
-			// and fill the holes
+			// now read the original label image without holes
+			reader = new ImageReaderMTB(TestFillHoles2D.class.getResource(
+					"testLabelImage.tif").getFile());
+			reader.runOp(true);
+			labelImage = reader.getResultMTBImage();
+
+			/**
+			 * test the label image with correct 8-neighborhood
+			 */
+
+			// fill the holes
 			FillHoles2D filler = new FillHoles2D(holeImage);
+			filler.setUseDiagonalNeighbors(true);
 			filler.runOp(HidingMode.HIDDEN);
 			filledImage = filler.getResultImage();
 			
-			// now read the original label image without holes
-			reader = new ImageReaderMTB("./share/testimages/testLabelImage.tif");
-			reader.runOp(true);
-			labelImage = (MTBImageByte)reader.getResultMTBImage();
-
 			// and compare them
 			MTBImageArithmetics absDiffOp = new MTBImageArithmetics();
 			diffImage = absDiffOp.absDiff(filledImage, labelImage);
@@ -91,12 +82,38 @@ public class TestFillHoles2D {
 			assertTrue("absolute difference of label image should be black", 		
 					minMax[0] == 0 && minMax[1] == 0);
 			
+			/**
+			 * test the label image with incorrect 8-neighborhood, test should fail
+			 */
+			
+			// fill the holes
+			filler = new FillHoles2D(holeImage);
+			filler.setUseDiagonalNeighbors(false);
+			filler.runOp(HidingMode.HIDDEN);
+			filledImage = filler.getResultImage();
+			
+			// now read the original label image without holes
+			reader = new ImageReaderMTB(TestFillHoles2D.class.getResource(
+					"testLabelImage.tif").getFile());
+			reader.runOp(true);
+			labelImage = reader.getResultMTBImage();
+
+			// and compare them; we expect deviations
+			absDiffOp = new MTBImageArithmetics();
+			diffImage = absDiffOp.absDiff(filledImage, labelImage);
+
+			minMax = diffImage.getMinMaxInt();
+			assertFalse("absolute difference of label images should not be zero", 		
+					minMax[0] == 0 && minMax[1] == 0);
+
+			
 			// next test the binary image
 			
 			// read the label image with holes
-			reader = new ImageReaderMTB("./share/testimages/testBinaryImage-withholes.tif");
+			reader = new ImageReaderMTB(TestFillHoles2D.class.getResource(
+					"testBinaryImage-withholes.tif").getFile());
 			reader.runOp(true);
-			holeImage = (MTBImageByte)reader.getResultMTBImage();
+			holeImage = reader.getResultMTBImage();
 
 			// and fill the holes
 			filler = new FillHoles2D(holeImage);
@@ -104,9 +121,10 @@ public class TestFillHoles2D {
 			filledImage = filler.getResultImage();
 			
 			// now read the original label image without holes
-			reader = new ImageReaderMTB("./share/testimages/testBinaryImage.tif");
+			reader = new ImageReaderMTB(TestFillHoles2D.class.getResource(
+					"testBinaryImage.tif").getFile());
 			reader.runOp(true);
-			labelImage = (MTBImageByte)reader.getResultMTBImage();
+			labelImage = reader.getResultMTBImage();
 
 			// and compare them
 			absDiffOp = new MTBImageArithmetics();
@@ -115,8 +133,6 @@ public class TestFillHoles2D {
 			minMax = diffImage.getMinMaxInt();
 			assertTrue("absolute difference image of binary should be black", 		
 					minMax[0] == 0 && minMax[1] == 0);
-			
-
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

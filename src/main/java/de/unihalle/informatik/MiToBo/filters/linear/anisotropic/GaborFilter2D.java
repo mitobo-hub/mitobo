@@ -36,6 +36,7 @@ import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageDouble;
+import de.unihalle.informatik.MiToBo.core.datatypes.wrapper.MTBBooleanData;
 import de.unihalle.informatik.MiToBo.filters.linear.LinearFilter;
 
 /**
@@ -145,7 +146,7 @@ public class GaborFilter2D extends OrientedFilter2D {
 	@Parameter( label= "Invert Mask", required = false, dataIOOrder = 4,
 		direction= Parameter.Direction.IN, mode=ExpertMode.STANDARD, 
 	  description = "If true, filter mask is inverted.")
-	protected boolean invertMask = false;
+	protected MTBBooleanData invertMask = new MTBBooleanData(false);
 
 	/**
 	 * Desired type of result.
@@ -203,6 +204,31 @@ public class GaborFilter2D extends OrientedFilter2D {
 	@Override
 	protected Object readResolve() {
 		return super.readResolve();
+	}
+
+	@Override
+	public GaborFilter2D clone() {
+		GaborFilter2D newOp;
+		try {
+			newOp = new GaborFilter2D();
+			// super class fields
+			newOp.inputImg = this.inputImg;
+			newOp.angle = this.angle;
+			newOp.mode = this.mode;
+			newOp.paddingVariant = this.paddingVariant;
+			newOp.statusListeners = this.statusListeners;
+			// local fields
+			newOp.gaussStdDevX = this.gaussStdDevX;
+			newOp.gaussStdDevY = this.gaussStdDevY;
+			newOp.frequency = this.frequency;
+			newOp.invertMask = this.invertMask; 
+			newOp.resultType = this.resultType;
+			newOp.kernelSize = this.kernelSize;
+			newOp.kPart = this.kPart;
+			return newOp;
+		} catch (ALDOperatorException e) {
+			return null;
+		}
 	}
 
 	/* (non-Javadoc)
@@ -317,7 +343,7 @@ public class GaborFilter2D extends OrientedFilter2D {
 				if (this.kPart == KernelPart.REAL) {
 					response = 
 							gaussKernel.getValueDouble(x, y) * cosKernel.getValueDouble(x, y);
-					if (!this.invertMask)
+					if (!this.invertMask.getValue())
 						kernelImg.putValueDouble(x, y,  response);
 					else
 						kernelImg.putValueDouble(x, y, -response);
@@ -326,7 +352,7 @@ public class GaborFilter2D extends OrientedFilter2D {
 				else {
 					response = 
 							gaussKernel.getValueDouble(x, y) * sinKernel.getValueDouble(x, y);
-					if (!this.invertMask)
+					if (!this.invertMask.getValue())
 						kernelImg.putValueDouble(x, y,  response);
 					else
 						kernelImg.putValueDouble(x, y, -response);
@@ -481,7 +507,19 @@ public class GaborFilter2D extends OrientedFilter2D {
 	 * @param b		Flag for inversion.
 	 */
 	public void setInvertMask(boolean b) {
-		this.invertMask = b;
+		this.invertMask = new MTBBooleanData(b);
+	}
+
+	/** 
+	 * Enable or disable mask inversion.
+	 * <p>
+	 * Using this method with MiToBo wrapper datatypes instead of passing over
+	 * directly a boolean preserves consistency in the processing history.
+	 * 
+	 * @param m		Value for the mask inversion flag.
+	 */
+	public void setInvertMask(MTBBooleanData m) {
+		this.invertMask = m;
 	}
 
 	/**

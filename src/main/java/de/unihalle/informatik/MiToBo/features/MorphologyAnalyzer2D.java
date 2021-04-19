@@ -222,7 +222,15 @@ public class MorphologyAnalyzer2D extends MTBOperator
 		 * nearest neighbors, i.e. no midpoint has a larger distance to its 
 		 * closest neighbor than this value.
 		 */
-		MaxCoreRegionWidth
+		MaxCoreRegionWidth,
+		/**
+		 * Radius of largest circle that completely fits into the region boundary.
+		 * <p>
+		 * The radius is defined as the Euclidean distance of the point farest away
+		 * from the boundary to the corresponding boundary. The point is determined
+		 * as the global maximum of a distance transformation of the region. 
+		 */
+		LargestEmptyCircle
 	}
 
 	@Parameter(label = "Label image", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "label image", dataIOOrder = 0,
@@ -356,18 +364,29 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	 * <p>
 	 * Refer to operator {@link Contour2DConcavityCalculator} for details.
 	 */
-	@Parameter(label = "    - Concavity Masksize", 
+	@Parameter(label = "    - Concavity masksize", 
 		required = false, direction = Parameter.Direction.IN, 
 		supplemental = false, dataIOOrder = 19,
 		description = "Size of local mask in concavity calculations.") 
 	private int concavityMaskSize = 11;
 
 	/**
+	 * Normalize concavity values?
+	 * <p>
+	 * Refer to operator {@link Contour2DConcavityCalculator} for details.
+	 */
+	@Parameter(label = "    - Normalize concavity values?", 
+		required = false, direction = Parameter.Direction.IN, 
+		supplemental = false, dataIOOrder = 20,
+		description = "If true, values are scaled to the range of [0,1].") 
+	private boolean concavityNormalizeValues = false;
+
+	/**
 	 * Flag to turn on/off analysis of convex hull.
 	 */
 	@Parameter(label = "Calculate convex hull measures", 
 		required = false, direction = Parameter.Direction.IN, 
-		supplemental = false, dataIOOrder = 20,
+		supplemental = false, dataIOOrder = 21,
 		description = "If true some measures of the convex hull "
 			+ "are calculated.")
 	private boolean calcConvexHullMeasures = true;
@@ -375,7 +394,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	@Parameter(label = "Fractional digits", required = false, 
 		direction = Parameter.Direction.IN, 
 		supplemental = false, description = "fractional digits", 
-		dataIOOrder = 21, mode=ExpertMode.ADVANCED)
+		dataIOOrder = 22, mode=ExpertMode.ADVANCED)
 	private Integer fracDigits = new Integer(3);
 	
 	/**
@@ -444,7 +463,8 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	
 	private Vector<Double> minCoreRegionWidths;
 	private Vector<Double> maxCoreRegionWidths;
-	
+	private Vector<Double> radiiMaxInscribedEmptyCircles;
+
 	private Vector<Integer> protrusionCounts;
 	private Vector<Double> nonProtrusionAreas;
 	
@@ -597,6 +617,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 		
 		this.minCoreRegionWidths = new Vector<Double>();
 		this.maxCoreRegionWidths = new Vector<Double>();
+		this.radiiMaxInscribedEmptyCircles = new Vector<>();
 
 		this.protrusionCounts = new Vector<Integer>();
 		this.nonProtrusionAreas = new Vector<Double>();
@@ -762,6 +783,8 @@ public class MorphologyAnalyzer2D extends MTBOperator
 				Region2DSkeletonAnalyzer.FeatureNames.MinCoreRegionWidth.toString());
 			int maxCoreRegionWidthIndex = skeletonData.findColumn(
 				Region2DSkeletonAnalyzer.FeatureNames.MaxCoreRegionWidth.toString());
+			int radiiMaxEmptyCircleIndex = skeletonData.findColumn(
+					Region2DSkeletonAnalyzer.FeatureNames.LargestEmptyCircle.toString());
 			for (int i = 0; i<skeletonData.getRowCount(); ++i) {
 				this.branchCounts.add(Double.valueOf(
 					(String)skeletonData.getValueAt(i, branchCountIndex)));
@@ -775,6 +798,8 @@ public class MorphologyAnalyzer2D extends MTBOperator
 					(String)skeletonData.getValueAt(i, minCoreRegionWidthIndex)));
 				this.maxCoreRegionWidths.add(Double.valueOf(
 					(String)skeletonData.getValueAt(i, maxCoreRegionWidthIndex)));
+				this.radiiMaxInscribedEmptyCircles.add(Double.valueOf(
+					(String)skeletonData.getValueAt(i, radiiMaxEmptyCircleIndex)));
 			}
 		}
 	}
@@ -829,6 +854,8 @@ public class MorphologyAnalyzer2D extends MTBOperator
 			header.add(FeatureNames.MinCoreRegionWidth.toString()
 					+ " ("+ this.unitXY + ")" );
 			header.add(FeatureNames.MaxCoreRegionWidth.toString()
+					+ " ("+ this.unitXY + ")" );
+			header.add(FeatureNames.LargestEmptyCircle.toString()
 					+ " ("+ this.unitXY + ")" );
 		}
 		if (this.calcConcavityData) 
@@ -937,6 +964,9 @@ public class MorphologyAnalyzer2D extends MTBOperator
 				col++;
 				this.table.setValueAt(this.nf.format(
 						this.maxCoreRegionWidths.elementAt(i)), i, col);
+				col++;
+				this.table.setValueAt(this.nf.format(
+						this.radiiMaxInscribedEmptyCircles.elementAt(i)), i, col);
 				col++;
 			}
 			if (this.calcConcavityData) 
@@ -1309,6 +1339,17 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	}
 	
 	/**
+	 * Enable/disable normalization for concavity values.
+	 * <p>
+	 * Refer to operator {@link Contour2DConcavityCalculator} for details.
+	 *
+	 * @param b		If true, values are normalized to a range of [0,1].
+	 */
+	public void setConcavityNormalizeValues(boolean b) {
+		this.concavityNormalizeValues = b;
+	}
+
+	/**
 	 * Turn on/off calculation of convex hull measures. 
 	 * @param flag If true, convex hull measures are calculated.
 	 */
@@ -1483,6 +1524,13 @@ public class MorphologyAnalyzer2D extends MTBOperator
 		gaussFilter.setSigma(this.gaussianSigma);
 		int i=0;
 		for (double[] values: curvatureValues) {
+			// make sure that we have enough curvature values 
+			// to apply cyclic Gaussian smoothing
+			if (values.length < (int)this.gaussianSigma) {
+				curvatureValues.setElementAt(null, i);
+				++i;
+				continue;
+			}
 			gaussFilter.setInputArray(values);
 			gaussFilter.runOp(HidingMode.HIDE_CHILDREN);
 			curvatureValues.setElementAt(gaussFilter.getResultArray(), i);
@@ -1494,12 +1542,17 @@ public class MorphologyAnalyzer2D extends MTBOperator
 			// from curvatures to be found on an optimal circle
 			double curvSum = 0;
 			for (double[] values: curvatureValues) {
+				// if contour is too short, we don't have curvature values,
+				// hence, likewise no margin roughness
+				if (values == null) {
+					this.marginRoughnessValues.add(Double.NaN);
+					continue;
+				}
 				curvSum = 0;
 				for (double d: values)
 					curvSum += Math.abs(d);
 				double expectedValue = 360.0/values.length;
-				this.marginRoughnessValues.add(
-						new Double(curvSum/values.length - expectedValue));
+				this.marginRoughnessValues.add(curvSum/values.length - expectedValue);
 			}
 		}
 		
@@ -1733,25 +1786,26 @@ public class MorphologyAnalyzer2D extends MTBOperator
 				new Contour2DConcavityCalculator(this.labelImg);
 		concavityOp.setContours(contExtractor.getResultContours());
 		concavityOp.setRadius(this.concavityMaskSize);
+		concavityOp.setNormalize(Boolean.valueOf(this.concavityNormalizeValues));
 		concavityOp.runOp(HidingMode.HIDE_CHILDREN);
-		Vector<int[]> concavities = concavityOp.getConcavenessValues();
+		Vector<double[]> concavities = concavityOp.getConcavenessValues();
 
 		// calculate average concavities and their standard deviations
-		int concavitySum;
-		for (int[] concavityValues: concavities) {
+		double concavitySum;
+		for (double[] concavityValues: concavities) {
 			concavitySum = 0;
-			for (int d: concavityValues)
+			for (double d: concavityValues)
 				concavitySum += d;
 			this.avgConcavities.add(
-					new Double(concavitySum/concavityValues.length));
+					Double.valueOf(concavitySum/concavityValues.length));
 		}
 		int id = 0;
-		for (int[] concavityValues: concavities) {
+		for (double[] concavityValues: concavities) {
 			concavitySum = 0;
 			double avg = this.avgConcavities.get(id).doubleValue(); 
-			for (int d: concavityValues)
+			for (double d: concavityValues)
 				concavitySum += (d-avg)*(d-avg);
-			this.stdDevConcavities.add(new Double(
+			this.stdDevConcavities.add(Double.valueOf(
 					Math.sqrt(concavitySum/concavityValues.length)));
 			++id;
 		}		

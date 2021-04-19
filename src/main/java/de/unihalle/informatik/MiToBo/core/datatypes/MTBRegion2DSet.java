@@ -46,8 +46,7 @@ import de.unihalle.informatik.MiToBo_xml.MTBXMLRegion2DType;
 
 /**
  * A set of 2D regions living in a common domain which is a rectangular subset
- * of R x R. Each regions is of type Region2D
- * 
+ * of R x R. Each regions is of type {@link MTBRegion2D}.
  * 
  * @author Stefan Posch
  */
@@ -89,7 +88,9 @@ public class MTBRegion2DSet extends ALDData
 		@ALDClassParameter(label="Set of regions") 
 		protected Vector<MTBRegion2D> regionSet;
 
-		/** Information about this region set */
+		/** 
+		 * Information about this region set. 
+		 */
 		private String info;
 
 		/**
@@ -127,7 +128,7 @@ public class MTBRegion2DSet extends ALDData
 		}
 
 		/**
-		 * Construct an empty set of regions with given extent of domain
+		 * Construct an empty set of regions with given extent of domain.
 		 */
 		public MTBRegion2DSet(Vector<MTBRegion2D> regions, double _xMin,
 		    double _yMin, double _xMax, double _yMax) {
@@ -175,12 +176,7 @@ public class MTBRegion2DSet extends ALDData
 		 * constitute one connected region.
 		 * Admissible image types are BYTE, SHORT and INT.
 		 * 
-		 * @param filename
-		 *          path to the xml-file
-		 * @throws IOException
-		 *           thrown if parsing of xml-file failed
-		 * @throws XmlException
-		 *           thrown if parsing of xml-file failed
+		 * @param labelimage	Image from where to init the region set.
 		 */
 		public MTBRegion2DSet(MTBImage labelimage) {
 			this( 0, 0, labelimage.getSizeX()-1, labelimage.getSizeY()-1);
@@ -204,16 +200,13 @@ public class MTBRegion2DSet extends ALDData
 		 * Construct a set of regions from a label image.
 		 * It is assumed that each set of pixels sharing the same label
 		 * constitute one connected region.
-		 * The background of pixels with label equals <code>backgroundLabel</code> is excluded.
+		 * The background of pixels with label equals <code>backgroundLabel</code> 
+		 * is excluded.
 		 * <p>
 		 * Admissible image types are BYTE, SHORT and INT.
 		 * 
-		 * @param filename
-		 *          path to the xml-file
-		 * @throws IOException
-		 *           thrown if parsing of xml-file failed
-		 * @throws XmlException
-		 *           thrown if parsing of xml-file failed
+		 * @param labelimage				Image from where to init the region set.
+		 * @param backgroundLabel		Label of background which is to be ignored.
 		 */
 		public MTBRegion2DSet(MTBImage labelimage, int backgroundLabel) {
 			this( 0, 0, labelimage.getSizeX()-1, labelimage.getSizeY()-1);

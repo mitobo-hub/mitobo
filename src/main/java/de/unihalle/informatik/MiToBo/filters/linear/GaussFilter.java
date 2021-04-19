@@ -30,6 +30,7 @@ import loci.common.StatusEvent;
 import loci.common.StatusListener;
 import loci.common.StatusReporter;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
+import de.unihalle.informatik.Alida.annotations.ALDAOperator.Level;
 import de.unihalle.informatik.Alida.annotations.Parameter;
 import de.unihalle.informatik.Alida.annotations.Parameter.ExpertMode;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
@@ -60,7 +61,8 @@ import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
  *
  */
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL,
-		shortDescription="Convolves an image with a multi-dimensional Gaussian filter.")
+	level = Level.APPLICATION,
+	shortDescription="Convolves an image with a multi-dimensional Gaussian filter.")
 public class GaussFilter extends MTBOperator implements StatusReporter {
 
 	/** vector of installed StatusListeners */

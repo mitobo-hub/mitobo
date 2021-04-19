@@ -99,6 +99,13 @@ public abstract class RootImageSegmentationOperator
    */
 	protected HashMap<Integer, Vector<MTBRootTree>> inputTreelines;
 
+  /**
+	 * Metadata for layers.
+	 * <p>
+	 * The hashmap stores for each layer available metadata objects.
+   */
+	protected HashMap<Integer, RhizoProjectLayerMetadataContainer> layerMetadata;
+
 	/**
    * Resulting enhanced treeline annotations.
    */
@@ -135,7 +142,19 @@ public abstract class RootImageSegmentationOperator
 	 * @return	Working mode of the operator.
 	 */
 	public abstract OpWorkingMode getOperatorWorkingMode();
-
+	
+	/**
+	 * Ask operator if diameter of previous nodes should be transfered to new nodes on update.
+	 * @return True if diameter should be transfered, otherwise false.
+	 */
+	public abstract boolean isToTransferDiameterOnUpdate();
+	
+	/**
+	 * Ask operator if status labels of previous nodes should be transfered to new nodes on update.
+	 * @return True if status labels should be transfered, otherwise false.
+	 */
+	public abstract boolean isToTransferStatusOnUpdate();
+	
 	/**
 	 * Setter for the input image.
 	 * @param imgs - ImagePlus images per layer to be processed.
@@ -150,6 +169,14 @@ public abstract class RootImageSegmentationOperator
 	 */
 	public void setInputTreelines(HashMap<Integer, Vector<MTBRootTree>> tls) {
 		this.inputTreelines = tls;
+	}
+
+	/**
+	 * Provide layer metadata for each layer.
+	 * @param md		Set of metadata objects.
+	 */
+	public void setLayerMetadata(HashMap<Integer, RhizoProjectLayerMetadataContainer> lmd) {
+		this.layerMetadata = lmd;
 	}
 
 	/**
@@ -184,6 +211,23 @@ public abstract class RootImageSegmentationOperator
 	 */
 	public Vector<MTBRootTree> getInputTreelines(int layer) {
 		return this.resultTreelines.get(layer);	
+	}
+
+	/**
+	 * Getter for complete set of metadata objects of all layers.
+	 * @return Set of metadata objects.
+	 */
+	public HashMap<Integer, RhizoProjectLayerMetadataContainer> getAllLayerMetadata() {
+		return this.layerMetadata;
+	}
+
+	/**
+	 * Getter for layer metadata object of specified layer.
+	 * @param layer		Input layer for which metadata is requested.
+	 * @return Corresponding metadata object, or null if non-existent.
+	 */
+	public RhizoProjectLayerMetadataContainer getLayerMetadata(int layer) {
+		return this.layerMetadata.get(layer);
 	}
 
 	/**

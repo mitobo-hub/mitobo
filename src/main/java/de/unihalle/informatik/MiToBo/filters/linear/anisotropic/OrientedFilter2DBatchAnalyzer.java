@@ -24,7 +24,11 @@
 
 package de.unihalle.informatik.MiToBo.filters.linear.anisotropic;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Vector;
+import java.util.stream.Collectors;
 
 import loci.common.StatusEvent;
 import loci.common.StatusListener;
@@ -38,6 +42,7 @@ import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType;
+import de.unihalle.informatik.MiToBo.core.datatypes.wrapper.MTBBooleanData;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageByte;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageDouble;
 import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
@@ -49,6 +54,28 @@ import de.unihalle.informatik.MiToBo.filters.linear.anisotropic.OrientedFilter2D
  * The operator applies a given oriented filter in different orientations 
  * to the given image. Subsequently all filter responses are merged into 
  * a final result using the specified mode for joining.
+ * <p>
+ * The computational effort of this operator depends on its configuration. You
+ * can configure the oriented filter to be applied via standard convolutions or
+ * make use of its FFT mode where ImgLib2 is used to transform image and filter 
+ * mask into the fourier space first. The FFT mode speeds-up calculations to 
+ * approximately half of the processing time of an ordinary convolution, of 
+ * course depending on image and mask sizes. ImgLib2 internally relies on 
+ * parallelization of calculations.
+ * <p>
+ * Besides configuring the oriented filter you can further turn on 
+ * parallelization for this batch processing operator. In parallelization mode
+ * all convolutions are organized in a stream and processed in parallel. 
+ * Compared to sequential processing this yields a speed-up by a factor of 
+ * approximately 5 (for common configurations with filter masks of moderate 
+ * sizes). However, note that running the oriented filters in FFT mode and also 
+ * activating parallelization does not lead to further speed-ups. The FFT mode 
+ * already includes parallelization and these collide to a certain degree with 
+ * the parallel execution of different convolutions.
+ * <p>
+ * The largest performance gain for common configurations is to be expected by 
+ * running the filters in standard convolutional mode and activating 
+ * parallelization in this filter.
  * 
  * @author Birgit Moeller
  */
@@ -109,7 +136,7 @@ public class OrientedFilter2DBatchAnalyzer extends MTBOperator
 		dataIOOrder = 2, direction= Parameter.Direction.IN, 
 		mode=ExpertMode.ADVANCED, 
 	  description = "Minimal orientation to consider (in degrees).")	
-	protected int minAngle = 0;
+	protected double minAngle = 0;
 
 	/**
 	 * Maximal orientation where to end.
@@ -118,7 +145,7 @@ public class OrientedFilter2DBatchAnalyzer extends MTBOperator
 		dataIOOrder = 3, 
 		direction= Parameter.Direction.IN, mode=ExpertMode.ADVANCED, 
 	  description = "Maximal orientation to consider (in degrees).")	
-	protected int maxAngle = 180;
+	protected double maxAngle = 180;
 
 	/**
 	 * Angular sampling step size.
@@ -127,7 +154,7 @@ public class OrientedFilter2DBatchAnalyzer extends MTBOperator
 		direction= Parameter.Direction.IN, mode=ExpertMode.ADVANCED, 
     description = "Angular sampling step size (in degrees).", 
     dataIOOrder = 4)	
-	protected int angleSampling = 15;
+	protected double angleSampling = 15;
 
 	/**
 	 * Mode for joining results from different orientations.
@@ -136,6 +163,18 @@ public class OrientedFilter2DBatchAnalyzer extends MTBOperator
 		direction= Parameter.Direction.IN, mode=ExpertMode.ADVANCED, 
     description = "Mode for joining different orientation responses.")	
 	protected JoinMode jMode = JoinMode.JOIN_MAXIMUM;
+	
+	/**
+	 * Flag to disable/enable parallel execution of convolutional filters.
+	 * <p>
+	 * Attention: Running the oriented filters in FFT mode already makes extensive use
+	 * of parallelization. Thus, there is no additional speed-up to be expected by activating
+	 * parallelization here as well.
+	 */
+	@Parameter( label= "Run in Parallel?", required = true, dataIOOrder = 6,
+		direction= Parameter.Direction.IN, mode=ExpertMode.ADVANCED, 
+		description = "Activate/deactivate parallel execution of filter convolutions.")	
+	protected MTBBooleanData runParallel = new MTBBooleanData(false);
 	
 	/**
 	 * Result image.
@@ -176,32 +215,68 @@ public class OrientedFilter2DBatchAnalyzer extends MTBOperator
 	protected void operate() 
 			throws ALDOperatorException, ALDProcessingDAGException {
 		
-		int angleRange = this.maxAngle - this.minAngle;
-		int steps = angleRange/this.angleSampling;
+		double angleRange = this.maxAngle - this.minAngle;
+		int steps = (int) (angleRange/this.angleSampling);
 		int width = this.inputImg.getSizeX();
 		int height = this.inputImg.getSizeY();
 		
 		// apply all convolutions to image
-		MTBImageDouble[] filteredImages = new MTBImageDouble[steps];
-		this.oFilter.setInputImage(this.inputImg);
-		// if our linear filter class is used, register the status listener
-		if (this.oFilter.getApplicationMode() == ApplicationMode.STANDARD) {
-			for (StatusListener l : this.statusListeners)
-				this.oFilter.addStatusListener(l);
-		}
-		for (int s=0; s<steps; ++s) {
-			double angle = 	this.angleSampling * s + this.minAngle;
-			// if ImgLib2 FFT is applied, send status messages on our own
-			if (this.oFilter.getApplicationMode() == ApplicationMode.FFT) {
-				this.notifyListeners(new StatusEvent(
-					(int)((double)(s+1)/(double)steps*100.0), 100, 
-					operatorID + " analyzing angle of " + angle + " degrees..."));
+		double angle;
+		List<MTBImageDouble> resultImages = new ArrayList<MTBImageDouble>();
+
+		// run in standard sequential mode
+		if (!this.runParallel.getValue()) {
+			
+			this.oFilter.setInputImage(this.inputImg);
+			
+			// if our linear filter class is used, register the status listener
+			if (this.oFilter.getApplicationMode() == ApplicationMode.STANDARD) {
+				for (StatusListener l : this.statusListeners)
+					this.oFilter.addStatusListener(l);
 			}
-			this.oFilter.setAngle(angle);
-			this.oFilter.runOp();
-			filteredImages[s] = this.oFilter.getResultImage();
-		}
 		
+			for (int s=0; s<steps; ++s) {
+				angle = 	this.angleSampling * s + this.minAngle;
+				// if ImgLib2 FFT is applied, send status messages on our own
+				if (this.oFilter.getApplicationMode() == ApplicationMode.FFT) {
+					this.notifyListeners(new StatusEvent(
+							(int)((double)(s+1)/(double)steps*100.0), 100, 
+							operatorID + " analyzing angle of " + angle + " degrees..."));
+				}
+				this.oFilter.setAngle(angle);
+				this.oFilter.runOp();
+				resultImages.add(this.oFilter.getResultImage());
+			}
+		}
+		// run in parallel
+		else {
+			
+			OrientedFilter2D filterOp;
+			LinkedList<OrientedFilter2D> opList = new LinkedList<>();
+
+			// create list with oriented filter operators
+			for (int s=0; s<steps; ++s) {
+				angle = 	this.angleSampling * s + this.minAngle;
+				filterOp = this.oFilter.clone();
+				filterOp.setInputImage(this.inputImg);
+				filterOp.setAngle(angle);
+				opList.add(filterOp);
+			}
+			// apply filters via a parallel stream
+			opList.stream().parallel().forEach(op -> {
+				try {
+					op.runOp(HidingMode.HIDDEN);
+				} catch (ALDOperatorException | ALDProcessingDAGException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			});
+			resultImages = opList.stream()
+					.parallel()
+					.map(OrientedFilter2D::getResultImage)
+					.collect(Collectors.toList());		
+		}
+
 		// figure out maximal response at each pixel position
 		MTBImageDouble filterResponse;
 		this.maxIndexMap = (MTBImageByte)MTBImage.createMTBImage(
@@ -209,10 +284,10 @@ public class OrientedFilter2DBatchAnalyzer extends MTBOperator
 		this.maxIndexMap.setTitle("Map of indices of maximal responses for "
 			+ "<" + this.inputImg.getTitle() + ">");
 		if (this.jMode == JoinMode.JOIN_MAXIMUM) {
-			this.resultImg = (MTBImageDouble)filteredImages[0].duplicate();
+			this.resultImg = (MTBImageDouble)resultImages.get(0).duplicate();
 			this.maxIndexMap.fillBlack();
 			for (int s=1; s<steps; ++s) {
-				filterResponse = filteredImages[s];
+				filterResponse = resultImages.get(s);
 				for (int y=0; y<height; ++y) {
 					for (int x=0; x<width; ++x) {
 						if (  filterResponse.getValueDouble(x, y) 
@@ -228,14 +303,14 @@ public class OrientedFilter2DBatchAnalyzer extends MTBOperator
 		else {
 			// scale all responses to an interval of [0,1]
 			for (int s=0; s<steps; ++s) {
-				filteredImages[s] = filteredImages[s].scaleValues(0, 0, 
-					filteredImages[s].getMinMaxDouble()[0], 
-					filteredImages[s].getMinMaxDouble()[1], 0, 1);				
+				resultImages.set(s, resultImages.get(s).scaleValues(0, 0, 
+						resultImages.get(s).getMinMaxDouble()[0], 
+						resultImages.get(s).getMinMaxDouble()[1], 0, 1));				
 			}
 			// calculate product of all normalized responses
-			this.resultImg = (MTBImageDouble)filteredImages[0].duplicate();
+			this.resultImg = (MTBImageDouble)resultImages.get(0).duplicate();
 			for (int s=1; s<steps; ++s) {
-				filterResponse = filteredImages[s];
+				filterResponse = resultImages.get(s);
 				for (int y=0; y<height; ++y) {
 					for (int x=0; x<width; ++x) {
 						this.resultImg.putValueDouble(x, y, 
@@ -252,7 +327,7 @@ public class OrientedFilter2DBatchAnalyzer extends MTBOperator
 		this.responseStack = (MTBImageDouble)(MTBImage.createMTBImage(
 			width, height, 1, 1, steps, MTBImage.MTBImageType.MTB_DOUBLE));
 		for (int s=0; s<steps; ++s) {
-			this.responseStack.setImagePart(filteredImages[s], 0, 0, 0, 0, s);
+			this.responseStack.setImagePart(resultImages.get(s), 0, 0, 0, 0, s);
 			this.responseStack.setSliceLabel("Angle = " + 
 				(this.angleSampling*s+this.minAngle) + " degrees", 0, 0, s);
 		}
@@ -280,7 +355,7 @@ public class OrientedFilter2DBatchAnalyzer extends MTBOperator
 	 * Specify minimal angle to apply.
 	 * @param min		Value of angle in degrees.
 	 */
-	public void setMinAngle(int min) {
+	public void setMinAngle(double min) {
 		this.minAngle = min;
 	}
 	
@@ -288,7 +363,7 @@ public class OrientedFilter2DBatchAnalyzer extends MTBOperator
 	 * Specify maximal angle to apply.
 	 * @param max		Maximal value of angle in degrees.
 	 */
-	public void setMaxAngle(int max) {
+	public void setMaxAngle(double max) {
 		this.maxAngle = max;
 	}
 	
@@ -296,8 +371,29 @@ public class OrientedFilter2DBatchAnalyzer extends MTBOperator
 	 * Set angular sampling interval.
 	 * @param s		Sampling interval in degrees.
 	 */
-	public void setAngleSampling(int s) {
+	public void setAngleSampling(double s) {
 		this.angleSampling = s;
+	}
+	
+	/**
+	 * Enable/disable parallel execution mode based on streams.
+	 * @param flag	If true, parallel processing is activated.
+	 */
+	public void setRunParallel(boolean flag) {
+		this.runParallel = new MTBBooleanData(flag);
+	}
+
+	/**
+	 * Enable/disable parallel execution mode based on streams.
+	 * <p>
+	 * This function preserves consistency in the processing history 
+	 * by accepting only the wrapper data type instead of a pure 
+	 * boolean value.
+	 *  
+	 * @param flag	If true, parallel processing is activated.
+	 */
+	public void setRunParallel(MTBBooleanData flag) {
+		this.runParallel = flag;
 	}
 	
 	/**

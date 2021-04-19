@@ -26,8 +26,6 @@ package de.unihalle.informatik.MiToBo.filters.linear.anisotropic;
 
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import net.imglib2.Cursor;
 import net.imglib2.algorithm.fft2.FFTConvolution;
 import net.imglib2.img.Img;
@@ -44,6 +42,7 @@ import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageDouble;
+import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageWindow.BoundaryPadding;
 import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
 import de.unihalle.informatik.MiToBo.filters.linear.LinearFilter;
 
@@ -71,7 +70,7 @@ import de.unihalle.informatik.MiToBo.filters.linear.LinearFilter;
  * @author Birgit Moeller
  */
 public abstract class OrientedFilter2D extends MTBOperator 
-	implements StatusReporter {
+	implements Cloneable, StatusReporter {
 
 	/**
 	 * Modes how to apply the filter to an image.
@@ -101,7 +100,7 @@ public abstract class OrientedFilter2D extends MTBOperator
 	@Parameter( label= "Orientation", required = true, dataIOOrder = -9,
 		direction= Parameter.Direction.IN, mode=ExpertMode.STANDARD, 
     description = "Orientation of the filter to apply (in degrees).")	
-	protected Double angle = new Double(0.0);
+	protected Double angle = Double.valueOf(0.0);
 
 	/**
 	 * Mode of application.
@@ -110,7 +109,18 @@ public abstract class OrientedFilter2D extends MTBOperator
 		dataIOOrder = -8, direction= Parameter.Direction.IN, 
 		mode=ExpertMode.ADVANCED, description = "Computation mode.")	
 	protected ApplicationMode mode = ApplicationMode.FFT;	
-	
+
+	/**
+	 * Padding variant in standard convolutional mode.
+	 * <p>
+	 * The default value is set to zero padding for compatibility reasons. Note that
+	 * ImgLib2 in FFT mode uses mirroring.
+	 */
+	@Parameter( label= "Image padding variant", required = true, 
+		dataIOOrder = -7, direction= Parameter.Direction.IN, 
+		mode=ExpertMode.ADVANCED, description = "Image padding variant in standard mode.")	
+	protected BoundaryPadding paddingVariant = BoundaryPadding.PADDING_ZERO;	
+
 	/**
 	 * Filtered image.
 	 */
@@ -141,6 +151,9 @@ public abstract class OrientedFilter2D extends MTBOperator
 		this.statusListeners = new Vector<StatusListener>(1);
 		return this;
 	}
+	
+	@Override
+	public abstract OrientedFilter2D clone();
 
 	/**
 	 * Calculates kernel for the given orientation.
@@ -169,6 +182,7 @@ public abstract class OrientedFilter2D extends MTBOperator
 			lf.setInputImg(this.inputImg);
 			lf.setKernelImg(kernel); 
 			lf.setKernelNormalization(false);
+			lf.setBoundaryPadding(this.paddingVariant);
 			lf.setResultImageType(MTBImageType.MTB_DOUBLE);
 			lf.runOp();
 			this.resultImg = (MTBImageDouble)lf.getResultImg();
@@ -242,9 +256,27 @@ public abstract class OrientedFilter2D extends MTBOperator
 	 * @param _angle	Orientation to use.
 	 */
 	public void setAngle(double _angle) {
-		this.angle = new Double(_angle);
+		this.angle = Double.valueOf(_angle);
+	}
+	
+	/**
+	 * Set application mode for the filter.
+	 * @param m	Mode in which the filter should run.
+	 */
+	public void setApplicationMode(ApplicationMode m) {
+		this.mode = m;
 	}
 
+	/**
+	 * Set padding variant to be used in standard convolutional mode.
+	 * <p>
+	 * Note that in FFT mode always mirroring along the image edges is applied.
+	 * @param bp	Padding variant to be applied.
+	 */
+	public void setPaddingVariant(BoundaryPadding bp) {
+		this.paddingVariant = bp;
+	}
+	
 	/**
 	 * Get application mode.
 	 * @return	Application mode.

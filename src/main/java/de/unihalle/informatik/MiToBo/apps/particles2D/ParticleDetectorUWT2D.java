@@ -116,7 +116,7 @@ import de.unihalle.informatik.MiToBo.visualization.drawing.DrawRegion2DSet.DrawT
  * @author Oliver Gress
  */
 @ALDAOperator(genericExecutionMode=ALDAOperator.ExecutionMode.ALL,
-		level=Level.STANDARD, allowBatchMode=false,
+		level=Level.APPLICATION, allowBatchMode=false,
 		shortDescription="Detects spotlike structures in 2D based on the " 
 				+ "undecimated wavelet transform.")
 @ALDDerivedClass
@@ -179,11 +179,19 @@ public class ParticleDetectorUWT2D extends ParticleDetector
 	private int minRegionSize = 1;
 	
 	/**
+	 * Maximal size of valid regions.
+	 */
+	@Parameter( label= "Maximum region size", required = true, 
+		direction = Parameter.Direction.IN, mode = ExpertMode.STANDARD, 
+		dataIOOrder = 7, description = "Maximum area of detected regions.")
+	private int maxRegionSize = Integer.MAX_VALUE;
+
+	/**
 	 * Flag to activate Poisson-to-Gaussian noise transform.
 	 */
 	@Parameter( label= "Apply Poisson-to-Gaussian noise transform", 
 		required = true, direction = Parameter.Direction.IN, 
-		mode = ExpertMode.ADVANCED, dataIOOrder = 7, 
+		mode = ExpertMode.ADVANCED, dataIOOrder = 8, 
 		description = "Transform input image with poisson noise to " + 
 			"image with Gaussian noise (J.-L. Starck et al).")
 	private boolean poisson2gauss = true;
@@ -193,7 +201,7 @@ public class ParticleDetectorUWT2D extends ParticleDetector
 	 */
 	@Parameter( label= "use initial sigma = 0.5 for the wavelet transform", 
 		required = true, direction = Parameter.Direction.IN, 
-		mode = ExpertMode.ADVANCED, dataIOOrder = 8, 
+		mode = ExpertMode.ADVANCED, dataIOOrder = 9, 
 		description = "use initial sigma = 0.5 for the wavelet transform")
 	private boolean initialSigmaOneHalve = false;
 
@@ -203,7 +211,7 @@ public class ParticleDetectorUWT2D extends ParticleDetector
 	 * Particles in masked regions are ignored if mask is non-null.
 	 */
 	@Parameter( label = "Exclude mask", direction = Direction.IN, 
-		mode = ExpertMode.ADVANCED, dataIOOrder = 9, required = false, 
+		mode = ExpertMode.ADVANCED, dataIOOrder = 10, required = false, 
 		description = "Exclude mask.")
 	private transient MTBImageByte excludeMask = null;
 
@@ -212,7 +220,7 @@ public class ParticleDetectorUWT2D extends ParticleDetector
 	 */
 	@Parameter( label= "Provide (binarized) correlation images", 
 		supplemental = true, direction = Parameter.Direction.IN, 
-		mode = ExpertMode.ADVANCED, dataIOOrder = 10, 
+		mode = ExpertMode.ADVANCED, dataIOOrder = 11, 
 		description = "If enabled additional intermediate results are provided.")
 	private boolean additionalResultsWanted = false;
 
@@ -567,7 +575,7 @@ public class ParticleDetectorUWT2D extends ParticleDetector
 			System.out.print(opIdentifier + "Deleting unwanted border " 
 				+ "detections and detections of insufficient size...");
 		binImg = this.processedRegionsToBinImage(binImg, regionSet, 
-			this.getMinRegionSize());
+			this.getMinRegionSize(), this.getMaxRegionSize());
 		if (this.verbose.booleanValue())
 			System.out.println("done.");
 		
@@ -1492,10 +1500,11 @@ public class ParticleDetectorUWT2D extends ParticleDetector
 	 * @param img		Input image.
 	 * @param regs	Region set.
 	 * @param _minRegionSize	Minimal size of regions considered.
+	 * @param _maxRegionSize	Maximal size of regions considered.
 	 * @return	Binary image with regions.
 	 */
 	protected MTBImage processedRegionsToBinImage(MTBImage img, 
-			MTBRegion2DSet regs, int _minRegionSize) {
+			MTBRegion2DSet regs, int _minRegionSize, int _maxRegionSize) {
 		MTBImage binImg = MTBImage.createMTBImage(img.getSizeX(), 
 													img.getSizeY(), 
 													img.getSizeZ(), 
@@ -1510,7 +1519,9 @@ public class ParticleDetectorUWT2D extends ParticleDetector
 		
 		for (int i = 0; i < regs.size(); i++) {
 			
-			if (regs.get(i).getArea() >= _minRegionSize) {
+			// only process regions with admissible size
+			if (	 regs.get(i).getArea() >= _minRegionSize
+					&& regs.get(i).getArea() <= _maxRegionSize) {
 			
 				pts = regs.get(i).getPoints();	
 				
@@ -1894,19 +1905,41 @@ public class ParticleDetectorUWT2D extends ParticleDetector
 	}
 	
 	/**
-	 * Get the minimum size of detected regions. All regions smaller than this size are rejected
+	 * Get the minimum size of detected regions. 
+	 * All regions smaller than this size are rejected.
+	 * @return Threshold for minimal region size.
 	 */
 	public int getMinRegionSize() {
 		return this.minRegionSize;
 	}
 	
 	/**
-	 * Set the minimum size of detected regions. All regions smaller than this size are rejected
+	 * Set the minimum size of detected regions. 
+	 * All regions smaller than this size are rejected
+	 * @param _minRegionSize	Threshold for minimal region size.
 	 */
 	public void setMinRegionSize(int _minRegionSize) {
 		this.minRegionSize = _minRegionSize;
 	}	
 	
+	/**
+	 * Get the maximum size of detected regions. 
+	 * All regions larger than this size are rejected.
+	 * @return Threshold for maximal region size.
+	 */
+	public int getMaxRegionSize() {
+		return this.maxRegionSize;
+	}
+	
+	/**
+	 * Set the maximum size of detected regions. 
+	 * All regions larger than this size are rejected
+	 * @param _maxRegionSize	Threshold for maximal region size.
+	 */
+	public void setMaxRegionSize(int _maxRegionSize) {
+		this.maxRegionSize = _maxRegionSize;
+	}	
+
 	/**
 	 * Get flag if input image with poisson noise is to be transformed to image with gaussian noise following
 	 * J.-L. Starck et al., Multiresolution Support Applied to Image Filtering and Restoration

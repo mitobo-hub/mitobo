@@ -38,6 +38,7 @@ import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageWindow;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageWindow.BoundaryPadding;
+import de.unihalle.informatik.MiToBo.core.datatypes.wrapper.MTBBooleanData;
 import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
 
 
@@ -69,7 +70,7 @@ public class LinearFilter extends MTBOperator implements StatusReporter {
 
 	@Parameter( label= "Kernel normalization", required = true, direction = Parameter.Direction.IN, 
 			 mode=ExpertMode.ADVANCED, dataIOOrder=4, description = "If true, kernel values are normalized to sum to 1 (Default)")
-	private boolean kernelNormalization = true;
+	private MTBBooleanData kernelNormalization = new MTBBooleanData(true);
 	
 	@Parameter( label= "Boundary padding", required = true, direction = Parameter.Direction.IN, 
 			 mode=ExpertMode.ADVANCED, dataIOOrder=5, description = "Image is padded by the specified method (Default: 0s are assumed outside the image)")
@@ -306,16 +307,28 @@ public class LinearFilter extends MTBOperator implements StatusReporter {
 	  * @return value of kernelNormalization
 	  */
 	public boolean getKernelNormalization() {
-		return this.kernelNormalization;
+		return this.kernelNormalization.getValue();
 	}
 
 	/** Set value of Parameter argument kernelNormalization.
 	  * @param value of kernelNormalization
 	  */
 	public void setKernelNormalization(boolean kernelNormalization) {
-		this.kernelNormalization = kernelNormalization;
+		this.kernelNormalization = new MTBBooleanData(kernelNormalization);
 	}
-	
+
+	/** 
+	 * Enable or disable kernel normalization.
+	 * <p>
+	 * Using this method with MiToBo wrapper datatypes instead of passing over
+	 * directly a boolean preserves consistency in the processing history.
+	 * 
+	 * @param kn	Value for the kernel normalization flag.
+	 */
+	public void setKernelNormalization(MTBBooleanData kn) {
+		this.kernelNormalization = kn;
+	}
+
 	/** Get input image.
 	  */
 	public MTBImage getInputImg() {
