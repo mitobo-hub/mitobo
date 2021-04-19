@@ -22,7 +22,7 @@
  *
  */
 
-package de.unihalle.informatik.MiToBo.apps.cellMorphology;
+package de.unihalle.informatik.MiToBo.apps.cellMorphology.paceQuant.provider;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;

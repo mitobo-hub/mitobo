@@ -22,7 +22,7 @@
  *
  */
 
-package de.unihalle.informatik.MiToBo.apps.cellMorphology;
+package de.unihalle.informatik.MiToBo.apps.cellMorphology.paceQuant;
 
 import java.awt.geom.Point2D;
 import java.io.File;

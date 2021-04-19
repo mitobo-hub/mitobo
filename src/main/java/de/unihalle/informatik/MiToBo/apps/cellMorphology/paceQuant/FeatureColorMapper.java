@@ -22,7 +22,7 @@
  *
  */
 
-package de.unihalle.informatik.MiToBo.apps.cellMorphology;
+package de.unihalle.informatik.MiToBo.apps.cellMorphology.paceQuant;
 
 import java.awt.Color;
 import java.io.File;
@@ -40,6 +40,7 @@ import de.unihalle.informatik.Alida.operator.events.ALDOperatorExecutionProgress
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
 import de.unihalle.informatik.Alida.annotations.ALDAOperator.Level;
 import de.unihalle.informatik.Alida.annotations.Parameter;
+import de.unihalle.informatik.MiToBo.apps.cellMorphology.paceQuant.provider.PaCeQuant_FeatureColorMapperInputData;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.*;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType;
 import de.unihalle.informatik.MiToBo.core.operator.*;

@@ -22,7 +22,7 @@
  *
  */
 
-package de.unihalle.informatik.MiToBo.apps.cellMorphology;
+package de.unihalle.informatik.MiToBo.apps.cellMorphology.paceQuant.provider;
 
 /**
  * Datatype to handle input configurations for {@link PaCeQuant_FeatureColorMapper}.
