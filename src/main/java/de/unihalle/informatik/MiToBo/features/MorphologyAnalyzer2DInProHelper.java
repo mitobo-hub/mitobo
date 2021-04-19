@@ -180,9 +180,10 @@ public class MorphologyAnalyzer2DInProHelper {
 
   	// map curvatures to directions:
   	// 1 = pos. curvature, -1 = neg. curvature, 0 = below threshold
+  	double curvVal;
   	int[] dirs = new int[curvVals.length];
   	for (int j=0; j<curvVals.length; ++j) {
-  		double curvVal = curvVals[j];
+  		curvVal = curvVals[j];
   		if (curvVal > 1) {
   			dirs[j] = 1;
   		}
@@ -195,15 +196,17 @@ public class MorphologyAnalyzer2DInProHelper {
   	}
   	// map pixels with no direction to direction of closed contour
   	// pixel with a clear direction
+  	int curvDir;
+  	boolean foundLeft, foundRight;
   	int[] fixedDirs = new int[curvVals.length];
   	for (int j=0; j<curvVals.length; ++j) {
-  		int curvVal = dirs[j];
-  		if (curvVal != 0) {
-  			fixedDirs[j] = curvVal;
+  		curvDir = dirs[j];
+  		if (curvDir != 0) {
+  			fixedDirs[j] = curvDir;
   			continue;
   		}
   		// search for the next pixel with direction to the left
-  		boolean foundLeft = false;
+  		foundLeft = false;
   		int idLeft = 0;
   		for (int l=j-1; !foundLeft && l!=j ; --l) {
   			if (l < 0)
@@ -214,7 +217,7 @@ public class MorphologyAnalyzer2DInProHelper {
   			}
   		}
   		// search for the next pixel with direction to the right
-  		boolean foundRight = false;
+  		foundRight = false;
   		int idRight = 0;
   		for (int l=j+1; !foundRight && l!=j ; ++l) {
   			if (l >= dirs.length)
@@ -382,13 +385,15 @@ public class MorphologyAnalyzer2DInProHelper {
   	}
 
   	// check if first and last segment belong together
+  	InProContourSegment firstBefore;
+  	InProContourSegment lastBefore;
   	if (   protrusionSegs.size() > 1
   			&& fixedDirs[fixedDirs.length-1] == fixedDirs[0]) {
   		if (fixedDirs[0] > 0) {
   			ipSeg = levelResult.new InProContourSegment();
   			ipSeg.type = SegmentType.PROTRUSION;
-  			InProContourSegment firstBefore = protrusionSegs.getFirst();
-  			InProContourSegment lastBefore = protrusionSegs.getLast();
+  			firstBefore = protrusionSegs.getFirst();
+  			lastBefore = protrusionSegs.getLast();
   			ipSeg.startPosOnContour = lastBefore.startPosOnContour;
   			ipSeg.endPosOnContour = firstBefore.endPosOnContour;
   			pList = new LinkedList<>();
@@ -414,8 +419,8 @@ public class MorphologyAnalyzer2DInProHelper {
   		else {
   			ipSeg = levelResult.new InProContourSegment();
   			ipSeg.type = SegmentType.INDENTATION;
-  			InProContourSegment firstBefore = indentationSegs.getFirst();
-  			InProContourSegment lastBefore = indentationSegs.getLast();
+  			firstBefore = indentationSegs.getFirst();
+  			lastBefore = indentationSegs.getLast();
   			ipSeg.startPosOnContour = lastBefore.startPosOnContour;
   			ipSeg.endPosOnContour = firstBefore.endPosOnContour;
   			pList = new LinkedList<>();
@@ -503,11 +508,12 @@ public class MorphologyAnalyzer2DInProHelper {
 		curveDirections.add(fixedDirs);
 
   	// plot protrusions and indentations as well as equators to info image
+		int px, py;
   	if (this.debugInfoImg != null) {
   		for (InProContourSegment seg: indentationSegs) {
   			for (Point2D.Double p: seg.initialSegmentPoints) {
-  				int px = (int)p.x;
-  				int py = (int)p.y;
+  				px = (int)p.x;
+  				py = (int)p.y;
 					if (   px >= 0 && px < this.debugInfoImg.getSizeX()
 							&& py >= 0 && py < this.debugInfoImg.getSizeY()) {
 						this.debugInfoImg.putValueR(px, py, 0);
@@ -518,8 +524,8 @@ public class MorphologyAnalyzer2DInProHelper {
   		}
   		for (InProContourSegment seg: protrusionSegs) {
   			for (Point2D.Double p: seg.initialSegmentPoints) {
-  				int px = (int)p.x;
-  				int py = (int)p.y;
+  				px = (int)p.x;
+  				py = (int)p.y;
 					if (   px >= 0 && px < this.debugInfoImg.getSizeX()
 							&& py >= 0 && py < this.debugInfoImg.getSizeY()) {
 						this.debugInfoImg.putValueR(px, py, 255);
@@ -529,12 +535,13 @@ public class MorphologyAnalyzer2DInProHelper {
   			}
   		}
 
+  		int sx, sy, ex, ey;
   		int green = ((0 & 0xff)<<16)+((255 & 0xff)<<8) + (0 & 0xff);
   		for (int k=0; k<iListAll.size()-1; ++k) {
-  			int sx = (int)iListAll.get(k).x;
-  			int sy = (int)iListAll.get(k).y;
-  			int ex = (int)iListAll.get(k+1).x;
-  			int ey = (int)iListAll.get(k+1).y;
+  			sx = (int)iListAll.get(k).x;
+  			sy = (int)iListAll.get(k).y;
+  			ex = (int)iListAll.get(k+1).x;
+  			ey = (int)iListAll.get(k+1).y;
 				if (   sx >= 0 && sx < this.debugInfoImg.getSizeX()
 						&& sy >= 0 && sy < this.debugInfoImg.getSizeY()
 						&& ex >= 0 && ex < this.debugInfoImg.getSizeX()
@@ -542,10 +549,10 @@ public class MorphologyAnalyzer2DInProHelper {
 					this.debugInfoImg.drawLine2D(sx, sy, ex, ey, green);
 				}
   		}
-  		int sx = (int)iListAll.get(iListAll.size()-1).x;
-  		int sy = (int)iListAll.get(iListAll.size()-1).y;
-  		int ex = (int)iListAll.get(0).x;
-  		int ey = (int)iListAll.get(0).y;
+  		sx = (int)iListAll.get(iListAll.size()-1).x;
+  		sy = (int)iListAll.get(iListAll.size()-1).y;
+  		ex = (int)iListAll.get(0).x;
+  		ey = (int)iListAll.get(0).y;
 			if (   sx >= 0 && sx < this.debugInfoImg.getSizeX()
 					&& sy >= 0 && sy < this.debugInfoImg.getSizeY()
 					&& ex >= 0 && ex < this.debugInfoImg.getSizeX()
@@ -696,25 +703,33 @@ public class MorphologyAnalyzer2DInProHelper {
 		double protrusionLengthApicalSum = 0;
 		double protrusionLengthBasalSum = 0;
 		
+		InProContourSegment neck;
+		InProContourSegment nextNeck;
+		InProContourSegment enclosedLobe;
+		LinkedList<Point2D.Double> neckPoints;
+		LinkedList<Point2D.Double> nextNeckPoints;
+		Point2D.Double neckMidPoint;		
+		Point2D.Double nextNeckMidPoint;
+		int nmpx, nmpy, nnmpx, nnmpy;
+		
   	for (int n=0; n<indentationSegs.size(); ++n) {
   		
-  		InProContourSegment neck = indentationSegs.get(n);
-			InProContourSegment nextNeck;
+  		neck = indentationSegs.get(n);
   		if (n == indentationSegs.size()-1 )
   			nextNeck = indentationSegs.get(0);
   		else
   			nextNeck = indentationSegs.get(n+1);
-			InProContourSegment enclosedLobe = neck.nextSegment;
-  		LinkedList<Point2D.Double> neckPoints = neck.initialSegmentPoints;
-  		LinkedList<Point2D.Double> nextNeckPoints = nextNeck.initialSegmentPoints;
+			enclosedLobe = neck.nextSegment;
+  		neckPoints = neck.initialSegmentPoints;
+  		nextNeckPoints = nextNeck.initialSegmentPoints;
 
-  		Point2D.Double neckMidPoint = neck.midPoint;
-			int nmpx = (int)neckMidPoint.x;
-			int nmpy = (int)neckMidPoint.y;
+  		neckMidPoint = neck.midPoint;
+			nmpx = (int)neckMidPoint.x;
+			nmpy = (int)neckMidPoint.y;
   		
-  		Point2D.Double nextNeckMidPoint = nextNeck.midPoint;
-			int nnmpx = (int)nextNeckMidPoint.x;
-			int nnmpy = (int)nextNeckMidPoint.y;
+  		nextNeckMidPoint = nextNeck.midPoint;
+			nnmpx = (int)nextNeckMidPoint.x;
+			nnmpy = (int)nextNeckMidPoint.y;
   			    		
   		// draw midpoint to image
 			if (this.debugInfoImg != null) {
@@ -756,18 +771,22 @@ public class MorphologyAnalyzer2DInProHelper {
 			int newStartPointPos = neck.midPointPosOnContour;
 			int newEndPointPos = nextNeck.midPointPosOnContour;
 			
+			int nPixOutside, minOutside, shift, totalShift;		
+			Point2D.Double tps;
+			Point2D.Double tpe;
+			
 			// there are pixels out of the region area, shift points
 			if (outsideCell) {
 				
-				int nPixOutside = 0;
-				int minOutside = pixOutside;
-				int shift, totalShift = Integer.MAX_VALUE;
+				nPixOutside = 0;
+				minOutside = pixOutside;
+				totalShift = Integer.MAX_VALUE;
 
 				// shift start and end point
 				for (int ps = neckPoints.size()/2; ps < neckPoints.size(); ++ps) {
-					Point2D.Double tps = neckPoints.get(ps);
+					tps = neckPoints.get(ps);
 					for (int pe = nextNeckPoints.size()/2; pe >= 0; --pe) {
-						Point2D.Double tpe = nextNeckPoints.get(pe);
+						tpe = nextNeckPoints.get(pe);
 
 						baseline = new MTBLineSegment2D(
 								(int)tps.x, (int)tps.y,	(int)tpe.x, (int)tpe.y);
@@ -905,9 +924,10 @@ public class MorphologyAnalyzer2DInProHelper {
 			}
 			
 			if (this.debugInfoImg != null) {
+				int px, py;
 				for (Point2D.Double p: nonProtrusionAreaPolyPoints) {
-					int px = (int)p.x;
-					int py = (int)p.y;
+					px = (int)p.x;
+					py = (int)p.y;
 					if (   px >= 0 && px < this.debugInfoImg.getSizeX()
 							&& py >= 0 && py < this.debugInfoImg.getSizeY()) {
 						this.debugInfoImg.putValueR(px, py, 0);
@@ -1164,24 +1184,32 @@ public class MorphologyAnalyzer2DInProHelper {
 		double indentationLengthApicalSum = 0;
 		double indentationLengthBasalSum = 0;
 		
+		InProContourSegment lobe;
+		InProContourSegment nextLobe;
+		LinkedList<Point2D.Double> lobePoints;
+		LinkedList<Point2D.Double> nextLobePoints;
+
+		Point2D.Double lobeMidPoint;
+		Point2D.Double nextLobeMidPoint;
+		int nmpx, nmpy, nnmpx, nnmpy;
+
   	for (int n=0; n<protrusionSegs.size(); ++n) {
   		
-  		InProContourSegment lobe = protrusionSegs.get(n);
-  		InProContourSegment nextLobe;
+  		lobe = protrusionSegs.get(n);
   		if (n == protrusionSegs.size()-1 )
   			nextLobe = protrusionSegs.get(0);
   		else
   			nextLobe = protrusionSegs.get(n+1);
-  		LinkedList<Point2D.Double> lobePoints = lobe.initialSegmentPoints;
-  		LinkedList<Point2D.Double> nextLobePoints = nextLobe.initialSegmentPoints;
+  		lobePoints = lobe.initialSegmentPoints;
+  		nextLobePoints = nextLobe.initialSegmentPoints;
 
-  		Point2D.Double lobeMidPoint = lobe.midPoint;
-  		int nmpx = (int)lobeMidPoint.x;
-  		int nmpy = (int)lobeMidPoint.y;
+  		lobeMidPoint = lobe.midPoint;
+  		nmpx = (int)lobeMidPoint.x;
+  		nmpy = (int)lobeMidPoint.y;
 
-  		Point2D.Double nextLobeMidPoint = nextLobe.midPoint;
-  		int nnmpx = (int)nextLobeMidPoint.x;
-  		int nnmpy = (int)nextLobeMidPoint.y;
+  		nextLobeMidPoint = nextLobe.midPoint;
+  		nnmpx = (int)nextLobeMidPoint.x;
+  		nnmpy = (int)nextLobeMidPoint.y;
     			    		
   		// draw midpoint to image
   		if (this.debugInfoImg != null) {
@@ -1223,18 +1251,21 @@ public class MorphologyAnalyzer2DInProHelper {
 			int newStartPointPos = lobe.midPointPosOnContour;
 			int newEndPointPos = nextLobe.midPointPosOnContour;
 			
+			int nPixInside, minInside, shift, totalShift;
+			Point2D.Double tps, tpe;
+			
 			// there are pixels out of the region area, shift points
 			if (insideCell) {
 				
-				int nPixInside = 0;
-				int minInside = pixInside;
-				int shift, totalShift = Integer.MAX_VALUE;
+				nPixInside = 0;
+				minInside = pixInside;
+				totalShift = Integer.MAX_VALUE;
 
 				// shift start and end point
 				for (int ps = lobePoints.size()/2; ps < lobePoints.size(); ++ps) {
-					Point2D.Double tps = lobePoints.get(ps);
+					tps = lobePoints.get(ps);
 					for (int pe = nextLobePoints.size()/2; pe >= 0; --pe) {
-						Point2D.Double tpe = nextLobePoints.get(pe);
+						tpe = nextLobePoints.get(pe);
 
 						baseline = new MTBLineSegment2D(
 								(int)tps.x, (int)tps.y,	(int)tpe.x, (int)tpe.y);

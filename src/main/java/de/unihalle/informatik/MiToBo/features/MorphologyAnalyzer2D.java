@@ -245,7 +245,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 			direction = Parameter.Direction.IN, supplemental = false, 
 			description = "Pixel length, note that we assume square pixels!", 
 			dataIOOrder = 2)
-	private Double deltaXY = new Double(1.0);
+	private Double deltaXY = Double.valueOf(1.0);
 	
 	@Parameter(label = "Unit in x/y", required = false, direction = Parameter.Direction.IN, supplemental = false, description = "unit x/y", dataIOOrder = 4)
 	private String unitXY = "pixel";
@@ -395,7 +395,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 		direction = Parameter.Direction.IN, 
 		supplemental = false, description = "fractional digits", 
 		dataIOOrder = 22, mode=ExpertMode.ADVANCED)
-	private Integer fracDigits = new Integer(3);
+	private Integer fracDigits = Integer.valueOf(3);
 	
 	/**
 	 * Flag to enable drawing curvature information to info image.
@@ -639,6 +639,8 @@ public class MorphologyAnalyzer2D extends MTBOperator
 		this.avgLobeDepths = new Vector<Double>();
 		this.avgNeckDepths = new Vector<Double>();
 
+		double areaPixel, perimeterPixel;
+		
 		this.fireOperatorExecutionProgressEvent(
 				new ALDOperatorExecutionProgressEvent(this, operatorID 
 					+ " calculating global features..."));
@@ -651,20 +653,23 @@ public class MorphologyAnalyzer2D extends MTBOperator
 			this.labels.add(new Integer(cid));
 			
 			// area
+			areaPixel = -1;
 			if(this.calcArea || this.calcSolidity || this.calcConvexHullMeasures)
 			{
-				double a = cr.getArea() * factor;
-				this.areas.add(new Double(a));
+				areaPixel = cr.getArea();
+				this.areas.add(areaPixel * factor);
 			}
 			
 			// perimeter
+			perimeterPixel = -1;
 			if(this.calcPerimeter || this.calcConvexHullMeasures)
 			{
 				double p = 0;
 				
 				try
 				{
-					p = cr.getContour().getContourLength() * this.deltaXY.doubleValue();
+					perimeterPixel = cr.getContour(ContourType.OUTER_CONTOUR).getContourLength(); 
+					p = perimeterPixel * this.deltaXY.doubleValue();
 				} 
 				catch(ALDOperatorException e1)
 				{
@@ -680,37 +685,29 @@ public class MorphologyAnalyzer2D extends MTBOperator
 			// length and width
 			if(this.calcLengthWidth)
 			{
-				double l = cr.getMajorAxisLength() * this.deltaXY.doubleValue();
-				this.lengths.add(l);
-				l = cr.getMinorAxisLength() * this.deltaXY.doubleValue();
-				this.widths.add(l);			
+//				double l = cr.getMajorAxisLength() * this.deltaXY.doubleValue();
+//				this.lengths.add(l);
+//				l = cr.getMinorAxisLength() * this.deltaXY.doubleValue();
+//				this.widths.add(l);			
+				double[] ls = cr.getMajorMinorAxisLengths();
+				this.lengths.add(ls[1] * this.deltaXY.doubleValue());
+				this.widths.add(ls[0] * this.deltaXY.doubleValue());			
 			}
 			
 			// circularity
 			if(this.calcCircularity)
 			{
-				double c = 0;
-				
-				try
-				{
-					c = cr.getCircularity();
-				}
-				catch(ALDOperatorException e1)
-				{
-					e1.printStackTrace();
-				} 
-				catch(ALDProcessingDAGException e1)
-				{
-					e1.printStackTrace();
-				}
-				this.circularities.add(c);
+				if (areaPixel == -1 || perimeterPixel == -1)
+					this.circularities.add(cr.getCircularity());
+				else
+					this.circularities.add(	(4 * Math.PI * areaPixel) 
+							/ (perimeterPixel * perimeterPixel) );
 			}
 			
 			// eccentricity
 			if(this.calcEccentricity)
 			{
-				double e = cr.getEccentricity();
-				this.eccentricities.add(e);
+				this.eccentricities.add(cr.getEccentricity());
 			}
 		}
 		
@@ -1521,7 +1518,10 @@ public class MorphologyAnalyzer2D extends MTBOperator
 
 		// apply Gaussian smoothing to curvatures
 		GaussFilterDouble1D gaussFilter = new GaussFilterDouble1D();
-		gaussFilter.setSigma(this.gaussianSigma);
+		
+		double[] gaussKernel = GaussFilterDouble1D.getGaussKernel(this.gaussianSigma);
+		gaussFilter.setKernel(gaussKernel);
+		
 		int i=0;
 		for (double[] values: curvatureValues) {
 			// make sure that we have enough curvature values 
@@ -1555,7 +1555,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 				this.marginRoughnessValues.add(curvSum/values.length - expectedValue);
 			}
 		}
-		
+
 		if (this.analyzeProtrusionsIndentations) {
 			MorphologyAnalyzer2DInProHelper ipHelper;
 			
