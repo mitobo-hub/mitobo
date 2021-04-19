@@ -42,6 +42,7 @@ import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImage.MTBImageType;
 import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageDouble;
+import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageWindow.BoundaryPadding;
 import de.unihalle.informatik.MiToBo.core.operator.MTBOperator;
 import de.unihalle.informatik.MiToBo.filters.linear.LinearFilter;
 
@@ -108,7 +109,18 @@ public abstract class OrientedFilter2D extends MTBOperator
 		dataIOOrder = -8, direction= Parameter.Direction.IN, 
 		mode=ExpertMode.ADVANCED, description = "Computation mode.")	
 	protected ApplicationMode mode = ApplicationMode.FFT;	
-	
+
+	/**
+	 * Padding variant in standard convolutional mode.
+	 * <p>
+	 * The default value is set to mirroring which is the padding variant 
+	 * used by ImgLib2 in FFT mode.
+	 */
+	@Parameter( label= "Image padding variant", required = true, 
+		dataIOOrder = -7, direction= Parameter.Direction.IN, 
+		mode=ExpertMode.ADVANCED, description = "Image padding variant in standard mode.")	
+	protected BoundaryPadding paddingVariant = BoundaryPadding.PADDING_MIRROR;	
+
 	/**
 	 * Filtered image.
 	 */
@@ -170,6 +182,7 @@ public abstract class OrientedFilter2D extends MTBOperator
 			lf.setInputImg(this.inputImg);
 			lf.setKernelImg(kernel); 
 			lf.setKernelNormalization(false);
+			lf.setBoundaryPadding(this.paddingVariant);
 			lf.setResultImageType(MTBImageType.MTB_DOUBLE);
 			lf.runOp();
 			this.resultImg = (MTBImageDouble)lf.getResultImg();
@@ -254,6 +267,16 @@ public abstract class OrientedFilter2D extends MTBOperator
 		this.mode = m;
 	}
 
+	/**
+	 * Set padding variant to be used in standard convolutional mode.
+	 * <p>
+	 * Note that in FFT mode always mirroring along the image edges is applied.
+	 * @param bp	Padding variant to be applied.
+	 */
+	public void setPaddingVariant(BoundaryPadding bp) {
+		this.paddingVariant = bp;
+	}
+	
 	/**
 	 * Get application mode.
 	 * @return	Application mode.
