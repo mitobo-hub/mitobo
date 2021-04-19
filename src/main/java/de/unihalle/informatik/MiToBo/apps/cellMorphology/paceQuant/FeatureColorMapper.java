@@ -66,6 +66,13 @@ import de.unihalle.informatik.MiToBo.io.images.ImageWriterMTB;
  * too large cells from mapping. The thresholds are always applied to the 
  * cell areas and sizes below the minimal or above the maximal threshold are 
  * ignored.
+ * <p>
+ * All images ending with the given suffix are considered as potential 
+ * candidates to be matched to found table files. The default suffix 
+ * "grayscale-result.tif" has been set to allow for maximmal compatibility 
+ * with PaCeQuant. It is assumed that corresponding table and image files share
+ * the same file prefix, i.e., the operator seeks to find matching files by 
+ * searching for the largest common prefix between table and image file name.  
  *
  * @author moeller
  */
@@ -81,32 +88,48 @@ public class FeatureColorMapper extends MTBOperator {
 	/**
 	 * Input data.
 	 */
-	@Parameter(label = "Input Data", required = true, dataIOOrder = 1, direction = Parameter.Direction.IN, description = "Input experiment directory and column selection, "
-			+ "all sub-folders named 'results' will be considered")
+	@Parameter(label = "Input Data", required = true, dataIOOrder = 1, 
+			direction = Parameter.Direction.IN, 
+			description = "Input experiment directory and column selection, "
+					+ "all sub-folders named 'results' will be considered")
 	private PaCeQuant_FeatureColorMapperInputData inData = null;
+
+	/**
+	 * Input image suffix.
+	 */
+	@Parameter(label = "Input image suffix", required = true, dataIOOrder = 2, 
+			direction = Parameter.Direction.IN, 
+			description = "Only images matching this suffix are processed.")
+	protected String inputImgSuffix = "grayscale-result.tif";
 
 	/**
 	 * Color for minimal value.
 	 */
-	@Parameter(label = "Color of Range Minimum", required = true, dataIOOrder = 7, direction = Parameter.Direction.IN, description = "Color of small values.")
+	@Parameter(label = "Color of Range Minimum", required = true, dataIOOrder = 7, 
+			direction = Parameter.Direction.IN, description = "Color of small values.")
 	protected Color minColor = Color.RED;
 
 	/**
 	 * Color for maximal value.
 	 */
-	@Parameter(label = "Color of Range Maximum", required = true, dataIOOrder = 9, direction = Parameter.Direction.IN, description = "Color of large values.")
+	@Parameter(label = "Color of Range Maximum", required = true, dataIOOrder = 9, 
+			direction = Parameter.Direction.IN, description = "Color of large values.")
 	protected Color maxColor = Color.YELLOW;
 
 	/**
 	 * Minimal size threshold.
 	 */
-	@Parameter(label = "Minimal size threshold", required = true, dataIOOrder = 10, direction = Parameter.Direction.IN, description = "Values smaller than this one are ignored.")
+	@Parameter(label = "Minimal size threshold", required = true, dataIOOrder = 10, 
+			direction = Parameter.Direction.IN, 
+			description = "Values smaller than this one are ignored.")
 	protected double minSizeValue = Double.NEGATIVE_INFINITY;
 
 	/**
 	 * Maximal value threshold.
 	 */
-	@Parameter(label = "Maximal size threshold", required = true, dataIOOrder = 11, direction = Parameter.Direction.IN, description = "Values larger than this one are ignored.")
+	@Parameter(label = "Maximal size threshold", required = true, dataIOOrder = 11, 
+			direction = Parameter.Direction.IN, 
+			description = "Values larger than this one are ignored.")
 	protected double maxSizeValue = Double.POSITIVE_INFINITY;
 
 	/**
@@ -168,43 +191,46 @@ public class FeatureColorMapper extends MTBOperator {
   		Vector<String> tabFiles = tableDirTree.getFileList();
 
 	  	// search for relevant table files
+  		int minLength, maxLength;
+  		DirectoryTree localDir;
+  		String dir, shortImg, shortTab, imgFile;
   		HashMap<String, String> tabsToImgs = new HashMap<>();
   		for (String tab : tabFiles) {
-			if (		tab.endsWith("table.txt")
-					&& !tab.endsWith("lobe-table.txt")) {
-//					&& 	tab.contains(File.separator + "results" + File.separator)) {
-  				String dir = ALDFilePathManipulator.getPath(tab);
-  				DirectoryTree localDir = new DirectoryTree(dir, false);
+  			if (		tab.endsWith("table.txt")
+  					&& !tab.endsWith("lobe-table.txt")) {
+  				dir = ALDFilePathManipulator.getPath(tab);
+  				localDir = new DirectoryTree(dir, false);
 
-					String shortTab = ALDFilePathManipulator.getFileName(tab);
-					String imgFile = null;
-					int maxLength = 0;
+  				shortTab = ALDFilePathManipulator.getFileName(tab);
+  				imgFile = null;
+  				maxLength = 0;
   				for (String img : localDir.getFileList()) {
-						// don't consider other than image files
-						if (!img.endsWith(".tif") || !img.contains("grayscale-result"))
-							continue;
-  					String shortImg = ALDFilePathManipulator.getFileName(img);
-	  				int minLength = Math.min(shortTab.length(), shortTab.length());
+  					// don't consider other than image files
+//  					if (!img.endsWith(".tif") || !img.contains("grayscale-result"))
+  					if (!img.endsWith(this.inputImgSuffix))
+  						continue;
+  					shortImg = ALDFilePathManipulator.getFileName(img);
+  					minLength = Math.min(shortTab.length(), shortTab.length());
   					for (int i = 0; i < minLength; i++) {
   						if (shortImg.charAt(i) != shortTab.charAt(i)) {
   							if (i+1 > maxLength) {
   								maxLength = i+1;
   								imgFile = img;
-	  						}
+  							}
   							break;
   						}
   					}
-					}
-					if (imgFile == null)
-						this.fireOperatorExecutionProgressEvent(
-							new ALDOperatorExecutionProgressEvent(this, classID 
-								+ " -> [WARNING] no match found for " + tab + "!!!"));
-					else {
-						tabsToImgs.put(tab, imgFile);
-		  	  	this.fireOperatorExecutionProgressEvent(
-  	  				new ALDOperatorExecutionProgressEvent(this, classID 
-								+ " -> found match: " + tab + " <-> " + imgFile));
-					}
+  				}
+  				if (imgFile == null)
+  					this.fireOperatorExecutionProgressEvent(
+  							new ALDOperatorExecutionProgressEvent(this, classID 
+  									+ " -> [WARNING] no match found for " + tab + "!!!"));
+  				else {
+  					tabsToImgs.put(tab, imgFile);
+  					this.fireOperatorExecutionProgressEvent(
+  							new ALDOperatorExecutionProgressEvent(this, classID 
+  									+ " -> found match: " + tab + " <-> " + imgFile));
+  				}
   			}
   		}
 
@@ -270,7 +296,8 @@ public class FeatureColorMapper extends MTBOperator {
   				for (int i=0;i<tm.getRowCount();++i) {
 
 						// check size thresholds
-						cellArea = Double.valueOf((String)tm.getValueAt(i, columnIDArea)).doubleValue();
+						cellArea = Double.valueOf(
+								(String)tm.getValueAt(i, columnIDArea)).doubleValue();
 						if (cellArea > this.maxSizeValue || cellArea < this.minSizeValue)
 							continue; 
 
@@ -281,9 +308,6 @@ public class FeatureColorMapper extends MTBOperator {
 
 							if (val > vMaxs[c]) vMaxs[c] = val;
 							if (val < vMins[c]) vMins[c] = val;
-
-  						// if (val > vmax) vmax = val;
-							// if (val < vmin) vmin = val;
 						}
   				}
   			} 
@@ -291,12 +315,6 @@ public class FeatureColorMapper extends MTBOperator {
 					ranges[c] = vMaxs[c] - vMins[c];
 				}
 
-				// double range = vmax - vmin;
-			
-	    	// this.fireOperatorExecutionProgressEvent(
-   			// 	new ALDOperatorExecutionProgressEvent(this, classID 
-				// 		+ "    => vmin: " + vmin + " / vmax: " + vmax));
-			
 		   	this.fireOperatorExecutionProgressEvent(
     			new ALDOperatorExecutionProgressEvent(this, classID 
     				+ " generating color maps..."));
@@ -304,13 +322,22 @@ public class FeatureColorMapper extends MTBOperator {
 				// process all images, i.e. pre-compute colors and then generate result
 				ImageReaderMTB imRead = new ImageReaderMTB();
 				ImageWriterMTB imWrite = new ImageWriterMTB();
+				
+				File subfolder;
+				HashMap<Integer, Color> colors;
+				HashMap<Integer, Double> featureVals;
+				Integer id, valueI;
 				MTBImage img;
 				MTBImageRGB result;
-				String subfolderName;
-				File subfolder;
-  			for (String tab: tableNames) {
+				String colorString, fileName, outfile, subfolderName;
 
-					String imgFile = tabsToImgs.get(tab);
+				int height, width, depth, times, channels;
+  			int newR, newG, newB, value;
+				double featVal, ratio;
+
+				for (String tab: tableNames) {
+
+					imgFile = tabsToImgs.get(tab);
 
 					this.fireOperatorExecutionProgressEvent(
 						new ALDOperatorExecutionProgressEvent(this, classID 
@@ -333,39 +360,36 @@ public class FeatureColorMapper extends MTBOperator {
 						if (!subfolder.exists()) {
 							if (!subfolder.mkdir()) 
 								throw new ALDOperatorException( 
-									OperatorExceptionType.OPERATE_FAILED, "[PaCeQuant_FeatureColorMapper] "  
-										+ " could not init result folder for color maps...!"); 
+									OperatorExceptionType.OPERATE_FAILED, 
+										"[PaCeQuant_FeatureColorMapper] "  
+											+ " could not init result folder for color maps...!"); 
 						}
 
 		  			// get data of selected column
-  					HashMap<Integer, Double> featureVals = new HashMap<>();
+  					featureVals = new HashMap<>();
   					for (int i=0;i<tm.getRowCount();++i) {
   						featureVals.put(Integer.valueOf((String)tm.getValueAt(i, 0)),
   							Double.valueOf((String)tm.getValueAt(i, columnID)));
   					}
 
-		  			int height = img.getSizeY();
-  					int width = img.getSizeX();
-  					int depth = img.getSizeZ();
-	  				int times = img.getSizeT();
-  					int channels = img.getSizeC();
+		  			height = img.getSizeY();
+  					width = img.getSizeX();
+  					depth = img.getSizeZ();
+	  				times = img.getSizeT();
+  					channels = img.getSizeC();
 			
   					// allocate result image
-  					result = (MTBImageRGB)img.duplicate().convertType(MTBImageType.MTB_RGB, true);
+  					result = (MTBImageRGB)img.duplicate().convertType(
+  							MTBImageType.MTB_RGB, true);
 						result.fillBlack();
 
-		  			int id, valueI, newR, newG, newB;
-  					double featVal, ratio;
-  					HashMap<Integer, Color> colors = new HashMap<>();
+  					colors = new HashMap<>();
   					for (int i=0;i<tm.getRowCount();++i) {
   						// object ID
-	  					id = Integer.valueOf((String)tm.getValueAt(i, 0)).intValue();
-							cellArea = Double.valueOf((String)tm.getValueAt(i, columnIDArea)).doubleValue();
+	  					id = Integer.valueOf((String)tm.getValueAt(i, 0));
+							cellArea = Double.valueOf(
+									(String)tm.getValueAt(i, columnIDArea)).doubleValue();
   				
-  						// hack to compensate for wrong IDs due to little endian bug!
-  						if (id >= 256)
-  							id = id/256;
-
 		  				// feature value
   						featVal = featureVals.get(id).doubleValue();
 
@@ -388,19 +412,20 @@ public class FeatureColorMapper extends MTBOperator {
   							for (int z = 0; z < depth; ++z) {
   								for (int y = 0; y < height; ++y) {
   									for (int x = 0; x < width; ++x) {
-  										valueI = img.getValueInt(x, y, z, t, c); 
-  										// hack to compensate for wrong IDs due to little endian bug!
-	  			  					if (valueI >= 256)
-  				  						valueI = valueI/256;
+  										value = img.getValueInt(x, y, z, t, c);
+  										valueI = new Integer(value);
   										if (!colors.containsKey(valueI)) {
-  											result.putValueR(x, y, z, t, c, valueI); 
-  											result.putValueG(x, y, z, t, c, valueI); 
-  											result.putValueB(x, y, z, t, c, valueI);
+  											result.putValueR(x, y, z, t, c, value); 
+  											result.putValueG(x, y, z, t, c, value); 
+  											result.putValueB(x, y, z, t, c, value);
   										}
 	  									else {
-  											result.putValueR(x, y, z, t, c, colors.get(valueI).getRed()); 
-  											result.putValueG(x, y, z, t, c, colors.get(valueI).getGreen()); 
-  											result.putValueB(x, y, z, t, c, colors.get(valueI).getBlue());
+  											result.putValueR(x, y, z, t, c, 
+  													colors.get(valueI).getRed()); 
+  											result.putValueG(x, y, z, t, c, 
+  													colors.get(valueI).getGreen()); 
+  											result.putValueB(x, y, z, t, c, 
+  													colors.get(valueI).getBlue());
   										}
   									}
   								}
@@ -408,16 +433,16 @@ public class FeatureColorMapper extends MTBOperator {
   						}
   					}
   					// add title to image
-	  				String colorString = "[" + minR + "," + minG + "," + minB + "] -> " 
+	  				colorString = "[" + minR + "," + minG + "," + minB + "] -> " 
   						+ "[" + maxR + "," + maxG + "," + maxB + "]";
   					result.setTitle(tm.getColumnName(columnID) + " - FeatureMap " 
   						+ colorString	+ " of <"	+ img.getTitle() + ">");
   			
 		  			// save file
-						String fileName = ALDFilePathManipulator.getFileName(imgFile);
+						fileName = ALDFilePathManipulator.getFileName(imgFile);
 						fileName = fileName + "-colorMap-" + tm.getColumnName(columnID) + ".tif";
-						String outfile = ALDFilePathManipulator.getPath(imgFile) + File.separator + subfolderName
-						  + File.separator + fileName;
+						outfile = ALDFilePathManipulator.getPath(imgFile) + File.separator 
+								+ subfolderName + File.separator + fileName;
 
 						this.fireOperatorExecutionProgressEvent(
 							new ALDOperatorExecutionProgressEvent(this, classID 
