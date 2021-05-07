@@ -287,7 +287,7 @@ public class MorphologyAnalyzer2DInProHelper {
   					ipSeg.midPointPosOnContour = startPos + ipSeg.segLength/2;
   					if (ipSeg.midPointPosOnContour >= c.getPointNum())
   						ipSeg.midPointPosOnContour = 
-  						c.getPointNum() - ipSeg.midPointPosOnContour;
+  							ipSeg.midPointPosOnContour - c.getPointNum();
   					protrusionSegs.add(ipSeg);
   					// inflection points are defined to be the starting points
   					// of new segments immediately after the sign changed,
@@ -313,7 +313,7 @@ public class MorphologyAnalyzer2DInProHelper {
   					ipSeg.midPointPosOnContour = startPos + ipSeg.segLength/2;
   					if (ipSeg.midPointPosOnContour >= c.getPointNum())
   						ipSeg.midPointPosOnContour = 
-  						c.getPointNum() - ipSeg.midPointPosOnContour;
+  							ipSeg.midPointPosOnContour - c.getPointNum();
   					indentationSegs.add(ipSeg);
   					// inflection points are defined to be the starting points
   					// of new segments immediately after the sign changed,
@@ -350,7 +350,7 @@ public class MorphologyAnalyzer2DInProHelper {
   			ipSeg.midPointPosOnContour = startPos + ipSeg.segLength/2;
   			if (ipSeg.midPointPosOnContour >= c.getPointNum())
   				ipSeg.midPointPosOnContour = 
-  				c.getPointNum() - ipSeg.midPointPosOnContour;
+  					ipSeg.midPointPosOnContour - c.getPointNum();
   			protrusionSegs.add(ipSeg);
   			// inflection points are defined to be the starting points
   			// of new segments immediately after the sign changed,
@@ -373,7 +373,7 @@ public class MorphologyAnalyzer2DInProHelper {
   			ipSeg.midPointPosOnContour = startPos + ipSeg.segLength/2;
   			if (ipSeg.midPointPosOnContour >= c.getPointNum())
   				ipSeg.midPointPosOnContour = 
-  				c.getPointNum() - ipSeg.midPointPosOnContour;
+  					ipSeg.midPointPosOnContour - c.getPointNum();
   			indentationSegs.add(ipSeg);
   			// inflection points are defined to be the starting points
   			// of new segments immediately after the sign changed,
@@ -405,7 +405,7 @@ public class MorphologyAnalyzer2DInProHelper {
   			ipSeg.midPointPosOnContour = startPos + ipSeg.segLength/2;
   			if (ipSeg.midPointPosOnContour >= c.getPointNum())
   				ipSeg.midPointPosOnContour = 
-  				c.getPointNum() - ipSeg.midPointPosOnContour;
+  					ipSeg.midPointPosOnContour - c.getPointNum();
   			// update segment links
   			ipSeg.prevSegment = lastBefore.prevSegment;
   			lastBefore.prevSegment.nextSegment = ipSeg;
@@ -432,7 +432,7 @@ public class MorphologyAnalyzer2DInProHelper {
   			ipSeg.midPointPosOnContour = startPos + ipSeg.segLength/2;
   			if (ipSeg.midPointPosOnContour >= c.getPointNum())
   				ipSeg.midPointPosOnContour = 
-  				c.getPointNum() - ipSeg.midPointPosOnContour;
+ 						ipSeg.midPointPosOnContour - c.getPointNum();
   			// update segment links
   			ipSeg.prevSegment = lastBefore.prevSegment;
   			lastBefore.prevSegment.nextSegment = ipSeg;

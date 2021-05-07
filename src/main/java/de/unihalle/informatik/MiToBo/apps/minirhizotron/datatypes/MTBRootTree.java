@@ -29,7 +29,7 @@ import de.unihalle.informatik.MiToBo.core.datatypes.MTBPoint2DSet;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBTree;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBTreeNode;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBTreeNodeData;
-import ij.IJ;
+import de.unihalle.informatik.MiToBo.core.datatypes.images.MTBImageRGB;
 
 /**
  * Tree datatype to represent plant roots.
@@ -118,4 +118,61 @@ public class MTBRootTree extends MTBTree implements Cloneable {
 		MTBRootTree newTree = new MTBRootTree(newRoot);
 		return newTree;
 	}
+	
+	/**
+	 * Draws the root tree to the given image.
+	 * <p>
+	 * The colors of the segments are chosen according to the status:
+	 * <ul>
+	 * <li> LIVING = green
+	 * <li> DEAD = red
+	 * <li> DECAYED = orange
+	 * <li> GAP = yellow
+	 * <li> CONNECTOR = magenta
+	 * <li> VIRTUAL = gray
+	 * <li> VIRTUAL_RSML = lightgreen
+	 * <li> UNDEFINED = blue
+	 * <li> all other = white
+	 * </ul>
+	 * Currently diameter information is ignored and just the centerlines are plotted.
+	 * 
+	 * @param img	Image to which the tree is to be drawn.
+	 */
+	public void drawToImage(MTBImageRGB img) {
+		this.drawChilds(img, this.root);
+	}
+	
+	/**
+	 * Recursively draws all subtrees outgoing from the given node to the image. 
+	 * @param img		Target image.
+	 * @param node	Source node.
+	 */
+	private void drawChilds(MTBImageRGB img, MTBTreeNode node) {
+		MTBRootTreeNodeData nd = (MTBRootTreeNodeData)node.getData();
+		MTBRootTreeNodeData cnd;
+		for (MTBTreeNode c: node.getChilds()) {
+			cnd = (MTBRootTreeNodeData)c.getData();
+			int segColor = 0x00FFFFFF;
+			if (cnd.status == 0) // LIVING
+				segColor = 0x0000FF00;
+			else if (cnd.status == 1) // DEAD
+				segColor = 0x00FF0000;
+			else if (cnd.status == 2) // DECAYED
+				segColor = 0x00FFA500;			
+			else if (cnd.status == 3) // GAP
+				segColor = 0x00FFFF00;
+			else if (cnd.status == -3) // CONNECTOR
+				segColor = 0x00CD93CC;
+			else if (cnd.status == -2) // VIRTUAL
+				segColor = 0x00939393;
+			else if (cnd.status == -4) // VIRTUAL_RSML
+				segColor = 0x0093cd93;
+			else if (cnd.status == -1) // UNDEFINED
+				segColor = 0x000000FF;			
+			img.drawLine2D((int)nd.xPos, (int)nd.yPos, (int)cnd.xPos, (int)cnd.yPos, segColor);
+			this.drawChilds(img, c);
+		}
+	}
+	
+	
 }

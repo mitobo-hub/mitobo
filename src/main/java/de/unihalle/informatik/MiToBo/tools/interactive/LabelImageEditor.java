@@ -44,11 +44,13 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
@@ -246,6 +248,16 @@ public class LabelImageEditor extends MTBOperator
 	 */
 	private JTextField optionsDrawLineWidth;
 	
+	/**
+	 * Button to select black pen color in drawing.
+	 */
+	private JRadioButton buttonBlack; 
+
+	/**
+	 * Button to select white pen color in drawing.
+	 */
+	private JRadioButton buttonWhite; 
+
 	/**
 	 * Default constructor.
 	 * @throws ALDOperatorException Thrown if construction fails.
@@ -585,6 +597,11 @@ public class LabelImageEditor extends MTBOperator
 				// if there is any problem, just ignore...
 			}
 			this.activeProcessor.setLineWidth(lineWidth);
+			// set pen color for drawing
+			if (this.buttonBlack.isSelected())
+				this.activeProcessor.setColor(Color.BLACK);
+			else
+				this.activeProcessor.setColor(Color.WHITE);
 			this.activeProcessor.drawLine(
 					(int)this.lastPathPoint.x, (int)this.lastPathPoint.y, mx, my);
 			this.lastPathPoint.x = mx;
@@ -932,7 +949,7 @@ public class LabelImageEditor extends MTBOperator
 		this.optionsFrame.setLayout(new BorderLayout());
 		
 		JPanel paramPanel = new JPanel();
-		paramPanel.setLayout(new GridLayout(2,2));
+		paramPanel.setLayout(new GridLayout(3,2));
 
 		// border max width for configuring neighborhood size in fix borders
 		JPanel labelPanel = new JPanel();
@@ -950,6 +967,22 @@ public class LabelImageEditor extends MTBOperator
 		paramPanel.add(labelPanel);
 		this.optionsDrawLineWidth = new JTextField(String.valueOf(defaultDrawLineWidth));
 		paramPanel.add(this.optionsDrawLineWidth);
+		// line color
+		labelPanel = new JPanel();
+		label = new JLabel("Pen color:");
+		label.setToolTipText("Color for drawing (black for boundaries, white for cell outlines).");
+		labelPanel.add(label);
+		paramPanel.add(labelPanel);
+		JPanel optionsDrawColor = new JPanel();
+		ButtonGroup colors = new ButtonGroup();
+		this.buttonBlack = new JRadioButton("black");
+		this.buttonBlack.setSelected(true);
+		colors.add(this.buttonBlack);
+		optionsDrawColor.add(this.buttonBlack);
+		this.buttonWhite = new JRadioButton("white");
+		colors.add(this.buttonWhite);
+		optionsDrawColor.add(this.buttonWhite);
+		paramPanel.add(optionsDrawColor);
 		
 		this.optionsFrame.add(paramPanel, BorderLayout.CENTER);
 		
@@ -961,7 +994,7 @@ public class LabelImageEditor extends MTBOperator
 		buttons.add(optionsOk);
 		this.optionsFrame.add(buttons, BorderLayout.SOUTH);
 		
-		this.optionsFrame.setSize(350, 120);
+		this.optionsFrame.setSize(350, 150);
 	}
 	
 	/**

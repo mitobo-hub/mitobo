@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">  
+
+  <!-- status label mapping as integer string pair -->
+  <xs:complexType name="StatusLabelMapping">
+          <xs:attribute name="int" type="xs:int" />
+          <xs:attribute name="value" type="xs:string" />
+  </xs:complexType>
+
+  <!-- gravitational direction -->
+  <xs:complexType name="GravitationalDirection">
+          <xs:attribute name="value" type="xs:double" />
+  </xs:complexType>
+
+  <!-- integer -->
+  <xs:complexType name="parent-node">
+    <xs:attribute name="value"  type="xs:int" />
+  </xs:complexType>
+</xs:schema>

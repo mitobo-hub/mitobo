@@ -1,0 +1,20 @@
+The XML schema for RSML originates from
+
+   https://github.com/RootSystemML/RSMLValidator
+
+It is released under the Apache License, Version 2.0,
+for details on the license take a look in the included
+LICENSE file or visit
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+More detailed information on RSML can be found here:
+
+   https://rootsystemml.github.io/
+
+You can also take a look at the corresponding publication:
+
+G. Lobet, M.P. Pound, J. Diener, C. Pradal, X. Draye, C. Godin, M. Javaux,
+D. Leitner, F. Meunier, P. Nacry, T.P. Pridmore, A. Schnepf,
+"Root System Markup Language: toward a unified root architecture description language",
+Plant Physiology Jan 2015, pp.114.253625; DOI: 10.1104/pp.114.253625
