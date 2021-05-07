@@ -5,16 +5,30 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 
 ## [Unreleased]
 ### Added
-- Contour2DConcavityCalculator: new option to enable/disable normalization of concavity values to [0,1]
-- LabelImageEditor: new option to switch between black and white pen color in drawing
-- MorphologyAnalyzer2D: added option to enable/disable normalization of concavity values to [0,1]
-		Attention! This change has an impact on concavity features extracted by PaCeQuant. Even if normalization is disabled (as it has been before and which is still the default), average values and standard deviations are now calculated with a slightly higher accuracy, thus, the values of the concavity features computed based on these changes might slightly be different from those extracted with earlier versions of PaCeQuant.
-- MTBRSMLProjectImporter: new operator to import RSML projects into MiToBo
-- OrientedFilter2D: new option to configure padding mode in applying filters via convolution
 ### Changed
 ### Deprecated
 ### Removed
 ### Fixed
+
+## [2.2] - 2021-05-07
+Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
+- Released MiToBo 2.2
+### Added
+- Contour2DConcavityCalculator: new option to enable/disable normalization of concavity values to [0,1]
+- FeatureColorMapper: new option to configure image name suffix
+- LabelImageEditor: new option to switch between black and white pen color in drawing
+- MorphologyAnalyzer2D: added option to enable/disable normalization of concavity values to [0,1]
+	- **Attention!** This change has an impact on concavity features extracted by PaCeQuant. Even if normalization is disabled (as it has been before and which is still the default), average values and standard deviations are now calculated with a slightly higher accuracy, thus, the values of the concavity features computed based on these changes might slightly be different from those extracted with earlier versions of PaCeQuant.
+- MTBRSMLProjectImporter: new operator to import RSML projects into MiToBo
+- OrientedFilter2D: new option to configure padding mode in applying filters via convolution
+### Changed
+- MorphologyAnalyzer2D: some algorithmic changes to speed-up calculations
+- PaCeQuant:
+	- updated package structure
+	- established internal infrastructure to support different segmentation algorithms
+- Region2DSkeletonAnalyzer: some algorithmic changes to speed-up calculations
+### Fixed
+- PaCeQuant: fixed error in index calculation for segment mid-points
 
 ## [2.1.2] - 2021-04-09
 Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
