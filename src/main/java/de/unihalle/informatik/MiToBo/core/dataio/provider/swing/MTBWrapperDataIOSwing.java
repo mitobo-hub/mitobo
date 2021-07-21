@@ -28,16 +28,19 @@ import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.LinkedList;
 
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
 
 import de.unihalle.informatik.Alida.annotations.ALDDataIOProvider;
 import de.unihalle.informatik.Alida.dataio.provider.ALDDataIOSwingInitialGUIValueDefaultHandler;
 import de.unihalle.informatik.Alida.dataio.provider.swing.components.ALDSwingComponent;
+import de.unihalle.informatik.Alida.dataio.provider.swing.components.ALDSwingComponentCheckBox;
 import de.unihalle.informatik.Alida.dataio.provider.swing.components.ALDSwingComponentTextField;
 import de.unihalle.informatik.Alida.exceptions.ALDDataIOProviderException;
 import de.unihalle.informatik.Alida.exceptions.ALDDataIOProviderException.ALDDataIOProviderExceptionType;
 import de.unihalle.informatik.Alida.operator.ALDParameterDescriptor;
+import de.unihalle.informatik.MiToBo.core.datatypes.wrapper.MTBBooleanData;
 import de.unihalle.informatik.MiToBo.core.datatypes.wrapper.MTBDoubleData;
 import de.unihalle.informatik.MiToBo.core.datatypes.wrapper.MTBIntegerData;
 import de.unihalle.informatik.MiToBo.core.datatypes.wrapper.MTBStringData;
@@ -59,6 +62,7 @@ public class MTBWrapperDataIOSwing
 	@Override
 	public Collection<Class<?>> providedClasses() {
 		LinkedList<Class<?>> classes = new LinkedList<Class<?>>();
+		classes.add( MTBBooleanData.class);
 		classes.add( MTBDoubleData.class);
 		classes.add( MTBIntegerData.class);
 		classes.add( MTBStringData.class);
@@ -66,8 +70,18 @@ public class MTBWrapperDataIOSwing
 	}
 
 	@Override
-	public ALDSwingComponentTextField createGUIElement(Field field, 
+	public ALDSwingComponent createGUIElement(Field field, 
 			Class<?> cl, Object obj, ALDParameterDescriptor descr) {
+
+		// handle boolean wrapper datatype
+		if (cl.equals(MTBBooleanData.class)) {
+			ALDSwingComponentCheckBox checkbox = new ALDSwingComponentCheckBox(descr);
+			if ( obj != null )
+				checkbox.getJComponent().setSelected(((MTBBooleanData)obj).getValue());
+			return checkbox;
+		}
+		
+		// handle all the rest
 		ALDSwingComponentTextField textfield = 
 				new ALDSwingComponentTextField(cl, descr, 25);
 		if ( obj != null ) {
@@ -81,7 +95,6 @@ public class MTBWrapperDataIOSwing
 				textfield.setText(((MTBStringData)obj).getString());
 			else 
 				textfield.setText( obj.toString());
-
 		}
 		return textfield;
 	}
@@ -92,6 +105,15 @@ public class MTBWrapperDataIOSwing
 		throws ALDDataIOProviderException {
 		if (value == null)
 			return;
+		
+		// handle boolean wrapper datatype
+		if (cl.equals(MTBBooleanData.class)) {
+			ALDSwingComponentCheckBox checkbox = (ALDSwingComponentCheckBox)guiElement;
+			checkbox.getJComponent().setSelected(((MTBBooleanData)value).getValue());
+			return;
+		}
+
+		// handle all the rest
 		ALDSwingComponentTextField textfield = 
 				(ALDSwingComponentTextField)guiElement;
 		if (cl.equals(String.class))
@@ -111,6 +133,14 @@ public class MTBWrapperDataIOSwing
 	@Override
 	public Object readData(Field field, Class<?> cl,
 			ALDSwingComponent guiElem) {
+		
+		// handle boolean wrapper datatype
+		if (cl.equals(MTBBooleanData.class)) {
+			ALDSwingComponentCheckBox checkbox = (ALDSwingComponentCheckBox)guiElem;			
+			return new MTBBooleanData(checkbox.getJComponent().isSelected());
+		}
+		
+		// handle all the rest
 		String text = ((ALDSwingComponentTextField)guiElem).getText();
 
 		if (cl.equals(String.class)) 
@@ -132,8 +162,17 @@ public class MTBWrapperDataIOSwing
 
 	@Override
 	public JComponent writeData(Object obj, ALDParameterDescriptor descr) {
-		JTextField textfield = new JTextField(25);
 
+		// handle boolean wrapper datatype
+		if (obj.equals(MTBBooleanData.class)) {
+			JCheckBox checkbox = new JCheckBox();
+			checkbox.setSelected( ((MTBBooleanData)obj).getValue() );
+			checkbox.setEnabled( false);
+			return checkbox;
+		}
+		
+		// handle all the rest
+		JTextField textfield = new JTextField(25);
 		if (obj.getClass().equals(MTBDoubleData.class))
 			textfield.setText( ((MTBDoubleData)obj).getValue().toString());
 		else
