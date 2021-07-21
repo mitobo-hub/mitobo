@@ -210,7 +210,7 @@ public class FeatureColorMapper extends MTBOperator {
   					if (!img.endsWith(this.inputImgSuffix))
   						continue;
   					shortImg = ALDFilePathManipulator.getFileName(img);
-  					minLength = Math.min(shortTab.length(), shortTab.length());
+  					minLength = Math.min(shortTab.length(), shortImg.length());
   					for (int i = 0; i < minLength; i++) {
   						if (shortImg.charAt(i) != shortTab.charAt(i)) {
   							if (i+1 > maxLength) {
