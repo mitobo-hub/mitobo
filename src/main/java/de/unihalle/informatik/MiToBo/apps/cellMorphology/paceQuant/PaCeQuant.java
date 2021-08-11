@@ -3656,9 +3656,8 @@ public class PaCeQuant extends MTBOperator {
 		}
 		
 		// initialize result feature table, region IDs range from 1 to N
-		int featureNum = 29;
-		MTBTableModel featureTable = new MTBTableModel(regions.size(), 
-				featureNum);
+		int featureNum = morphTab.getColumnCount();
+		MTBTableModel featureTable = new MTBTableModel(regions.size(), featureNum);
 		// select relevant columns and update names
 		String colName, featureName;
 		for (int c=0; c<featureNum; ++c) {
