@@ -2586,8 +2586,13 @@ public class PaCeQuant extends MTBOperator {
 
 		GlobalContrastStretching stretchOp = 
 				new GlobalContrastStretching(img);
-		stretchOp.runOp();
-		MTBImageByte enhancedImg = (MTBImageByte)stretchOp.getResultImage();
+		MTBImageByte enhancedImg;
+		try {
+			stretchOp.runOp();
+			enhancedImg = (MTBImageByte)stretchOp.getResultImage();
+		} catch (IllegalArgumentException e) {
+			enhancedImg = (MTBImageByte)img.convertType(MTBImageType.MTB_BYTE, true);
+		}
 		MTBImageRGB enhancedImgRGB =
 				(MTBImageRGB)enhancedImg.convertType(MTBImageType.MTB_RGB,true);
 		enhancedImgRGB.setTitle("Input image after contrast stretching");
