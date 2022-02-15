@@ -316,13 +316,13 @@
     <repository>
       <id>snapshots</id>
       <name>Archiva Public Snapshot Repository on 'moon'</name>
-      <url>https://moon.informatik.uni-halle.de/archiva/repository/snapshots-pub/</url>
+      <url>https://moon.informatik.uni-halle.de/repository/snapshots-pub/</url>
       <layout>default</layout>
     </repository>
     <repository>
       <id>releases</id>
       <name>Archiva Release Repository on 'moon'</name>
-      <url>https://moon.informatik.uni-halle.de/archiva/repository/releases/</url>
+      <url>https://moon.informatik.uni-halle.de/repository/releases/</url>
       <layout>default</layout>
     </repository>
   </repositories>
