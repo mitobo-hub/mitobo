@@ -30,6 +30,8 @@ import java.util.HashMap;
 import java.util.Set;
 import java.util.Vector;
 
+import org.jfree.chart.LegendItem;
+
 import de.unihalle.informatik.Alida.dataio.ALDDataIOManagerCmdline;
 import de.unihalle.informatik.Alida.dataio.provider.ALDDataIOCmdline;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
@@ -48,6 +50,8 @@ import de.unihalle.informatik.MiToBo.gui.MTBTableModel;
 import de.unihalle.informatik.MiToBo.io.dirs.DirectoryTree;
 import de.unihalle.informatik.MiToBo.io.images.ImageReaderMTB;
 import de.unihalle.informatik.MiToBo.io.images.ImageWriterMTB;
+import ij.ImagePlus;
+import ij.process.ImageProcessor;
 
 /**
  * This operator maps numerical feature values to objects in an indexed image.
@@ -172,6 +176,14 @@ public class FeatureColorMapper extends MTBOperator {
 		// nothing to do here
 	}
 	
+	private transient int minR;
+	private transient int minG;
+	private transient int minB;
+	private transient	int maxR;
+	private transient	int maxG;
+	private transient	int maxB;
+
+	
 	/**
 	 * This method does the actual work.
 	 * @throws ALDOperatorException 			Thrown in case of failure.
@@ -234,13 +246,13 @@ public class FeatureColorMapper extends MTBOperator {
   			}
   		}
 
-			int minR = this.minColor.getRed();
-			int minG = this.minColor.getGreen();
-			int minB = this.minColor.getBlue();
+			this.minR = this.minColor.getRed();
+			this.minG = this.minColor.getGreen();
+			this.minB = this.minColor.getBlue();
 
-			int maxR = this.maxColor.getRed();
-			int maxG = this.maxColor.getGreen();
-			int maxB = this.maxColor.getBlue();
+			this.maxR = this.maxColor.getRed();
+			this.maxG = this.maxColor.getGreen();
+			this.maxB = this.maxColor.getBlue();
 
 			int featuresToMap = this.inData.getColumnIDs().length;
 
@@ -363,6 +375,9 @@ public class FeatureColorMapper extends MTBOperator {
 									OperatorExceptionType.OPERATE_FAILED, 
 										"[PaCeQuant_FeatureColorMapper] "  
 											+ " could not init result folder for color maps...!"); 
+							
+							// generate and save legend
+							this.saveColorLegend(subfolder.getPath(), tm, col, vMins, vMaxs, ranges);
 						}
 
 		  			// get data of selected column
@@ -399,9 +414,9 @@ public class FeatureColorMapper extends MTBOperator {
 							}
 							else {
 								ratio = (featVal - vMins[col]) / ranges[col];
-	  						newR = minR + (int)(ratio*(maxR - minR) + 0.5);
-		  					newG = minG + (int)(ratio*(maxG - minG) + 0.5);
-  							newB = minB + (int)(ratio*(maxB - minB) + 0.5);
+	  						newR = this.minR + (int)(ratio*(this.maxR - this.minR) + 0.5);
+		  					newG = this.minG + (int)(ratio*(this.maxG - this.minG) + 0.5);
+  							newB = this.minB + (int)(ratio*(this.maxB - this.minB) + 0.5);
 								colors.put(id, new Color(newR, newG, newB));
 							}
   					}
@@ -433,8 +448,8 @@ public class FeatureColorMapper extends MTBOperator {
   						}
   					}
   					// add title to image
-	  				colorString = "[" + minR + "," + minG + "," + minB + "] -> " 
-  						+ "[" + maxR + "," + maxG + "," + maxB + "]";
+	  				colorString = "[" + this.minR + "," + this.minG + "," + this.minB + "] -> " 
+  						+ "[" + this.maxR + "," + this.maxG + "," + this.maxB + "]";
   					result.setTitle(tm.getColumnName(columnID) + " - FeatureMap " 
   						+ colorString	+ " of <"	+ img.getTitle() + ">");
   			
@@ -460,4 +475,60 @@ public class FeatureColorMapper extends MTBOperator {
   					+ e.getMessage());
   		}
 	}	
+  
+  /**
+   * Function to generate and save color legends to sub-directories.
+   * @throws ALDOperatorException 
+   */
+  private void saveColorLegend(String subfolder, MTBTableModel tm, int col,
+  		double[] vMins, double[] vMaxs, double[] ranges) throws ALDOperatorException {
+
+  	// create sub-folder
+  	String legendFileName = subfolder + File.separator + "colorLegend.tif";
+
+  	MTBImageRGB imgLegend = (MTBImageRGB)MTBImage.createMTBImage(
+  			300, 1000, 1, 1, 1, MTBImageType.MTB_RGB);
+
+  	double v, ratio;
+  	int row, newR, newG, newB;
+  	for (int y=0; y<1000; ++y) {
+  			v = vMins[col] + y * 0.001 * ranges[col];
+  			ratio = (v - vMins[col]) / ranges[col];
+  			newR = this.minR + (int)(ratio*(this.maxR - this.minR) + 0.5);
+  			newG = this.minG + (int)(ratio*(this.maxG - this.minG) + 0.5);
+  			newB = this.minB + (int)(ratio*(this.maxB - this.minB) + 0.5);
+  			
+  			row = 999-y;
+  			for (int x=0; x < 200; ++x) {
+  				imgLegend.putValueR(x, row, newR);
+  				imgLegend.putValueG(x, row, newG);
+  				imgLegend.putValueB(x, row, newB);
+  			}
+  	}
+  	ImageProcessor ip= imgLegend.getImagePlus().getProcessor();
+		ip.setColor(Color.white);
+		ip.moveTo(210, 995);
+		ip.drawString(Double.toString(vMins[col]));
+		ip.moveTo(210, 20);
+		ip.drawString(Double.toString(vMaxs[col]));
+		imgLegend = (MTBImageRGB)MTBImage.createMTBImage(new ImagePlus("Legend image", ip));
+
+  	// save file
+  	this.fireOperatorExecutionProgressEvent(
+  			new ALDOperatorExecutionProgressEvent(this, classID 
+  					+ " -> ... saving legends file to " + legendFileName + "..."));
+
+  	ImageWriterMTB imWrite;
+		try {
+			imWrite = new ImageWriterMTB();
+	  	imWrite.setFileName(legendFileName);
+	  	imWrite.setInputMTBImage(imgLegend);
+	  	imWrite.runOp();
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new ALDOperatorException(OperatorExceptionType.OPERATE_FAILED, 
+  				classID + " Could not write color legend file " + legendFileName  
+  					+ e.getMessage());
+		}
+  }
 }
