@@ -197,6 +197,19 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 	private transient MTBTableModel resultFeatureTable = null;
 
 	/**
+	 * Table with additional meta data of region skeleton features.
+	 * <p>
+	 * Each row contains one region, each column corresponds to some additional information.
+	 * The region IDs are identical to the labels in the input image.
+	 * <p>
+	 * The first column of the table corresponds to the region ID.
+	 */
+	@Parameter(label = "Result Metadata Table of Skeleton Features", 
+			dataIOOrder = 0, direction = Parameter.Direction.OUT,
+			description = "Result table with skeleton feature meta data.")
+	private transient MTBTableModel resultMetaDataTable = null;
+
+	/**
 	 * Enable/disable the creation of an image to visualize results.
 	 */
 	@Parameter(label = "Visualize analysis results?", dataIOOrder = 0,
@@ -271,7 +284,16 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 	public MTBTableModel getResultTable() {
 		return this.resultFeatureTable;
 	}
-	
+
+	/**
+	 * Get table with meta data supplementing calculated features.
+	 * 
+	 * @return Table with meta data.
+	 */
+	public MTBTableModel getResultMetaDataTable() {
+		return this.resultMetaDataTable;
+	}
+
 	/**
 	 * Get the info image with analysis data visualized.
 	 * <p>
@@ -858,8 +880,9 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 				FeatureNames.LargestEmptyCircle.toString());
 		int rowID = 0;
 		for (int i=0; i<regionWithLabelFound.length; ++i) {
-			if (!regionWithLabelFound[i])
+			if (!regionWithLabelFound[i]) {
 				continue;
+			}
 			this.resultFeatureTable.setValueAt(Integer.toString(i+1),rowID,0);
 			this.resultFeatureTable.setValueAt(
 					Integer.toString(branchCounts[i]), rowID, 1);
@@ -887,6 +910,28 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 				Double.toString(radiiMaxInscribedCircles[i+1]), rowID, 7);
 			++rowID;
 		}
+		
+		// fill meta data table
+		this.resultMetaDataTable = new MTBTableModel(regionCount, 4);
+		this.resultMetaDataTable.setColumnName(0, 
+				FeatureNames.RegionID.toString());
+		this.resultMetaDataTable.setColumnName(1, "LEC_x");
+		this.resultMetaDataTable.setColumnName(2, "LEC_y");
+		this.resultMetaDataTable.setColumnName(3, "LEC_r"); 
+		rowID = 0;
+		for (int i=0; i<regionWithLabelFound.length; ++i) {
+			if (!regionWithLabelFound[i])
+				continue;
+			this.resultMetaDataTable.setValueAt(Integer.toString(i+1),rowID,0);
+			this.resultMetaDataTable.setValueAt(
+					Integer.toString(((int)maxDistPoints[i+1].x)), rowID, 1);
+			this.resultMetaDataTable.setValueAt(
+					Integer.toString(((int)maxDistPoints[i+1].y)), rowID, 2);
+			this.resultMetaDataTable.setValueAt(
+					Double.toString(Math.sqrt(maxDistPerRegion[i+1])), rowID, 3);
+			++rowID;
+		}
+
 	}
 	
 	/**

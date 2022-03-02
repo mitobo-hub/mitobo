@@ -25,13 +25,19 @@
 package de.unihalle.informatik.MiToBo.apps.cellMorphology.paceQuant;
 
 import java.awt.geom.Point2D;
+import java.io.BufferedOutputStream;
+import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.TreeSet;
 import java.util.Vector;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import de.unihalle.informatik.Alida.annotations.ALDAOperator;
 import de.unihalle.informatik.Alida.annotations.Parameter;
@@ -94,6 +100,8 @@ import de.unihalle.informatik.MiToBo.segmentation.regions.labeling.LabelComponen
 import de.unihalle.informatik.MiToBo.segmentation.thresholds.ImgThreshNiblack;
 import de.unihalle.informatik.MiToBo.segmentation.thresholds.ImgThreshNiblack.Mode;
 import de.unihalle.informatik.MiToBo.visualization.colormappings.GrayscaleImageToHeatmap;
+import ij.gui.OvalRoi;
+import ij.io.RoiEncoder;
 import ij.process.ImageProcessor;
 
 /**
@@ -1528,7 +1536,7 @@ public class PaCeQuant extends MTBOperator {
 									OperatorPhasesToRun.SEGMENTATION_AND_FEATURES)
 						|| this.phasesToRun.equals(OperatorPhasesToRun.FEATURES_ONLY)) {
 					this.resultFeatureTable = this.runFeatureExtractionPhase(
-							imgToProcess, regionsToProcess, labelImgToProcess);
+							imgToProcess, regionsToProcess, labelImgToProcess).resultFeatureTable;
 				}
 
 				// fill the additional results stack
@@ -1710,12 +1718,58 @@ public class PaCeQuant extends MTBOperator {
 								// check if also features have to be extracted, if so, do so
 								if (this.phasesToRun.equals(
 											OperatorPhasesToRun.SEGMENTATION_AND_FEATURES)) {
-									this.resultFeatureTable = this.runFeatureExtractionPhase(
+									FeatureResult fResult = this.runFeatureExtractionPhase(
 											imgToProcess, regionsToProcess, labelImgToProcess);
+									this.resultFeatureTable = fResult.resultFeatureTable;
 
 									// save result table
 									this.resultFeatureTable.saveTable(new File(resultDir 
 											+ File.separator + fileRoot + "-table.txt"));
+									
+									// save LEC ROIs
+									MTBTableModel lec = fResult.resultMetaDataTable;
+									if (lec != null) {
+										
+								  	int x, y;
+								  	double r;
+								  	OvalRoi[] orois = new OvalRoi[lec.getRowCount()];
+								  	for (int i=0; i<lec.getRowCount(); ++i) {
+								  		x = Integer.valueOf(lec.getValueAt(i, 1).toString()).intValue();
+								  		y = Integer.valueOf(lec.getValueAt(i, 2).toString()).intValue();
+								  		r = Double.valueOf(lec.getValueAt(i, 3).toString()).intValue();
+								  		int radius = (int)(r+0.5);
+								  		OvalRoi oroi = new OvalRoi(x-radius, y-radius, 2*radius, 2*radius);
+											orois[i] = oroi;
+								  	}
+								  		
+								  	String filename = resultDir + File.separator 
+								  			+ fileRoot + "-LECs" + ".zip";
+
+								  	DataOutputStream out = null;
+								  	String index;
+								  	try {
+								  		ZipOutputStream zos = new ZipOutputStream(
+								  				new BufferedOutputStream(new FileOutputStream(filename)));
+								  		out = new DataOutputStream(new BufferedOutputStream(zos));
+								  		RoiEncoder re = new RoiEncoder(out);
+
+								  		for (int i=0;i<orois.length; ++i) {
+								  			OvalRoi pr = orois[i];
+								  			index = String.format("%05d", new Integer(i+1));
+								  			zos.putNextEntry(new ZipEntry("LEC_" + index + ".roi"));
+								  			re.write(pr);
+								  			out.flush();
+								  		}
+								  		out.close();
+								  	} catch (IOException e) {
+								  		e.printStackTrace();
+								  	} finally {
+								  		if (out!=null)
+								  			try {out.close();} catch (IOException e) {
+								  				// nothing to be done here
+								  			}
+								  	}
+									}
 									
 									// optionally save lobe type image and data table
 									if (this.classifyLobes) {
@@ -1963,12 +2017,59 @@ public class PaCeQuant extends MTBOperator {
 
 								if (regionsToProcess != null && regionsToProcess.size() > 0) {
 									
-									this.resultFeatureTable = this.runFeatureExtractionPhase(
+									regionsToProcess.setInfo(fileRoot);
+									FeatureResult fResult = this.runFeatureExtractionPhase(
 											imgToProcess, regionsToProcess, labelImgToProcess);
-									
+									this.resultFeatureTable = fResult.resultFeatureTable;
+
 									// save result table
 									this.resultFeatureTable.saveTable(new File(resultDir 
 											+ File.separator + fileRoot + "-table.txt"));
+									
+									// save LEC ROIs
+									MTBTableModel lec = fResult.resultMetaDataTable;
+									if (lec != null) {
+										
+								  	int x, y;
+								  	double r;
+								  	OvalRoi[] orois = new OvalRoi[lec.getRowCount()];
+								  	for (int i=0; i<lec.getRowCount(); ++i) {
+								  		x = Integer.valueOf(lec.getValueAt(i, 1).toString()).intValue();
+								  		y = Integer.valueOf(lec.getValueAt(i, 2).toString()).intValue();
+								  		r = Double.valueOf(lec.getValueAt(i, 3).toString()).intValue();
+								  		int radius = (int)(r+0.5);
+								  		OvalRoi oroi = new OvalRoi(x-radius, y-radius, 2*radius, 2*radius);
+											orois[i] = oroi;
+								  	}
+								  		
+								  	String filename = resultDir + File.separator 
+								  			+ fileRoot + "-LECs" + ".zip";
+
+								  	DataOutputStream out = null;
+								  	String index;
+								  	try {
+								  		ZipOutputStream zos = new ZipOutputStream(
+								  				new BufferedOutputStream(new FileOutputStream(filename)));
+								  		out = new DataOutputStream(new BufferedOutputStream(zos));
+								  		RoiEncoder re = new RoiEncoder(out);
+
+								  		for (int i=0;i<orois.length; ++i) {
+								  			OvalRoi pr = orois[i];
+								  			index = String.format("%05d", new Integer(i+1));
+								  			zos.putNextEntry(new ZipEntry("LEC_" + index + ".roi"));
+								  			re.write(pr);
+								  			out.flush();
+								  		}
+								  		out.close();
+								  	} catch (IOException e) {
+								  		e.printStackTrace();
+								  	} finally {
+								  		if (out!=null)
+								  			try {out.close();} catch (IOException e) {
+								  				// nothing to be done here
+								  			}
+								  	}
+									}
 
 									// save gray-scale overlay image
 									imWrite.setFileName(resultDir + File.separator 
@@ -2467,11 +2568,11 @@ public class PaCeQuant extends MTBOperator {
 	 * @param img						Input image to process.
 	 * @param validRegions	Corresponding set of regions.
 	 * @param labelImg			Corresponding label image.
-	 * @return Feature table, for details see also {@link MorphologyAnalyzer2D}.
+	 * @return Features and meta data tables, for details see also {@link MorphologyAnalyzer2D}.
 	 * @throws ALDOperatorException				Thrown in case of failure.
 	 * @throws ALDProcessingDAGException	Thrown in case of failure.
 	 */
-	protected MTBTableModel runFeatureExtractionPhase(MTBImage img,
+	protected FeatureResult runFeatureExtractionPhase(MTBImage img,
   		MTBRegion2DSet validRegions, MTBImage labelImg) 
 		throws ALDOperatorException, ALDProcessingDAGException {
 		
@@ -2479,8 +2580,8 @@ public class PaCeQuant extends MTBOperator {
 		this.fireOperatorExecutionProgressEvent(
 				new ALDOperatorExecutionProgressEvent(this, operatorID 
 					+ " calculating region features..."));
-		MTBTableModel featureTable = 
-				this.calculateRegionFeatures(validRegions, labelImg);
+		FeatureResult featureResult = this.calculateRegionFeatures(validRegions, labelImg);
+		MTBTableModel featureTable = featureResult.resultFeatureTable;
 		int featureNum = featureTable.getColumnCount();
 		
 		// initialize feature stack and visualize results
@@ -2564,7 +2665,7 @@ public class PaCeQuant extends MTBOperator {
 				}
 			}
 		}
-		return featureTable;
+		return featureResult;
 	}
 	
 	/**
@@ -3397,12 +3498,12 @@ public class PaCeQuant extends MTBOperator {
 	 * 
 	 * @param regions		Set of valid regions.
 	 * @param labelImg 	Corresponding label image of region set.
-	 * @return Feature table.
+	 * @return Feature and meta data tables.
 	 * @throws ALDOperatorException	Thrown in case of failure.
 	 * @throws ALDProcessingDAGException	
 	 * 		Thrown in case of problems with the processing history.
 	 */
-	private MTBTableModel calculateRegionFeatures(MTBRegion2DSet regions,
+	private FeatureResult calculateRegionFeatures(MTBRegion2DSet regions,
 				MTBImage labelImg)
 			throws ALDOperatorException, ALDProcessingDAGException {
 
@@ -3710,7 +3811,10 @@ public class PaCeQuant extends MTBOperator {
 			featureTable.setValueAt(new Double(0), r, branchCountIndex);
 			featureTable.setValueAt(new Double(Double.NaN), r, branchLengthIndex);			
 		}
-		return featureTable;
+		FeatureResult featureResult = new FeatureResult();
+		featureResult.resultFeatureTable = featureTable;
+		featureResult.resultMetaDataTable = this.morphFeatureOp.getMetaDataTable();
+		return featureResult;
 	}
 	
 	/**
@@ -3817,7 +3921,24 @@ public class PaCeQuant extends MTBOperator {
 		 */
 		public MTBImageByte resultBinaryImg;
 	}
-	
+
+	/**
+	 * Internal class for representing the result data of feature extraction from an image.
+	 */
+	private class FeatureResult {
+		
+		/**
+		 * Table with features.
+		 */
+		public MTBTableModel resultFeatureTable;
+		
+		/**
+		 * Table with additional meta data. 
+		 */
+		public MTBTableModel resultMetaDataTable;
+
+	}
+
 	/**
 	 * Helper operator to post-process border skeletons.
 	 * <p>
