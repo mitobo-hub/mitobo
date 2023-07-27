@@ -127,7 +127,7 @@
 		<artifactItem>
 		  <groupId>de.unihalle.informatik.MiToBo.native</groupId>
 		  <artifactId>mitobo-native-${native.libdir}</artifactId>
-		  <version>1.0</version>
+		  <version>1.2.1</version>
 		  <type>jar</type>
 		  <overWrite>true</overWrite>
 		  <outputDirectory>target/natives/${native.libdir}</outputDirectory>
@@ -316,7 +316,7 @@
     <repository>
       <id>snapshots</id>
       <name>Archiva Public Snapshot Repository on 'moon'</name>
-      <url>https://moon.informatik.uni-halle.de/repository/snapshots-pub/</url>
+      <url>https://moon.informatik.uni-halle.de/repository/snapshots/</url>
       <layout>default</layout>
     </repository>
     <repository>
