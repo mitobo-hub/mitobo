@@ -94,7 +94,6 @@ import de.unihalle.informatik.MiToBo.morphology.BinaryImageEndpointTools;
 import de.unihalle.informatik.MiToBo.morphology.WatershedBinary;
 import de.unihalle.informatik.MiToBo.segmentation.contours.extraction.ContourOnLabeledComponents;
 import de.unihalle.informatik.MiToBo.segmentation.contours.extraction.ContourOnLabeledComponents.ContourType;
-import de.unihalle.informatik.MiToBo.segmentation.regions.filling.FillHoles2D;
 import de.unihalle.informatik.MiToBo.segmentation.regions.labeling.LabelAreasToRegions;
 import de.unihalle.informatik.MiToBo.segmentation.regions.labeling.LabelComponentsSequential;
 import de.unihalle.informatik.MiToBo.segmentation.thresholds.ImgThreshNiblack;
@@ -472,6 +471,9 @@ public class PaCeQuant extends MTBOperator {
 			paramModificationMode = ParameterModificationMode.MODIFIES_INTERFACE)
 	private SegmentationAlgorithm segVersion = SegmentationAlgorithm.SEGMENTATION_ANISOTROPIC_FILTERS;
 	
+	/**
+	 * Operator for segmentation via convolutional (ridge) filters.
+	 */
 	@Parameter(label = "Segmentation Anisotropic Filters", required = true, 
 			direction = Parameter.Direction.IN, dataIOOrder = 16,
 			description = "Configure segmentation algorithm based on anisotropic filters.")
@@ -907,7 +909,7 @@ public class PaCeQuant extends MTBOperator {
 		this.completeDAG = false;
 		
 		this.morphFeatureOp = new MorphologyAnalyzer2D();
-		this.morphFeatureOp.setDeltaXY(new Double(this.pixelLengthXY));
+		this.morphFeatureOp.setDeltaXY(Double.valueOf(this.pixelLengthXY));
 		switch (this.unitXY)
 		{
 		case MICRONS:
@@ -1536,7 +1538,7 @@ public class PaCeQuant extends MTBOperator {
 									OperatorPhasesToRun.SEGMENTATION_AND_FEATURES)
 						|| this.phasesToRun.equals(OperatorPhasesToRun.FEATURES_ONLY)) {
 					this.resultFeatureTable = this.runFeatureExtractionPhase(
-							imgToProcess, regionsToProcess, labelImgToProcess).resultFeatureTable;
+							imgToProcess, regionsToProcess, labelImgToProcess).resultFeatureValueTable;
 				}
 
 				// fill the additional results stack
@@ -1720,14 +1722,14 @@ public class PaCeQuant extends MTBOperator {
 											OperatorPhasesToRun.SEGMENTATION_AND_FEATURES)) {
 									FeatureResult fResult = this.runFeatureExtractionPhase(
 											imgToProcess, regionsToProcess, labelImgToProcess);
-									this.resultFeatureTable = fResult.resultFeatureTable;
+									this.resultFeatureTable = fResult.resultFeatureValueTable;
 
 									// save result table
 									this.resultFeatureTable.saveTable(new File(resultDir 
 											+ File.separator + fileRoot + "-table.txt"));
 									
 									// save LEC ROIs
-									MTBTableModel lec = fResult.resultMetaDataTable;
+									MTBTableModel lec = fResult.resultFeatureMetaDataTable;
 									if (lec != null) {
 										
 								  	int x, y;
@@ -1755,7 +1757,7 @@ public class PaCeQuant extends MTBOperator {
 
 								  		for (int i=0;i<orois.length; ++i) {
 								  			OvalRoi pr = orois[i];
-								  			index = String.format("%05d", new Integer(i+1));
+								  			index = String.format("%05d", Integer.valueOf(i+1));
 								  			zos.putNextEntry(new ZipEntry("LEC_" + index + ".roi"));
 								  			re.write(pr);
 								  			out.flush();
@@ -1784,7 +1786,7 @@ public class PaCeQuant extends MTBOperator {
 											lobeTab = this.resultLobeFeatureTables.elementAt(i);
 											// skip cells where lobe analysis failed
 											if (lobeTab != null) {
-												c = String.format("%03d", i+1);
+												c = String.format("%03d", Integer.valueOf(i+1));
 												lobeTab.saveTable(new File(resultDir + File.separator 
 													+ fileRoot + "-cell-" + c + "-lobe-table.txt"));
 											}
@@ -2020,14 +2022,14 @@ public class PaCeQuant extends MTBOperator {
 									regionsToProcess.setInfo(fileRoot);
 									FeatureResult fResult = this.runFeatureExtractionPhase(
 											imgToProcess, regionsToProcess, labelImgToProcess);
-									this.resultFeatureTable = fResult.resultFeatureTable;
+									this.resultFeatureTable = fResult.resultFeatureValueTable;
 
 									// save result table
 									this.resultFeatureTable.saveTable(new File(resultDir 
 											+ File.separator + fileRoot + "-table.txt"));
 									
 									// save LEC ROIs
-									MTBTableModel lec = fResult.resultMetaDataTable;
+									MTBTableModel lec = fResult.resultFeatureMetaDataTable;
 									if (lec != null) {
 										
 								  	int x, y;
@@ -2055,7 +2057,7 @@ public class PaCeQuant extends MTBOperator {
 
 								  		for (int i=0;i<orois.length; ++i) {
 								  			OvalRoi pr = orois[i];
-								  			index = String.format("%05d", new Integer(i+1));
+								  			index = String.format("%05d", Integer.valueOf(i+1));
 								  			zos.putNextEntry(new ZipEntry("LEC_" + index + ".roi"));
 								  			re.write(pr);
 								  			out.flush();
@@ -2090,7 +2092,7 @@ public class PaCeQuant extends MTBOperator {
 											lobeTab = this.resultLobeFeatureTables.elementAt(i);
 											// skip cells where lobe analysis failed
 											if (lobeTab != null) {
-												c = String.format("%03d", i+1);
+												c = String.format("%03d", Integer.valueOf(i+1));
 												lobeTab.saveTable(new File(resultDir + File.separator 
 													+ fileRoot + "-cell-" + c + "-lobe-table.txt"));
 											}
@@ -2178,7 +2180,7 @@ public class PaCeQuant extends MTBOperator {
   		cSet.add(creg);
 
   		// save each single region to a ROI file
-  		roiString = String.format("%03d", new Integer(roiID));
+  		roiString = String.format("%03d", Integer.valueOf(roiID));
 				
   		rw.setOutputFile(resultDir + File.separator + "roiFiles_singleCells" + File.separator +
   				fileRoot + "-roi_" + roiString + ".roi");
@@ -2195,6 +2197,11 @@ public class PaCeQuant extends MTBOperator {
   	rw.runOp();
   }
   
+  /**
+   * Function to put additional result images into a stack.
+   * 
+   * @param title	Title of the final stack.
+   */
   protected void prepareAdditionalResultDataStack(String title) {
 		this.resultAdditionalImages= (MTBImageRGB)MTBImage.createMTBImage(
 				this.width, this.height, this.addResultImages.size(), 1, 1, 
@@ -2581,7 +2588,7 @@ public class PaCeQuant extends MTBOperator {
 				new ALDOperatorExecutionProgressEvent(this, operatorID 
 					+ " calculating region features..."));
 		FeatureResult featureResult = this.calculateRegionFeatures(validRegions, labelImg);
-		MTBTableModel featureTable = featureResult.resultFeatureTable;
+		MTBTableModel featureTable = featureResult.resultFeatureValueTable;
 		int featureNum = featureTable.getColumnCount();
 		
 		// initialize feature stack and visualize results
@@ -3508,7 +3515,7 @@ public class PaCeQuant extends MTBOperator {
 			throws ALDOperatorException, ALDProcessingDAGException {
 
 		// run feature extraction
-		this.morphFeatureOp.setDeltaXY(new Double(this.pixelLengthXYinternal));
+		this.morphFeatureOp.setDeltaXY(Double.valueOf(this.pixelLengthXYinternal));
 		this.morphFeatureOp.setUnitXY(this.pixelUnitString);
 		this.morphFeatureOp.setRegionSet(regions);
 		this.morphFeatureOp.setLabelImage(labelImg);
@@ -3556,12 +3563,12 @@ public class PaCeQuant extends MTBOperator {
 						for (int dx=-1;dx<=1;++dx) {
 							if (   x+dx>=0 && x+dx<this.width 
 									&& y+dy>=0 && y+dy<this.height) {
-								labels.add(new Integer(finalLabelImg.getValueInt(x+dx, y+dy))); 
+								labels.add(Integer.valueOf(finalLabelImg.getValueInt(x+dx, y+dy))); 
 							}
 						}
 					}
 					// remove the null from label set, if element of the set
-					labels.remove(new Integer(0));
+					labels.remove(Integer.valueOf(0));
 					// if there are still 3 labels left, we found a 3-contact-point
 					if (labels.size() == 3)
 						threeContactPoints.add(new Point2D.Double(x,y));
@@ -3612,19 +3619,19 @@ public class PaCeQuant extends MTBOperator {
 									if (   px+dx>=0 && px+dx<this.width 
 											&& py+dy>=0 && py+dy<this.height)
 										labels.add(
-												new Integer(finalLabelImg.getValueInt(px+dx, py+dy)));
+												Integer.valueOf(finalLabelImg.getValueInt(px+dx, py+dy)));
 								}						
 							}
 						}
 						LobeTypes lobeClass = LobeTypes.UNDEFINED;
 						int color = 0;
 						// type 1: two regions, no background
-						if (labels.size() == 2 && !labels.contains(new Integer(0))) {
+						if (labels.size() == 2 && !labels.contains(Integer.valueOf(0))) {
 							color = 1;
 							lobeClass = LobeTypes.TYPE_1;
 						}
 						// type 2: three regions, no background 
-						else if (labels.size() == 3 && !labels.contains(new Integer(0))) {
+						else if (labels.size() == 3 && !labels.contains(Integer.valueOf(0))) {
 							color = 2;
 							lobeClass = LobeTypes.TYPE_2;
 
@@ -3684,26 +3691,26 @@ public class PaCeQuant extends MTBOperator {
 								break;
 							}
 						}
-						lobeTab.setValueAt(new Integer(segID+1), segID, 0);
+						lobeTab.setValueAt(Integer.valueOf(segID+1), segID, 0);
 						lobeTab.setValueAt(lobeClass.toString(), segID, 1);			
-						lobeTab.setValueAt(new Double(ipc.getEquatorLength()), segID, 2);
-						lobeTab.setValueAt(new Double(ipc.getBaselineLength()), segID, 3);
-						lobeTab.setValueAt(new Double(ipc.getApicalLength()), segID, 4);
-						lobeTab.setValueAt(new Double(ipc.getBasalLength()), segID, 5);
-						lobeTab.setValueAt(new Double(ipc.getTotalLength()), segID, 6);
+						lobeTab.setValueAt(Double.valueOf(ipc.getEquatorLength()), segID, 2);
+						lobeTab.setValueAt(Double.valueOf(ipc.getBaselineLength()), segID, 3);
+						lobeTab.setValueAt(Double.valueOf(ipc.getApicalLength()), segID, 4);
+						lobeTab.setValueAt(Double.valueOf(ipc.getBasalLength()), segID, 5);
+						lobeTab.setValueAt(Double.valueOf(ipc.getTotalLength()), segID, 6);
 						if (   lobeClass.equals(LobeTypes.TYPE_1)
 								|| lobeClass.equals(LobeTypes.UNDEFINED)) {
-							lobeTab.setValueAt(new Double(Double.NaN), segID, 7);			
-							lobeTab.setValueAt(new Double(Double.NaN), segID, 8);									
+							lobeTab.setValueAt(Double.valueOf(Double.NaN), segID, 7);			
+							lobeTab.setValueAt(Double.valueOf(Double.NaN), segID, 8);									
 						}
 						else {
 							if (leftLength > rightLength) {
-								lobeTab.setValueAt(new Double(leftLength), segID, 7);			
-								lobeTab.setValueAt(new Double(rightLength), segID, 8);
+								lobeTab.setValueAt(Double.valueOf(leftLength), segID, 7);			
+								lobeTab.setValueAt(Double.valueOf(rightLength), segID, 8);
 							}
 							else {
-								lobeTab.setValueAt(new Double(rightLength), segID, 7);			
-								lobeTab.setValueAt(new Double(leftLength), segID, 8);							
+								lobeTab.setValueAt(Double.valueOf(rightLength), segID, 7);			
+								lobeTab.setValueAt(Double.valueOf(leftLength), segID, 8);							
 							}
 						}
 						++segID;
@@ -3777,15 +3784,15 @@ public class PaCeQuant extends MTBOperator {
 
 		// copy and convert data
 		for (int r=0; r<morphTab.getRowCount(); ++r) {
-			featureTable.setValueAt(new Integer(r+1), r, 0);
+			featureTable.setValueAt(Integer.valueOf(r+1), r, 0);
 			for (int c=1; c<featureNum; ++c) {
 				String morphValue = (String)morphTab.getValueAt(r, c);
 				// convert numbers to English style with '.' instead of ','
 				morphValue = morphValue.replace(",",".");
 				try {
-					featureTable.setValueAt(new Double(morphValue), r, c);
+					featureTable.setValueAt(Double.valueOf(morphValue), r, c);
 				} catch (NumberFormatException nex) {
-					featureTable.setValueAt(new Double(Double.NaN), r, c);
+					featureTable.setValueAt(Double.valueOf(Double.NaN), r, c);
 				}
 			}
 		}
@@ -3808,12 +3815,12 @@ public class PaCeQuant extends MTBOperator {
 					r, branchCountIndex)).doubleValue();
 			if (count >= 2) 
 				continue;
-			featureTable.setValueAt(new Double(0), r, branchCountIndex);
-			featureTable.setValueAt(new Double(Double.NaN), r, branchLengthIndex);			
+			featureTable.setValueAt(Double.valueOf(0), r, branchCountIndex);
+			featureTable.setValueAt(Double.valueOf(Double.NaN), r, branchLengthIndex);			
 		}
 		FeatureResult featureResult = new FeatureResult();
-		featureResult.resultFeatureTable = featureTable;
-		featureResult.resultMetaDataTable = this.morphFeatureOp.getMetaDataTable();
+		featureResult.resultFeatureValueTable = featureTable;
+		featureResult.resultFeatureMetaDataTable = this.morphFeatureOp.getMetaDataTable();
 		return featureResult;
 	}
 	
@@ -3874,6 +3881,11 @@ public class PaCeQuant extends MTBOperator {
 	private class PavementcellDetectorResult{
 		public MTBImageByte segImage, inImg;
 		public List<Cell> detectedCells;
+		
+		/**
+		 * Default constructor.
+		 */
+		public PavementcellDetectorResult() {}
 	}
 
 	
@@ -3920,6 +3932,11 @@ public class PaCeQuant extends MTBOperator {
 		 * Binary image with segmented regions in foreground (white).
 		 */
 		public MTBImageByte resultBinaryImg;
+		
+		/**
+		 * Default constructor.
+		 */
+		public SegmentationResult() {}
 	}
 
 	/**
@@ -3930,13 +3947,17 @@ public class PaCeQuant extends MTBOperator {
 		/**
 		 * Table with features.
 		 */
-		public MTBTableModel resultFeatureTable;
+		public MTBTableModel resultFeatureValueTable;
 		
 		/**
 		 * Table with additional meta data. 
 		 */
-		public MTBTableModel resultMetaDataTable;
+		public MTBTableModel resultFeatureMetaDataTable;
 
+		/**
+		 * Default constructor.
+		 */
+		public FeatureResult() {}
 	}
 
 	/**

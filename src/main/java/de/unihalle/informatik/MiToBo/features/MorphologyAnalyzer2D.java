@@ -812,7 +812,7 @@ public class MorphologyAnalyzer2D extends MTBOperator
 				this.radiiMaxInscribedEmptyCircles.add(Double.valueOf(
 					(String)skeletonData.getValueAt(i, radiiMaxEmptyCircleIndex)));
 			}
-			// copy meta data table
+			// copy meta data table (currently we only have meta data on skeleton features)
 			this.metaDataTable = skeletonOp.getResultMetaDataTable();
 		}
 	}

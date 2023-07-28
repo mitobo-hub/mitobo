@@ -199,6 +199,9 @@ public class Region2DSkeletonAnalyzer extends MTBOperator {
 	/**
 	 * Table with additional meta data of region skeleton features.
 	 * <p>
+	 * The information in this table is not directly linked to feature values themselves,
+	 * but can be seen as additional explanatory information, e.g., helpful for visualization
+	 * or debugging of extracted feature values. 
 	 * Each row contains one region, each column corresponds to some additional information.
 	 * The region IDs are identical to the labels in the input image.
 	 * <p>
