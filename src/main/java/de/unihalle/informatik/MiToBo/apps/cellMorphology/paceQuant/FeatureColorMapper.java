@@ -30,8 +30,6 @@ import java.util.HashMap;
 import java.util.Set;
 import java.util.Vector;
 
-import org.jfree.chart.LegendItem;
-
 import de.unihalle.informatik.Alida.dataio.ALDDataIOManagerCmdline;
 import de.unihalle.informatik.Alida.dataio.provider.ALDDataIOCmdline;
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
@@ -176,11 +174,29 @@ public class FeatureColorMapper extends MTBOperator {
 		// nothing to do here
 	}
 	
+	/**
+	 * Red color value [0,255] of color for minimal value in range.
+	 */
 	private transient int minR;
+	/**
+	 * Green color value [0,255] of color for minimal value in range.
+	 */
 	private transient int minG;
+	/**
+	 * Blue color value [0,255] of color for minimal value in range.
+	 */
 	private transient int minB;
+	/**
+	 * Red color value [0,255] of color for maximal value in range.
+	 */
 	private transient	int maxR;
+	/**
+	 * Green color value [0,255] of color for maximal value in range.
+	 */
 	private transient	int maxG;
+	/**
+	 * Blue color value [0,255] of color for maximal value in range.
+	 */
 	private transient	int maxB;
 
 	
@@ -428,7 +444,7 @@ public class FeatureColorMapper extends MTBOperator {
   								for (int y = 0; y < height; ++y) {
   									for (int x = 0; x < width; ++x) {
   										value = img.getValueInt(x, y, z, t, c);
-  										valueI = new Integer(value);
+  										valueI = Integer.valueOf(value);
   										if (!colors.containsKey(valueI)) {
   											result.putValueR(x, y, z, t, c, value); 
   											result.putValueG(x, y, z, t, c, value); 
@@ -478,7 +494,13 @@ public class FeatureColorMapper extends MTBOperator {
   
   /**
    * Function to generate and save color legends to sub-directories.
-   * @throws ALDOperatorException 
+   * @param subfolder	Folder where result feature maps are stored. 
+   * @param tm 				Table model with data (currently unused).
+   * @param col 			Columns of data for which legend should be generated.
+   * @param vMins 		Minimal values of data per column. 
+   * @param vMaxs 		Maximal values of data per column.
+   * @param ranges 		Ranges of data per column.
+   * @throws ALDOperatorException Thrown in case that images cannot be generated/written.
    */
   private void saveColorLegend(String subfolder, MTBTableModel tm, int col,
   		double[] vMins, double[] vMaxs, double[] ranges) throws ALDOperatorException {
