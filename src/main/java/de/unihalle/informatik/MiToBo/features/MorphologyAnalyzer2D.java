@@ -30,6 +30,9 @@ import ij.process.ImageProcessor;
 
 import java.awt.Polygon;
 import java.awt.geom.Point2D;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Vector;
 
@@ -41,6 +44,7 @@ import de.unihalle.informatik.Alida.annotations.Parameter.ParameterModificationM
 import de.unihalle.informatik.Alida.exceptions.ALDOperatorException;
 import de.unihalle.informatik.Alida.exceptions.ALDProcessingDAGException;
 import de.unihalle.informatik.Alida.operator.events.ALDOperatorExecutionProgressEvent;
+import de.unihalle.informatik.MiToBo.core.datatypes.MTBContour2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBContour2DSet;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2D;
 import de.unihalle.informatik.MiToBo.core.datatypes.MTBRegion2DSet;
@@ -433,10 +437,20 @@ public class MorphologyAnalyzer2D extends MTBOperator
 		description = "Skeleton data image.") 
 	private transient MTBImageRGB skeletonInfoImg = null;	
 
-	// output parameter
-	@Parameter(label = "results table", required = true, direction = Parameter.Direction.OUT, supplemental = false, description = "results table", dataIOOrder = 0)
+	/**
+	 * Result table.
+	 */
+	@Parameter(label = "Results table", direction = Parameter.Direction.OUT, 
+			supplemental = false, description = "Results table.", dataIOOrder = 0)
 	private MTBTableModel table = null;
-	
+
+	/**
+	 * Meta data table giving additional information on extracted features.
+	 */
+	@Parameter(label = "Meta data table", direction = Parameter.Direction.OUT, 
+			description = "Meta data table.", dataIOOrder = 1)
+	private MTBTableModel metaDataTable = null;
+
 	private NumberFormat nf = NumberFormat.getInstance();
 	
 	private int bgLabel = 0;			// label value for the background
@@ -798,6 +812,8 @@ public class MorphologyAnalyzer2D extends MTBOperator
 				this.radiiMaxInscribedEmptyCircles.add(Double.valueOf(
 					(String)skeletonData.getValueAt(i, radiiMaxEmptyCircleIndex)));
 			}
+			// copy meta data table (currently we only have meta data on skeleton features)
+			this.metaDataTable = skeletonOp.getResultMetaDataTable();
 		}
 	}
 	
@@ -1390,7 +1406,15 @@ public class MorphologyAnalyzer2D extends MTBOperator
 	{
 		return this.table;
 	}
-	
+
+	/**
+	 * Get result meta data table.
+	 * @return Result meta data table.
+	 */
+	public MTBTableModel getMetaDataTable() {
+		return this.metaDataTable;
+	}
+
 	/**
 	 * Access detailed information on indentations and protrusions.
 	 * <p>
@@ -1534,6 +1558,23 @@ public class MorphologyAnalyzer2D extends MTBOperator
 			gaussFilter.setInputArray(values);
 			gaussFilter.runOp(HidingMode.HIDE_CHILDREN);
 			curvatureValues.setElementAt(gaussFilter.getResultArray(), i);
+
+//			// save curvature values
+//			try {
+//				MTBContour2D cont = contours.elementAt(i);
+//				Vector<Point2D.Double> contPs = cont.getPoints();
+//				BufferedWriter writer = new BufferedWriter(new FileWriter(
+//						this.inRegions.getInfo() + "-contourData-" + i + ".txt"));
+//				for (int cc=0; cc<gaussFilter.getResultArray().length; ++cc) {
+//					writer.write(contPs.elementAt(cc).x + " " + contPs.elementAt(cc).y
+//							+ " " + gaussFilter.getResultArray()[cc] + "\n");
+//				}
+//				writer.close();
+//			} catch (IOException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+			
 			++i;
 		}
 
