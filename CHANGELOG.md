@@ -10,6 +10,23 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 ### Removed
 ### Fixed
 
+## [2.3] - 2023-07-31
+Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
+- Released MiToBo 2.3
+### Added
+- FeatureColorMapper:
+    - providing color legend images in addition to map images 
+- MTBWrapperDataIOSwing: added support for MTBBooleanData in Swing GUI
+- PaCeQuant: saving LECs in additional ImageJ ROI files
+### Changed
+- updated dependencies, in particular Alida POM and SciJava version (36.0.0 now)
+### Fixed
+- fixed Archiva repository URLs
+- FeatureColorMapper: fixed bug in extracting suffices for matching images and tables
+- PaCeQuant:
+	- fixed image enhancement in case of low/zero variance, image is left unmodified then  
+    - fixed issue in filling result table if some feature values could not be calculated
+
 ## [2.2] - 2021-05-07
 Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
 - Released MiToBo 2.2
