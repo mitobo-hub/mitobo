@@ -75,7 +75,6 @@ import loci.formats.ImageWriter;
 import loci.formats.gui.ComboFileFilter;
 import loci.formats.gui.ExtensionFileFilter;
 import loci.formats.out.AVIWriter;
-import loci.formats.out.LegacyQTWriter;
 import loci.formats.out.QTWriter;
 
 /**
@@ -237,7 +236,7 @@ public class ImageWriterOptionsPane extends JPanel implements PropertyChangeList
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
 		String prop = evt.getPropertyName();
-		
+
 		if (prop.equals(JFileChooser.FILE_FILTER_CHANGED_PROPERTY)
 				|| prop.equals(JFileChooser.SELECTED_FILE_CHANGED_PROPERTY)) {
 			
@@ -317,8 +316,7 @@ public class ImageWriterOptionsPane extends JPanel implements PropertyChangeList
 			}				
 
 
-			if (!(w instanceof LegacyQTWriter
-					|| w instanceof QTWriter
+			if (!(w instanceof QTWriter
 					|| w instanceof AVIWriter)) {
 				// --- image options
 				// (video compression is determined by quality/codec if available)
@@ -360,8 +358,7 @@ public class ImageWriterOptionsPane extends JPanel implements PropertyChangeList
 				this.setVisible(true);
 				
 				// quality and codec options of quicktime writers
-				if (w instanceof LegacyQTWriter
-						|| w instanceof QTWriter) {
+				if (w instanceof QTWriter) {
 					
 					this.comppanel.setVisible(false);
 					
@@ -440,7 +437,5 @@ public class ImageWriterOptionsPane extends JPanel implements PropertyChangeList
 		}
 		
 	}
-	
-	
 	
 }

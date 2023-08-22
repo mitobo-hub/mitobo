@@ -142,7 +142,6 @@ import loci.formats.gui.AWTImageTools;
 import loci.formats.meta.IMetadata;
 import loci.formats.ome.OMEXMLMetadata;
 import loci.formats.out.AVIWriter;
-import loci.formats.out.LegacyQTWriter;
 import loci.formats.out.QTWriter;
 import loci.formats.services.OMEXMLService;
 import ome.xml.meta.OMEXMLMetadataRoot;
@@ -754,22 +753,22 @@ public class ImageWriterMTB extends MTBOperator implements StatusReporter {
 		}
 		
 		// movie writer options
-		if (w instanceof AVIWriter || w instanceof QTWriter || w instanceof LegacyQTWriter) {
+		if (w instanceof AVIWriter || w instanceof QTWriter) {
 			if (this.getFps() != null)
 				w.setFramesPerSecond(this.getFps());
 			
 			if (this.getQuality() != null) {
 				if (w instanceof QTWriter)
 					((QTWriter)w).setQuality(this.getQuality());
-				else if (w instanceof LegacyQTWriter)
-					((LegacyQTWriter)w).setQuality(this.getQuality());
+//				else if (w instanceof QTWriter)
+//					((QTWriter)w).setQuality(this.getQuality());
 			}
 			
 			if (this.getCodec() != null) {
 				if (w instanceof QTWriter)
 					((QTWriter)w).setCodec(this.getCodec());
-				else if (w instanceof LegacyQTWriter)
-					((LegacyQTWriter)w).setCodec(this.getCodec());
+//				else if (w instanceof QTWriter)
+//					((QTWriter)w).setCodec(this.getCodec());
 			}
 		}
 		
@@ -1065,22 +1064,22 @@ public class ImageWriterMTB extends MTBOperator implements StatusReporter {
 			w.setCompression(this.getCompression());
 
 		// movie writer options
-		if (w instanceof AVIWriter || w instanceof QTWriter || w instanceof LegacyQTWriter) {
+		if (w instanceof AVIWriter || w instanceof QTWriter) {
 			if (this.getFps() != null)
 				w.setFramesPerSecond(this.getFps());
 			
 			if (this.getQuality() != null) {
 				if (w instanceof QTWriter)
 					((QTWriter)w).setQuality(this.getQuality());
-				else if (w instanceof LegacyQTWriter)
-					((LegacyQTWriter)w).setQuality(this.getQuality());
+//				else if (w instanceof LegacyQTWriter)
+//					((LegacyQTWriter)w).setQuality(this.getQuality());
 			}
 			
 			if (this.getCodec() != null) {
 				if (w instanceof QTWriter)
 					((QTWriter)w).setCodec(this.getCodec());
-				else if (w instanceof LegacyQTWriter)
-					((LegacyQTWriter)w).setCodec(this.getCodec());
+//				else if (w instanceof LegacyQTWriter)
+//					((LegacyQTWriter)w).setCodec(this.getCodec());
 			}
 		}
 		
@@ -1186,7 +1185,7 @@ public class ImageWriterMTB extends MTBOperator implements StatusReporter {
 		if (this.fileName != null) {
 			IFormatWriter w = new ImageWriter().getWriter(this.fileName.getFileName());
 		
-			if ((w instanceof LegacyQTWriter) || (w instanceof QTWriter)) {
+			if (w instanceof QTWriter) {
 				return ImageIOUtils.availableCodecs(QTWriter.class);
 			}
 			else {
@@ -1207,7 +1206,7 @@ public class ImageWriterMTB extends MTBOperator implements StatusReporter {
 		if (this.fileName != null) {
 			IFormatWriter w = new ImageWriter().getWriter(this.fileName.getFileName());
 			
-			if ((w instanceof LegacyQTWriter) || (w instanceof QTWriter)) {
+			if (w instanceof QTWriter) {
 				return ImageIOUtils.availableQualities(QTWriter.class);
 			}
 			else {
@@ -1321,7 +1320,7 @@ public class ImageWriterMTB extends MTBOperator implements StatusReporter {
 	public void setFps(Integer fps) throws FormatException {
 		if (this.fileName != null) {
 			IFormatWriter w = new ImageWriter().getWriter(this.fileName.getFileName());
-			if (w instanceof AVIWriter || w instanceof QTWriter || w instanceof LegacyQTWriter)
+			if (w instanceof AVIWriter || w instanceof QTWriter)
 				this.fps = fps;
 		}
 	}
