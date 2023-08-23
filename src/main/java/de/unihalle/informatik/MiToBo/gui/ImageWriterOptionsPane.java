@@ -230,28 +230,36 @@ public class ImageWriterOptionsPane extends JPanel implements PropertyChangeList
 	}
 	
 	/**
+	 * Helper function to notify pane of manual changes in JFileChooser text field.
+	 * 
+	 * @param evt	Event providing the new file name.
+	 */
+	public void myPropertyChange(PropertyChangeEvent evt) {
+		this.propertyChange(evt);
+	}
+	
+	/**
 	 * Changes the available options of the writer option panel according to the selected 
 	 * file filter of the file chooser
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
 		String prop = evt.getPropertyName();
-
-		if (prop.equals(JFileChooser.FILE_FILTER_CHANGED_PROPERTY)
+		
+		if (   prop.equals(JFileChooser.FILE_FILTER_CHANGED_PROPERTY)
 				|| prop.equals(JFileChooser.SELECTED_FILE_CHANGED_PROPERTY)) {
-			
 			
 			FileFilter ff = this.jfc.getFileFilter();
 	
-			// do not change image writer options if the filefilter has not changed and ...
+			// do not change image writer options if the file filter has not changed and ...
 			if (prop.equals(JFileChooser.SELECTED_FILE_CHANGED_PROPERTY)) {
 				
-				// ... the filefilter is an extension file filter (image writer options do not change because
+				// ... the file filter is an extension file filter (image writer options do not change because
 				// the writer doesn't change
 				if (ff instanceof ExtensionFileFilter)
 					return;
 				
-				// ... if the filefilter permits multiple formats, but the format has not changed from the
+				// ... if the file filter permits multiple formats, but the format has not changed from the
 				// the last to the current selected file
 				if (ff instanceof ComboFileFilter) {
 					
@@ -292,13 +300,16 @@ public class ImageWriterOptionsPane extends JPanel implements PropertyChangeList
 			}
 			else {
 				// by extension
-				
-				File file = this.jfc.getSelectedFile();
-				if (file != null)
-					fname = this.jfc.getSelectedFile().getName();
+				if (evt.getOldValue() == "_dummy_") {
+					fname = (String)evt.getNewValue();
+				}
+				else {
+					File file = this.jfc.getSelectedFile();
+					if (file != null)
+						fname = this.jfc.getSelectedFile().getName();
+				}
 			}
 
-			
 			this.setVisible(false);
 			this.comppanel.setVisible(false);
 			this.vidpanel.setVisible(false);
