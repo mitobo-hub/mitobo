@@ -1,4 +1,7 @@
 # mitobo
+
+![GitLab language count](https://img.shields.io/gitlab/languages/count/:mitobo)
+
 MiToBo - A microscope image analysis toolbox
 
 The Microscope Image Analysis Toolbox [**MiToBo**](http://www.informatik.uni-halle.de/mitobo) 
