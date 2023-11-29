@@ -6,9 +6,18 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 ## [Unreleased]
 ### Added
 ### Changed
+### Improved
 ### Deprecated
 ### Removed
 ### Fixed
+
+## [2.3.1] - 2023-08-23
+Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
+- Released MiToBo 2.3.1
+### Improved
+- ImageWriterOptionsPane: added new event handler for manual file name changes
+### Removed
+- ImageWriterMTB: removed references to deprecated Bioformats LegacyQTWriter
 
 ## [2.3] - 2023-07-31
 Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
