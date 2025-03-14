@@ -11,6 +11,12 @@ The format of the file is based on a template from [Keep a Changelog](http://kee
 ### Removed
 ### Fixed
 
+## [2.4] - 2025-03-14
+Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
+- Released MiToBo 2.4
+### Changed
+- updates to use EJML 0.40.0
+
 ## [2.3.1] - 2023-08-23
 Birgit Moeller - <birgit.moeller@informatik.uni-halle.de>
 - Released MiToBo 2.3.1
