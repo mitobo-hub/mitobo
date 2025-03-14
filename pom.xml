@@ -346,8 +346,8 @@
       <artifactId>jama</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.googlecode.efficient-java-matrix-library</groupId>
-      <artifactId>ejml</artifactId>
+      <groupId>org.ejml</groupId>
+      <artifactId>ejml-all</artifactId>
     </dependency>
     <dependency>
       <groupId>tw.edu.ntu.csie</groupId>

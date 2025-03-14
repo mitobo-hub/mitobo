@@ -35,7 +35,7 @@ import de.unihalle.informatik.MiToBo.core.operator.*;
 import java.awt.geom.Point2D;
 import java.util.Vector;
 
-import org.ejml.ops.MatrixFeatures;
+import org.ejml.dense.row.MatrixFeatures_DDRM;
 import org.ejml.simple.SimpleEVD;
 import org.ejml.simple.SimpleMatrix;
 
@@ -218,7 +218,7 @@ public class FitEllipseToPointSet extends MTBOperator {
 		SimpleMatrix matS = matDt.mult(matD);
 		
 		// check if matrix S has full rank
-		if (MatrixFeatures.rank(matS.getMatrix(), 1e-200) < 6) {
+		if (MatrixFeatures_DDRM.rank(matS.getMatrix(), 1e-200) < 6) {
 			throw new ALDOperatorException(
 					OperatorExceptionType.OPERATE_FAILED, 
 					"[FitEllipseToPointSet] scatter matrix not invertible!");
