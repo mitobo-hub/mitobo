@@ -1,5 +1,9 @@
 # mitobo
 
+![GitHub language count](https://img.shields.io/github/languages/count/mitobo-hub/mitobo?color=darkgreen)
+![GitHub top language](https://img.shields.io/github/languages/top/mitobo-hub/mitobo)
+![GitHub repo size](https://img.shields.io/github/repo-size/mitobo-hub/mitobo?color=red)
+
 MiToBo - A microscope image analysis toolbox
 
 The Microscope Image Analysis Toolbox [**MiToBo**](http://www.informatik.uni-halle.de/mitobo) 
